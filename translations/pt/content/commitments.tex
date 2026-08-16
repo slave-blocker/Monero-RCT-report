@@ -358,11 +358,651 @@ saídas.
 \section{Bulletproofs}
 \label{sec:bullet_proofs}
 
-As assinaturas Borromean tornam explícito cada um dos 64 bits, mas pagam por
-isso 64 compromissos e 64 anéis por saída. As Bulletproofs de Bünz
-\emph{et al.} \cite{Bulletproofs_paper,adam-zero-to-bulletproofs} provam os
-mesmos constrangimentos com um argumento de produto interno cujo tamanho cresce
-logaritmicamente. Além disso, uma só prova pode agregar vários montantes.
+\centerline{{\it Sou mais rápido quando me mexo.}}
+\centerline{\quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad {\it Sundance}}
+
+\subparagraph{Em português: provas de bala.\newline}
+
+À partida nem se percebe como é que alguém chega a descobrir o algoritmo
+anterior, o das assinaturas Borromean. Também não se explicaram todos os
+vectores de ataque contra essas assinaturas, nem se, para o seu custo de
+comunicação, eram a forma mais compacta possível. O leitor que pergunta
+«como é que se chega a tal coisa?» ou «não se pode forjar isto?» ficou sem a
+história da descoberta.
+
+O que se segue é ainda mais complicado. Não se promete aqui inventar a prova
+de novo; promete-se algo mais honesto: seguir a bala enquanto ela se mexe,
+passo a passo, até se perceber por que acerta no alvo. Assim se vê por que o
+método funciona, que peças impedem a falsificação e onde uma implementação mal
+feita poderia estragar a magia. Esta é a Bulletproof clássica de Bünz
+\emph{et al.} \cite{Bulletproofs_paper,adam-zero-to-bulletproofs}, apresentada
+primeiro para um único montante. A agregação e a passagem para Bulletproof+
+virão depois; não se atropela esta batalha com a seguinte.
+
+Fixe-se \(n=64\). Se \(v\) está entre \(0\) e \(2^{64}-1\), passa-se primeiro
+\(v\) para a sua representação binária:
+\[
+ \underline{a}_L\leftarrow\operatorname{bits}(v),\qquad
+ v=\langle\underline{a}_L,\underline{2}^{\,n}\rangle,
+ \qquad
+ \underline{2}^{\,n}=(2^0,2^1,\ldots,2^{n-1}).
+\]
+Depois impõem-se dois constrangimentos adicionais:
+\begin{align*}
+v = \langle\underline{a}_L, \underline{2}^n\rangle\\
+\underline{a}_R = \underline{a}_L - \underline{1}\\
+\underline{a}_L \circ \underline{a}_R  = \underline{0}.
+\end{align*}
+
+O segundo diz que cada coordenada é mesmo um bit:
+\(a_{L,i}(a_{L,i}-1)=0\).
+Agora faz-se o seguinte:
+
+\begin{align*}
+v = \langle\underline{a}_L, \underline{2}^n\rangle\\
+0 = \langle\underline{a}_L - \underline{1} - \underline{a}_R, \underline{y}^n\rangle\\
+0 = \langle\underline{a}_L \circ \underline{a}_R, \underline{y}^{\,n}\rangle.
+\end{align*}
+
+Aqui entra a primeira pequena faísca. As afirmações vectoriais e as duas
+igualdades escalares são equivalentes, excepto com probabilidade negligenciável
+de falhar. Com
+\(\underline{y}^{\,n}=(y^0,y^1,\ldots,y^{n-1})\), qualquer vector
+\(\underline c=(c_0,c_1,\ldots,c_{n-1})\) define o polinómio
+\begin{align*}
+F(y)=c_0+c_1y+c_2y^2+\cdots+c_{n-1}y^{n-1}.
+\end{align*}
+
+Se \(\underline c\ne\underline0\), este polinómio não nulo tem no máximo
+\(n-1\) raízes em \(\mathbb Z_l\). Como o provador já se comprometeu aos
+vectores antes de o traslado produzir \(y\), a probabilidade de uma relação
+falsa sobreviver ao desafio é no máximo \((n-1)/l\), portanto negligenciável.
+Se \(\underline c=\underline0\), pelo contrário, \(F\) é o polinómio zero e
+aceita todos os \(y\). É precisamente essa a resposta honesta.
+
+Continua-se a representar a mesma coisa de outra forma:
+
+\begin{align*}
+vz^2 = \langle\underline{a}_L, \underline{2}^n\rangle z^2\\
+0z = \langle\underline{a}_L - \underline{1} - \underline{a}_R, \underline{y}^n\rangle z\\
+0 = \langle\underline{a}_L \circ \underline{a}_R, \underline{y}^n\rangle
+\end{align*}
+
+Depois de muita manipulação, \(\underline a_L\) e \(\underline a_R\) acabam em
+lados opostos do mesmo produto interno:
+
+\begin{equation}
+z^2 v + \delta(y,z) = \langle\underline{a}_L - z\underline{1},
+ \underline{y}^{\,n} \circ (\underline{a}_R + z\underline{1})
+ + z^2 \underline{2}^{\,n}\rangle.
+\label{eq:bp-t0-relation}
+\end{equation}
+
+\begin{align*}
+\delta(y,z)=(z-z^2)\langle\underline1,\underline y^{\,n}\rangle
+ -z^3\langle\underline1,\underline2^{\,n}\rangle.
+\end{align*}
+
+Para ver cada passo até estas equações, veja-se o Apêndice
+\ref{appendix:nota}. À primeira vista, o que se conseguiu foi representar as
+três regras iniciais de uma forma altamente elaborada. Mas já há movimento: os
+64 constrangimentos cabem agora num produto interno. O provador não pode enviar
+os vectores do lado direito da Equação~\eqref{eq:bp-t0-relation}, senão o
+verificador fica a saber os bits de \(v\).
+
+Há portanto que ofuscar \(\underline a_L\) e \(\underline a_R\). Por agora,
+\(x\) é a indeterminada formal do polinómio; só depois de \(T_1,T_2\) entrarem
+no traslado se tornará no desafio concreto:
+
+\[
+(\underline{a}_L+x\underline{\dot{s}}_L)-z\underline1
+\quad *^5
+\]
+\[
+\underline{y}^{\,n}\circ
+(\underline{a}_R+x\underline{\dot{s}}_R+z\underline1)
++z^2\underline{2}^{\,n}
+\quad *^6 .
+\]
+
+
+Note-se que se alcançou agora um polinómio diferente. Em geral,
+
+\begin{align*}
+z^2v+\delta(y,z)\not\equiv
+\langle\underline a_L+x\underline{\dot s}_L-z\underline1,\,
+\underline y^{\,n}\circ
+(\underline a_R+x\underline{\dot s}_R+z\underline1)
++z^2\underline2^{\,n}\rangle .
+\end{align*}
+\medskip
+Define-se então o que já se tinha conseguido como
+$\underline{l}_0 = \underline{a}_L - \underline{1}z\\
+\underline{r}_0 = \underline{y}^n \circ (\underline{a}_R + \underline{1}z) + z^2 \underline{2}^n$
+
+ou seja :
+\begin{align*}
+z^2 v + \delta(y,z) = \langle \underline{l}_0, \underline{r}_0 \rangle = t_0
+\end{align*}
+
+e os factores ofuscantes como
+$\underline{l}_1 = \underline{\dot{s}}_L\\
+\underline{r}_1 = \underline{y}^n \circ \underline{\dot{s}}_R$
+
+Forçam-se então novas igualdades: \( *^2,*^3 \)
+$\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x\\
+\underline{r}(x) = \underline{r}_0 + \underline{r}_1 x$
+
+Finalmente: \( *^4 \)
+\begin{align*}
+t(x) = \langle \underline{l}(x), \underline{r}(x)\rangle = t_0 + t_1 x + t_2 x^2
+\end{align*}
+
+Obtém-se assim um polinómio cujo termo constante
+\(t_0=z^2v+\delta(y,z)\) está ligado ao compromisso \(V\). O provador enviará
+compromissos e respostas que formam um circuito aritmético: em conjunto, eles
+obrigam \(v\) a satisfazer o domínio requerido sem mostrar os seus bits.
+
+Calculam-se também os coeficientes de \(t(x)\): \( *^1 \)
+\[t(x) = \langle (\underline{l}_0 + \underline{l}_1 x), (\underline{r}_0 + \underline{r}_1 x) \rangle = \langle \underline{l}_0, \underline{r}_0 \rangle + \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle + \langle \underline{l}_1 x, \underline{r}_1 x \rangle\]
+\medskip
+$t_0 = \langle \underline{l}_0, \underline{r}_0 \rangle\\
+t_1 x = \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle = \langle \underline{l}_0, \underline{r}_1 \rangle x + \langle \underline{l}_1, \underline{r}_0 \rangle x = (\langle \underline{l}_0, \underline{r}_1 \rangle + \langle \underline{l}_1, \underline{r}_0 \rangle ) x\\
+t_2 x^2 = \langle \underline{l}_1, \underline{r}_1 \rangle x^2$
+
+\newpage
+\begingroup
+\raggedright
+$G$, $H$, $\underline{G}$, $\underline{H}$ \hspace*{\fill} \ce{^{0}_{\ }\bot[init]} \newline
+$V = \gamma G + v H$ \hspace*{\fill} \ce{^{1}_{\ }\bot_U(V)} \newline
+$\underline{a}_L \leftarrow \operatorname{bits}(v)$ \newline
+$\underline{a}_R = \underline{a}_L - \underline{1}$ \newline
+$\dot{\alpha} \leftarrow R()$ \newline
+$A = \langle\underline{a}_L,\underline{G}\rangle + \langle\underline{a}_R,\underline{H}\rangle + \dot{\alpha} G \hspace*{\fill}\ce{^{2}_{\ }\bot_U(A)}$ \newline
+$\dot{\rho} \leftarrow R()$ \newline
+$\underline{\dot{s}}_L \leftarrow R()$ \newline
+$\underline{\dot{s}}_R \leftarrow R()$ \newline
+$S = \langle\underline{\dot{s}}_L,\underline{G}\rangle + \langle\underline{\dot{s}}_R,\underline{H}\rangle + \dot{\rho} G$\hspace*{\fill} \ce{^{3}_{\ }\bot_U(S)} \newline
+$y\leftarrow \ce{^{4}_{\ }\bot_C()}$, $y^{-1}$ \newline
+$z\leftarrow \ce{^{5}_{\ }\bot_C()}$
+\begin{align*}
+(t_0, t_1, t_2)*^1
+\end{align*}
+$\dot{\tau_1} \leftarrow R()$ \newline
+$\dot{\tau_2} \leftarrow R()$ \newline
+$T_1 = t_1 H + \dot{\tau_1} G $ \hspace*{\fill} $\ce{^{6}_{\ }\bot_U(T_1)}$ \newline
+$T_2 = t_2 H + \dot{\tau_2} G $ \hspace*{\fill} $\ce{^{7}_{\ }\bot_U(T_2)}$ \newline
+$x\leftarrow \ce{^{8}_{\ }\bot_C()}$ \newline
+$\tau_x = \dot{\tau_1}x + \dot{\tau_2}x^2 + \gamma z^2$ \hspace*{\fill}$\ce{^{9}_{\ }\bot_U(\tau_x)}$ \newline
+$\mu = x\dot{\rho} + \dot{\alpha}$ \hspace*{\fill}$\ce{^{10}_{\ }\bot_U(\mu)}$ \newline
+\begin{align*}
+(\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x)*^2\\
+(\underline{r}(x) = \underline{r}_0 + \underline{r}_1 x)*^3
+\end{align*}
+\medskip
+\begin{align*}
+t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle = (t_0 + t_1 x + t_2 x^2)*^4
+\end{align*}\hspace*{\fill} $\ce{^{11}_{\ }\bot_U(t(x))}$ \newline
+$x_{ip}\leftarrow \ce{^{12}_{\ }\bot_C()}$\newline
+$U = x_{ip} H$\newline\newline\newline
+$IP \leftarrow \{\underline{G}, \underline{H'}, U, \underline{l}(x), \underline{r}(x)\}$
+\par
+\endgroup
+
+O símbolo \(\bot\) é o traslado: a memória sequencial da conversa. O operador
+\(\bot_U(\cdot)\) absorve uma mensagem e renova o estado; \(\bot_C()\) extrai
+desse estado um desafio escalar. O \(j\) em \(\ce{^{j}_{\ }\bot}\) marca o
+instante do traslado, para que provador e verificador voltem a colher o mesmo
+desafio sem o terem combinado fora da prova.
+
+Vectores são sublinhados: \(\underline a\) contém escalares e
+\(\underline G\) pontos da curva elíptica. Um ponto sobre uma letra, como em
+\(\dot\alpha\) ou \(\underline{\dot s}_L\), marca aqui aleatoriedade fresca
+escolhida por \(R()\). Esses segredos não são necessariamente enviados; aparecem
+escondidos nos compromissos e combinados nas respostas. Já
+\(\underline G,\underline H\) são geradores públicos determinísticos, que o
+verificador pode obter sozinho. Nesta apresentação de uma saída, cada vector
+tem 64 elementos. O argumento de produto interno reduzirá essa dimensão a 1 em
+\(\log_2 64=6\) dobras.
+
+Antes das dobras, o provador constrói os dois circuitos aritméticos seguintes.
+O primeiro amarra o valor à Equação~\eqref{eq:bp-t0-relation}; o segundo amarra
+os vectores sem os revelar:
+\newcommand{\verteq}{\rotatebox{90}{$\,$}}
+\newcommand{\verteqq}{\rotatebox{90}{$\,=$}}
+\newcommand{\equalto}[2]{\underset{\scriptstyle\overset{\mkern4mu\verteq}{#2}}{#1}}
+\newcommand{\equaltoo}[2]{\underset{\scriptstyle\overset{\mkern4mu\verteqq}{#2}}{#1}}
+
+$\equalto{t(x) H}{+} = \equalto{z^2 v H}{+} + \equalto{\delta(y,z) H}{+} + \equalto{t_1 x H}{+} + \equalto{t_2 x^2 H}{+}$
+
+$\equaltoo{\enspace\tau_x G}{\ }  \enspace\enspace= \equaltoo{\gamma z^2 G}{\ }\enspace + \equaltoo{0G}{\ }\quad +\enspace \equaltoo{\dot{\tau}_1 x G}{\ } + \equaltoo{\dot{\tau}_2 x^2 G}{\ }$
+
+$\quad\quad\quad = \underbrace{z^2 V + \delta(y, z) H}_{\text{público}} \enspace+ x T_1 +\enspace x^2 T_2$
+
+\medskip
+As mentes ávidas dizem logo: «Ah e tal, mas \(T_1\) e \(T_2\) podiam ser
+qualquer coisa; há ali variáveis aleatórias por todo o lado. Como é que isto
+diz alguma coisa sobre \(v\)?» A resposta está no movimento. \(T_1\) e \(T_2\)
+comprometem o provador aos coeficientes \(t_1,t_2\) antes de o traslado lançar
+\(x\). Depois, uma única avaliação tem de satisfazer simultaneamente
+\(t(x)=\langle\underline l(x),\underline r(x)\rangle\) e a equação do
+compromisso de valor. Os factores aleatórios escondem \(t_0\), e portanto \(v\),
+do verificador; não dão ao provador liberdade para mudar o polinómio depois de
+ver \(x\). Aqui «público» significa a estrutura formal: \(y,z,x\) são
+recompostos pelo verificador a partir do mesmo traslado.
+
+\medskip
+$\equalto{\langle \underline{l}(x),\underline{G}\rangle}{+} = \enspace\equalto{\langle\underline{a}_L,\underline{G}\rangle}{+} + \enspace\enspace\equalto{x\langle\underline{\dot{s}}_L,\underline{G}\rangle}{+} + \quad\equalto{\langle -z\underline{1},\underline{G}\rangle}{+}$  $*^5$
+
+$\equalto{\langle \underline{r}(x),\underline{H'}\rangle}{+}  = \equalto{\langle\underline{a}_R,\underline{H}\rangle}{+} + \equalto{x\langle\underline{\dot{s}}_R,\underline{H}\rangle}{+} + \equaltoo{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle}{\ }$  $*^6$
+
+$\equaltoo{\quad\mu G}{\ } \quad\quad= \enspace\enspace \equaltoo{\dot{\alpha} G}{\ } \quad +\quad \equaltoo{x \dot{\rho} G}{\ }$
+
+$\quad\quad\quad\quad\enspace=\enspace\enspace\enspace A \quad\quad+\quad x S \quad+\quad \underbrace{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle}_{\text{público}}$
+
+\medskip
+
+Em que
+\[
+\underline{H'}=\underline y^{-n}\circ\underline H
+\quad\Longleftrightarrow\quad
+\underline H=\underline y^{\,n}\circ\underline{H'}.
+\]
+Esta é uma das partes mais elegantes. Quando se compromete a
+\(\underline a_R\) e \(\underline{\dot s}_R\), o provador ainda não possui
+\(\underline y^{\,n}\): \(y\) só nasce depois do compromisso \(S\). A troca
+para \(\underline{H'}\) introduz depois essas potências de forma implícita.
+Aquilo que parecia chegar tarde entra no circuito pela mudança dos geradores.
+
+Imagine-se que o provador envia :
+
+$t(x)$, $\tau_x$, $\underline{l}(x)$,$\underline{r}(x)$, $\mu$, $T_1$, $T_2$, $A$, $S$
+
+ao verificador. Mesmo recebendo \(\underline l(x)\) e \(\underline r(x)\), ele
+não conseguiria extrair \(t_0\), por causa dos factores ofuscantes
+\(\underline{\dot s}_L\) e \(\underline{\dot s}_R\). Já a seguir nem esses
+dois vectores terão de atravessar a rede.
+
+\subsection{Verificação}
+\label{sec:bullet_ver}
+
+Se recebesse simplesmente os dois vectores de 64 elementos, o verificador já
+conseguiria conferir os dois circuitos:
+\begin{align*}
+&t(x)H+\tau_xG+
+ \langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+\mu G\\
+={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\end{align*}
+Mas enviar \(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
+A sorte é que há uma porta mais estreita.
+
+Ponhamos \(k=\log_2 64=6\). O argumento de produto interno que se desenvolverá
+já a seguir transforma os vectores num par de escalares \(a,b\) e estabelece
+\begin{equation}
+\begin{split}
+&\langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+
+ \langle\underline l(x),\underline r(x)\rangle U\\
+&\qquad=P_0-\sum_{j=1}^{k}
+ \left(u_j^2L_j+u_j^{-2}R_j\right).
+\end{split}
+\label{eq:bp-ip-recursion}
+\end{equation}
+Como \(t(x)=\langle\underline l(x),\underline r(x)\rangle\), o provador envia
+apenas \(t(x)\), não os dois vectores:
+\begin{align*}
+&t(x)H+\tau_xG+P_0
+ -\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right)+\mu G\\
+={}&t(x)U+z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\end{align*}
+\marginnote{pow!}
+
+Nem os \(u_j\) atravessam a rede: ambos os lados os colhem do traslado. Para
+uma saída enviam-se \(2\cdot6+9=21\) objectos de 32 bytes:
+\[
+ t(x),\tau_x,a,b,\mu,T_1,T_2,A,S,\quad
+ L_1,\ldots,L_6,\quad R_1,\ldots,R_6.
+\]
+São 672 bytes, antes dos pequenos prefixos de serialização, em vez dos 6176
+bytes da prova Borromean de uma saída. É aqui que a bala começa realmente a
+ganhar velocidade.
+
+\newpage
+\subsubsection{Mais detalhes do provador}
+\label{sec:bullet_detalhes}
+
+Aqui continua o processo do provador no protocolo do produto interno IP.
+Começa-se com vectores de dimensão \(2^k\), onde \(k=6\), e com
+\[
+ P_k=\langle\underline l_k(x),\underline G_k\rangle+
+     \langle\underline r_k(x),\underline{H'}_k\rangle+
+     \langle\underline l_k(x),\underline r_k(x)\rangle U.
+\]
+
+Aqui \(isto^{\rightarrow}\) significa a primeira metade do vector e
+\(isto^{\leftarrow}\) a segunda. Enquanto \(k>0\), o provador cruza as metades:
+\begin{align*}
+L_k={}&
+ \langle\underline l_k^{\rightarrow}(x),\underline G_k^{\leftarrow}\rangle+
+ \langle\underline r_k^{\leftarrow}(x),\underline{H'}_k^{\rightarrow}\rangle+
+ \langle\underline l_k^{\rightarrow}(x),
+        \underline r_k^{\leftarrow}(x)\rangle U,\\
+R_k={}&
+ \langle\underline l_k^{\leftarrow}(x),\underline G_k^{\rightarrow}\rangle+
+ \langle\underline r_k^{\rightarrow}(x),\underline{H'}_k^{\leftarrow}\rangle+
+ \langle\underline l_k^{\leftarrow}(x),
+        \underline r_k^{\rightarrow}(x)\rangle U.
+\end{align*}
+\begingroup
+\raggedright
+\hspace*{\fill}\(\ce{^{13}_{\ }\bot_U(L_k)}\)\newline
+\hspace*{\fill}\(\ce{^{14}_{\ }\bot_U(R_k)}\)\newline
+\par
+\endgroup
+\[
+ u_k\leftarrow\ce{^{15}_{\ }\bot_C()},\qquad u_k\in\mathbb Z_l^*.
+\]
+Os números 13, 14 e 15 marcam apenas a primeira ronda. Na ronda seguinte o
+traslado continua a contar; não recomeça. Se algum desafio for zero, não existe
+\(u_k^{-1}\): o provador recomeça e o verificador rejeita.
+
+Agora dobram-se testemunhas e geradores:
+\begin{align*}
+\underline l_{k-1}(x)
+ &=u_k\underline l_k^{\rightarrow}(x)
+   +u_k^{-1}\underline l_k^{\leftarrow}(x),\\
+\underline r_{k-1}(x)
+ &=u_k^{-1}\underline r_k^{\rightarrow}(x)
+   +u_k\underline r_k^{\leftarrow}(x),\\
+\underline G_{k-1}
+ &=u_k^{-1}\underline G_k^{\rightarrow}
+   +u_k\underline G_k^{\leftarrow},\\
+\underline{H'}_{k-1}
+ &=u_k\underline{H'}_k^{\rightarrow}
+   +u_k^{-1}\underline{H'}_k^{\leftarrow}.
+\end{align*}
+Depois faz-se \(k\leftarrow k-1\). Quando \(k=0\), os dois vectores de
+testemunhas já são os escalares \(a\) e \(b\).
+
+Passamos agora à magia em volta de \(P_k\). Para chegar ao compromisso dobrado
+\(P_{k-1}\), substituem-se exactamente as quatro dobras:
+\begin{align*}
+P_{k-1}={}&
+\left\langle
+ u_k\underline l_k^{\rightarrow}+u_k^{-1}\underline l_k^{\leftarrow},
+ u_k^{-1}\underline G_k^{\rightarrow}+u_k\underline G_k^{\leftarrow}
+\right\rangle\\
+&+\left\langle
+ u_k^{-1}\underline r_k^{\rightarrow}+u_k\underline r_k^{\leftarrow},
+ u_k\underline{H'}_k^{\rightarrow}+u_k^{-1}\underline{H'}_k^{\leftarrow}
+\right\rangle\\
+&+\left\langle
+ u_k\underline l_k^{\rightarrow}+u_k^{-1}\underline l_k^{\leftarrow},
+ u_k^{-1}\underline r_k^{\rightarrow}+u_k\underline r_k^{\leftarrow}
+\right\rangle U .
+\end{align*}
+O \(u_k\) de cada termo diagonal encontra o seu inverso e desaparece. Os termos
+cruzados não desaparecem: ficam marcados por \(u_k^2\) ou \(u_k^{-2}\).
+Agrupando-os,
+\begin{align*}
+P_{k-1}={}&
+\underbrace{
+ \langle\underline l_k^{\rightarrow},\underline G_k^{\rightarrow}\rangle+
+ \langle\underline l_k^{\leftarrow},\underline G_k^{\leftarrow}\rangle+
+ \langle\underline r_k^{\rightarrow},\underline{H'}_k^{\rightarrow}\rangle+
+ \langle\underline r_k^{\leftarrow},\underline{H'}_k^{\leftarrow}\rangle
+}_{\text{termos diagonais}}\\
+&+\underbrace{
+ \bigl(\langle\underline l_k^{\rightarrow},\underline r_k^{\rightarrow}\rangle+
+       \langle\underline l_k^{\leftarrow},\underline r_k^{\leftarrow}\rangle
+ \bigr)U}_{\text{produto interno diagonal}}\\
+&+u_k^2\underbrace{\left(
+ \langle\underline l_k^{\rightarrow},\underline G_k^{\leftarrow}\rangle+
+ \langle\underline r_k^{\leftarrow},\underline{H'}_k^{\rightarrow}\rangle+
+ \langle\underline l_k^{\rightarrow},
+        \underline r_k^{\leftarrow}\rangle U\right)}_{L_k}\\
+&+u_k^{-2}\underbrace{\left(
+ \langle\underline l_k^{\leftarrow},\underline G_k^{\rightarrow}\rangle+
+ \langle\underline r_k^{\rightarrow},\underline{H'}_k^{\leftarrow}\rangle+
+ \langle\underline l_k^{\leftarrow},
+        \underline r_k^{\rightarrow}\rangle U\right)}_{R_k}\\
+={}&P_k+u_k^2L_k+u_k^{-2}R_k.
+\end{align*}
+\marginnote{click!}
+
+E assim aparece a recursão, não por fumo, mas porque os factores se cancelam
+exactamente:
+\[
+\begin{aligned}
+P_k&=P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\
+&\mathrel{\phantom{=}}\downarrow\\[-1mm]
+P_{k-1}&=P_{k-2}
+ -\left(u_{k-1}^2L_{k-1}+u_{k-1}^{-2}R_{k-1}\right)\\
+&\mathrel{\phantom{=}}\downarrow\\[-1mm]
+&\hspace{12mm}\vdots\\[-1mm]
+&\mathrel{\phantom{=}}\downarrow\\[-1mm]
+P_1&=P_0-\left(u_1^2L_1+u_1^{-2}R_1\right).
+\end{aligned}
+\]
+Logo,
+\begin{align}
+P_k&=P_0-\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right),
+\label{eq:bp-p-recursion}\\
+P_0&=a\ce{^{0}_{\ }\underline G}
+    +b\ce{^{0}_{\ }\underline{H'}}
+    +abU.
+\label{eq:bp-p-final}
+\end{align}
+A floresta de 64 coordenadas acabou em dois escalares, \(a,b\), e dois pontos
+finais que o verificador consegue reconstruir. A Equação
+\eqref{eq:bp-ip-recursion}, prometida acima, já não é um truque por explicar.
+\newpage
+\subsubsection{O verificador e o fim da batalha}
+\label{sec:bullet_fim}
+
+Os escalares finais \(a,b\) têm de ser transmitidos. Os pontos finais
+\(\ce{^{0}_{\ }\underline G}\) e
+\(\ce{^{0}_{\ }\underline{H'}}\), porém, são reconstruídos pelo verificador.
+É aqui que as setas mostram todo o caminho. Para não esconder a mecânica atrás
+de reticências, imagine-se um vector inicial com oito pontos e escreva-se
+\(G_{q,i}\) para o elemento \(i\) de \(\underline G_q\):
+\[
+\begin{bmatrix}
+G_{3,0}\\G_{3,1}\\G_{3,2}\\G_{3,3}\\
+G_{3,4}\\G_{3,5}\\G_{3,6}\\G_{3,7}
+\end{bmatrix}
+\quad\xrightarrow{\ u_3\ }\quad
+\begin{bmatrix}
+G_{2,0}=u_3^{-1}G_{3,0}+u_3G_{3,4}\\
+G_{2,1}=u_3^{-1}G_{3,1}+u_3G_{3,5}\\
+G_{2,2}=u_3^{-1}G_{3,2}+u_3G_{3,6}\\
+G_{2,3}=u_3^{-1}G_{3,3}+u_3G_{3,7}
+\end{bmatrix},
+\]
+\[
+\begin{bmatrix}G_{2,0}\\G_{2,1}\\G_{2,2}\\G_{2,3}\end{bmatrix}
+\quad\xrightarrow{\ u_2\ }\quad
+\begin{bmatrix}
+G_{1,0}=u_2^{-1}G_{2,0}+u_2G_{2,2}\\
+G_{1,1}=u_2^{-1}G_{2,1}+u_2G_{2,3}
+\end{bmatrix}
+\quad\xrightarrow{\ u_1\ }\quad
+\begin{bmatrix}
+\ce{^{0}_{\ }\underline G}
+ =u_1^{-1}G_{1,0}+u_1G_{1,1}
+\end{bmatrix}.
+\]
+Cada seta corta o vector ao meio e volta a cosê-lo com um desafio e o seu
+inverso. Nenhuma coordenada desaparece; muda apenas o peso com que chega ao
+último ponto.
+
+Por exemplo, \(G_{3,2}\) segue o caminho
+\[
+ G_{3,2}\longrightarrow
+ G_{3,2}u_3^{-1}\longrightarrow
+ G_{3,2}u_3^{-1}u_2\longrightarrow
+ G_{3,2}u_3^{-1}u_2u_1^{-1},
+ \qquad 2=010_2,
+\]
+enquanto
+\[
+ G_{3,7}\longrightarrow
+ G_{3,7}u_3\longrightarrow
+ G_{3,7}u_3u_2\longrightarrow
+ G_{3,7}u_3u_2u_1,
+ \qquad 7=111_2.
+\]
+A seta geral é
+\begin{equation}
+ G_{k,i}\longrightarrow
+ G_{k,i}\prod_{m=1}^{k}u_m^{\,b(i,m)},
+ \qquad
+ b(i,m)=
+ \begin{cases}
+  -1,&\text{se o \(m\)-ésimo bit de \(i\) for 0},\\
+  +1,&\text{se o \(m\)-ésimo bit de \(i\) for 1},
+ \end{cases}
+\label{eq:bp-g-arrow}
+\end{equation}
+contando \(m=1\) a partir do bit menos significativo. O verificador forma então
+o vector \(\underline\phi\) de pesos
+\[
+ \phi_i=\prod_{m=1}^{k}u_m^{\,b(i,m)},\qquad
+ \ce{^{0}_{\ }\underline G}=\langle\underline\phi,\underline G_k\rangle.
+\]
+
+Para \(\underline{H'}\), as setas apontam com os expoentes trocados:
+\[
+ \varphi_i=\prod_{m=1}^{k}u_m^{-b(i,m)},\qquad
+ \ce{^{0}_{\ }\underline{H'}}
+ =\langle\underline\varphi,\underline{H'}_k\rangle.
+\]
+Este sinal contrário é essencial. Em cada dobra,
+\(\underline G\) usa \(u^{-1}\) à esquerda e \(u\) à direita, enquanto
+\(\underline{H'}\) usa \(u\) à esquerda e \(u^{-1}\) à direita. A versão
+anterior escrevia os dois padrões com o mesmo sinal; essa era uma das avarias
+escondidas nas setas.
+
+\newpage
+O verificador refaz agora toda a viagem do traslado:
+\begin{align*}
+&G,H,\underline G,\underline H
+ &&\hspace*{\fill}\ce{^{0}_{\ }\bot[init]}\\
+&V&&\hspace*{\fill}\ce{^{1}_{\ }\bot_U(V)}\\
+&A&&\hspace*{\fill}\ce{^{2}_{\ }\bot_U(A)}\\
+&S&&\hspace*{\fill}\ce{^{3}_{\ }\bot_U(S)}\\
+&y\leftarrow\ce{^{4}_{\ }\bot_C()},\quad
+ y^{-1},\qquad
+ z\leftarrow\ce{^{5}_{\ }\bot_C()} .
+\end{align*}
+Com esses desafios calcula
+\[
+ \delta(y,z)=(z-z^2)\langle\underline1,\underline y^{\,n}\rangle
+ -z^3\langle\underline1,\underline2^{\,n}\rangle.
+\]
+Depois continua:
+\begin{align*}
+&T_1&&\hspace*{\fill}\ce{^{6}_{\ }\bot_U(T_1)}\\
+&T_2&&\hspace*{\fill}\ce{^{7}_{\ }\bot_U(T_2)}\\
+&x\leftarrow\ce{^{8}_{\ }\bot_C()}\\
+&\tau_x&&\hspace*{\fill}\ce{^{9}_{\ }\bot_U(\tau_x)}\\
+&\mu&&\hspace*{\fill}\ce{^{10}_{\ }\bot_U(\mu)}\\
+&t(x)&&\hspace*{\fill}\ce{^{11}_{\ }\bot_U(t(x))}\\
+&x_{ip}\leftarrow\ce{^{12}_{\ }\bot_C()},\qquad U=x_{ip}H.
+\end{align*}
+Finalmente, para \(j=k,k-1,\ldots,1\), absorve \(L_j\), absorve \(R_j\) e
+extrai \(u_j\). Os estados 13, 14 e 15 são a primeira destas rondas; os números
+continuam a avançar nas cinco seguintes. Assim o verificador não recebe
+\(y,z,x,x_{ip},u_1,\ldots,u_k\): reencontra-os.
+
+Agora está armado para a verificação final. Defina-se
+\[
+ \Sigma_{\rm IP}=
+ \sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right).
+\]
+Substituindo as Equações~\eqref{eq:bp-p-recursion} e
+\eqref{eq:bp-p-final} nos dois circuitos, usando
+\(U=x_{ip}H\) e reunindo todos os pontos no mesmo lado, chega-se a
+\begin{align}
+\mathcal O={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
+ +\Sigma_{\rm IP}\notag\\
+&+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
+&+\langle-z\underline1-a\underline\phi,\underline G\rangle\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
+          -b\underline\varphi,\underline{H'}\rangle .
+\label{eq:bp-final-hprime}
+\end{align}
+E, como
+\(\underline{H'}=\underline y^{-n}\circ\underline H\), a mesma batalha pode
+terminar toda escrita nos geradores originais:
+\begin{align}
+\mathcal O=(0,1)={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
+ +\Sigma_{\rm IP}\notag\\
+&+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
+&+\left\langle
+ z\underline1+\underline y^{-n}\circ
+   (z^2\underline2^{\,n}-b\underline\varphi),
+ \underline H\right\rangle\notag\\
+&+\langle-z\underline1-a\underline\phi,\underline G\rangle .
+\label{eq:bp-final}
+\end{align}
+\marginnote{bang!}
+
+Se esta soma multiescalar dá a identidade, as codificações são canónicas e
+todos os desafios que precisam de inverso são não nulos, o verificador aceita.
+Sob a dificuldade do logaritmo discreto e o modelo Fiat--Shamir, uma prova
+forjada de que \(0\leq v\leq2^{64}-1\) passa apenas com probabilidade
+negligenciável. Os bits, a máscara \(\gamma\) e os vectores intermédios nunca
+saíram do provador. As setas mexeram-se; a prova ficou mais pequena; Sundance
+tinha razão.
+
+\section{Bulletproof+}
+\label{sec:bulletproof_plus}
+
+A Bulletproof clássica já teve o seu palco, as suas setas e o seu fim da
+batalha. Bulletproof+ não apaga nada disso. É a batalha seguinte: prova a mesma
+afirmação sobre os montantes, conserva a ideia de dobrar vectores com pares
+\(L_j,R_j\), mas muda a coreografia que liga o compromisso inicial ao fecho.
+
+\subsection{O que fica e o que muda}
+
+\begin{description}
+ \item[Fica.] O compromisso de Pedersen, a decomposição em bits, os desafios de
+ Fiat--Shamir colhidos de um traslado, a agregação de vários montantes e as
+ \(\log_2(64M)\) rondas que publicam pares \(L_j,R_j\).
+
+ \item[Muda.] Desaparecem do objecto transmitido
+ \[
+  S,\ T_1,\ T_2,\ \tau_x,\ \mu,\ t,\ a,\ b.
+ \]
+ Em seu lugar aparecem \(A_1,B,r_1,s_1,d_1\), com novas equações de fecho, um
+ traslado separado por domínio e uma equação de verificação própria. As setas
+ continuam a dobrar vectores; já não se pode, porém, pegar na
+ Equação~\eqref{eq:bp-final} e trocar apenas os nomes.
+\end{description}
+
+As duas formas serializadas tornam a diferença visível:
+\begin{align*}
+ \Pi_{\rm BP}
+  &=(A,S,T_1,T_2,\tau_x,\mu,
+     \boldsymbol L,\boldsymbol R,a,b,t),\\
+ \Pi_+
+  &=(A,A_1,B,r_1,s_1,d_1,
+     \boldsymbol L,\boldsymbol R).
+\end{align*}
+Para a mesma dimensão, Bulletproof+ retira três objectos de 32 bytes. A
+agregação, note-se, não nasceu com o sinal \(+\): a Bulletproof clássica já
+agregava montantes. O ganho estrutural de Bulletproof+ está no fecho mais curto
+e na verificação reorganizada.
 
 A ideia algébrica continua a começar em bits. Para \(p\) montantes, ponhamos
 \[
@@ -390,15 +1030,13 @@ coordenada é 0 ou 1. Aqui
 coordenada e \(\boldsymbol a_L^{(j)}\) é o bloco de 64 coordenadas do montante
 \(j\), para \(0\leq j<p\).
 
-O provador compromete-se a estes vectores sem os revelar. Desafios obtidos pelo
-método de Fiat--Shamir combinam as muitas igualdades num polinómio aleatório; um
-argumento de produto interno dobra os vectores sobre si mesmos até restarem
-dois escalares. Cada dobra publica dois pontos, pelo que são necessárias
-\(\log_2(64M)\) rondas em vez de 64 compromissos por saída. A prova continua a
-ter trabalho de verificação proporcional a \(64M\): a agregação poupa sobretudo
-espaço, não transforma toda a verificação num cálculo logarítmico.
+O provador compromete-se a estes vectores sem os revelar. Cada dobra publica
+dois pontos, pelo que são necessárias \(\log_2(64M)\) rondas em vez de 64
+compromissos por saída. A verificação continua a ter trabalho proporcional a
+\(64M\): a agregação poupa sobretudo espaço, não transforma toda a verificação
+num cálculo logarítmico.
 
-\subsection{Do Bulletproof histórico ao Bulletproof+}
+\subsection{Dos tipos históricos ao Bulletproof+}
 
 Há três nomes parecidos que convém não misturar:
 
@@ -437,6 +1075,13 @@ usava CLSAG para autorizar entradas, mas conservava a estrutura de prova
 \(\Pi_{\rm BP}\). O código continua a analisar e a verificar todos estes
 formatos para ler blocos antigos. Essa compatibilidade não os torna escolhas
 válidas para construir uma transacção da versão~16.
+
+Nas equações da secção clássica usámos os pontos matemáticos já restaurados.
+No objecto Monero serializado, \(A,S,T_1,T_2,\boldsymbol L,\boldsymbol R\) da
+Bulletproof clássica eram guardados multiplicados por \(8^{-1}\); o verificador
+volta a multiplicá-los por 8. Bulletproof+ conserva esta convenção para
+\(A,A_1,B,\boldsymbol L,\boldsymbol R\). É uma representação de implementação,
+não uma seta nova na álgebra.
 
 Para o mesmo \(M\), a parte formada por objectos de 32 bytes ocupa
 \begin{align}
@@ -610,7 +1255,7 @@ plus.cc,\newline
 {\tt update()}}
 
 \subsubsection{Mais detalhes do provador}
-\label{sec:bullet_detalhes}
+\label{sec:bpp_detalhes}
 
 Definamos o compromisso vectorial
 \[
@@ -676,7 +1321,7 @@ Bulletproof+ são garantias computacionais sob as hipóteses do protocolo, não
 uma consequência da ocultação perfeita por si só.
 
 \subsection{Verificação}
-\label{sec:bullet_ver}
+\label{sec:bpp_ver}
 
 O verificador não recebe os bits nem as máscaras. Recompõe \(V_j\) e todos os
 desafios do traslado das Equações~\eqref{eq:bpp-transcript-start}--
@@ -719,7 +1364,7 @@ utils.cpp,\newline
 {\tt semantics()}}
 
 \subsubsection{O verificador e o fim da batalha}
-\label{sec:bullet_fim}
+\label{sec:bpp_fim}
 
 Antes da equação final, há condições de aceitação que não devem desaparecer
 atrás da álgebra:

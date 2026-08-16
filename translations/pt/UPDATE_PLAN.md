@@ -26,9 +26,11 @@ recorrerá ao inglês se surgir material posterior identificável.
    um byte e separar optimização de leitura da carteira de propriedade de
    privacidade.
 4. **Compromissos e provas de intervalo.** Reorganizar os compromissos de
-   Pedersen, marcar as provas Borromean e Bulletproof como formatos históricos
-   e substituir a descrição corrente por Bulletproof+, incluindo agregação e
-   limites de saídas.
+   Pedersen e marcar as provas Borromean e Bulletproof como formatos
+   históricos. Conservar e corrigir a exposição portuguesa da Bulletproof
+   clássica — incluindo a voz, o traslado, as setas e a derivação recursiva —
+   e acrescentar depois uma secção distinta sobre Bulletproof+, com as
+   diferenças de protocolo, a agregação e os limites de saídas.
 5. **Transacções RingCT.** Substituir `RCTTypeBulletproof2` pelo formato activo
    `RCTTypeBulletproofPlus`; actualizar CLSAG, anéis fixos de 16 membros, duas
    ou mais saídas, etiquetas de vista, limite de `tx_extra` e regras de

@@ -65,7 +65,7 @@ Define-se um compromisso a um montante $b$, de saída como :
 \vspace{.175cm}
 \[C(y,b) = y G + b H\marginnote{src/ringct/ rctOps.cpp {\tt addKeys2()}}\]
 \vspace{.175cm}
-\newline
+\medskip
 Em que $y$ é o {\em factor ofuscante}, que previne a observadores deduzirem $b$.
 
 %We can then define the commitment to a value \(a\) as \(C(x, a) = x G + a H\), where \(x\) is the blinding factor (a.k.a. `mask') that prevents observers from guessing $a$.
@@ -365,7 +365,7 @@ A alice sabe portanto que :
 \vspace{.175cm}
 \[C_{a} = \sum_{i=0}^{k-1} C_{i} \]
 \vspace{.175cm}
-\newline
+\medskip
 e tem a certeza que b é um vector de 64 bits, ou seja que o montante está dentro do domínio de 0 a $2^{64} -1$. Estas provas constituem uma assinatura em anel, mas não se trata própriamente de um anel, não é um processo circular. Para mais veja-se \cite{DangerousFreedom1984} .\footnote{No código em {\em python}, evita-se enviar $\lambda$, e usa-se $\Psi_g$ como parámetro para a verificação final, bem como variável supostamente aleatória! Ou seja $\Psi_g$ é utilizado para calcular $\Psi_c$ (através de bbs0 e bbs1) como resultado final... O que não deixa de ser elegante! }
 \newline\newline\newline
 É aparente que $2^i$ pode ser qualquer $k_i>0 \in F_p$.
@@ -373,7 +373,7 @@ Seja que :
 \vspace{.175cm}
 \[b = \sum_{i=1}^{m} b_i k_i \]
 \vspace{.175cm}
-\newline
+\medskip
 Os termos de $2^i$ são conhecidos pelo verificador de antemão, como tal não são transmitidos pelo provador. Se fosse $k_i$ em vez de $2^i$, o provador teria de enviar mais $m$ escalares em $F_p$. pois então o constrangimento passaria a ser :
 
 Se cada $C_i$ é :
@@ -469,7 +469,7 @@ Note-se que o que se alcanço agora foi algo diferente, tanto que :
 \begin{align*}
 z^2 v + \delta(y,z) \neq \langle(\underline{a}_L + \underline{\dot{s}}_L) - \underline{1}z, \underline{y}^n \circ ((\underline{a}_R + \underline{\dot{s}}_R) + \underline{1}z) + z^2 \underline{2}^n\rangle 
 \end{align*}
-\newline
+\medskip
 Define-se então o conseguido anteriormente como : \newline
 $\underline{l}_0 = \underline{a}_L - \underline{1}z\\
 \underline{r}_0 = \underline{y}^n \circ (\underline{a}_R + \underline{1}z) + z^2 \underline{2}^n$
@@ -496,7 +496,7 @@ O que se obtêm como tal, é um polinómio que em $t_0$ se compromete a $V$. O q
 
 calculam-se também os coefficientes de t(x): $*^1$
 \[t(x) = \langle (\underline{l}_0 + \underline{l}_1 x), (\underline{r}_0 + \underline{r}_1 x) \rangle = \langle \underline{l}_0, \underline{r}_0 \rangle + \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle + \langle \underline{l}_1 x, \underline{r}_1 x \rangle\]
-\newline
+\medskip
 $t_0 = \langle \underline{l}_0, \underline{r}_0 \rangle\\
 t_1 x = \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle = \langle \underline{l}_0, \underline{r}_1 \rangle x + \langle \underline{l}_1, \underline{r}_0 \rangle x = (\langle \underline{l}_0, \underline{r}_1 \rangle + \langle \underline{l}_1, \underline{r}_0 \rangle ) x\\
 t_2 x^2 = \langle \underline{l}_1, \underline{r}_1 \rangle x^2$
@@ -528,20 +528,17 @@ $\mu = x\dot{\rho} + \dot{\alpha}$ \hspace*{\fill}$\ce{^{10}_{\ }\bot_U(\mu)}$ \
 (\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x)*^2\\
 (\underline{r}(x) = \underline{r}_0 + \underline{r}_1 x)*^3
 \end{align*}
-\newline
+\medskip
 \begin{align*}
 t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle = (t_0 + t_1 x + t_2 x^2)*^4 
 \end{align*}\hspace*{\fill} $\ce{^{11}_{\ }\bot_U(t(x))}$ \newline
 $x_{ip}\leftarrow \ce{^{12}_{\ }\bot_C()}$\newline
 $U = x_{ip} H$\newline\newline\newline
-IP\leftarrow $\{\underline{G}$, $\underline{H'}$, $U$, $\underline{l}(x)$, $\underline{r}(x)\}$ 
+$IP \leftarrow \{\underline{G}, \underline{H'}, U, \underline{l}(x), \underline{r}(x)\}$
 
 o símbolo $\bot$ significa um traslado. Ou seja durante este processo sequencial, este traslado devolve hashes. Estas por sua vez são transformadas em escalares ou pontos de CE. Em que $\bot_U()$ é renovar o estado do traslado e $\bot_C()$ devolve um desafio. O $j$ em $\ce{^{j}_{\ }\bot}$ marca o estado do traslado, como base, no tempo. Vectores são sublinhados como 
-$\underline{a}$ para escalares ou $\underline{G}$ para pontos de CE. Para simbolizar variáveis livres usa-se um ponto, acima da letra($\dot{\alpha}$, $\dot{S}}_L$, ...), que recebe um escalar ou ponto de CE aleatório da função R(). Estes valores como sendo livres, têm que ser enviados para o verificador. Ao invés de variáveis como $\underline{G}$, que apesar de serem aleatórias, são valores públicos e bem definidos, e como tal podem e são precalculados pelo verificador de forma independente. Note-se que os vectores têm sempre 64 bits. O protocolo do produto interno, IP, reduz o tamanho dos vectores 
+$\underline{a}$ para escalares ou $\underline{G}$ para pontos de CE. Para simbolizar variáveis livres usa-se um ponto, acima da letra($\dot{\alpha}$, $\dot{S}_L$, ...), que recebe um escalar ou ponto de CE aleatório da função R(). Estes valores como sendo livres, têm que ser enviados para o verificador. Ao invés de variáveis como $\underline{G}$, que apesar de serem aleatórias, são valores públicos e bem definidos, e como tal podem e são precalculados pelo verificador de forma independente. Note-se que os vectores têm sempre 64 bits. O protocolo do produto interno, IP, reduz o tamanho dos vectores
 á ordem de $\log_2(64)$. E para isso acontecer, o provador constroi os seguintes circuitos aritméticos, em que o primeiro trata do lado esquerdo da equação (5.1) e o segundo do lado direito :
-
-\newline
-
 \newcommand{\verteq}{\rotatebox{90}{$\,$}}
 \newcommand{\verteqq}{\rotatebox{90}{$\,=$}}
 \newcommand{\equalto}[2]{\underset{\scriptstyle\overset{\mkern4mu\verteq}{#2}}{#1}}
@@ -553,12 +550,10 @@ $\equaltoo{\enspace\dot{\tau}_x G}{\ }  \enspace\enspace= \equaltoo{\gamma z^2 G
 
 $\quad\quad\quad = \underbrace{z^2 V + \delta(y, z) H}_{\text{público}} \enspace+ x T_1 +\enspace x^2 T_2$
 
-\newline
+\medskip
+As mentes ávidas ao lerem isto dizem logo :"Ah e tal mas $T_1$ e $T_2$ pode ser qualquer coisa, até porque está ali o $\dot{\tau}_x$, isso são tudo variáveis aleatórias... Como é que isso tem alguma expressão sobre $v$?"$\enspace$ Primeiro t(x) não pode ser directamente igual a $t_0$, pois como $z^2$ e $\delta(y, z)$ são públicos, o verificador conseguiria extraír $v$. Assim $t_1$ e $t_2$ são factores ofuscantes estruturados para manter t(x) secreto ao provador. Mais adiante na altura da \emph{execução}, irá ser necessário que $t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle$, mais uma razão para que t(x) não possa ser só igual a $t_0$. O que torna $T_1$ e $T_2$ necessários ao circuito. Aqui "público" significa a estrutura formal, y e z têm de ser extraídos do traslado pelo verificador.
 
-As mentes ávidas ao lerem isto dizem logo :"Ah e tal mas $T_1$ e $T_2$ pode ser qualquer coisa, até porque está ali o $\dot{\tau}_x$, isso são tudo variáveis aleatórias... Como é que isso tem alguma expressão sobre $v$?"$\enspace$ Primeiro t(x) não pode ser directamente igual a $t_0$, pois como $z^2$ e $\delta(y, z)$ são públicos, o verificador conseguiria extraír $v$. Assim $t_1$ e $t_2$ são factores ofuscantes estruturados para manter t(x) secreto ao provador. Mais adiante na altura da $\it{execução}$, irá ser necessário que $t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle$, mais uma razão para que t(x) não possa ser só igual a $t_0$. O que torna $T_1$ e $T_2$ necessários ao circuito. Aqui "público" significa a estrutura formal, y e z têm de ser extraídos do traslado pelo verificador.
-
-\newline
-
+\medskip
 $\equalto{\langle \underline{l}(x),\underline{G}\rangle}{+} = \enspace\equalto{\langle\underline{G},\underline{a}_L\rangle}{+} + \enspace\enspace\equalto{\langle\underline{G},\underline{\dot{s}}_L\rangle}{+} + \quad\equalto{\langle -z\underline{1},\underline{G}\rangle}{+}$  $*^5$
 
 $\equalto{\langle \underline{r}(x),\underline{H'}\rangle}{+}  = \equalto{\langle\underline{H},\underline{a}_R\rangle}{+} + \equalto{x\langle\underline{H},\underline{\dot{s}}_R\rangle}{+} + \equaltoo{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle}{\ }$  $*^6$ 
@@ -567,8 +562,7 @@ $\equaltoo{\quad\mu G}{\ } \quad\quad= \enspace\enspace \equaltoo{\dot{\alpha} G
 
 $\quad\quad\quad\quad\enspace=\enspace\enspace\enspace A \quad\quad+\quad x S \quad+\quad \underbrace{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle}_{\text{público}}$
 
-\newline
-
+\medskip
 
 Em que $\underline{H'} = \underline{y}^{-n}\circ\underline{H} \leftrightarrow \underline{H} = \underline{y}^{n}\circ\underline{H'}$\newline
 Esta é uma das partes mais elegantes, o provador não possui $\underline{y}^{n}$ á sua disposição para inserir no circuito aritmético. Portanto usa $\underline{H'}$ para fazer os compromissos de forma implícita/indirecta! Ou seja o provador tem de inserir $\underline{y}^{n}$ contra $\underline{a}_R$ e $\underline{\dot{s}}_R$, só que por causa da forma como o metodo é implementado nessa altura da comunicação entre provador e verificador, $\underline{y}^{n}$ ainda não existia para o provador, veja-se na página anterior como $y$ só existe depois do compromisso a $S$ ... 
@@ -652,7 +646,7 @@ $
 \begin{align*}
 P_{k-1} = \langle u_{k} \underline{l}_{k}^{\rightarrow}(x) + u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{G}_{k}^{\rightarrow} + u_{k} \underline{G}_{k}^{\leftarrow}\rangle +\\ \langle u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x) + u_{k} \underline{r}_{k}^{\leftarrow}(x), u_{k} \underline{H'}_{k}^{\rightarrow} + u_{k}^{-1} \underline{H'}_{k}^{\leftarrow}\rangle +\\\langle u_{k} \underline{l}_{k}^{\rightarrow}(x) + u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x) + u_{k} \underline{r}_{k}^{\leftarrow}(x)\rangle U
 \end{align*}
-\newline
+\medskip
 \begin{align*}
 P_{k-1} = 
 \langle \cancel{u_{k}} \underline{l}_{k}^{\rightarrow}(x), \cancel{u_{k}^{-1}} \underline{G}_{k}^{\rightarrow}\rangle + \langle u_{k} \underline{l}_{k}^{\rightarrow}(x), u_{k} \underline{G}_{k}^{\leftarrow}\rangle \\
@@ -662,8 +656,7 @@ P_{k-1} =
 \langle \cancel{u_{k}} \underline{l}_{k}^{\rightarrow}(x), \cancel{u_{k}^{-1}} \underline{r}_{k}^{\rightarrow}(x) \rangle U + \langle u_{k} \underline{l}_{k}^{\rightarrow}(x), u_{k} \underline{r}_{k}^{\leftarrow}(x)\rangle U +\\
 \langle \cancel{u_{k}^{-1}} \underline{l}_{k}^{\leftarrow}(x), \cancel{u_{k}} \underline{r}_{k}^{\leftarrow}(x)\rangle U + \langle u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x)\rangle U
 \end{align*}
-\newline
-
+\medskip
 $
 P_{k-1} = \newline
 \langle  \underline{l}_{k}^{\rightarrow}(x),  \underline{G}_{k}^{\rightarrow}\rangle$ \quad\quad$+ u_{k}^2 \langle \underline{l}_{k}^{\rightarrow}(x), \underline{G}_{k}^{\leftarrow}\rangle\newline$ 
@@ -688,7 +681,7 @@ P_k = P_0 - \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k\\
 P_{0} = \ce{^{0}_{\ }\underline{l}(x)}\ce{^{0}_{\ }\underline{G}} + \ce{^{0}_{\ }\underline{r}(x)}\ce{^{0}_{\ }\underline{H'}} + \ce{^{0}_{\ }\underline{l}(x)}\ce{^{0}_{\ }\underline{r}(x)}U 
 \end{align*}
 
-\newline
+\medskip
 Em que $\ce{^{0}_{\ }\underline{l}(x)}$ e $\ce{^{0}_{\ }\underline{r}(x)}$ são só dois escalares (em Monero representa-se isto como $a$ e $b$ respectivamente na transacção).
 
 \subsubsection{o verificador e o fim da batalha}
@@ -752,7 +745,7 @@ O que acontece então é que o verificador forma um vector $\underline{\phi}$ co
 O mesmo é feito para $\ce{^{0}_{\ }\underline{H'}}$, em que o verificador forma outro vector $\underline{\varphi}$ tal que : 
 
 \begin{align*}
- \underline{\varphi}[i]=\prod_{m=1}^{k} u_{m}^\overline{b(i,m)}
+ \underline{\varphi}[i]=\prod_{m=1}^{k} u_{m}^{\overline{b(i,m)}}
 \end{align*}
 
 em que :
@@ -800,14 +793,14 @@ Agora o verificador está armado com tudo o que precisa para fazer a verificaç�
 t(x) H + \bold{\tau}_x G + P_0 - \sum_{j=1}^{k} u_{j}^{-2}L_k + u_{j}^{2}R_k + \mu G=\\= t(x) U + z^2 V + \delta(y, z) H \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle
 \end{align*}
 $
-\newline
+\medskip
 $
 \begin{align*}
 t(x) H - t(x) U - \delta(y, z) H + \bold{\tau}_x G + a\ce{^{0}_{\ }\underline{G}} + b\ce{^{0}_{\ }\underline{H'}} + abU + \mu G=\\= z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle 
 \\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
 \end{align*}
 $
-\newline
+\medskip
 $
 \begin{align*}
 (t(x) - \delta(y, z)) H - t(x) U + \bold{\tau}_x G + a\ce{^{0}_{\ }\underline{G}} + b\ce{^{0}_{\ }\underline{H'}} + abU + \mu G=
@@ -815,7 +808,7 @@ $
 \\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
 \end{align*}
 $
-\newline
+\medskip
 $
 \begin{align*}
 (t(x) - \delta(y, z)) H - t(x) U + \bold{\tau}_x G + abU + \mu G=\\=
@@ -823,14 +816,14 @@ z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z
 \\ + \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
 \end{align*}
 $
-\newline
+\medskip
 $
 \begin{align*}
 (t(x) - \delta(y, z)) H - t(x) x_{ip} H + (\tau_x + \mu) G + ab x_{ip} H =\\= z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n - b\underline{\varphi},\underline{H'}\rangle + \langle -z\underline{1} - a\underline{\phi},\underline{G}\rangle 
 \\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
 \end{align*}
 $
-\newline
+\medskip
 $
 \begin{align*}
 ((t(x) - \delta(y, z)) - ((t(x) - ab)x_{ip})) H =
@@ -839,7 +832,7 @@ $
 \\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
 \end{align*}
 $
-\newline
+\medskip
 $
 \begin{align*}
 (0, 1) =

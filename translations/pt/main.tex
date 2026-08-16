@@ -16,6 +16,7 @@
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{bm}
+\usepackage{cancel}
 
 % Footnotes
 % -------------------------------------
@@ -30,7 +31,7 @@
 % putting this between footmisc and hyperref seemed to fix broken footnote links
 \usepackage{setspace}
 \AtBeginDocument{\let~=\nobreakspace}
-\spacing{1.1}
+\setstretch{1.1}
 
 % Advanced crossreferencing commands 
 % -------------------------------------
@@ -110,6 +111,9 @@
 \newcommand\nth{\textsuperscript{th}\xspace}
 \newcommand\nths{\textsuperscript{ths}\xspace}
 
+% Mathematical annotation wrapper used in content/commitments.tex.
+\providecommand{\ce}[1]{\ensuremath{#1}}
+
 % List spacing
 \usepackage{enumitem}
 \setlist[itemize]{topsep=0pt}
@@ -131,8 +135,8 @@
 
 
 \hypersetup{
-    pdftitle = {Zero to Monero - Second Edition},
-    pdfauthor = {koe Kurt and Sarang}
+    pdftitle = {Zero a Monero: Segunda Edição},
+    pdfauthor = {koe, Kurt M. Alonso e Sarang Noether}
 }
 
 
@@ -159,15 +163,15 @@
 
 
 \vfill{}
-{\par\centering \textsc{\huge Zero a Monero : Segunda Edição}\par}
+{\par\centering \textsc{\huge Zero a Monero: Segunda Edição}\par}
 \bigskip \bigskip
-{\par\centering \textsc{\LARGE Um Guía Técnico para uma moeda digital privada; para íniciados, amadores e especialistas .}\par}
+{\par\centering \textsc{\LARGE Um guia técnico para uma moeda digital privada; para principiantes, amadores e especialistas}\par}
 \bigskip
-{\par\centering \textsc{\LARGE Publicado a \today{} (v2.0.0)}\par}
+{\par\centering \textsc{\LARGE Tradução portuguesa em revisão, \today{}}\par}
 %{\par\centering \textsc{\LARGE \today{}, Pre-Publication Draft 1.2.0}\par}
 \bigskip
 {\par\centering \textsc{\large koe\footnote{ukoe@protonmail.com}, Kurt M. Alonso\footnote{kurt@oktav.se}, Sarang Noether\footnote{sarang.noether@protonmail.com}}
-{\par\centering \textsc{\large Traduzido por {\tt slave\_blocker} \footnote{dollner@gmx.de}}\par}
+{\par\centering \textsc{\large Tradução de {\tt slave\_blocker}\footnote{dollner@gmx.de}}\par}
 %\\(for questions and comments, please CC both authors)
 \par}
 \vfill{}
@@ -176,7 +180,7 @@
   \begin{minipage}[t]{6.43in}
 
 %\textbf{DRAFT INFORMATION}: This is just a draft, and may not always be available wherever it is currently hosted. The final version will be published at \url{https://web.getmonero.org/library/}.
-\textbf{Licença}: Zero a Monero: A segunda edição é liberta para o domínio público.
+\textbf{Licença}: \emph{Zero a Monero: Segunda Edição} é dedicada ao domínio público.
 
   \end{minipage}
 \end{center}
@@ -190,7 +194,7 @@
 \begin{minipage}{5.5in}
 \begin{center}
 \vspace*{\fill}%\vspace*{3.5cm}
-{\LARGE \bfseries  Abstracto}
+{\LARGE \bfseries Resumo}
 \end{center}
 \begin{center} \vrule width 4.5in height 0.4pt \end{center} 
 \parindent=0pt 
@@ -223,7 +227,7 @@
 \include{content/advancedSchnorr}
 \include{content/addresses}
 \include{content/commitments}
-\include{content/transactions}
+\include{content/Transactions}
 \include{content/blockchain}
 
 \part{Extensões}

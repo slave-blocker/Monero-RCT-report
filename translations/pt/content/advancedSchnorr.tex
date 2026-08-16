@@ -1,555 +1,1019 @@
 \chapter{Assinaturas tipo Schnorr avançadas}
 \label{chapter:advanced-schnorr}
 
-Uma assinatura tipo Schnorr tem uma chave signatária. Acontece que é possivel aplicar estes conceitos para criar uma variedade de assinaturas progressivamente mais complexas. Um desses esquemas, MLSAG, irá ter uma importância central no protocolo de transacção de Monero.
+Entre as ferramentas do capítulo anterior, construímos uma prova de Schnorr a
+partir de uma só relação \(K=kG\). Podemos agora ligar várias relações ao mesmo desafio,
+esconder a posição da relação verdadeira num anel e, por fim, tornar as
+assinaturas ligáveis. SAG e bLSAG servirão de antepassados conceptuais; MLSAG
+explica a evolução histórica de RingCT; CLSAG é a construção usada pelas
+transacções activas na versão 16 do protocolo. Esta ordem permite-nos ver o
+mecanismo a crescer sem confundir história com consenso actual.
 
-%A basic Schnorr signature has one signing key. As it happens, we can apply its core concepts to create a variety of progressively more complex signature schemes. One of those schemes, MLSAG, will be of central importance in Monero's transaction protocol.
-%-same signing key across multiple bases
+Em todo o capítulo trabalhamos no subgrupo de ordem prima \(l\) e escrevemos
+\(\mathbb Z_l\) para os escalares. As listas passadas a uma função hash têm
+uma codificação canónica e não ambígua: incluem a ordem e o número dos seus
+elementos. \(\mathcal H_n\) designa uma função hash para escalares e
+\(\mathcal H_p\), quando aparecer, uma função hash para pontos. São operações
+diferentes.
 
-\section{Provar o conhecimento do logaritmo discreto através de múltiplas bases}
+\section{Igualdade do logaritmo discreto em várias bases}
 \label{sec:proofs-discrete-logarithm-multiple-bases}
 
-É útil provar que a mesma chave privada, foi usada para construir chaves públicas, com chaves {\em base} diferentes (i.e. geradores diferentes). Por exemplo, seja uma chave pública normal $k G$, e um segredo partilhado tipo Diffie-Hellman $k R$ respectivo á chave pública de outra pessoa, ou seja as chaves base são $G$ e $R$. É possível provar conhecimento do logaritmo discreto de $k$ em $k G$, como também de $k$ in $k R$, e que $k$ é o mesmo. E isto tudo sem revelar algo sobre $k$ em sí. 
+Suponhamos que Alice publica \(K_1=kJ_1\) e \(K_2=kJ_2\). O primeiro ponto
+pode ser uma chave pública \(kG\), enquanto o segundo pode ser o segredo
+Diffie--Hellman \(kR\) da secção \ref{DH_exchange_section}. Alice quer provar
+duas coisas ao mesmo tempo: conhece o logaritmo discreto e esse logaritmo é o
+mesmo nas duas bases. Uma resposta Schnorr comum às duas relações faz
+precisamente esse trabalho.
 
-%It is often useful to prove the same private key was used to construct public keys on different `base' keys. For example, we could have a normal public key $k G$, and a Diffie-Hellman shared secret $k R$ with some other person's public key (recall Section \ref{DH_exchange_section}), where the base keys are $G$ and $R$. As we will soon see, we can prove knowledge of the discrete log $k$ in $k G$, prove knowledge of $k$ in $k R$, {\em and} prove that $k$ is the same in both cases (all without revealing $k$).
+\subsection*{Declaração e testemunha}
 
+Seja \(d\geq 1\). A declaração pública, escrita como listas ordenadas, é
+\begin{align*}
+\mathcal{J} &= (J_1,\ldots,J_d), &
+\mathcal{K} &= (K_1,\ldots,K_d).
+\end{align*}
+A testemunha privada é um único \(k\in\mathbb Z_l\) tal que
+\begin{align*}
+K_i=kJ_i\qquad\text{para todo }i\in\{1,\ldots,d\}.
+\end{align*}
+Cada \(J_i\) e \(K_i\) deve ter uma codificação válida, pertencer ao subgrupo
+de ordem \(l\) e não ser a identidade. Sem estas condições, uma base nula
+poderia tornar uma das relações vazia de conteúdo.
+
+A transformação Fiat--Shamir inclui ainda um rótulo de domínio e um contexto
+\(x\). Numa assinatura, \(x\) contém a mensagem \(M\); numa prova
+destinada a outro protocolo, contém a sessão e os objectos a que a prova deve
+ficar presa.\footnote{Uma prova deste género torna-se uma assinatura quando a
+mensagem \(M\) é incluída no contexto do desafio.}
+
+Assumimos que \(\mathcal H_n\) transforma essa codificação em
+\(\mathbb Z_l\). Não se exige que cada entrada tenha uma imagem diferente;
+uma função hash tem colisões em princípio. A análise usa-a como oráculo
+aleatório e a segurança computacional exige que seja impraticável encontrar
+colisões ou prever desafios.\footnote{No código Monero, a operação
+correspondente calcula Keccak-256 e reduz os 256 bits módulo \(l\). O escalar
+zero pertence legitimamente a \(\mathbb Z_l\); a segurança não depende de
+excluir esse resultado, cuja ocorrência é de probabilidade desprezável.}
 
 \subsection*{Prova não interactiva}
 
-Suponha-se que temos uma chave privada $k$, e $d$ chaves {\em base} :
-\vspace{.175cm}
-\begin{align*}
-\mathcal{J} = \{J_1,...J_d\} .
-\end{align*}
-%Suppose we have a private key $k$, and $d$ base keys $\mathcal{J} = \{J_1,...,J_d\}$. 
-As chaves públicas correspondentes são :
-\vspace{.175cm}
-\begin{align*}
-\mathcal{K} = \{K_1,...K_d\} .
-\end{align*}
-%The corresponding public keys are $\mathcal{K} = \{K_1,...,K_d\}$. 
-Em que $K_i = k J_i$, $i \in \{1,...d\}$. Faz-se então uma prova tipo Schnorr (secção \ref{sec:schnorr-fiat-shamir}), através de todas as bases. Assume-se a existência de uma função hash \(\mathcal{H}_n\), que para cada inteiro de 0 a $l-1$, devolve uma hash única.      
-
-%We make a Schnorr-like proof (recall Section \ref{sec:schnorr-fiat-shamir}) across all bases.
-\footnote{Uma assinatura pode trivialmente ser feita ao incluír uma mensagem $\mathfrak{m}$ no desafio hash.}
-%While we say `proof', it can be trivially made a signature by including a message $\mathfrak{m}$ in the challenge hash. The terminology is loosely interchangeable in this context.} 
-%Assume the existence of a hash function \(\mathcal{H}_n\) 
-%mapping to integers from 0 to $l-1$.
-\footnote{Em Monero, a função hash $\mathcal{H}_n(x) = \textrm{sc\textunderscore reduce32}(\mathit{Keccak}(x))$, em que $\mathit{Keccak}$ é a base de SHA3 e sc\textunderscore reduce32() põem o resultado de 256 bits no domínio de 0 a $l-1$ (embora devesse ser de 1 a $l-1$).}
-%In Monero, the hash function $\mathcal{H}_n(x) = \textrm{sc\textunderscore reduce32}(\mathit{Keccak}(x))$ where $\mathit{Keccak}$ is the basis of SHA3 and sc\textunderscore reduce32() puts the 256 bit result in the range 0 to $l-1$ (although it should really be 1 to $l-1$).} 
-\subsection*{Assinatura}
 \begin{enumerate}
-	\item Gera-se um número aleatório $\alpha \in_R \mathbb{Z}_l$, e calcula-se para cada $i \in (1,...,d)$, $\alpha J_i$. Ou seja : $\alpha \mathcal{J} = \{\alpha J_1,...\alpha J_d\} $ .    
-	\item Calcula-se o desafio,\vspace{.175cm}
-	\[c = \mathcal{H}_n(\mathcal{J},\mathcal{K},[\alpha J_1],[\alpha J_2],...,[\alpha J_d])\]
-	\item Define-se a resposta $r = \alpha - c*k$.
-	\item Publica-se a assinatura $(c, r)$.
+    \item Escolhe-se \(\alpha\in_R\mathbb Z_l\) e calculam-se os compromissos
+    \(A_i=\alpha J_i\), para \(i=1,\ldots,d\).
+    \item Calcula-se o desafio
+    \[
+    c=\mathcal H_n(\mathsf{DLEQ},x,
+       \mathcal J,\mathcal K,[A_1],\ldots,[A_d]).
+    \]
+    \item Calcula-se a resposta
+    \[
+    r=(\alpha-ck)\bmod l.
+    \]
+    \item Publica-se a prova \((c,r)\). Os compromissos não precisam de ser
+    publicados separadamente, porque o verificador os reconstrói.
 \end{enumerate}
-%??? what notation is this ? \[c = \mathcal{H}_n(\mathcal{J},\mathcal{K},[\alpha J_1],[\alpha J_2],...,[\alpha J_d])\] ??? \mathcal{H}_n(\mathcal{J},\mathcal{K}  is called "key prefixing". Make the notation of concatenation explicit and verbatim.
 
 \subsection*{Verificação}
 
-Assumindo que o verificador sabe $\mathcal{J}$ e $\mathcal{K}$, ele faz o seguinte :
-%Assuming the verifier knows $\mathcal{J}$ and $\mathcal{K}$, he does the following.
-
-\begin{enumerate}
-	\item Calcula-se o desafio:\vspace{.175cm}
-    \[c' = \mathcal{H}_n(\mathcal{J},\mathcal{K},r \mathcal{J} + c \mathcal{K} )\]	
-    \[c' = \mathcal{H}_n(\mathcal{J},\mathcal{K},[r J_1 + c*K_1],[r J_2 + c*K_2],...,[r J_d + c*K_d])\]
-	\item Se $c = c'$ então o signatário tem de saber o logaritmo discreto através de todas as bases, e é o mesmo em cada caso (enp).
-%then the signer must know the discrete logarithm across all bases, and it's the same discrete logarithm in each case (as always, except with negligible probability).
-\end{enumerate}
+O verificador rejeita primeiro pontos ou escalares mal codificados, pontos
+fora do subgrupo, identidades e dimensões incoerentes. Depois calcula
+\begin{align*}
+A'_i &= rJ_i+cK_i,\qquad i=1,\ldots,d,\\
+c' &= \mathcal H_n(\mathsf{DLEQ},x,
+       \mathcal J,\mathcal K,[A'_1],\ldots,[A'_d])
+\end{align*}
+e aceita apenas se \(c'=c\).
 
 \subsection*{Funciona porque}
 
-\tikzstyle{note} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=green!30]
-\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
-\tikzstyle{arrow} = [thick,->,>=stealth]
-
-
-\begin{tikzpicture}[node distance=2cm]
-\node (ver0_SM) [process] {Provador};
-\node (ver1_SM) [process, below of=ver0_SM, yshift=-0.5cm, text width=6cm] {Gera-se um número aleatório $\alpha \in_R \mathbb{Z}_l$, e calcula-se $\alpha \mathcal{J}$};
-\node (ver2_SM) [process, below of=ver1_SM, yshift=-0.5cm] {calcula a {\em resposta} $r = \alpha - c*k$};
-\node (ver3_SM) [process, below of=ver2_SM, yshift=-0.5cm] {Publica-se a assinatura $(c, r)$};
-%\node (ver4_SM) [note, below of=ver3_SM, yshift=-0.5cm, text width=10cm] {Note-se que $c$ já é público, $r$ contêm a assinatura em sí. Publicar $(c, r)$ em vez de só $r$ é uma mera formalidade. O signatário não publica $rG$, mas sim $r$ .};
-\node (pro0_SM) [process, right of=ver0_SM, xshift=5cm] { Público };
-\node (pro1_SM) [process, right of=ver1_SM, xshift=5cm, text width=4.5cm] {Calcula-se o desafio com uma função hash criptográficamente segura:\quad \(c = \mathcal{H}(\mathcal{J}, \mathcal{K}, \alpha \mathcal{J})\) };
-%\node (pro2_SM) [process, below of=pro1_SM, yshift=-0.5cm, text width=4.5cm] {
-%\(     r G &= (\alpha - c*k_A) G \\
-%  	  	 &= \alpha G - c*K_A, então :    
-%     \alpha G &= r G + c*K_A    \)
-%};
-\node (pro3_SM) [process, right of=ver3_SM, xshift=4cm, text width=4.5cm] {Calcula-se o desafio: \(c' = \mathcal{H}(\mathcal{J}, \mathcal{K}, r \mathcal{J} + c \mathcal{K})\)};
-\node (pro4_SM) [process, below of=pro3_SM, yshift=-0.5cm] {verifica se : $c =  \stackrel{?}{=} c'$};
-%\node (pro2c) [process, right of=pro2a, xshift=8cm] {Process 2b};
-%\draw [arrow] (dec1) -- (pro2a);
-\draw [arrow] (ver1_SM) -- node[anchor=south] {$\alpha \mathcal{J}$} (pro1_SM);
-%\draw [arrow] (pro1_FS) -- node[anchor=south] {$c$} (ver2_FS);
-\draw [arrow] (ver3_SM) -- node[anchor=south] {$(c, r)$} (pro3_SM);
-%\draw [arrow] (pro2b) -- node[anchor=west] {$c$} (pro2c);
-\end{tikzpicture}
-\vspace{.175cm}
-\newline Se $c = c'$ então a assinatura é válida.
-Se em vez de $d$ chaves base fosse só uma, esta prova seria claramente a mesma que foi apresentada na secção \ref{sec:schnorr-fiat-shamir}. A sequência de equações que se seguem resolvem-se da mesma maneira :    
-
+Para uma prova honesta, cada reconstrução devolve o compromisso original:
 \begin{align*}
-                 r &= \alpha - c*k  \\
-  	 r \mathcal{J} &= (\alpha - c*k) \mathcal{J}  \\
-     r \mathcal{J} &= \alpha \mathcal{J} - c*k \mathcal{J}  \\
-\alpha \mathcal{J} &= r \mathcal{J} + c* \mathcal{K}\\
-\mathcal{H}_n(\mathcal{J}, \mathcal{K}, [\alpha \mathcal{J}]) &= \mathcal{H}_n(\mathcal{J}, \mathcal{K}, r \mathcal{J} + c* \mathcal{K}) \\
-       c &= c' \\
-\alpha \mathcal{J} &= (\alpha - c*k) \mathcal{J} + c* \mathcal{K}\\
-\alpha \mathcal{J} &= \alpha \mathcal{J} - c*\mathcal{K} + c*\mathcal{K}\\
-\alpha \mathcal{J} &= \alpha \mathcal{J}\\
+A'_i
+  &=rJ_i+cK_i\\
+  &=(\alpha-ck)J_i+c(kJ_i)\\
+  &=\alpha J_i=A_i.
+\end{align*}
+Logo o verificador recompõe exactamente a mesma entrada de
+\(\mathcal H_n\), pelo que
+\begin{align*}
+\mathcal H_n(\mathsf{DLEQ},x,\mathcal J,\mathcal K,
+ [A_1],\ldots,[A_d])
+&=\mathcal H_n(\mathsf{DLEQ},x,\mathcal J,\mathcal K,
+ [A'_1],\ldots,[A'_d]),\\
+c&=c'.
 \end{align*}
 
-Desta vez o signatário tem de conhecer o logaritmo discreto através de todas as bases para que a assinatura seja válida (enp). Diz-se que o logaritmo discreto é o mesmo em cada caso ou para cada base. Pois $k$ é sempre o mesmo em $K_i = k J_i$, $i \in \{1,...d\}$ .  
-%then the signer must know the discrete logarithm across all bases, and it's the same discrete logarithm in each case (as always, except with negligible probability).
-%If instead of $d$ base keys there was just one, this proof would clearly be the same as our original Schnorr proof (Section \ref{sec:schnorr-fiat-shamir}). We can imagine each base key in isolation to see that the multi-base proof is just a bunch of Schnorr proofs connected together. Moreover, by using only one challenge and response for all of those proofs, they must have the same discrete logarithm $k$. To get a single response that works for multiple keys the challenge would need to be known before defining an $\alpha$ for each key, but $c$ is a function of $\alpha$!
-%-multiple signing keys on their own unique bases (or they can be the same e.g. G)
+Com \(d=1\), recuperamos a prova de Schnorr da secção
+\ref{sec:schnorr-fiat-shamir}. Para \(d>1\), usar o mesmo \(\alpha\), o mesmo
+desafio e a mesma resposta liga as relações. No modelo do oráculo aleatório,
+duas transcrições aceitáveis com os mesmos compromissos e desafios distintos
+permitem extrair \(k\); esta é a razão formal para falar em prova de
+conhecimento. A conclusão depende da dificuldade do logaritmo discreto no
+subgrupo e da validação dos pontos, não apenas da igualdade \(c=c'\).
+
+O valor \(\alpha\) nunca pode ser reutilizado com outro desafio. De
+\(r=\alpha-ck\) e \(r'=\alpha-c'k\), um observador obtém
+\[
+k=(r-r')(c'-c)^{-1}\pmod l.
+\]
+Também por isso, qualquer geração determinística do valor efémero deve ficar
+presa a todo o contexto e a todas as chaves públicas.
+
 \section{Uma prova com múltiplas chaves privadas}
 \label{sec:multiple_private_keys_in_one_proof}
 
-Bem como na prova através de múltiplas bases, podem-se combinar muitas provas tipo Schnorr que usam chaves privadas diferentes. Isto faz com que se prove a posse de todas as chaves privadas para um conjunto de chaves públicas. E todas as provas juntas só requerem um desafio.    
-%Much like a multi-base proof, we can combine many Schnorr proofs that use different private keys. Doing so proves we know all the private keys for a set of public keys, and reduces storage requirements by making just one challenge for all proofs.
+A construção anterior reutilizava uma testemunha em várias bases. Podemos
+fazer o complemento: provar simultaneamente várias relações, cada qual com a
+sua testemunha, mas reuni-las num só desafio. É uma composição «E» de
+provas de Schnorr: a prova só é válida quando todas as relações o são.
+
+\subsection*{Declaração e testemunhas}
+
+Para \(d\geq1\), sejam
+\begin{align*}
+\mathcal J&=(J_1,\ldots,J_d),&
+\mathcal K&=(K_1,\ldots,K_d).
+\end{align*}
+A declaração pública afirma que existem testemunhas
+\((k_1,\ldots,k_d)\in\mathbb Z_l^d\) tais que
+\[
+K_i=k_iJ_i\qquad\text{para todo }i\in\{1,\ldots,d\}.
+\]
+As bases podem repetir-se, e podem mesmo ser todas iguais a
+\(G\).\footnote{Bases repetidas seriam redundantes numa prova de igualdade de
+logaritmos, mas não aqui: por exemplo, \(K_1=k_1G\) e \(K_2=k_2G\) são duas
+relações distintas. A construção não afirma que os \(k_i\) sejam diferentes.}
+Tal como antes, o verificador exige listas com a mesma dimensão, codificações
+canónicas, pontos não nulos no subgrupo de ordem \(l\) e escalares canónicos.
+O contexto público \(x\) inclui a mensagem ou a finalidade da prova.
 
 \subsection*{Prova não interactiva}
 
-Sejam $d$ chaves privadas $k_1,...,k_d$, e chaves base $\mathcal{J} = \{J_1,...,J_d\}$.
-%Suppose we have $d$ private keys $k_1,...,k_d$, and base keys $\mathcal{J} = \{J_1,...,J_d\}$.
-\footnote{Note-se que $\mathcal{J}$ poderia conter chaves base duplicadas, ou que todas as chaves bases fossem iguais (e.g. $G$). Duplicados seriam redundantes para provas com múltiplas bases, mas aqui usam-se chaves privadas todas distintas.} 
-%There is no reason $\mathcal{J}$ can't contain duplicate base keys here, or for all base keys to be the same (e.g. $G$). Duplicates would be redundant for multi-base proofs, but now we are dealing with different private keys.} 
-As chaves públicas correspondentes são $\mathcal{K} = \{K_1,...,K_d\}$. Faz-se uma prova tipo Schnorr de todas as chaves ao mesmo tempo.  
-%The corresponding public keys are $\mathcal{K} = \{K_1,...,K_d\}$. We make a Schnorr-like proof for all keys simultaneously.
-
-\subsection*{Assinatura}
 \begin{enumerate}
-	\item Geram-se $\alpha_i \in_R \mathbb{Z}_l$ para cada $i \in (1,...,d)$, e calculam-se todos os $\alpha_i J_i$.
-	\item Calcula-se o desafio,\vspace{.175cm}
-	\[c = \mathcal{H}_n(\mathcal{J},\mathcal{K},[\alpha_1 J_1],[\alpha_2 J_2],...,[\alpha_d J_d])\]
-	\item Define-se cada resposta $r_i = \alpha_i - c*k_i$.
-	\item Publica-se a assinatura $(c, r_1,...r_d)$.
+    \item Escolhem-se valores efémeros independentes
+    \(\alpha_i\in_R\mathbb Z_l\) e calculam-se
+    \[
+    A_i=\alpha_iJ_i,\qquad i=1,\ldots,d.
+    \]
+    \item Calcula-se o único desafio
+    \[
+    c=\mathcal H_n(\mathsf{Schnorr\text{-}AND},x,
+      \mathcal J,\mathcal K,[A_1],\ldots,[A_d]).
+    \]
+    \item Calcula-se uma resposta por testemunha:
+    \[
+    r_i=(\alpha_i-ck_i)\bmod l,\qquad i=1,\ldots,d.
+    \]
+    \item Publica-se
+    \[
+    (c,r_1,\ldots,r_d).
+    \]
 \end{enumerate}
 
 \subsection*{Verificação}
 
-Assumindo que o verificador sabe $\mathcal{J}$ e $\mathcal{K}$, ele faz o seguinte :
-%Assuming the verifier knows $\mathcal{J}$ and $\mathcal{K}$, he does the following.
-
-\begin{enumerate}
-	\item Calcula-se o desafio:\vspace{.175cm}
-	\[c' = \mathcal{H}(\mathcal{J},\mathcal{K},[r_1 J_1 + c*K_1],[r_2 J_2 + c*K_2],...,[r_d J_d + c*K_d])\]
-	\item Se $c = c'$, então a assinatura é válida. O signatário tem de saber as chaves privadas de todas as chaves públicas em $\mathcal{K}$ (enp).
-\end{enumerate}
+Depois de validar a declaração e a prova, o verificador reconstrói
+\begin{align*}
+A'_i&=r_iJ_i+cK_i,\qquad i=1,\ldots,d,\\
+c'&=\mathcal H_n(\mathsf{Schnorr\text{-}AND},x,
+  \mathcal J,\mathcal K,[A'_1],\ldots,[A'_d])
+\end{align*}
+e aceita apenas se \(c'=c\).
 
 \subsection*{Funciona porque}
 
+Para cada índice,
 \begin{align*}
-                 r_i &= \alpha_i - c*k_i  \\
-  	 r_i J_i &= (\alpha_i - c*k_i) J_i  \\
-     r_i J_i &= \alpha_i J_i - c*k_i J_i  \\
-\alpha_i J_i &= r_i J_i + c* K_i\\
-\alpha_i J_i &= (\alpha_i - c*k) J_i + c*K_i\\
-\alpha_i J_i &= \alpha_i J_i - c*K_i + c*K_i\\
-\alpha_i J_i &= \alpha_i J_i\\
+r_iJ_i+cK_i
+  &=(\alpha_i-ck_i)J_i+c(k_iJ_i)\\
+  &=\alpha_iJ_i=A_i.
+\end{align*}
+Assim, todos os argumentos reconstruídos são iguais aos argumentos usados
+pelo provador. Abreviando por
+\(\mathcal T=(\mathsf{Schnorr\text{-}AND},x,\mathcal J,\mathcal K)\)
+o prefixo comum da transcrição, obtemos
+\begin{align*}
+c'
+ &=\mathcal H_n(\mathcal T,[A'_1],\ldots,[A'_d])\\
+ &=\mathcal H_n(\mathcal T,[A_1],\ldots,[A_d])=c.
 \end{align*}
 
-Em que $i \in \{1,...d\}$ . É claro que :
-\begin{align*}
-\mathcal{H}_n(\mathcal{J},\mathcal{K},[\alpha_i J_i]) = \mathcal{H}_n(\mathcal{J},\mathcal{K},[r_i J_i + c* K_i])
-\end{align*}
-mas isto {\em não} tem algo a ver com {\em c}. Portanto cabe ao leitor neste caso imaginar que para cada argumento na função hash depois de $\mathcal{H}_n(\mathcal{J},\mathcal{K},$ 
-\newline existe um : 
-\begin{align*}
-\alpha_i J_i
-\end{align*}
-para um :
-\begin{align*}
-r_i J_i + c* K_i .
-\end{align*}
-Cada tal par de argumentos na função hash dos dois lados da equação é igual. Como tal é também igual a hash destes pares concatenados ao longo do index $i$. Tal que :
-\begin{align*}
-\mathcal{H}_n(\mathcal{J},\mathcal{K},[\alpha_1 J_1],...[\alpha_d J_d]) &= \mathcal{H}(\mathcal{J},\mathcal{K},[r_1 J_1 + c*K_1],...[r_d J_d + c*K_d])\\
-c &= c' \\
-\end{align*}
+O desafio partilhado poupa \(d-1\) escalares em comparação com \(d\) provas
+Fiat--Shamir independentes; não junta as testemunhas numa só. No modelo do
+oráculo aleatório, duas transcrições com os mesmos compromissos e desafios
+distintos permitem extrair cada
+\[
+k_i=(r_i-r'_i)(c'-c)^{-1}\pmod l.
+\]
+Por conseguinte, a alegação de conhecimento de todas as chaves depende da
+dificuldade do logaritmo discreto e de a transcrição ligar o domínio, o
+contexto, todas as bases, todas as chaves e todos os compromissos.
+
+Cada \(\alpha_i\) deve ser imprevisível e não pode reaparecer sob outro
+desafio: reutilizar apenas um deles basta para revelar o respectivo \(k_i\).
+Índices trocados, listas truncadas ou uma codificação ambígua mudariam a
+declaração; por isso, dimensões e ordem são parte do que se autentica.
 
 \section{Assinaturas espontâneas anónimas de grupo}
 \label{SAG_section}
 
-Assinaturas de grupo são uma maneira de provar que um signatário pertence a um grupo, sem necessariamente ter de o identificar. Originalmente (Chaum em \cite{Chaum:1991:GS:1754868.1754897}), esquemas de assinatura de grupo requeriam que o sistema fosse construído e por vezes até gerido por um terceiro de confiança. De forma a prevenir assinaturas ilegítimas e também para adjudicar disputas. Esses esquemas dependiam de um {\em segredo de grupo} o que não é desejável, pois é criado um risco de divulgação que podia acabar com a anonimidade. Além disso, requer coordinação entre membros do grupo (i.e. para a configuração e gestão) o que não é escalável para além de pequenos grupos ou para empresas.
+As assinaturas de grupo de Chaum e van Heyst recorriam a uma entidade de
+confiança para formar o grupo e, em certas variantes, para resolver
+disputas \cite{Chaum:1991:GS:1754868.1754897}. Uma assinatura em anel segue
+outra filosofia: o signatário escolhe espontaneamente um conjunto de chaves
+públicas e não precisa da autorização nem da colaboração dos respectivos
+donos. A ideia nasceu no trabalho de Rivest, Shamir e Tauman
+\cite{rivest-leak-secret}; Liu, Wei e Wong desenvolveram depois a variante
+ligável LSAG \cite{Liu2004}. Começaremos por SAG, sem ligação, porque o seu
+anel de desafios será a engrenagem das construções seguintes.
 
-Liu {\em et al.} apresentaram um esquema mais interessante em \cite{Liu2004} construíndo sobre o trabalho de Rivest {\em et al.} in \cite{rivest-leak-secret}. Os autores então detalharam um algoritmo chamado LSAG que é caracterizado por trés propriedades : {\em anonimidade, ligação} e {\em espontaínidade}. Aqui apresenta-mos SAG, a versão sem interligação de LSAG para a clareza conceptual. A ideia de interligação será apresentada em seccões posteriores.
-\\
+\subsection*{Declaração, testemunha e índice}
 
-Estes esquemas com anonimidade e espontaínidade chamam-se `assinaturas de anel'. No contexto de Monero estas assinaturas irão ultimamente permitir transacções infalsificáveis e em que o signatário é ambíguo. O que deixa o movimento de fundos largamente indetectável.
+Seja \(M\) a mensagem e seja
+\[
+\mathcal R=(K_1,\ldots,K_n),\qquad n\geq1,
+\]
+um anel ordenado de chaves públicas distintas. O signatário conhece um índice
+secreto \(\pi\in\{1,\ldots,n\}\) e a testemunha
+\(k_\pi\in\mathbb Z_l\) que satisfaz
+\[
+K_\pi=k_\pi G.
+\]
+A declaração é uma disjunção: «conheço a chave privada de \emph{algum}
+membro de \(\mathcal R\)». A posição \(\pi\) não faz parte da assinatura.
+Todas as chaves devem ter codificações canónicas, ser pontos não nulos do
+subgrupo de ordem \(l\), e a ordem e o comprimento do anel ficam presos à
+transcrição.
+
+Para simplificar os índices, convencionamos que \(c_{n+1}=c_1\). A função
+\(\mathcal H_n\) recebe um rótulo de domínio, o anel inteiro, a mensagem e o
+compromisso da ronda. O chamado \emph{prefixo de chave} é precisamente esta
+inclusão explícita de \(\mathcal R\) no desafio; impede que a mesma
+transcrição seja destacada de um anel e apresentada como pertencendo a outro.
 
 \subsection*{Assinatura}
 
-Assinaturas em anel são compostas de um anel e uma assinatura. Cada {\em anel} é um conjunto de chaves públicas, uma das quais pertence ao signatário, e as restantes são aleatórias. A assinatura é gerada com esse anel de chaves e com a mensagem $\mathfrak{m}$.
-
-A nossa assinatura tipo Schnorr na secção \ref{sec:signing-messages} pode ser considerada uma assinatura em anel com uma só chave. Podemos extender este esquema, em vez de definir-mos $r$ directamente, gera-se uma resposta desvio $r'$ bem como um segundo desafio, de forma a definir $r$ indirectamente. Note-se que á primeira vista o que se segue é confuso. Porque de facto existem dois aneís. O anel \(\mathcal{R} = \{K_1, K_2, ..., K_n\}\), é incluído explícitamente na assinatura como parâmetro da função hash. Se $\mathcal{R}$ fosse público, seria possível ao inspector verificar a assinatura á mesma, pois as chaves em $\mathcal{R}$ seriam implícitas.
-
-Á parte de $\mathcal{R}$, é também o esquema em sí da assinatura em anel, circular!
-\\
-
-Seja \(\mathfrak{m}\) a mensagem para ser assinada, \(\mathcal{R} = \{K_1, K_2, ..., K_n\}\) um conjunto de chaves públicas distintas, e \(k_\pi\) a chave privada do signatário correspondente á respectiva chave pública \(K_\pi \in \mathcal{R}\), em que $\pi$ é o index secreto :
-
 \begin{enumerate}
-	\item Gera-se um número aleatório \(\alpha \in_R \mathbb{Z}_l\) e respostas desvio  \(r_i \in_R \mathbb{Z}_l\) para todo o \(i \in \{1, 2, ..., n\}\) excepto \(i = \pi\).
+    \item Escolhe-se \(\alpha\in_R\mathbb Z_l\). Para cada
+    \(i\neq\pi\), escolhe-se ainda uma resposta simulada
+    \(r_i\in_R\mathbb Z_l\).
 
-	\item Calcula-se 
-	\[c_{\pi+1} = \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [\alpha G])\]
+    \item Inicia-se a ronda posterior ao signatário:
+    \[
+    c_{\pi+1}
+      =\mathcal H_n(\mathsf{SAG},\mathcal R,M,[\alpha G]).
+    \]
 
-	\item Para \(i = \pi+1, \pi+2, ..., n, 1, 2, ..., \pi-1\) calcula-se, substituindo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\[  c_{i+1} = \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_i G + c_i K_i])\] 
+    \item Percorrem-se, por ordem cíclica,
+    \(i=\pi+1,\pi+2,\ldots,n,1,\ldots,\pi-1\). Em cada posição calcula-se
+    \begin{align*}
+    L_i&=r_iG+c_iK_i,\\
+    c_{i+1}
+      &=\mathcal H_n(\mathsf{SAG},\mathcal R,M,[L_i]).
+    \end{align*}
 
-	\item Define-se a resposta verdadeira $r_\pi$ tal que \(r_\pi = \alpha - c_\pi k_\pi \pmod l\), ou seja :
-\(\alpha = r_\pi + c_\pi k_\pi \pmod l\).
+    \item Fecha-se o anel com a única resposta que não foi simulada:
+    \[
+    r_\pi=(\alpha-c_\pi k_\pi)\bmod l.
+    \]
 \end{enumerate}
 
-A assinatura em anel contêm a assinatura \(\sigma(\mathfrak{m}) = (c_1, r_1, ..., r_n) \), e o anel $\mathcal{R}$.
-
+A assinatura é
+\[
+\sigma=(c_1,r_1,\ldots,r_n).
+\]
+O anel e a mensagem têm de acompanhar a verificação, mas podem estar noutro
+campo do protocolo; não é necessário repeti-los dentro desta lista de
+escalares.
 
 \subsection*{Verificação}
 
-Verificação significa provar que $\sigma(\mathfrak{m})$ é uma assinatura válida, creada por uma chave privada correspondente a uma chave pública em $\mathcal{R}$ (sem necessariamente saber qual), e é feito da seguinte maneira:
-
-\begin{enumerate}
-	\item Para \(i = 1, 2, ..., n\) calcule, substituíndo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\begin{align*}
-	c'_{i+1}   = \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_i G + c_i {K_i}])
-	\end{align*}
-
-	\item Se \(c_1 = c'_1\) então a assinatura é válida. Note-se que $c'_1$ é o último termo calculado.
-\end{enumerate}
-
-Neste esquema guardam-se (1+$n$) inteiros, e usam-se $n$ chaves públicas.
-
+O verificador confirma \(n\geq1\), o número exacto de respostas e a
+canonicidade de \(c_1,r_1,\ldots,r_n\), além de validar todas as chaves do
+anel. Depois põe \(\widehat c_1=c_1\) e, para
+\(i=1,\ldots,n\), calcula
+\begin{align*}
+\widehat L_i&=r_iG+\widehat c_iK_i,\\
+\widehat c_{i+1}
+  &=\mathcal H_n(\mathsf{SAG},\mathcal R,M,[\widehat L_i]).
+\end{align*}
+No último passo, \(\widehat c_{n+1}\) é o desafio reconstruído para a primeira
+posição. Aceita-se se e só se
+\[
+\widehat c_{n+1}=c_1.
+\]
+Comparar o desafio final com o inicial, e não com o desafio da ronda
+anterior, é o que testa o fecho circular.
 
 \subsection*{Funciona porque}
 
-Podemos informalmente convencer-nos que o algoritmo funciona indo através de um exemplo. Considere-se um anel $R = \{K_1, K_2, K_3\}$ com $k_\pi = k_2$. Primeiro a assinatura :
-\begin{enumerate}
-    \item Gere-se números aleatórios $\alpha$, $r_1$, $r_3$
+Nas posições simuladas, o verificador repete literalmente os cálculos do
+signatário. Na posição verdadeira,
 \begin{align*}
-    \intertext{\item Inicia-se o anel :}	c_3 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [\alpha G])
-    \intertext{\item Calcula-se : \vspace{-.2cm}}
-        c_1 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_3 G + c_3 K_3])\\
-        c_2 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_1 G + c_1 K_1])
+\widehat L_\pi
+  &=r_\pi G+c_\pi K_\pi\\
+  &=(\alpha-c_\pi k_\pi)G+c_\pi(k_\pi G)\\
+  &=\alpha G.
 \end{align*}
-    \item Fecha-se o anel respondendo : $r_2 = \alpha - c_2 k_2 \pmod{l}$, ou seja :
-$\alpha = r_2 + c_2 k_2 \pmod{l}$
-\end{enumerate}
+Assim, também essa ronda devolve o compromisso inicial e a cadeia inteira
+fecha.
 
-Substituimos então $\alpha$ em $c_3$ para reconhecer o conceito `em anel'\vspace{.175cm}
-\begin{alignat*}{3}
-    c_3 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [(r_2 + c_2 k_2) G &&])\\
-    c_3 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_2 G + c_2 K_2 &&])
-\end{alignat*}\vspace{.05cm}
+Vejamos o antigo exemplo de três membros, agora com os índices bem à vista.
+Se \(\pi=2\), o signatário escolhe \(\alpha,r_1,r_3\) e calcula
+\begin{align*}
+c_3&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,[\alpha G]),\\
+c_1&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,
+                  [r_3G+c_3K_3]),\\
+c_2&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,
+                  [r_1G+c_1K_1]),\\
+r_2&=(\alpha-c_2k_2)\bmod l.
+\end{align*}
+Como
+\[
+r_2G+c_2K_2=(\alpha-c_2k_2)G+c_2(k_2G)=\alpha G,
+\]
+o verificador obtém sucessivamente
+\begin{align*}
+\widehat c_2&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,
+                           [r_1G+c_1K_1]),\\
+\widehat c_3&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,
+                           [r_2G+\widehat c_2K_2]),\\
+\widehat c_1&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,
+                           [r_3G+\widehat c_3K_3])=c_1.
+\end{align*}
 
-Depois a verificação usando $\mathcal{R}$, e $\sigma(\mathfrak{m}) = (c_1, r_1, r_2, r_3)$:
-\begin{enumerate}
-    \item usamos $r_1$ e $c_1$ para calcular\vspace{.175cm}
-    \begin{align*}
-c'_2 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_1 G + c_1 K_1])
-    \intertext{\item incluindo $c'_2$, onde ao assinar estava $c_2$, obtêm-se :\vspace{.175cm}}
-c'_3 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_2 G + c'_2 K_2])
-    \intertext{\item e finalmente :\vspace{.175cm}}
-c'_1 &= \mathcal{H}_n(\mathcal{R}, \mathfrak{m}, [r_3 G + c'_3 K_3])
-    \end{align*}
-\end{enumerate}
-\quad Não há surpresas : $c'_1 = c_1$. Como tal a assinatura é válida.\vspace{-.3cm}
+\subsection*{O que a assinatura garante}
 
+Sob a dificuldade do logaritmo discreto e no modelo do oráculo aleatório, a
+cadeia prova conhecimento de uma das chaves privadas sem revelar qual. A
+distribuição das respostas simuladas deve ser indistinguível da resposta
+verdadeira; valores efémeros enviesados, previsíveis ou reutilizados podem
+denunciar \(\pi\) e, no caso de reutilização, revelar \(k_\pi\). A
+infalsificabilidade exige ainda que mensagem, domínio, anel completo e
+compromissos sejam ligados ao hash e que chaves malformadas ou de pequena
+ordem sejam rejeitadas.
 
+O tamanho \(n\) é apenas o conjunto de anonimidade criptográfico máximo. Se
+os membros forem escolhidos de maneira reconhecível ou informação externa
+excluir alguns deles, a ambiguidade efectiva será menor. Para \(n=1\), SAG
+reduz-se essencialmente a Schnorr e não oferece anonimidade. Finalmente, SAG
+não é ligável: duas assinaturas válidas não revelam, por si só, se usaram a
+mesma chave. A imagem de chave da próxima secção acrescentará essa
+propriedade.
 
-\section{Assinaturas ligadas espontâneas anónimas de grupo de Adam Back}
-
+\section{Assinaturas em anel ligáveis de Adam Back}
 \label{blsag_note}
 
-Os esquemas de assinaturas em anel apresentados daqui em diante, contêm certas propriedades que irão ser úteis para produzir transacções confidenciais.
-\footnote{Note-se que todos os esquemas de assinatura robustos têm modelos de segurança que contêm diversas propriedades. As propriedades mencionadas aqui são talvez o mais relevantes para perceber o propósito das assinaturas em anel de Monero, mas não são uma visão geral das propriedades das assinaturas ligadas em anel.}
-%Keep in mind that all robust signature schemes have security models which contain various properties. The properties mentioned here are perhaps most relevant to understanding the purpose of Monero's ring signatures, but are not a comprehensive overview of linkable ring signature properties.} 
-Note-se que `inforjabilidade' e a `ambiguidade do signatário' também se aplicam a assinaturas SAG.
+SAG esconde qual membro assinou, mas permite repetir a mesma chave sem deixar
+um marcador público. Uma assinatura em anel \emph{ligável} acrescenta esse
+marcador: a imagem de chave. O objectivo não é revelar o signatário; é permitir
+que qualquer pessoa reconheça uma segunda utilização da mesma chave de uso
+único.
+
+LSAG \cite{Liu2004} ligava assinaturas relativas ao mesmo anel ordenado. A
+variante que estudaremos, habitualmente chamada bLSAG, torna a imagem
+independente dos chamarizes escolhidos. A adaptação foi exposta em
+\cite{MRL-0005-ringct} a partir de uma observação de Adam Back
+\cite{AdamBack-ring-efficiency} sobre a assinatura CryptoNote
+\cite{cryptoNoteWhitePaper}, por sua vez relacionada com o trabalho de
+Fujisaki e Suzuki \cite{Fujisaki2007}. É um antepassado conceptual: não é a
+assinatura usada pelas transacções Monero activas.
+
+\subsection*{Propriedades pretendidas}
 
 \begin{description}
-	\item[Ambiguídade do signatário]
-	um observador deveria ser capaz de determinar que o signatário é membro do anel, mas incapaz de o identificar (enp).
-	%An observer should be able to determine the signer must be a member of the ring (except with negligible probability), but not which member.
-\footnote{\label{anonymity_note}A anonimidade usualmente é em termos do `conjunto de anonimidade’, que é `todas as pessoas que podiam ter agido de tal forma’. O maior conjunto de anonimidade é a `humanidade’, e em Monero é o tamanho de anel, ou o assim chamado {\em nível de mistura} $v$, mais o verdadeiro signatário. Expandir o conjunto de anonimidade torna mais e mais difícil conseguir encontrar o actor verdadeiro.} 
-%Anonymity for an action is usually in terms of an `anonymity set’, which is `all the people who could have possibly taken that action’. The largest anonymity set is `humanity’, and for Monero it is the ring size, or e.g. the so-called `mixin level' $v$ plus the real signer. Mixin refers to how many fake members each ring signature has. If the mixin is $v$ = 4 then there are 5 possible signers. Expanding anonymity sets makes it progressively harder to track down real actors.} 
-Em Monero é assim que se obfusca a origem dos fundos em cada transacção.
-%Monero uses this to obfuscate the origin of funds in each transaction.
+    \item[Ambiguidade do signatário] Uma assinatura válida demonstra que
+    alguém conhece a chave privada de um membro do anel, sem identificar a
+    posição, salvo com probabilidade desprezável.
+    \footnote{\label{anonymity_note}O anel dá apenas um limite superior para o
+    conjunto de anonimidade. Chamarizes escolhidos de forma reconhecível,
+    informação temporal ou análise de outras transacções podem excluir
+    membros; aumentar \(n\) não transforma automaticamente todos os membros
+    em candidatos igualmente plausíveis.}
 
-	\item[Ligação]
-	Se uma chave privada é utilizada para assinar duas mensagens distintas, então essas mensagens estão ligadas. Esta propriedade não se aplica a chaves públicas não signatárias. Ou seja, um membro de mistura que tenha sido utilizado em diferentes assinaturas de anel, não causa ligações. Como iremos ver esta propriedade previne ataques de duplo gasto (enp).	
-%The linkability property does not apply to non-signing public keys. That is, a ring member whose public key has been used in different ring signatures will not cause linkage.} As we will show, this property is used to prevent double-spending attacks in Monero (except with negligible probability).
+    \item[Ligação] Duas assinaturas válidas feitas com a mesma chave pública
+    de uso único produzem a mesma imagem de chave, mesmo que as mensagens e os
+    restantes membros dos anéis sejam diferentes. Reutilizar uma chave apenas
+    como chamariz não cria uma ligação.
 
-	\item[Autenticidade]
-	Nenhum atacante consegue falsificar uma assinatura (enp).    
-Certos esquemas de assinaturas em anel, incluindo esta aqui presente, são imunes a ataques adaptáveis perante a mensagem como também para a chave pública. Um atacante que obtenha assinaturas legítimas para certas mensagens correspondendo a certas chaves públicas em aneis, é incapaz de falsificar qualquer mensagem. Isto é chamado infalsificabilidade existencial, e é utilizado em Monero para previnir o roubo de fundos.	
-
-%\footnote{\label{unforgeability_note}Certain ring signature schemes, including the one in Monero, are %strong against adaptive chosen-message and adaptive chosen-public-key attacks. An attacker who can %obtain legitimate signatures for chosen messages and corresponding to specific public keys in rings of %his choice cannot discover how to forge the signature of even one message. This is called {\em %existential unforgeability}; see \cite{MRL-0005-ringct} and \cite{Liu2004}.} This is used to prevent %theft of Monero funds by those not in possession of the appropriate private keys.
-%\end{description}
-
-No esquema de assinatura LSAG \cite{Liu2004}, o proprietário de uma chave privada consegue produzir uma assinatura anónima para um anel. Nesse esquema a propriedade de {\em ligação} só se aplica a aneis que utilizem, para mensagens distintas, os mesmos membros e na mesma ordem. Nesta secção apresentamos uma versão melhorada do esquema LSAG em que a propriedade de {\em ligação} é independente dos membros do anel.
-
-%In the LSAG signature scheme \cite{Liu2004}, the owner of a private key could produce one anonymous %unlinked signature per ring.\footnote{\label{lsag_linkability_note}In the LSAG scheme linkability only %applies to signatures using rings with the same members and in the same order, the `exact same ring.’ %It is really ``one anonymous signature per ring member per ring.” Signatures can be linked even if made %for different messages.} In this section we present an enhanced version of the LSAG algorithm where %linkability is independent of the ring’s decoy members.\footnote{LSAG was discussed in the first %edition of this report. \cite{ztm-1}}
-A modificação foi descoberta em \cite{MRL-0005-ringct} baseado numa publicação por Adam Back \cite{AdamBack-ring-efficiency} em respeito ao algoritmo de assinaturas em anel, CryptoNote \cite{cryptoNoteWhitePaper} (este algoritmo está agora descontinuado; veja-se a secção \ref{subsec:proofs-input-creation-spendproof}, que por sua vez foi inspirado por Fujisaki e Suzuki em \cite{Fujisaki2007}). 
-%The modification was unraveled in \cite{MRL-0005-ringct} based on a publication by Adam Back \cite{AdamBack-ring-efficiency} regarding the CryptoNote \cite{cryptoNoteWhitePaper} ring signature algorithm (previously used in Monero, and now deprecated; see Section \ref{subsec:proofs-input-creation-spendproof}), which was in turn inspired by Fujisaki and Suzuki's work in \cite{Fujisaki2007}.
-\subsection*{Assinatura}
-
-Como em SAG, seja \(\mathfrak{m}\) a mensagem para assinar, o anel \(\mathcal{R} = \{K_1, K_2, ..., K_n\}\), um conjunto de chaves públicas distintas, e \(k_\pi\) a chave privada do signatário e a correspondente chave pública \(K_\pi \in \mathcal{R}\). Em que $\pi$ é o index secreto. Assuma-se a existência de uma função hash \(\mathcal{H}_p\) que dado um argumento qualquer, devolve como resultado um ponto de curva elíptica.
- 
-%As with SAG, let \(\mathfrak{m}\) be the message to sign, \(\mathcal{R} = \{K_1, K_2, ..., K_n\}\) a set of distinct public keys, and \(k_\pi\) the signer's private key corresponding to his public key \(K_\pi \in \mathcal{R}\), where $\pi$ is a secret index. Assume the existence of a hash function \(\mathcal{H}_p\), which maps to curve points in EC.\footnote{It doesn’t matter if points from $\mathcal{H}_p$ are compressed or not. They can always be decompressed.}\footnote{Monero uses a hash function\marginnote{src/ringct/ rctOps.cpp {\tt hash\_to\_p3()}} that returns curve points directly, rather than computing some integer that is then multiplied by $G$. $\mathcal{H}_p$ would be broken if someone discovered a way to find $n_x$ such that $n_x G = \mathcal{H}_p(x)$. See a description of the algorithm in \cite{hashtopoint-writeup}. According to the CryptoNote whitepaper \cite{cryptoNoteWhitePaper} its origin was this paper: \cite{hashtopoint-original-paper}.}
-
-\begin{enumerate}
-	\item Calcula-se a {\em imagem de chave} \(\tilde{K} = k_\pi \mathcal{H}_p(K_\pi)\).\footnote{Em Monero é importante usar a função que mapeia hashes para pontos de CE, para as imagens de chave. Em vez de usar um outro ponto base, tal que a linearidade não leve á ligação de assinaturas, criadas pela mesmo endereço (mesmo se para endereços ocultos diferentes). Veja-se \cite{cryptoNoteWhitePaper} page 18.} 
-%In Monero it's important to use the hash to point function for key images instead of another base point so linearity doesn't lead to linking signatures created by the same address (even if for different one-time addresses). See \cite{cryptoNoteWhitePaper} page 18.}
-
-	\item Gera-se um número aleatório \(\alpha \in_R \mathbb{Z}_l\) e números aleatórios \(r_i \in_R \mathbb{Z}_l\) para \(i \in \{1, 2, ..., n\}\) mas excluíndo \(i = \pi\).
-
-	\item Calcula-se
-	\[c_{\pi+1} = \mathcal{H}_n(\mathfrak{m}, [\alpha G], [\alpha \mathcal{H}_p(K_\pi)])\]
-
-	\item Para \(i = \pi+1, \pi+2, ..., n, 1, 2, ..., \pi-1\) calcula-se, substituindo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\[c_{i+1} = \mathcal{H}_n(\mathfrak{m}, [r_i G + c_i K_i], [r_i \mathcal{H}_p(K_i) + c_i \tilde{K}])\]
-
-	\item Define-se \(r_\pi = \alpha - c_\pi k_\pi \pmod l\).
-\end{enumerate}
-
-A assinatura é \(\sigma(\mathfrak{m}) = (c_1, r_1, ..., r_n)\), com a {\em imagem de chave} $\tilde{K}$ e anel $\mathcal{R}$.
-
-
-\subsection*{Verificação}
-
-Verificação significa provar que $\sigma(\mathfrak{m})$ é uma assinatura válida creada por uma chave privada correspondente a uma chave pública presente em $\mathcal{R}$. Isto é feito da seguinte maneira : 
-
-\begin{enumerate}
-    \item Verifique-se $l \tilde{K} \stackrel{?}{=} 0$.
-	\item Para \(i = 1, 2, ..., n\) calcule-se iterativamente, substituindo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\begin{align*}
-	c'_{i+1} = \mathcal{H}_n(\mathfrak{m}, [r_i G + c_i {K_i}], [r_i \mathcal{H}_p(K_i) + c_i \tilde{K}])
-	\end{align*}
-
-	\item Se \(c_1 = c'_1\) então a assinatura é válida.
-\end{enumerate}
-
-Neste esquema são guardados (1+$n$) inteiros, com uma {\em imagem de chave} e $n$ chaves públicas. 
-\marginnote{src/crypto- note\_core/ cryptonote\_ core.cpp {\tt check\_tx\_ inputs\_key- images\_do- main()}}
-Há que verificar que $l \tilde{K} \stackrel{?}{=} 0$ porque é possível adicionar um ponto de CE de um subgrupo de ordem $h$ (o cofactor) a $\tilde{K}$ e, se todos os $c_i$ forem múltiplos de $h$ (o que seria conseguido depois de muitas tentativas com diferentes valores para $\alpha$ e $r_i$), fazem-se $h$ assinaturas não-ligadas mas válidas que usa o mesmo anel e chave signatária. 
-%??? o queeee?
-%We\marginnote{src/crypto- note\_core/ cryptonote\_ core.cpp {\tt check\_tx\_ inputs\_key- images\_do- main()}} must check $l \tilde{K} \stackrel{?}{=} 0$ because it is possible to add an EC point from the subgroup of size $h$ (the cofactor) to $\tilde{K}$ and, if all $c_i$ are multiples of $h$ (which we could achieve with automated trial and error using different $\alpha$ and $r_i$ values), make $h$ unlinked valid signatures using the same ring and signing key.
-\footnote{Não nos preocupamos com pontos de outros subgrupos porque o resultado de $\mathcal{H}_n$ está confinado a $\mathbb{Z}_l$. Para a ordem de CE $N = h l$, todos os divisores de $N$, e como tal subgrupos possíveis, são múltiplos de $l$ (número primo) ou divisores de $h$.} 
-%We are not concerned with points from other subgroups because the output of $\mathcal{H}_n$ is confined to $\mathbb{Z}_l$. For EC order $N = h l$, all divisors of $N$ (and hence, possible subgroups) are either multiples of $l$ (a prime) or divisors of $h$.} 
-Isto é porque um ponto de CE multiplicado pela ordem do seu subgrupo é igual a zero.
-%This is because an EC point multiplied by its subgroup's order is zero.
-\footnote{No início de Monero isto não era verificado. Felizmente, isto não foi explorado, antes de uma correcção ter sido implementada em abril de 2017 (v5 do protocolo) \cite{key-image-bug}.}
-%In Monero's early history this was not checked for. Fortunately, it was not exploited before a fix was implemented in April 2017 (v5 of the protocol) \cite{key-image-bug}.}
-
-Dado um ponto $K$ no subgrupo de ordem $l$, um outro ponto $K^h$ no subgrupo de ordem $h$, e um inteiro $c$ divisível por $h$:
-\begin{align*}
-    c*(K + K^h) &= cK + cK^h\\
-                &= cK + 0
-\end{align*}
-%To be clear, given some point $K$ in the subgroup of order $l$, some point $K^h$ with order $h$, and an integer $c$ divisible by $h$:
-%We can demonstrate correctness (i.e. `how it works') in a similar way to the more simple SAG signature scheme.
-Esta descrição tenta fazer juz á esplicação original de assinaturas bLSAG, que não incluêm $\mathcal{R}$ na hash que calcula $c_i$. Incluír chaves na hash é conhecido como `prefixo de chave'. Pesquisas recentes sugerem que isto não é necessário, apesar de que adicionar o prefixo é uma práctica standard para esquemas de assinatura semelhantes (LSAG usa prefixo de chave).
-%Our description attempts to be faithful to the original explanation of bLSAG, which does not include $\mathcal{R}$ in the hash that calculates $c_i$. Including keys in the hash is known as `key prefixing'. Recent research \cite{key-prefix-paper} suggests it may not be necessary, although adding the prefix is standard practice for similar signature schemes (LSAG uses key prefixing).
-
-\subsection*{Ligação}
-
-Dadas duas assinaturas válidas que são diferentes de alguma forma (por exemplo : mensagens distintas, membros de anel distintos)
-%Given two valid signatures that are different in some way (e.g. different fake responses, different messages, different overall ring members),
-\vspace{.1cm}
-\begin{align*}
-	\sigma(\mathfrak{m})   &= (c_1, r_1, ..., r_n)\textrm{ com } \tilde{K}\textrm{, and}\\
-	\sigma'(\mathfrak{m}')  &= (c_1', r'_1, ..., r'_{n'})\textrm{ com } \tilde{K}'\textrm{,}
-\end{align*}
-\quad Se \(\tilde{K} =  \tilde{K}'\) Então ambas as assinaturas provêm da mesma chave privada. 
-
-Porque 
-\begin{align*}
-\tilde{K}= k_{\pi} \mathcal{H}_p(K_\pi).
-\end{align*}
-
-Um observador pode ver uma {\em ligação} entre $\sigma$ e $\sigma'$, mas ele não é capaz de saber qual $K_i$ em $\mathcal{R}$ ou $\mathcal{R}'$, é o culpado. 
-A não ser que só haja uma chave pública em comum entre $\mathcal{R}$ e $\mathcal{R}'$.
-   
-%While an observer could link $\sigma$ and $\sigma'$, he wouldn’t necessarily know which $K_i$ in $\mathcal{R}$ or $\mathcal{R}'$ was the culprit unless there was only one common key between them. If there was more than one common ring member, his only recourse would be solving the DLP or auditing the rings in some way (such as learning all $k_i$ with $i \neq \pi$, or learning $k_\pi$).\footnote{\label{lsag_unforgeable_note}LSAG, which is quite similar to bLSAG, is unforgeable, meaning no attacker could make a valid ring signature without knowing a private key. If he invents a fake $\tilde{K}$ and seeds his signature computation with $c_{\pi+1}$, then, not knowing $k_\pi$, he can’t calculate a number $r_\pi = \alpha - c_\pi k_\pi$ that would produce $[r_\pi G + c_\pi K_\pi] = \alpha G$. A verifier would reject his signature. Liu {\em et al.} prove forgeries that manage to pass verification are extremely improbable \cite{Liu2004}.}
-
-\section{Assinaturas espontâneas anónimas ligadas de grupo com múltiplas camadas}
-\label{sec:MLSAG}
-
-Para assinar transacções, são utilizadas múltiplas chaves privadas. Em \cite{MRL-0005-ringct}, Shen Noether {\em et al.} descreve uma generalisação do esquema de assinaturas bLSAG, aplicável ao conjunto de \(n \cdot m\) chaves. Ou seja o conjunto\vspace{.175cm}
-\[\mathcal{R} = \{K_{i,j}\}  \quad \textrm{para} \quad  i \in \{1, 2, ..., n\} \quad \textrm{e} \quad j \in \{1, 2, ..., m\}\]
-
-%a multi-layered generalization of the bLSAG signature scheme applicable when we have a set of \(n \cdot m\) keys; that is, the set\vspace{.175cm}
-%\[\mathcal{R} = \{K_{i,j}\}  \quad \textrm{for} \quad  i \in \{1, 2, ..., n\} \quad \textrm{and} \quad j \in \{1, 2, ..., m\}\]
-
-Em que sabemos as $m$ chaves privadas \(\{k_{\pi, j}\}\) correspondentes ao subconjunto \(\{K_{\pi, j}\}\) para algum index secreto \(i = \pi\). Para que tal algoritmo satisfaca os nossos requisitos, geralizamos a noção de {\em ligação}.
-
-%where we know the $m$ private keys \(\{k_{\pi, j}\}\) corresponding to the subset \(\{K_{\pi, j}\}\) for some index \(i = \pi\). Such an algorithm would address our needs if we generalize the notion of linkability.
-\begin{description}
-	\item[Ligação] Se qualquer chave privada \(k_{\pi, j}\) é utilizada em duas assinaturas diferentes, então essas assinaturas estão {\em ligadas}.  
+    \item[Infalsificabilidade] Sem conhecer a chave privada de algum membro,
+    um adversário não deve conseguir produzir uma assinatura válida, mesmo
+    depois de escolher mensagens e anéis e observar assinaturas legítimas.
 \end{description}
 
-%If any private key \(k_{\pi, j}\) is used in 2 different signatures, then those signatures will be automatically linked.
-%\end{description}
+Estas propriedades são afirmações criptográficas no modelo do oráculo
+aleatório, sob as hipóteses indicadas adiante. Uma imagem repetida não prova,
+sozinha, propriedade civil, intenção nem validade de um gasto: é preciso
+validar a assinatura e todas as restantes regras do protocolo.
+
+\subsection*{Hash para ponto e imagem de chave}
+
+Além de \(\mathcal H_n\), que devolve escalares, precisamos de
+\[
+\mathcal H_p:\{0,1\}^*\longrightarrow\mathbb G,
+\]
+onde \(\mathbb G\) é o subgrupo de ordem prima \(l\). O resultado deve ser um
+ponto não nulo e a sua relação de logaritmo discreto com \(G\) não deve ser
+conhecida. Não bastaria calcular \(\mathcal H_n(K)G\): como esse multiplicador
+é público, qualquer observador obteria
+\(\mathcal H_n(K)K\) sem conhecer a chave privada.
+\footnote{A família Monero historicamente mapeia a codificação da chave para
+um ponto e limpa o cofactor; veja-se a descrição em
+\cite{hashtopoint-writeup} e a origem citada em
+\cite{hashtopoint-original-paper}. Hash para ponto e hash para escalar não
+são operações permutáveis.}
+
+Para o membro verdadeiro \(K_\pi=k_\pi G\), define-se
+\[
+I=k_\pi\mathcal H_p(K_\pi).
+\]
+\(I\) é a imagem de chave. Sendo determinística para a relação
+\((K_\pi,k_\pi)\), reaparece quando essa chave de uso único volta a assinar;
+como a base depende de \(K_\pi\), chaves de uso único diferentes da mesma
+carteira não ficam linearmente ligadas.
+
+\subsection*{Declaração, testemunha e assinatura}
+
+Sejam a mensagem \(M\), o anel ordenado
+\(\mathcal R=(K_1,\ldots,K_n)\), com \(n\geq1\), o índice secreto
+\(\pi\in\{1,\ldots,n\}\) e a testemunha \(k_\pi\) tais que
+\(K_\pi=k_\pi G\). Convencionamos novamente \(c_{n+1}=c_1\).
+
+\begin{enumerate}
+    \item Calcula-se a imagem
+    \(I=k_\pi\mathcal H_p(K_\pi)\).
+
+    \item Escolhem-se \(\alpha\in_R\mathbb Z_l\) e
+    \(r_i\in_R\mathbb Z_l\) para todo \(i\neq\pi\).
+
+    \item Inicia-se a ronda seguinte ao signatário:
+    \[
+    c_{\pi+1}=\mathcal H_n(\mathsf{bLSAG},\mathcal R,I,M,
+      [\alpha G],[\alpha\mathcal H_p(K_\pi)]).
+    \]
+
+    \item Para
+    \(i=\pi+1,\ldots,n,1,\ldots,\pi-1\), calculam-se
+    \begin{align*}
+    L_i&=r_iG+c_iK_i,\\
+    R_i&=r_i\mathcal H_p(K_i)+c_iI,\\
+    c_{i+1}
+      &=\mathcal H_n(\mathsf{bLSAG},\mathcal R,I,M,
+                     [L_i],[R_i]).
+    \end{align*}
+
+    \item Fecha-se o anel com
+    \[
+    r_\pi=(\alpha-c_\pi k_\pi)\bmod l.
+    \]
+\end{enumerate}
+
+A assinatura é
+\[
+\sigma=(I,c_1,r_1,\ldots,r_n).
+\]
+Incluímos \(\mathcal R\) e \(I\) no prefixo de cada desafio. A apresentação
+original de bLSAG omitia o anel nesse hash; o prefixo explícito é a práctica
+prudente para assinaturas deste género e evita depender de uma interpretação
+implícita da transcrição \cite{key-prefix-paper}.
+
+\subsection*{Verificação}
+
+O verificador confirma as dimensões, valida todos os escalares e chaves
+públicas e exige
+\[
+I\neq0\qquad\text{e}\qquad lI=0.
+\]
+Depois põe \(\widehat c_1=c_1\) e, para \(i=1,\ldots,n\), calcula
+\begin{align*}
+\widehat L_i&=r_iG+\widehat c_iK_i,\\
+\widehat R_i&=r_i\mathcal H_p(K_i)+\widehat c_iI,\\
+\widehat c_{i+1}
+  &=\mathcal H_n(\mathsf{bLSAG},\mathcal R,I,M,
+                 [\widehat L_i],[\widehat R_i]).
+\end{align*}
+Aceita apenas se
+\[
+\widehat c_{n+1}=c_1.
+\]
+
+\marginnote{\raggedright\tiny
+\nolinkurl{src/cryptonote_core/cryptonote_core.cpp}\\
+\nolinkurl{check_tx_inputs_keyimages_domain()}}
+A condição \(lI=0\), acompanhada da rejeição da identidade, prova que a
+imagem pertence ao subgrupo de ordem \(l\). Isto não é o mesmo que
+multiplicar simplesmente a equação de verificação pelo cofactor. Se se
+aceitasse \(I+T\), com \(T\) um ponto de pequena ordem \(t\), um atacante
+poderia explorar a componente de torção e procurar desafios com resíduos
+convenientes módulo \(t\), criando variantes que escapassem à ligação. Para
+um desafio divisível por \(t\), por exemplo,
+\begin{align*}
+c(I+T)&=cI+cT\\
+      &=cI.
+\end{align*}
+A verificação de subgrupo elimina todas essas variantes. Esta falha existiu
+nos primeiros anos do Monero e foi corrigida antes de ser explorada, nas
+regras da versão 5 \cite{key-image-bug}.
+
+\subsection*{Funciona porque}
+
+Na posição verdadeira, as duas reconstruções devolvem os compromissos de
+\(\alpha\):
+\begin{align*}
+\widehat L_\pi
+  &=r_\pi G+c_\pi K_\pi\\
+  &=(\alpha-c_\pi k_\pi)G+c_\pi(k_\pi G)
+   =\alpha G,\\
+\widehat R_\pi
+  &=r_\pi\mathcal H_p(K_\pi)+c_\pi I\\
+  &=(\alpha-c_\pi k_\pi)\mathcal H_p(K_\pi)
+    +c_\pi k_\pi\mathcal H_p(K_\pi)\\
+  &=\alpha\mathcal H_p(K_\pi).
+\end{align*}
+As outras rondas foram simuladas exactamente como serão verificadas; portanto
+a cadeia fecha no \(c_1\) publicado.
+
+\subsection*{Ligação e hipóteses de segurança}
+
+Dadas duas assinaturas válidas
+\begin{align*}
+\sigma&=(I,c_1,r_1,\ldots,r_n),\\
+\sigma'&=(I',c'_1,r'_1,\ldots,r'_{n'}),
+\end{align*}
+o teste de ligação é simplesmente \(I=I'\). Para uma mesma chave de uso único,
+ambas calculam
+\[
+I=k_\pi\mathcal H_p(K_\pi),
+\]
+logo a igualdade é inevitável. No sentido inverso, concluir que imagens
+iguais correspondem à mesma relação depende de a função hash para ponto se
+comportar como um oráculo aleatório no subgrupo, de serem impraticáveis
+colisões e logaritmos discretos e de todos os pontos terem sido validados.
+
+Há uma hipótese distinta por trás da ambiguidade. Para testar se o candidato
+\(K_i=k_iG\) corresponde à imagem \(I=k_i\mathcal H_p(K_i)\), um observador
+teria de decidir se
+\[
+(G,K_i,\mathcal H_p(K_i),I)
+\]
+é um quádruplo Diffie--Hellman. A dificuldade deste problema decisional
+impede o teste. O PCDH pede antes \emph{calcular} \(I\), e o PLD pede recuperar
+\(k_i\). Um algoritmo para o PLD resolveria também os dois problemas
+Diffie--Hellman, mas a mera dificuldade conhecida do PLD não demonstra, em
+geral, a dificuldade decisional ou computacional.
+
+Mesmo quando duas assinaturas estão ligadas, a imagem não revela qual membro
+assinou. Se os dois anéis tiverem apenas uma chave em comum, porém, a
+intersecção denuncia essa chave; é uma perda de anonimidade causada pelo
+contexto dos anéis, não uma quebra da equação. A infalsificabilidade exige,
+além do logaritmo discreto, prefixos completos, separação de domínio e
+resistência do Fiat--Shamir no modelo do oráculo aleatório. Chaves públicas
+malformadas, pontos de torção, respostas não canónicas e comprimentos
+incoerentes têm de ser rejeitados antes do fecho da cadeia.
+
+Como em Schnorr e SAG, reutilizar \(\alpha\) sob desafios diferentes revela a
+testemunha. Uma fonte de aleatoriedade defeituosa pode também distinguir a
+posição verdadeira das respostas simuladas. A assinatura guarda
+\(n+1\) escalares e uma imagem de chave, além do anel público.
+
+\section{Assinaturas em anel ligáveis com múltiplas camadas}
+\label{sec:MLSAG}
+
+MLSAG generaliza bLSAG a uma matriz de chaves
+\cite{MRL-0005-ringct}. Foi uma peça central das primeiras transacções
+RingCT, pelo que continua a ser necessária para compreender dados históricos
+e a evolução do protocolo. Não é, contudo, a assinatura criada nem admitida
+para novas transacções na versão 16: CLSAG foi admitida na versão 13 e tornou-se
+obrigatória a partir da versão 14 na revisão Monero aqui consultada.
+
+\subsection*{Matriz, declaração e testemunhas}
+
+Seja \(M\) a mensagem. Fixemos a orientação antes de escrever
+índices. Há \(n\geq2\) colunas, uma
+por membro do anel, e \(m\geq1\) linhas, uma por relação que o signatário deve
+provar. Escrevemos
+\[
+\mathcal R=(K_{i,j})_
+ {\substack{1\leq i\leq n\\1\leq j\leq m}}.
+\]
+O primeiro índice \(i\) escolhe a \emph{coluna}; o segundo \(j\), a
+\emph{linha}. A declaração pública é que existe uma coluna secreta
+\(\pi\in\{1,\ldots,n\}\) para a qual o signatário conhece todas as
+testemunhas
+\[
+(k_{\pi,1},\ldots,k_{\pi,m})\in\mathbb Z_l^m,
+\qquad K_{\pi,j}=k_{\pi,j}G.
+\]
+Portanto, o conjunto de anonimidade tem no máximo \(n\) colunas, não
+\(nm\) chaves independentes. Todas as relações verdadeiras partilham o mesmo
+índice \(\pi\); se uma linha denunciar a coluna, denuncia-as a todas.
+
+Na versão integralmente ligável que apresentamos, cada linha tem uma imagem
+\[
+I_j=k_{\pi,j}\mathcal H_p(K_{\pi,j}),
+\qquad j=1,\ldots,m.
+\]
+Uma variante permite tornar ligáveis apenas \(q\leq m\) linhas: essas linhas
+têm termos \(R_{i,j}\) e imagens \(I_j\); as restantes têm apenas termos
+\(L_{i,j}\). A fórmula abaixo corresponde a \(q=m\), que torna visível a
+estrutura sem esconder casos num índice adicional.
+
+O verificador exige uma matriz rectangular \(n\times m\), pontos canónicos,
+não nulos e no subgrupo de ordem \(l\), imagens também não nulas no mesmo
+subgrupo e exactamente \(nm\) respostas. Convencionamos \(c_{n+1}=c_1\) e
+abreviamos o prefixo completo por
+\[
+\Phi=(\mathsf{MLSAG},n,m,\mathcal R,I_1,\ldots,I_m,M).
+\]
+Esta codificação liga o domínio, as dimensões, cada posição da matriz, as
+imagens de chave e a mensagem.
 
 \subsection*{Assinatura}
 
 \begin{enumerate}
-	\item Calculam-se as imagens de chave \(\tilde{K_j} = k_{\pi, j} \mathcal{H}_p(K_{\pi, j})\) para cada \(j \in \{1, 2, ..., m\}\).
+    \item Calculam-se as imagens
+    \[
+    I_j=k_{\pi,j}\mathcal H_p(K_{\pi,j}),
+    \qquad j=1,\ldots,m.
+    \]
 
-	\item Geram-se números aleatórios \(\alpha_j \in_R \mathbb{Z}_l\), e \(r_{i, j} \in_R \mathbb{Z}_l\) para cada \(i \in \{1, 2, ..., n\}\) (excepto \(i = \pi\)) e para cada \(j \in \{1, 2, ..., m\}\).
+    \item Escolhem-se valores independentes
+    \(\alpha_j\in_R\mathbb Z_l\), para todas as linhas, e respostas
+    \(r_{i,j}\in_R\mathbb Z_l\), para todas as posições com
+    \(i\neq\pi\).
 
-	\item Calcula-se :\footnote{As assinaturas MLSAG usam o {\em prefixo de chave}. Cada desafio contêm as chaves públicas esplícitas :
-\vspace{-.25cm}
-	\[c_{\pi+1} = \mathcal{H}_n(\mathfrak{m}, K_{\pi, 1}, [\alpha_1 G], [\alpha_1 \mathcal{H}_p(K_{\pi, 1})], ..., K_{\pi, m}, [\alpha_m G], [\alpha_m \mathcal{H}_p(K_{\pi, m})])
-	\]}
-%Monero\marginnote{src/ringct/ rctSigs.cpp {\tt MLSAG\_Gen()}} MLSAG uses key prefixing. Each challenge contains explicit public keys like this (adding the $K$ terms absent from bLSAG; key images are included in the message signed):\vspace{-.25cm}
-%	\[c_{\pi+1} = \mathcal{H}_n(\mathfrak{m}, K_{\pi, 1}, [\alpha_1 G], [\alpha_1 \mathcal{H}_p(K_{\pi, 1})], ..., K_{\pi, m}, [\alpha_m G], [\alpha_m \mathcal{H}_p(K_{\pi, m})])
-	
+    \item Inicia-se a ronda seguinte à coluna signatária:
+    \[
+    c_{\pi+1}=\mathcal H_n\bigl(
+      \Phi,
+      [\alpha_1G],[\alpha_1\mathcal H_p(K_{\pi,1})],
+      \ldots,
+      [\alpha_mG],[\alpha_m\mathcal H_p(K_{\pi,m})]
+    \bigr).
+    \]
 
-	\item Para \(i = \pi+1, \pi+2, ..., n, 1, 2, ..., \pi-1\) calcula-se, substituindo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\[ c_{i+1} = \mathcal{H}_n(\mathfrak{m}, [r_{i, 1} G + c_i K_{i, 1}], [r_{i, 1} \mathcal{H}_p(K_{i, 1}) + c_i \tilde{K}_1], 
-	..., [r_{i, m} G + c_i K_{i, m}], [r_{i, m} \mathcal{H}_p(K_{i, m}) + c_i \tilde{K}_m])\]
+    \item Para as colunas
+    \(i=\pi+1,\ldots,n,1,\ldots,\pi-1\), calculam-se, em cada linha,
+    \begin{align*}
+    L_{i,j}&=r_{i,j}G+c_iK_{i,j},\\
+    R_{i,j}&=r_{i,j}\mathcal H_p(K_{i,j})+c_iI_j,
+       \qquad j=1,\ldots,m,
+    \end{align*}
+    e encadeia-se
+    \[
+    c_{i+1}=\mathcal H_n\bigl(
+      \Phi,[L_{i,1}],[R_{i,1}],\ldots,[L_{i,m}],[R_{i,m}]
+    \bigr).
+    \]
 
-	\item Definem-se todas as respostas : \(r_{\pi, j} = \alpha_j - c_\pi k_{\pi, j} \pmod l\).
+    \item Na coluna verdadeira, definem-se
+    \[
+    r_{\pi,j}=(\alpha_j-c_\pi k_{\pi,j})\bmod l,
+    \qquad j=1,\ldots,m.
+    \]
 \end{enumerate}
 
-A assinatura é \(\sigma(\mathfrak{m}) = (c_1, r_{1, 1}, ..., r_{1, m}, ..., r_{n, 1}, ..., r_{n, m}) \), com imagens de chave $(\tilde{K}_1, ...,  \tilde{K}_m)$.
-
-%One way to think about MLSAG is that there are $m$ sub-loops of size $n$, and in each sub-loop we know a private key at index $i = \pi$ ($m \cdot n$ total public keys). The signature algorithm ties together a ‘stack’ of keys at each stage $c$, composed of one key from each sub-loop. bLSAG is the special case where $m = 1$.
-
+A assinatura é
+\[
+\sigma=(I_1,\ldots,I_m,c_1,
+ r_{1,1},\ldots,r_{1,m},\ldots,r_{n,1},\ldots,r_{n,m}).
+\]
 
 \subsection*{Verificação}
 
-A verificação de uma assinatura é feita da seguinte maneira :
-
-\begin{enumerate}
-    \item Para cada $j \in \{1,...,m\}$ verifique $l \tilde{K}_j \stackrel{?}{=} 0$.
-	\item Para \(i = 1, ..., n\) compute, substituindo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\begin{align*}
-	c'_{i+1} = \mathcal{H}_n(\mathfrak{m}, [r_{i, 1} G + c_i K_{i, 1}], [r_{i, 1} \mathcal{H}_p(K_{i, 1}) + c_i \tilde{K}_1], 
-	..., [r_{i, m} G + c_i K_{i, m}], [r_{i, m} \mathcal{H}_p(K_{i, m}) + c_i \tilde{K}_m])
-	\end{align*}
-
-	\item Se \(c_1 = c'_1\) então a assinatura é válida.
-\end{enumerate}
-
+Após as validações de pontos, escalares e dimensões, põe-se
+\(\widehat c_1=c_1\). Para cada coluna \(i=1,\ldots,n\) e linha
+\(j=1,\ldots,m\), calculam-se
+\begin{align*}
+\widehat L_{i,j}&=r_{i,j}G+\widehat c_iK_{i,j},\\
+\widehat R_{i,j}
+ &=r_{i,j}\mathcal H_p(K_{i,j})+\widehat c_iI_j.
+\end{align*}
+O desafio seguinte é
+\[
+\widehat c_{i+1}=\mathcal H_n\bigl(
+ \Phi,
+ [\widehat L_{i,1}],[\widehat R_{i,1}],\ldots,
+ [\widehat L_{i,m}],[\widehat R_{i,m}]
+\bigr).
+\]
+Aceita-se apenas se o desafio depois da última coluna fechar a cadeia:
+\[
+\widehat c_{n+1}=c_1.
+\]
 
 \subsection*{Funciona porque}
 
-Da mesma forma que o algoritmo SAG, observamos que :
+Nas colunas simuladas, os valores reconstruídos são os que o signatário
+usou. Na coluna \(\pi\), para cada \(j\),
+\begin{align*}
+\widehat L_{\pi,j}
+ &=r_{\pi,j}G+c_\pi K_{\pi,j}\\
+ &=(\alpha_j-c_\pi k_{\pi,j})G
+   +c_\pi(k_{\pi,j}G)
+  =\alpha_jG,\\
+\widehat R_{\pi,j}
+ &=r_{\pi,j}\mathcal H_p(K_{\pi,j})+c_\pi I_j\\
+ &=(\alpha_j-c_\pi k_{\pi,j})\mathcal H_p(K_{\pi,j})
+   +c_\pi k_{\pi,j}\mathcal H_p(K_{\pi,j})\\
+ &=\alpha_j\mathcal H_p(K_{\pi,j}).
+\end{align*}
+O verificador recompõe, linha a linha e na mesma ordem, o compromisso que
+iniciou \(c_{\pi+1}\). Uma só resposta errada basta para alterar esse desafio
+e impedir o fecho.
 
-\begin{itemize}
-    \item Se \(i \ne \pi \), então os valores \(c'_{i + 1}\) são calculados como descrito no algoritmo de assinatura.
+\subsection*{Ligação, anonimidade e infalsificabilidade}
 
-    \item Se \(i = \pi\) então, desde que \(r_{\pi, j} = \alpha_j - c_\pi k_{\pi, j} \) fecha o anel,\vspace{.175cm}
-    \begin{alignat*}{6}
-        r_{\pi, j} G + c_\pi K_{\pi,j} &= (\alpha_j - c_\pi k_{\pi, j}) G + c_\pi K_{\pi,j} = \alpha_j G\\
-        \intertext{e}
-        r_{\pi, j} \mathcal{H}_p(K_{\pi, j}) + c_\pi \tilde{K}_j &= (\alpha_j - c_\pi k_{\pi, j}) \mathcal{H}_p(K_{\pi, j}) + c_\pi \tilde{K}_j = \alpha_j \mathcal{H}_p(K_{\pi, j})\\
-    \end{alignat*}
-    Por outras palavras, mantém-se \(c'_{\pi + 1} = c_{\pi+1}\).
-\end{itemize}
+Se alguma testemunha \(k_{\pi,j}\) for reutilizada para a mesma chave pública
+de uso único, a imagem \(I_j\) reaparece e liga as assinaturas. Uma chave que
+surja apenas como chamariz não produz imagem e não cria ligação. Tal como em
+bLSAG, anéis cuja intersecção seja pequena podem transformar uma ligação numa
+forte pista sobre \(\pi\); a criptografia não corrige um conjunto de
+anonimidade mal formado.
 
+A infalsificabilidade exige conhecimento de \emph{todas} as testemunhas da
+coluna escolhida, sob a dificuldade do PLD e no modelo do oráculo aleatório.
+A associação de uma imagem \(I_j\) ao candidato \(K_{i,j}\) forma uma
+instância decisional de Diffie--Hellman
+\((G,K_{i,j},\mathcal H_p(K_{i,j}),I_j)\); por isso, a ambiguidade requer que
+esse teste decisional seja difícil. Esta hipótese não deve ser confundida com
+o PCDH, que pede calcular o quarto ponto, nem com o PLD, que pede recuperar o
+escalar. Em grupos gerais, uma destas dificuldades não prova automaticamente
+as outras.
 
-\subsection*{Ligação}
-
-Se alguma chave privada \(k_{\pi, j}\) é re-utilizada para fazer qualquer assinatura, a correspondente {\em imagem de chave}, fornecida com a assinatura, revela a falsidade. Esta observação significa em sí, o conceito generalizado de {\em ligação}. 
-Bem como em bLSAG, assinaturas MLSAG {\em ligadas} não indicam qual foi a chave pública usada como signatária \footnote{Bem como em bLSAG, assinaturas MLSAG ligadas não indicam qual foi a chave pública, cuja chave privada fez a assinatura. Mesmo assim, se a mesma imagem de chave é usada em diferentes aneis, e estes aneis só têm uma chave pública em comum então o culpado é óbvio. Se o culpado é identificado, todos os outros membros signatários do anel de ambas as assinaturas são revelados visto que estes têm todos o mesmo índice secreto do culpado.}.
-%As with bLSAG, linked MLSAG signatures do not indicate which public key was used to sign it. However, if the linking key image's sub-loops' rings have only one key in common, the culprit is obvious. If the culprit is identified, all other signing members of both signatures are revealed since they share the culprit's indices.}
-
+Imagens e chaves fora do subgrupo, identidades, matrizes não rectangulares,
+ordens de linhas divergentes, desafios ou respostas não canónicos e prefixos
+incompletos invalidam o argumento de segurança. Reutilizar
+\(\alpha_j\) sob desafios diferentes revela \(k_{\pi,j}\), mesmo que os
+outros valores efémeros sejam novos.
 
 \subsection*{Requisitos de espaço}
 
-Neste esquema guardam-se (1+$m*n$) inteiros, $m$ imagens de chave, e $m*n$ chaves públicas.
-%In this scheme we store (1+$m*n$) integers, have $m$ EC key images, and use $m*n$ public keys.
+Na variante com todas as linhas ligáveis, guardam-se \(mn+1\) escalares e
+\(m\) imagens de chave; a matriz contém \(mn\) chaves públicas. A assinatura
+cresce, portanto, com o produto das linhas pelas colunas. CLSAG conservará um
+único ciclo de \(n\) respostas ao agregar as relações de cada coluna.
 
-\section{Assinaturas espontâneas anónimas ligadas de grupo concisas}
+\section{Assinaturas em anel ligáveis concisas}
 \label{sec:CLSAG}
 
-CLSAG \cite{MRL-0011-CLSAG}
-\footnote{Esta secção baseia-se num relatório preliminar que está a ser finalizado para uma revisão externa. CLSAG é promissor como um substituto de MLSAG em futuras versões do protocolo, mas ainda não foi implementado e talvez não venha a ser implementado no futuro.}
-%The paper this section is based on is a pre-print being finalized for external review. CLSAG is promising as a replacement for MLSAG in future protocol versions, but has not been implemented, and might not be in the future.} 
-é uma espécie entre bLSAG e MLSAG. Existe uma chave privada {\em primária}, e associada com esta existem outras, chamadas de chaves privadas {\em auxiliares}. É importante provar a posse de todas as chaves privadas, e em termos de {\em ligação} só a chave privada {\em primária} é relevante. Em comparação com MLSAG estas assinaturas são mais curtas e mais rápidas.
-Temos então também um conjunto de \(n \cdot m\) chaves ($n$ é o comprimento de cada anel, $m$ é o número de chaves signatárias). 
-\vspace{.175cm}
-\[\mathcal{R} = \{K_{i,j}\}  \quad \textrm{para} \quad  i \in \{1, 2, ..., n\} \quad \textrm{e} \quad j \in \{1, 2, ..., m\}\]
+CLSAG, de \emph{concise linkable spontaneous anonymous group signature},
+conserva a coluna secreta de MLSAG mas agrega as relações dessa coluna antes
+de percorrer o anel \cite{MRL-0011-CLSAG}. Em vez de publicar uma resposta
+por linha e por coluna, publica uma resposta por coluna. É esta a assinatura
+em anel usada pelas transacções activas na versão 16 do Monero.
+\footnote{Na revisão Monero
+\texttt{3646f648db57f60cca86430e25a635d19fa9b92a}, CLSAG é admitida desde a
+versão 13 do protocolo e obrigatória para novas transacções RingCT desde a
+versão 14. MLSAG continua necessária para interpretar formatos históricos,
+mas não é válida para uma nova transacção v16.}
 
-As chaves privadas {\em primárias} têm o index de \(j = 1\). 
+\subsection*{Chaves primárias e auxiliares}
 
-Existem então para \(j = 1\), $n$ chaves {\em primárias}, em que assina a $\pi-\textrm{ésima}$.
-E existem para \(j > 1\), $n$ chaves {\em auxíliares}, em que também assina a $\pi-\textrm{ésima}$.  
+Seja \(M\) a mensagem. Voltamos à matriz
+\[
+\mathcal R=(K_{i,j})_
+ {\substack{1\leq i\leq n\\1\leq j\leq m}},
+\]
+com \(n\geq1\) colunas e \(m\geq1\) linhas. A linha \(j=1\) contém as chaves
+\emph{primárias}; as linhas \(j>1\), as chaves \emph{auxiliares}. O
+signatário conhece uma coluna secreta \(\pi\) e todas as testemunhas
+\[
+K_{\pi,j}=k_{\pi,j}G,\qquad j=1,\ldots,m.
+\]
+A ligação deve depender apenas da chave primária \(k_{\pi,1}\); as relações
+auxiliares têm de ser provadas, mas não devem criar marcadores de gasto
+independentes.
 
-Temos posse do conjunto de chaves privadas \(\{k_{\pi, j}\}\) pertencentes ao conjunto de chaves públicas \(\{K_{\pi, j}\}\) para o index secreto \(i = \pi\).
+Para cada coluna, define-se uma única base de imagem
+\[
+H_i=\mathcal H_p(K_{i,1}).
+\]
+As imagens da coluna verdadeira são
+\[
+I_j=k_{\pi,j}H_\pi,\qquad j=1,\ldots,m.
+\]
+\(I_1\) é a imagem primária e será usada no teste de ligação; \(I_2,\ldots,I_m\)
+são imagens auxiliares necessárias à agregação.
+
+Todos os escalares, pontos, dimensões e codificações são validados como nas
+secções anteriores. Em particular, a imagem primária deve ser não nula e
+pertencer ao subgrupo de ordem \(l\). O caso \(n=1\) é algebricamente válido,
+mas não oferece anonimidade; nas transacções v16 o anel tem exactamente
+16 membros.
+
+\subsection*{Pesos de agregação}
+
+Não podemos somar as linhas com coeficientes fixos. Um atacante poderia
+escolher uma chave ou imagem auxiliar que cancelasse outra e obter um
+agregado legítimo a partir de componentes ilegítimos. Por isso, CLSAG deriva
+um peso independente para cada linha:
+\[
+\mu_j=\mathcal H_n(T_j,m,n,\mathcal R,I_1,\ldots,I_m),
+\qquad j=1,\ldots,m.
+\]
+Os rótulos \(T_j\) separam os domínios e toda a declaração, incluindo as
+imagens, fica presa a cada peso \cite{MRL-0011-CLSAG}. Definem-se então
+\begin{align*}
+W_i&=\sum_{j=1}^{m}\mu_jK_{i,j},\\
+\widetilde W&=\sum_{j=1}^{m}\mu_jI_j,\\
+w_\pi&=\sum_{j=1}^{m}\mu_jk_{\pi,j}.
+\end{align*}
+Na coluna verdadeira,
+\begin{align*}
+W_\pi&=w_\pi G,&
+\widetilde W&=w_\pi H_\pi.
+\end{align*}
+Assim, muitas relações transformam-se numa só relação bLSAG, sem perder a
+vinculação às componentes.
 
 \subsection*{Assinatura}
 
+Seja
+\[
+\Psi=(T_c,m,n,\mathcal R,I_1,\ldots,I_m,M)
+\]
+o prefixo das rondas, com um domínio \(T_c\) distinto dos domínios de
+agregação. Convencionamos \(c_{n+1}=c_1\).
+
 \begin{enumerate}
-	\item Calcula-se {\em imagens de chave} \(\tilde{K_j} = k_{\pi, j} \mathcal{H}_p(K_{\pi, 1})\) para cada \(j \in \{1, 2, ..., m\}\). Note-se que a chave base é sempre a mesma. Assim {\em imagens de chave} com $j>1$ são {\em auxiliares}. Para simplificar a notação, 
-{\em imagens de chave} representam-se por : $\tilde{K}_j$.
+    \item Calculam-se \(H_i\), as imagens \(I_j\), os pesos \(\mu_j\), as
+    chaves agregadas \(W_i\), a imagem agregada \(\widetilde W\) e a
+    testemunha agregada \(w_\pi\).
 
-	\item Geram-se números aleatórios \(\alpha \in_R \mathbb{Z}_l\), e \(r_{i} \in_R \mathbb{Z}_l\) para cada \(i \in \{1, 2, ..., n\}\) (excepto \(i = \pi\)).
+    \item Escolhem-se \(\alpha\in_R\mathbb Z_l\) e
+    \(r_i\in_R\mathbb Z_l\) para todo \(i\neq\pi\).
 
-    \item Calculam-se chaves públicas aggregadas $W_i$ para cada \(i \in \{1, 2, ..., n\}\), e uma {\em imagem de chave} aggregada $\tilde{W}$ \footnote{O abstracto CLSAG diz para utilizar funções hash diferentes, para existir a separação de domínios. O que é representado aqui por um {\em tag} \cite{MRL-0011-CLSAG}, e.g. $T_1 =$ ``CLSAG\_1", $T_c =$ ``CLSAG\_c", etc. Cada função hash distinta terá naturalmente resultados distintos para argumentos iguais. A separação de domínios é um novo hábito no desenvolvimento de monero. Nas assinaturas são também fornecidos os {\em prefixos}, ou seja todas as chaves envolvidas na assinatura. De forma explícita o que é convenção comum (neste caso aqui incluíndo $\mathcal{R}$, o que contêm todas as chaves, e é argumento da função hash).}%an actual implementation may use $j$ flags, instead of the index itself
+    \item Inicia-se a ronda seguinte à coluna signatária:
+    \[
+    c_{\pi+1}
+      =\mathcal H_n(\Psi,[\alpha G],[\alpha H_\pi]).
+    \]
+
+    \item Para
+    \(i=\pi+1,\ldots,n,1,\ldots,\pi-1\), calculam-se
     \begin{align*}
-    W_i &= \sum^{m}_{j=1} \mathcal{H}_n(T_j, \mathcal{R}, \tilde{K}_1,...,\tilde{K}_{m})*K_{i,j}\\
-    \tilde{W} &= \sum^{m}_{j=1} \mathcal{H}_n(T_j, \mathcal{R}, \tilde{K}_1,...,\tilde{K}_{m})*\tilde{K}_j
-    \end{align*}{}
-    em que $w_{\pi} = \sum_j \mathcal{H}_n(T_j,...)*k_{\pi,j}$ é a chave privada aggregada.
+    L_i&=r_iG+c_iW_i,\\
+    R_i&=r_iH_i+c_i\widetilde W,\\
+    c_{i+1}&=\mathcal H_n(\Psi,[L_i],[R_i]).
+    \end{align*}
 
-	\item Compute
-	\[c_{\pi+1} = \mathcal{H}_n(T_c, \mathcal{R}, \mathfrak{m}, [\alpha G], [\alpha \mathcal{H}_p(K_{\pi, 1})])\]
-
-	\item Para cada \(i = \pi+1, \pi+2, ..., n, 1, 2, ..., \pi-1\) calcule, substituíndo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\[c_{i+1} = \mathcal{H}_n(T_c, \mathcal{R}, \mathfrak{m}, [r_i G + c_i W_i], [r_{i} \mathcal{H}_p(K_{i,1}) + c_i \tilde{W}])\]
-
-	\item Define-se \(r_{\pi} = \alpha - c_\pi w_\pi \pmod l\).
+    \item Fecha-se a cadeia com
+    \[
+    r_\pi=(\alpha-c_\pi w_\pi)\bmod l.
+    \]
 \end{enumerate}
 
-Assim \(\sigma(\mathfrak{m}) = (c_1, r_1, ..., r_n) \), com {\em imagem de chave} primária $\tilde{K}_1$, e {\em imagens de chave} auxiliares $(\tilde{K}_2,...,\tilde{K}_{m})$.
-
+A assinatura conceptual é
+\[
+\sigma=(I_1,\ldots,I_m,c_1,r_1,\ldots,r_n).
+\]
 
 \subsection*{Verificação}
 
-A verificação de uma assinatura é feita da seguinte maneira :
-
-\begin{enumerate}
-    \item Para cada $j \in \{1,...,m\}$ verifique $l \tilde{K}_j \stackrel{?}{=} 0$.\footnote{Em Monero só se verifica $l*\tilde{K}_1 \stackrel{?}{=} 0$ para a imagen de chave primária. Chaves auxiliares seriam guardadas como $(1/8)*\tilde{K}_j$, e durante a verificação multiplicadas por 8 (secção \ref{elliptic_curves_section}), o que é mais eficiente. Mas isto seria uma opção de implementação.}
-%In Monero we would only check $l*\tilde{K}_1 \stackrel{?}{=} 0$ for the primary key image. Auxiliary keys would be stored as $(1/8)*\tilde{K}_j$, and during verification multiplied by 8 (recall Section \ref{elliptic_curves_section}), which is more efficient. The method discrepancy is an implementation choice, since linkable key images are very important and so shouldn't be messed with aggressively, and the other method was employed in prior protocol versions.}
-
-    \item Calcule chaves públicas aggregadas $W_i$ para cada \(i \in \{1, 2, ..., n\}\), {\em imagem de chave} aggregada $\tilde{W}$\vspace{.175cm}
-    \begin{align*}
-    W_i &= \sum^{m}_{j=1} \mathcal{H}_n(T_j, \mathcal{R}, \tilde{K}_1,...,\tilde{K}_{m})*K_{i,j}\\
-    \tilde{W} &= \sum^{m}_{j=1} \mathcal{H}_n(T_j, \mathcal{R}, \tilde{K}_1,...,\tilde{K}_{m})*\tilde{K}_j
-    \end{align*}{}
-
-	\item Para cada \(i = 1, ..., n\) compute, substituíndo \(n + 1 \rightarrow 1\),\vspace{.175cm}
-	\[c_{i+1} = \mathcal{H}_n(T_c, \mathcal{R}, \mathfrak{m}, [r_i G + c_i W_i], [r_{i} \mathcal{H}_p(K_{i,1}) + c_i \tilde{W}])\]
-
-	\item Se \(c_1 = c'_1\) então a assinatura é válida.
-\end{enumerate}
-
+O verificador recompõe os mesmos pesos, \(W_i\) e \(\widetilde W\). Depois
+põe \(\widehat c_1=c_1\) e, para \(i=1,\ldots,n\), calcula
+\begin{align*}
+\widehat L_i&=r_iG+\widehat c_iW_i,\\
+\widehat R_i&=r_iH_i+\widehat c_i\widetilde W,\\
+\widehat c_{i+1}
+ &=\mathcal H_n(\Psi,[\widehat L_i],[\widehat R_i]).
+\end{align*}
+Aceita apenas se
+\[
+\widehat c_{n+1}=c_1.
+\]
+O desafio que se compara é, uma vez mais, o valor obtido \emph{depois} da
+última coluna; trocar \(c_n\), \(c_{n+1}\) e \(c_1\) seria um erro de fronteira
+capaz de destruir o teste circular.
 
 \subsection*{Funciona porque}
 
-O maior perigo em assinaturas concisas como esta, é o cancelamento de chave. Em que as {\em imagens de chave} dadas nao são legítimas. Porém a sua soma resulta num valor aggregado legítimo. é aqui que os coefficientes aggregados $\mathcal{H}_n(T_j, \mathcal{R}, \tilde{K}_1,...,\tilde{K}_{m})$ são relevantes. Pois cada chave pertence ao seu valor. As repercussões circulares que advêm de falsificar uma imagen de chave deixa-se como exercício ao leitor. Imagens de chave auxiliares são um artefacto para provar que a imagem de chave primária é legítima. Desde que a chave privada agregada $w_{\pi}$, que contêm todas as chaves privadas, é aplicada ao ponto base $\mathcal{H}_p(K_{\pi,1})$.
-%We leave tracing out the circular repercussions of faking a key image as an exercise to the reader (perhaps start by imagining those coefficients don't exist). Auxiliary key images are an artifact of proving the primary image is legitimate, since the aggregate private key $w_{\pi}$, which contains all the private keys, is applied to base point $\mathcal{H}_p(K_{\pi,1})$.
+Na coluna verdadeira, a resposta agregada reconstrói ambos os compromissos:
+\begin{align*}
+\widehat L_\pi
+ &=r_\pi G+c_\pi W_\pi\\
+ &=(\alpha-c_\pi w_\pi)G+c_\pi(w_\pi G)
+  =\alpha G,\\
+\widehat R_\pi
+ &=r_\pi H_\pi+c_\pi\widetilde W\\
+ &=(\alpha-c_\pi w_\pi)H_\pi+c_\pi(w_\pi H_\pi)
+  =\alpha H_\pi.
+\end{align*}
+As rondas simuladas coincidem por construção; portanto o desafio volta ao
+\(c_1\) publicado.
 
-\subsection*{Ligação}
+Os pesos são parte da correcção, não apenas uma compressão. Como cada
+\(\mu_j\) depende de todas as chaves e imagens, escolher uma componente para
+cancelar outra altera os próprios coeficientes. No modelo do oráculo
+aleatório, encontrar o ponto fixo necessário para esse ataque tem
+probabilidade desprezável.
 
-Se uma chave privada \(k_{\pi, 1}\) é re-utilisada em qualquer assinatura, a {\em imagem de chave} \(\tilde{K}_1\) correspondente, e fornecida com a assinatura irá revelá-lo. {\em Imagens de chave} auxiliares são ignoradas. 
-%key images are ignored, as they only exist to facilitate the `Concise' part of CLSAG.
+\subsection*{Especialização usada pelo Monero}
 
+\marginnote{\raggedright\tiny
+\nolinkurl{src/ringct/rctSigs.cpp}\\
+{\tt CLSAG\_Gen()}\\
+{\tt verRctCLSAG\allowbreak Simple()}}
+Nas transacções Monero há duas linhas. A primeira contém chaves públicas de
+uso único
+\[
+P_i=p_iG.
+\]
+A segunda contém diferenças entre o compromisso candidato
+\(C_i^{\mathrm{nz}}\) e um compromisso de compensação comum
+\(C_{\mathrm{off}}\):
+\[
+C_i=C_i^{\mathrm{nz}}-C_{\mathrm{off}}=z_iG.
+\]
+Na coluna verdadeira, o signatário conhece \(p=p_\pi\) e \(z=z_\pi\). Com
+\(H_i=\mathcal H_p(P_i)\), calcula
+\begin{align*}
+I&=pH_\pi,\\
+D&=zH_\pi.
+\end{align*}
+\(I\) é a imagem primária. A assinatura serializa a imagem auxiliar como
+\(\overline D=8^{-1}D\); o verificador recupera \(D=8\overline D\). Esta
+multiplicação pelo cofactor coloca a imagem auxiliar no subgrupo primo e o
+verificador rejeita \(D=0\). A imagem \(I\), que determina a ligação, é
+rejeitada se for nula ou se \(lI\neq0\).
+
+Na implementação consultada, os pesos são exactamente
+\begin{align*}
+\mu_P&=\mathcal H_n(
+ \texttt{CLSAG\_agg\_0},
+ \boldsymbol P,\boldsymbol C^{\mathrm{nz}},
+ I,\overline D,C_{\mathrm{off}}),\\
+\mu_C&=\mathcal H_n(
+ \texttt{CLSAG\_agg\_1},
+ \boldsymbol P,\boldsymbol C^{\mathrm{nz}},
+ I,\overline D,C_{\mathrm{off}}).
+\end{align*}
+As duas relações agregadas são
+\begin{align*}
+W_i&=\mu_PP_i+\mu_C(C_i^{\mathrm{nz}}-C_{\mathrm{off}}),\\
+\widetilde W&=\mu_PI+\mu_CD,
+\end{align*}
+e a testemunha verdadeira é
+\[
+w_\pi=\mu_Pp+\mu_Cz.
+\]
+
+O hash de cada ronda usa o domínio \texttt{CLSAG\_round} e liga, pela ordem
+serializada, todas as \(P_i\), todos os \(C_i^{\mathrm{nz}}\),
+\(C_{\mathrm{off}}\), a mensagem da transacção e os dois compromissos
+\(L_i,R_i\). \(I\) e \(\overline D\) ficam ligados às rondas através dos pesos
+\(\mu_P,\mu_C\). Em notação compacta:
+\begin{align*}
+L_i&=r_iG+c_i\{\mu_PP_i+\mu_C(C_i^{\mathrm{nz}}-C_{\mathrm{off}})\},\\
+R_i&=r_iH_i+c_i(\mu_PI+\mu_CD).
+\end{align*}
+A assinatura serializada contém \(r_1,\ldots,r_n\), \(c_1\) e
+\(\overline D\). \(I\) já aparece como imagem da entrada da transacção e é
+reposto na estrutura antes da verificação; não é duplicado no corpo CLSAG.
+O verificador da revisão consultada rejeita anéis vazios, números errados de
+respostas, \(c_1\) ou respostas não canónicos, \(I=0\), \(8\overline D=0\) e
+codificações de pontos inválidas; a validação da transacção exige ainda
+\(lI=0\). Cada desafio de ronda reconstruído tem também de ser não nulo.
+
+\subsection*{Ligação e hipóteses de segurança}
+
+O teste de ligação usa somente
+\[
+I=k_{\pi,1}\mathcal H_p(K_{\pi,1}).
+\]
+Se a chave primária de uso único assinar de novo, \(I\) reaparece. As imagens
+auxiliares não entram nesse teste: existem para provar a consistência da
+agregação, e tratá-las como marcadores poderia criar ligações que o protocolo
+não pretende.
+
+A infalsificabilidade e o conhecimento da coluna dependem da dificuldade do
+PLD, da segurança Fiat--Shamir no modelo do oráculo aleatório e de os pesos
+impedirem cancelamentos de chaves. A impossibilidade de calcular uma imagem
+a partir de \(G,K,H\) sem a testemunha é uma hipótese do tipo PCDH; esconder a
+qual chave \(K_i\) corresponde a \((H_i,I)\) exige a dificuldade do problema
+decisional de Diffie--Hellman. Resolver o PLD permitiria resolver os dois
+problemas Diffie--Hellman; o inverso, e a equivalência entre as respectivas
+dificuldades, não se seguem sem uma redução para o grupo usado.
+
+A unicidade útil de \(I\) exige ainda uma função hash para ponto resistente a
+colisões, bases no subgrupo correcto e rejeição de identidade e torção. Uma
+imagem repetida só estabelece ligação entre assinaturas válidas; não prova,
+isoladamente, que uma saída pertencia a alguém nem que todas as regras de
+valor de uma transacção foram cumpridas.
+
+Reutilizar \(\alpha\) em dois desafios revela a testemunha agregada
+\(w_\pi\). Se a reutilização ocorrer sob conjuntos de pesos independentes,
+várias equações lineares podem ainda revelar as testemunhas individuais.
+Respostas previsíveis ou não uniformes podem denunciar \(\pi\). Por isso,
+valor efémero, mensagem, matriz, imagens, dimensões, domínios e todos os prefixos
+devem ficar ligados à mesma execução.
 
 \subsection*{Requisitos de espaço}
 
-Guardamos (1+$n$) inteiros, temos $m$ {\em imagens de chave}, e usamos $m*n$ chaves públicas.
-
-%NOTE: in Monero CLSAG key prefixing is a bit different.
-%\[c_{i+1} = \mathcal{H}_n(T_c, one-time addresses, output commitments, pseudo output commitment, \mathfrak{m}, [r_i G + c_i W_i], [r_{i} \mathcal{H}_p(K_{i,1}) + c_i \tilde{W}])\]
+Na forma geral, CLSAG guarda \(n+1\) escalares e \(m\) imagens, usando
+\(nm\) chaves públicas. A redução de \(mn+1\) para \(n+1\) escalares é a
+vantagem concisa em relação a MLSAG. Na especialização Monero, a imagem
+primária acompanha a entrada e a assinatura serializa apenas a imagem
+auxiliar, além desses \(n+1\) escalares.

@@ -4,23 +4,41 @@
 	\textcolor{red}{\small
 		\arabic{FancyVerbLine}}}
 
-\chapter{Estrutura de transacção {\tt RCTTypeBulletproof2}}
+\chapter{Espécime histórico: estrutura de transacção
+{\tt RCTTypeBulletproof2}}
 \label{appendix:RCTTypeBulletproof2}
+\chaptermark{Espécime histórico: {\tt RCTTypeBulletproof2}}
 %\addcontentsline{toc}{chapter}{Estrutura de transacção {\tt RCTTypeBulletproof2}}
 
-Apresenta-se neste apêndice uma transacção de Monero real do tipo {\tt RCTTypeBulletproof2}, juntamente com as esplicações dos seus campos relevantes.
+Apresenta-se neste apêndice uma transacção de Monero real do tipo
+{\tt RCTTypeBulletproof2}, juntamente com explicações dos seus campos
+relevantes. É um espécime histórico, incluído no bloco \(2\,045\,821\), em
+2020, quando a versão 12 estava activa. Os seus anéis de onze membros, as
+assinaturas MLSAG, os Bulletproofs clássicos e os alvos sem etiquetas de
+visualização não descrevem uma nova transacção v16. O caminho activo é
+{\tt RCTTypeBulletproofPlus}, explicado no capítulo
+\ref{chapter:transactions}.
 %We present in this appendix a dump from a real Monero transacção of type {\tt RCTTypeBulletproof2}, together with explanatory notes for relevant fields.
 
-Esta transacção foi obtida do explorador de blocos \url{https://xmrchain.net}. Também se pode obter esta transacção ao executar o commando {\tt print\_tx <TransactionID> +hex +json} no {\em daemon} {\tt monerod} (sem o parámetro {\em detached}). Em que {\tt <TransactionID>} é uma hash da transacção (secção \ref{subsec:transaction-id}). A primeira linha mostra o commando que se executou.
+Esta transacção foi obtida do explorador de blocos
+\url{https://xmrchain.net}. Também se pode obter ao executar o comando
+{\tt print\_tx <TransactionID> +hex +json} no {\em daemon} {\tt monerod}
+(sem o parâmetro {\em detached}). Aqui, {\tt <TransactionID>} é o \emph{hash}
+da transacção (secção \ref{subsec:transaction-id}). A primeira linha mostra o
+comando executado.
 %The dump was obtained from the block explorer \url{https://xmrchain.net}. It can also be acquired by executing command {\tt print\_tx <TransactionID> +hex +json} in the {\tt monerod} daemon run in non-detached mode. {\tt <TransactionID>} is a hash of the transacção (Section \ref{subsec:transacção-id}). The first linha printed shows the actual command to run.% see chapter 7 blockchain on TransactionID
-Para replicar estes resultados, o leitor faz o seguinte :
+Para replicar estes resultados, o leitor faz o seguinte:
 %To replicate our results, readers can do the following:%\footnote{Blockchain data can also be found with a web block explorer, such as \url{https://moneroblocks.info/} or \url{https://xmrchain.net}.}
 \begin{enumerate}
-    \item Precisa-se a {\em cli} de Monero, que se encontra em \url{https://web.getmonero.org/downloads/}. Saque somente a {\em cli}, para o seu sistema operativo, mova o ficheiro para um directório qualquer, e extrai-a o arquivo. 
+    \item É preciso o programa de linha de comandos de Monero, disponível no
+    sítio oficial de descargas.\footnote{\url{https://web.getmonero.org/downloads/}}
+    Descarregue a versão para o seu sistema operativo e extraia o arquivo.
 %We need the Monero command linha tool (CLI), which can be found at \url{https://web.getmonero.org/downloads/} (among other places). Get the `Command Line Tools Only' for your operating system, move the file to a useful location, and unzip it.
-    \item Abra um terminal/linha de comandos e navegue para o directório criado pela extração.
+    \item Abra um terminal e navegue para o directório criado pela extracção.
 %Open the terminal/command linha and navigate into the folder created by unzipping.
-    \item Corra {\tt monerod} com {\tt ./monerod}. Agora a lista de blocos irá ser saquada da rede para a sua máquina local. Infelizmente não existe outra forma de imprimir transacções localmente sem ter posse da lista inteira de blocos.    
+    \item Corra {\tt monerod} com {\tt ./monerod}. O nó descarrega e valida a
+    lista de blocos na máquina local; o comando abaixo só poderá encontrar a
+    transacção depois de a sincronização alcançar a altura necessária.
 %Run {\tt monerod} with {\tt ./monerod}. Now the Monero blockchain will download. Unfortunately, there is currently no easy way to print transactions on your own system (e.g. without using a block explorer) without downloading the blockchain.
     \item Depois do processo de sincronização estar feito, é possível executar comandos como {\tt print\_tx}. Use {\tt help} para conhecer outros comandos.
 %After the syncing process is done, commands like {\tt print\_tx} will work. Use {\tt help} to learn other commands.
@@ -28,14 +46,20 @@ Para replicar estes resultados, o leitor faz o seguinte :
 
 %For editorial reasons we have shortened long hexadecimal chains, presenting only the beginning and end as in {\tt 0200010c7f[...]409}.
 
-O componente {\tt rctsig\_prunable}, é podável da lista de blocos. Isto é, uma vez que há consenso sobre um bloco e o comprimento actual da lista de blocos proíbe a possibilidade de um ataque de duplo gasto, este campo inteiro pode ser podado e substituido pela hash da raíz da arvore de {\em merkle}. 
+O componente {\tt rctsig\_prunable} é, como o nome indica, podável. Um nó
+podado pode omitir estes dados antigos e conservar a parte não podável e o
+\emph{hash} da parte podável necessário para reconstruir o identificador da
+transacção. A raiz de Merkle do bloco compromete-se com os identificadores das
+transacções; não se substitui literalmente este campo pela raiz da árvore.
 
 %Component {\tt rctsig\_prunable}, as indicated by its name, is {\sl prunable} from the blockchain. That is, once a block has been consensuated and the current chain length rules out all possibilities of double-spending attacks, this whole field can be pruned and replaced with its hash for the Merkle tree.
 
-Imagens de chave são guardadas separadamente, na área não podável das transacções. Estas imagens de chave são cruciais para detectar ataques de duplo gasto e não podem ser podadas. 
+As imagens de chave ficam nas entradas do prefixo, na área não podável. São
+cruciais para detectar gastos duplos e não podem ser podadas.
 %Key images are stored separately, in the non-prunable area of transactions. These are essential for detecting double-spend attacks and can’t be pruned away.
-\\
-Esta transacção exemplo têm duas entradas e duas saídas, e foi adicionada á lista de blocos com o carimbo no tempo de 2020-03-02 19:01:10 UTC . 
+
+Esta transacção exemplo tem duas entradas e duas saídas, e foi adicionada à
+lista de blocos com o carimbo temporal 2020-03-02 19:01:10 UTC.
 %Our sample transacção has 2 inputs and 2 outputs, and was added to the blockchain at timestamp 2020-03-02 19:01:10 UTC (as reported by its block's miner).
 
 \begin{Verbatim}[commandchars=\\\{\}, numbers=left]
@@ -181,28 +205,60 @@ Found in blockchain at height 2045821
 \begin{itemize}
     \item (linha 2) - O comando {\tt print\_tx} iria reportar o bloco em que foi encontrada a transacção, o que é replicado aqui com o propósito de demonstração.  
 %The command {\tt print\_tx} would report the block where it found the transacção, which we replicate here for demonstration purposes.
-	\item {\tt version} (linha 4) - O formato/versão da transacção; `2' corresponde a RingCT.
+		\item {\tt version} (linha 4) -- A versão de serialização da
+		transacção; `2' é a versão usada pelos formatos RingCT, históricos e
+		actuais.
 %Transacção format/era version; `2' corresponds to RingCT.
-	\item {\tt unlock\_time} (linha 5) - Previne que a(s) saída(s) de transacção sejam gastas antes que esse tempo passe. Trata-se aqui de uma altura de bloco, ou um carimbo no tempo de UNIX. Se o número é maior do que o tempo UNIX até á data. Este valor torna-se zero se nenhum limite é definido.  
+		\item {\tt unlock\_time} (linha 5) -- Impede que as saídas sejam
+		gastas antes do limite comum. Um valor inferior a \(500\,000\,000\) é
+		uma altura de bloco; um valor a partir daí é um tempo Unix. Zero não
+		acrescenta bloqueio.
 %Prevents a transacção's outputs from being spent until the time has past. It is either a block height, or a UNIX timestamp if the number is larger than the beginning of UNIX time. It defaults to zero when no limit is specified.	
 	\item {\tt vin} (linha 6-23) - lista de entradas (existem duas aqui)
 %List of inputs (there are two here)
-	\item {\tt amount} (linha 8) - Descontinuado (legado); campo para o montante, para transacções do tipo 1.
+		\item {\tt amount} (linha 8) -- Campo de montante visível. É zero
+		nestas entradas RingCT porque o montante está comprometido.
 %Deprecated (legacy) amount field for type 1 transactions
-	\item {\tt key\_offset} (linha 9) - Isto permite que os verificadores encontrem as chaves de membros de anel e compromissos na lista de blocos, o que implica óbviamente que estes membros são legítimos. O primeiro offset é absoluto dentro do histórico da lista de blocos, e cada offset subsequente é relativo ao anterior. Por exemplo, com offsets reais \{7,11,15,20\}, guarda-se na lista de blocos \{7,4,4,5\}. Os verificadores calculam o último offset como (7+4+4+5 = 20) (secção \ref{subsec:space-and-ver-rcttypefull}).
+		\item {\tt key\_offsets} (linha 9) -- Permitem encontrar na lista de
+		blocos as chaves e os compromissos dos membros do anel. O primeiro
+		índice é absoluto e os seguintes são diferenças relativas. Por exemplo,
+		\(\{7,11,15,20\}\) serializa-se como \(\{7,4,4,5\}\), pois
+		\(7+4+4+5=20\). Cada lista deste espécime tem onze elementos, o tamanho
+		histórico; na versão 16 teria dezasseis (secção
+		\ref{subsec:space-and-ver-rcttypefull}).
 %This allows verifiers to find ring member keys and commitments in the blockchain, and makes it obvious those members are legitimate. The first offset is absolute within the blockchain history, and each subsequent offset is relative to the previous. For example, with real offsets \{7,11,15,20\}, the blockchain records \{7,4,4,5\}. Verifiers compute the last offset like (7+4+4+5 = 20) (Section \ref{subsec:space-and-ver-rcttypefull}).
-	\item {\tt k\_image} (linha 12) - Imagem de chave \(\tilde{K_j}\) da secção \ref{sec:MLSAG}, em que $j = 1$ desde que esta é a primeira entrada.  
+		\item {\tt k\_image} (linha 12) -- Imagem de chave da primeira
+		entrada. Neste espécime é a imagem ligada pela MLSAG; nas transacções
+		actuais, a mesma posição do prefixo contém a imagem ligada pela CLSAG.
 %Key image \(\tilde{K_j}\) from Section \ref{sec:MLSAG}, where $j = 1$ since this is the first input.
 	\item {\tt vout} (linhas 24-35) - Lista de saídas (existem duas aqui)
 %List of outputs (there are two here)
-	\item {\tt amount} (linha 25) - Descontinuado (legado); campo para o montante, para transacções do tipo 1.
-	\item {\tt key} (linha 27) - chave do endereço oculto de destino para a saída $t = 0$ como descrito na secção \ref{sec:one-time-addresses}.
+		\item {\tt amount} (linha 25) -- Campo de montante visível, zero numa
+		saída RingCT ordinária.
+		\item {\tt key} (linha 27) -- Chave do endereço oculto de destino para
+		a saída \(t=0\), como descrito na secção
+		\ref{sec:one-time-addresses}. O alvo histórico não tem o \emph{view
+		tag} que passou a ser obrigatório nas saídas v16.
 %One-time destination key for output $t = 0$ as described in Section \ref{sec:one-time-addresses}
-	\item {\tt extra} (linhas 36-39) - Diversos dados, \marginnote{src/crypto- note\_basic/ tx\_extra.h} incluíndo a {\em chave pública de transacção}, i.e. o segredo partilhado $r G$ da secção \ref{sec:one-time-addresses}, e ID de pagamento da secção \ref{sec:integrated-addresses}. Típicamente funciona da seguinte forma: cada número é um byte (de 0 a 255), e cada tipo diferente de dados têm um `tag' e um `comprimento'. O tag indica qual é a informação que se segue, e o comprimento indica quantos bytes essa informação ocupa. O primeiro número é sempre um tag. Aqui, `1' indica uma chave pública de transacção. Estas chaves têm sempre 32 bytes de comprimento, portanto não é necessário incluír o comprimento. Depois de 32 números encontra-se um novo tag : `2' o que significa `nonce extra', o seu comprimento é `9', e o próximo byte é `1' o que significa um ID de pagamento codificado (o nonce extra pode ter campos próprios por alguma razão). Depois de 8 bytes o campo extra acaba. Veja-se \cite{extra-field-stackexchange} para mais detalhes. (Na especificação original de criptonote o primeiro byte indicava o tamanho do campo. Monero não utiliza isso.) \cite{tx-extra-field}  
+	\item {\tt extra} (linhas 36--39) -- Dados convencionais da carteira.
+\marginnote{\footnotesize\path{src/cryptonote_basic/tx_extra.h}} Cada número
+mostrado é
+um byte. A etiqueta `1' anuncia a chave pública de transacção \(rG\), de 32
+bytes, que permite ao destinatário derivar o segredo partilhado da secção
+\ref{sec:one-time-addresses}; por ter tamanho fixo, não leva um comprimento.
+Segue-se a etiqueta `2', um \emph{nonce} de nove bytes: o primeiro, `1',
+identifica um ID de pagamento cifrado, e os oito restantes contêm-no. As
+etiquetas dão significado convencional aos bytes; a fronteira de validação
+actual é explicada no capítulo \ref{chapter:transactions}. Vejam-se
+\cite{extra-field-stackexchange,tx-extra-field}.
 %Miscellaneous\marginnote{src/crypto- note\_basic/ tx\_extra.h} data, including the {\em transacção public key}, i.e. the share secret $r G$ of Section  \ref{sec:one-time-addresses}, and encrypted payment ID from Section \ref{sec:integrated-addresses}. It typically works like this: each number is one byte (it can be 0-255), and each kind of thing that can be in the field has a `tag' and `length'. The tag indicates which information comes next, and length indicates how many bytes that info occupies. The first number is always a tag. Here, `1' indicates a `transacção public key'. Tx public keys are always 32 bytes, so we don't need to include the length. Thirty-two numbers later we find a new tag `2' which means `extra nonce', its length is `9', and the next byte is `1' which means an 8-byte encrypted payment ID (the extra nonce can have fields inside it, for some reason). Eight bytes go by, and that's the end of this extra field. See \cite{extra-field-stackexchange} for more details. (note: in the original Cryptonote specification the first byte indicated the size of the field. Monero doesn't use that.) \cite{tx-extra-field}
 	\item {\tt rct\_signatures} (linhas 40-50) - Primeira parte dos dados de assinatura 
 %First part of signature data
-	\item {\tt type} (linha 41) - Tipos de assinatura; {\tt RCTTypeBulletproof2} é tipo 4. Tipos descontinuados RingCT {\tt RCTTypeFull} e {\tt RCTTypeSimple} são tipo 1 e 2 respectivamente. Transacções de mineiro são {\tt RCTTypeNull}, tipo 0.
+		\item {\tt type} (linha 41) -- Tipo RingCT; neste espécime,
+		{\tt RCTTypeBulletproof2} é `4'. {\tt RCTTypeFull} e
+		{\tt RCTTypeSimple} são `1' e `2'; as transacções de mineiro usam
+		{\tt RCTTypeNull}, `0'. O caminho ordinário v16 usa
+		{\tt RCTTypeBulletproofPlus}, `6'.
 %Signature type; {\tt RCTTypeBulletproof2} is type 4. Deprecated RingCT types {\tt RCTTypeFull} and {\tt RCTTypeSimple} were 1 and 2 respectively. Miner transactions use {\tt RCTTypeNull}, type 0.
 	\item {\tt txnFee} (linha 42) - Taxa de transacção em texto claro, neste caso 0.00003246 xmr.
 %Transacção fee in clear text, in this case 0.00003246 XMR
@@ -215,19 +271,24 @@ Montante oculto para cada uma das saídas $t \in \{0, ..., p-1\}$; em que $p = 2
 
     \item {\tt rctsig\_prunable} (linhas 51-132) - Segunda parte dos dados da assinatura
 %Second part of signature data
-    \item {\tt nbp} (linha 52) - Número de provas de domínio {\em Bulletproof} nesta transacção.
+    \item {\tt nbp} (linha 52) -- Número de provas de domínio
+    \emph{Bulletproof} neste espécime. A prova única cobre as duas saídas.
 %Number of Bulletproof range proofs in this transacção
     \item {\tt bp} (linhas 53-80) - elementos da prova {\em Bulletproof}\vspace{.175cm}
 %Bulletproof proof elements (Bulletproofs were not explored in this document, so we will not itemize further)
     \[\Pi_{BP} = (A, S, T_1, T_2, \tau_x, \mu, \mathbb{L}, \mathbb{R}, a, b, t)\]
-    \item {\tt MGs} (linhas 81-129) - assinaturas MLSAG
+    \item {\tt MGs} (linhas 81-129) -- Duas assinaturas MLSAG, uma por
+    entrada. Uma transacção v16 teria o vector {\tt CLSAGs}.
 %MLSAG signatures
     \item {\tt ss} (linhas 82-103) - Componentes \(r_{i,1}\) e \(r_{i,2}\) da assinatura MLSAG para a primeira entrada.\vspace{.175cm}
 %from the first input's MLSAG signature\vspace{.175cm}
     \[\sigma_j(\mathfrak{m}) = (c_1, r_{1, 1}, r_{1, 2}, ..., r_{v+1, 1}, r_{v+1, 2})\]
     \item {\tt cc} (linha 104) - Componente \(c_1\) da assinatura MLSAG, para a primeira entrada.
 %from aforementioned MLSAG signature
-    \item {\tt pseudoOuts} (linhas 130-131) - Pseudo compromissos de saída $C'^a_j$, como descrito na secção \ref{sec:pedersen_monero}. Lembre-se que a soma destes compromissos é igual á soma dos dois compromissos de saída mais o compromisso da taxa de mineiro $f H$. 
+    \item {\tt pseudoOuts} (linhas 130-131) -- Pseudo-compromissos de saída
+    \(\widetilde C^a_j\), como descrito na secção
+    \ref{sec:pedersen_monero}. A sua soma é igual à soma dos dois compromissos
+    de saída mais o compromisso da taxa \(fH\).
 %Pseudo output commitments $C'^a_j$, as described in Section  \ref{sec:pedersen_monero}. Please recall that the sum of these commitments will equal the sum of the two output commitments of this transacção (plus the transacção fee commitment $f H$).
 \end{itemize}
 

@@ -549,6 +549,52 @@ nula módulo o primo \(l\). Encontrar uma segunda abertura não trivial quebra,
 pois, a vinculação computacional e revela exactamente
 \(\gamma=\log_GH\), a relação de logaritmo discreto entre os geradores.
 
+É importante ler a frase na direcção certa. O compromisso \(C^a\), sozinho,
+não entrega \(\gamma\). Para o extrair pela equação
+\eqref{eq:gamma-extraction}, seria preciso conhecer as duas aberturas
+completas: \((y,b)\) e
+\((y_{\mathrm{mau}},b_{\mathrm{mau}})\). Mas suponha-se que existia uma
+máquina capaz de receber a primeira e encontrar facilmente uma segunda.
+Bastava aplicar essa equação à resposta da máquina e teríamos um algoritmo
+para calcular \(\log_GH\). Portanto, encontrar uma segunda abertura não é uma
+porta lateral mais barata para evitar o PLD; se o fosse, essa mesma porta
+resolveria o PLD.
+
+Os 64 bits dos montantes também não encolhem o problema para 64 bits. Depois
+de escolher um candidato \(b_{\mathrm{mau}}\), o Óscar consegue calcular o
+ponto
+\begin{align*}
+ P=C^a-b_{\mathrm{mau}}H,
+\end{align*}
+mas continua a precisar do escalar \(y_{\mathrm{mau}}\) tal que
+\(P=y_{\mathrm{mau}}G\). Como \(G\) gera o subgrupo, qualquer montante candidato
+produz um ponto que tem algum logaritmo; o compromisso não acende uma luz para
+dizer se esse montante é o histórico. O obstáculo é calcular o logaritmo
+correspondente, um PLD no grupo inteiro, cujo tamanho é \(l\), não uma busca no
+intervalo dos montantes.
+
+Há, claro, quem se esfole a tentar arrombar esta porta. Os melhores ataques
+\emph{genéricos} clássicos conhecidos, como o método rho de Pollard, precisam
+de uma ordem de grandeza de
+\begin{align*}
+ \sqrt l
+\end{align*}
+operações de grupo: encontram uma colisão depois de explorar aproximadamente
+a raiz quadrada do espaço, pelo mesmo efeito do paradoxo dos aniversários.
+Aqui \(l\) está um pouco acima de \(2^{252}\), logo \(\sqrt l\) está perto de
+\(2^{126}\), cerca de \(8{,}5\times10^{37}\) operações. Mesmo uma máquina
+fantasiosa que executasse \(10^{18}\) operações de grupo por segundo levaria
+cerca de \(2{,}7\times10^{12}\) anos. Uma operação de grupo real é, de resto,
+muito mais trabalhosa do que uma instrução elementar de processador.
+
+``Genérico'' quer dizer que o ataque usa apenas as operações do grupo e não
+uma fraqueza especial da curva, da geração de \(H\) ou da implementação. A
+estimativa \(2^{126}\) não é uma prova de que nunca surgirá matemática melhor;
+é o nível de segurança clássico que resulta dos melhores métodos conhecidos.
+Um atalho genuíno não faria apenas o Óscar rico: abalaria todas as construções
+que dependem do mesmo PLD. É por isso que as pessoas tentam --- e é também por
+isso que não lhes basta tentar com um computador um bocadinho maior.
+
 O segredo de \(\gamma\) é, pois, a hipótese de \emph{vinculação} dos
 compromissos e da oferta monetária. Não é a hipótese de ocultação: com uma
 máscara uniforme, \(yG+bH\) esconde perfeitamente \(b\) mesmo de quem

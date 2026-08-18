@@ -535,9 +535,33 @@ Sem \(\gamma\), o mesmo truque pediria
   =\log_G\!\left(C^a-b_{\mathrm{mau}}H\right),
 \end{align*}
 e agora, ``ah e tal'', queremos calcular um logaritmo discreto. É aqui que o
-PLD fecha a porta. Mais ainda, se alguém exibisse duas aberturas distintas
-\((y,b)\) e \((y_{\mathrm{mau}},b_{\mathrm{mau}})\) do mesmo compromisso,
-extrairíamos imediatamente
+PLD fecha a porta.
+
+\subsubsection*{Duas aberturas, um segredo}
+
+O ponto essencial é que não conseguimos calcular \(\gamma\) olhando apenas
+para \(C^a\). Precisamos de conhecer duas descrições completas do mesmo ponto:
+\begin{align*}
+ C^a&=yG+bH,\\
+ C^a&=y_{\mathrm{mau}}G+b_{\mathrm{mau}}H.
+\end{align*}
+Ou seja, precisamos dos quatro números
+\begin{align*}
+ (y,b)\qquad\text{e}\qquad
+ (y_{\mathrm{mau}},b_{\mathrm{mau}}).
+\end{align*}
+Como as duas expressões dão exactamente o mesmo compromisso, subtraímos uma
+da outra:
+\begin{align*}
+ 0
+ &=(y-y_{\mathrm{mau}})G
+   +(b-b_{\mathrm{mau}})H \\
+ &=\bigl(y-y_{\mathrm{mau}}
+   +(b-b_{\mathrm{mau}})\gamma\bigr)G.
+\end{align*}
+Na segunda linha substituímos simplesmente \(H=\gamma G\). Como \(G\) tem
+ordem prima \(l\), o escalar entre parênteses tem de ser zero módulo \(l\).
+Podemos então isolar \(\gamma\):
 \begin{align}
  \gamma=
  (y_{\mathrm{mau}}-y)
@@ -549,16 +573,61 @@ nula módulo o primo \(l\). Encontrar uma segunda abertura não trivial quebra,
 pois, a vinculação computacional e revela exactamente
 \(\gamma=\log_GH\), a relação de logaritmo discreto entre os geradores.
 
-É importante ler a frase na direcção certa. O compromisso \(C^a\), sozinho,
-não entrega \(\gamma\). Para o extrair pela equação
-\eqref{eq:gamma-extraction}, seria preciso conhecer as duas aberturas
-completas: \((y,b)\) e
-\((y_{\mathrm{mau}},b_{\mathrm{mau}})\). Mas suponha-se que existia uma
-máquina capaz de receber a primeira e encontrar facilmente uma segunda.
-Bastava aplicar essa equação à resposta da máquina e teríamos um algoritmo
-para calcular \(\log_GH\). Portanto, encontrar uma segunda abertura não é uma
-porta lateral mais barata para evitar o PLD; se o fosse, essa mesma porta
-resolveria o PLD.
+\subsubsection*{Um exemplo pequenino}
+
+Imaginemos, apenas para aprender, um grupo de ordem \(11\) no qual a relação
+secreta é
+\begin{align*}
+ H=4G.
+\end{align*}
+Neste brinquedo, portanto, \(\gamma=4\). Uma primeira abertura é
+\begin{align*}
+ y=2,\qquad b=3.
+\end{align*}
+O compromisso correspondente é
+\begin{align*}
+ C^a
+ &=2G+3H \\
+ &=2G+3(4G) \\
+ &=14G=3G
+   \qquad\bigl(\text{pois }14\equiv3\pmod{11}\bigr).
+\end{align*}
+Suponhamos que alguém encontra outra abertura do mesmo \(C^a\):
+\begin{align*}
+ y_{\mathrm{mau}}=5,\qquad b_{\mathrm{mau}}=5.
+\end{align*}
+Com efeito,
+\begin{align*}
+ 5G+5H
+ &=5G+5(4G) \\
+ &=25G=3G
+   \qquad\bigl(\text{pois }25\equiv3\pmod{11}\bigr).
+\end{align*}
+As duas aberturas dão o mesmo ponto \(C^a=3G\). Agora usamos os quatro
+números na equação \eqref{eq:gamma-extraction}:
+\begin{align*}
+ \gamma
+ &=(5-2)(3-5)^{-1}\pmod{11}.
+\end{align*}
+Temos \(3-5=-2\equiv9\pmod{11}\). O inverso de \(9\) módulo \(11\) é \(5\),
+porque \(9\cdot5=45\equiv1\pmod{11}\). Assim,
+\begin{align*}
+ \gamma=3\cdot5=15\equiv4\pmod{11}.
+\end{align*}
+Recuperámos precisamente o segredo com que construímos o brinquedo.
+
+Vemos agora as duas direcções sem saltos:
+\begin{itemize}
+ \item se o Óscar conhece \(\gamma\), consegue fabricar uma segunda abertura;
+ \item se alguém consegue fabricar uma segunda abertura diferente e
+ conhecemos as duas aberturas, conseguimos extrair \(\gamma\).
+\end{itemize}
+Uma máquina que recebesse a primeira abertura e encontrasse facilmente a
+segunda dar-nos-ia, pela equação \eqref{eq:gamma-extraction}, um algoritmo para
+calcular \(\log_GH\). Portanto, encontrar uma segunda abertura não é uma porta
+lateral mais barata para evitar o PLD; se o fosse, essa mesma porta resolveria
+o PLD. \(\gamma\) não sai de \(C^a\) sozinho: sai da comparação entre duas
+aberturas distintas do mesmo \(C^a\).
 
 Os 64 bits dos montantes também não encolhem o problema para 64 bits. Depois
 de escolher um candidato \(b_{\mathrm{mau}}\), o Óscar consegue calcular o

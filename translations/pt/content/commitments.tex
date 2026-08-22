@@ -406,7 +406,8 @@ v = \langle\underline{a}_L, \underline{2}^n\rangle\\
 
 Aqui entra a primeira pequena faísca. As afirmações vectoriais e as duas
 igualdades escalares são equivalentes, excepto com probabilidade negligenciável
-de falhar. Com
+de falhar. Daqui em diante abreviaremos esta ressalva por \emph{enp}: excepto
+com probabilidade negligenciável. Com
 \(\underline{y}^{\,n}=(y^0,y^1,\ldots,y^{n-1})\), qualquer vector
 \(\underline c=(c_0,c_1,\ldots,c_{n-1})\) define o polinómio
 \begin{align*}
@@ -415,9 +416,12 @@ F(y)=c_0+c_1y+c_2y^2+\cdots+c_{n-1}y^{n-1}.
 
 Se \(\underline c\ne\underline0\), este polinómio não nulo tem no máximo
 \(n-1\) raízes em \(\mathbb Z_l\). Como o provador já se comprometeu aos
-vectores antes de o traslado produzir \(y\), a probabilidade de uma relação
-falsa sobreviver ao desafio é no máximo \((n-1)/l\), portanto negligenciável.
-Se \(\underline c=\underline0\), pelo contrário, \(F\) é o polinómio zero e
+vectores antes de o traslado produzir \(y\), só pode esperar que o desafio
+calhe numa dessas raízes. Para \(n=64\), são no máximo 63 valores bons entre os
+\(l\) valores possíveis: a probabilidade de uma relação falsa sobreviver é no
+máximo \(63/l<2^{-246}\). É isto que quer dizer \emph{enp}; não é impossível
+por decreto, é tão improvável que se trata como impossível. Se
+\(\underline c=\underline0\), pelo contrário, \(F\) é o polinómio zero e
 aceita todos os \(y\). É precisamente essa a resposta honesta.
 
 Continua-se a representar a mesma coisa de outra forma:
@@ -638,7 +642,9 @@ conseguiria conferir os dois circuitos:
  +\langle-z\underline1,\underline G\rangle .
 \end{align*}
 Mas enviar \(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
-A sorte é que há uma porta mais estreita.
+
+\medskip
+\noindent\emph{A sorte é que:} há uma porta mais estreita.
 
 Ponhamos \(k=\log_2 64=6\). O argumento de produto interno que se desenvolverá
 já a seguir transforma os vectores num par de escalares \(a,b\) e estabelece
@@ -777,7 +783,9 @@ P_{k-1}={}&
 \end{align*}
 \marginnote{click!}
 
-E assim aparece a recursão, não por fumo, mas porque os factores se cancelam
+Aqui deve ouvir-se o pequeno \emph{click!}: os termos diagonais recompõem
+\(P_k\), enquanto os cruzados são exactamente \(L_k\) e \(R_k\). E assim
+aparece a recursão, não por fumo, mas porque os factores se cancelam
 exactamente:
 \[
 \begin{aligned}
@@ -927,9 +935,64 @@ Agora está armado para a verificação final. Defina-se
  \Sigma_{\rm IP}=
  \sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right).
 \]
-Substituindo as Equações~\eqref{eq:bp-p-recursion} e
-\eqref{eq:bp-p-final} nos dois circuitos, usando
-\(U=x_{ip}H\) e reunindo todos os pontos no mesmo lado, chega-se a
+
+Não saltemos logo para a última linha: devolvamos ao fim da batalha as
+equações que mostram como cada peça cai no seu lugar. A primeira equação de
+verificação, depois de substituir os dois vectores por \(P_k-t(x)U\), é
+\begin{align}
+&t(x)H+\tau_xG+P_k-t(x)U+\mu G\notag\\
+={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\label{eq:bp-ending-start}
+\end{align}
+
+Substituam-se agora as Equações~\eqref{eq:bp-p-recursion} e
+\eqref{eq:bp-p-final}. A floresta dobrada reaparece só nos seus dois escalares
+finais:
+\begin{align}
+&t(x)H-t(x)U+(\tau_x+\mu)G
+ +a\ce{^{0}_{\ }\underline G}
+ +b\ce{^{0}_{\ }\underline{H'}}+abU-\Sigma_{\rm IP}\notag\\
+={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\label{eq:bp-ending-folded}
+\end{align}
+
+Passando tudo para o lado direito, sem esconder nenhum sinal,
+\begin{align}
+\mathcal O={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G+\Sigma_{\rm IP}\notag\\
+&+[\delta(y,z)-t(x)]H+[t(x)-ab]U\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle\notag\\
+&-a\ce{^{0}_{\ }\underline G}
+ -b\ce{^{0}_{\ }\underline{H'}}.
+\label{eq:bp-ending-one-side}
+\end{align}
+
+O verificador reconstruiu
+\(\ce{^{0}_{\ }\underline G}=\langle\underline\phi,\underline G\rangle\)
+e
+\(\ce{^{0}_{\ }\underline{H'}}=\langle\underline\varphi,
+\underline{H'}\rangle\). Logo, as duas últimas linhas juntam-se aos produtos
+internos públicos:
+\begin{align}
+\mathcal O={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G+\Sigma_{\rm IP}\notag\\
+&+[\delta(y,z)-t(x)]H+[t(x)-ab]U\notag\\
+&+\langle-z\underline1-a\underline\phi,\underline G\rangle\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
+          -b\underline\varphi,\underline{H'}\rangle .
+\label{eq:bp-ending-reconstructed}
+\end{align}
+
+Finalmente usa-se \(U=x_{ip}H\). Só agora se chega à equação compacta que a
+implementação pode verificar como uma soma multiescalar:
 \begin{align}
 \mathcal O={}&
  z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G

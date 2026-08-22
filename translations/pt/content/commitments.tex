@@ -800,35 +800,46 @@ P_{k-1}={}&
 \end{align*}
 O \(u_k\) de cada termo diagonal encontra o seu inverso e desaparece. Os termos
 cruzados não desaparecem: ficam marcados por \(u_k^2\) ou \(u_k^{-2}\).
-Agrupando-os,
-\begin{align*}
-P_{k-1}={}&
-\underbrace{
- \langle\underline l_k^{\rightarrow},\underline G_k^{\rightarrow}\rangle+
- \langle\underline l_k^{\leftarrow},\underline G_k^{\leftarrow}\rangle+
- \langle\underline r_k^{\rightarrow},\underline{H'}_k^{\rightarrow}\rangle+
- \langle\underline r_k^{\leftarrow},\underline{H'}_k^{\leftarrow}\rangle
-}_{\text{termos diagonais}}\\
-&+\underbrace{
- \bigl(\langle\underline l_k^{\rightarrow},\underline r_k^{\rightarrow}\rangle+
-       \langle\underline l_k^{\leftarrow},\underline r_k^{\leftarrow}\rangle
- \bigr)U}_{\text{produto interno diagonal}}\\
-&+u_k^2\underbrace{\left(
- \langle\underline l_k^{\rightarrow},\underline G_k^{\leftarrow}\rangle+
- \langle\underline r_k^{\leftarrow},\underline{H'}_k^{\rightarrow}\rangle+
- \langle\underline l_k^{\rightarrow},
-        \underline r_k^{\leftarrow}\rangle U\right)}_{L_k}\\
-&+u_k^{-2}\underbrace{\left(
- \langle\underline l_k^{\leftarrow},\underline G_k^{\rightarrow}\rangle+
- \langle\underline r_k^{\rightarrow},\underline{H'}_k^{\leftarrow}\rangle+
- \langle\underline l_k^{\leftarrow},
-        \underline r_k^{\rightarrow}\rangle U\right)}_{R_k}\\
-={}&P_k+u_k^2L_k+u_k^{-2}R_k.
-\end{align*}
+
+\newpage
+\noindent Agora ponhamo-los lado a lado, como peças de um fecho éclair:
+\[
+\begin{gathered}
+P_{k-1}=\\[-1mm]
+\underbrace{\begin{aligned}
+ &\langle\underline l_k^{\rightarrow}(x),
+          \underline G_k^{\rightarrow}\rangle\\
+ +{}&\langle\underline l_k^{\leftarrow}(x),
+             \underline G_k^{\leftarrow}\rangle\\
+ +{}&\langle\underline r_k^{\rightarrow}(x),
+             \underline{H'}_k^{\rightarrow}\rangle\\
+ +{}&\langle\underline r_k^{\leftarrow}(x),
+             \underline{H'}_k^{\leftarrow}\rangle\\
+ +{}&\langle\underline l_k^{\rightarrow}(x),
+             \underline r_k^{\rightarrow}(x)\rangle U\\
+ +{}&\langle\underline l_k^{\leftarrow}(x),
+             \underline r_k^{\leftarrow}(x)\rangle U
+\end{aligned}}_{P_k}
+\quad
+\underbrace{\begin{aligned}
+ +{}&u_k^2\langle\underline l_k^{\rightarrow}(x),
+                    \underline G_k^{\leftarrow}\rangle\\
+ +{}&u_k^{-2}\langle\underline l_k^{\leftarrow}(x),
+                       \underline G_k^{\rightarrow}\rangle\\
+ +{}&u_k^{-2}\langle\underline r_k^{\rightarrow}(x),
+                       \underline{H'}_k^{\leftarrow}\rangle\\
+ +{}&u_k^2\langle\underline r_k^{\leftarrow}(x),
+                    \underline{H'}_k^{\rightarrow}\rangle\\
+ +{}&u_k^2\langle\underline l_k^{\rightarrow}(x),
+                    \underline r_k^{\leftarrow}(x)\rangle U\\
+ +{}&u_k^{-2}\langle\underline l_k^{\leftarrow}(x),
+                       \underline r_k^{\rightarrow}(x)\rangle U
+\end{aligned}}_{u_k^2L_k+u_k^{-2}R_k}.
+\end{gathered}
+\]
 \marginnote{click!}
 
-E assim aparece a recursão, não por fumo, mas porque os factores se cancelam
-exactamente:
+E como tal possibilita-se a seguinte recursão:
 \[
 \begin{aligned}
 P_k&=P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\

@@ -2,8 +2,8 @@
 
 ## Referência técnica
 
-A auditoria inicial foi feita sobre o código Monero na revisão
-`3646f648db57f60cca86430e25a635d19fa9b92a`, de 14 de Agosto de 2026. A
+A auditoria inicial foi feita sobre uma fotografia do código Monero datada de
+14 de Agosto de 2026. A
 programação da rede principal termina na versão 16 do protocolo, activada no
 bloco 2 689 608. A presença de código num ramo de desenvolvimento não basta
 para o tratar como regra activa.

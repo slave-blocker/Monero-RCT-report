@@ -568,6 +568,31 @@ verificador pode obter sozinho. Nesta apresentação de uma saída, cada vector
 tem 64 elementos. O argumento de produto interno reduzirá essa dimensão a 1 em
 \(\log_2 64=6\) dobras.
 
+E de onde vem o ponto \(U\) que apareceu no fim do traslado? Não caiu do céu.
+Depois de absorver \(t(x)\), o traslado produz um desafio fresco
+\(x_{ip}\), e ambos os lados fabricam o mesmo ponto público
+\[
+ U=x_{ip}H.
+\]
+Até aqui, \(t(x)\) era uma afirmação escalar:
+\(t(x)=\langle\underline l(x),\underline r(x)\rangle\). O argumento de
+produto interno, porém, vai dobrar pontos da curva. Se lhe déssemos apenas
+\(\langle\underline l(x),\underline G\rangle+
+\langle\underline r(x),\underline{H'}\rangle\), ele poderia comprimir os
+dois vectores, mas a afirmação sobre o produto entre eles ficaria de fora.
+Por isso prende-se também esse produto ao ponto \(U\):
+\[
+ P_k=\langle\underline l_k(x),\underline G_k\rangle+
+     \langle\underline r_k(x),\underline{H'}_k\rangle+
+     \langle\underline l_k(x),\underline r_k(x)\rangle U.
+\]
+\(U\) não serve para esconder \(t(x)\), que já é público; serve para fazer a
+igualdade viajar dentro da mesma equação que será dobrada. Como \(x_{ip}\) só
+nasce depois de \(t(x)\) entrar no traslado, o provador não escolhe primeiro
+esse factor e só depois inventa o produto. Num percurso honesto, o termo
+\(\langle\underline l(x),\underline r(x)\rangle U\) é simplesmente
+\(t(x)U\) visto do lado dos vectores; no fim das seis dobras será \(abU\).
+
 Antes das dobras, o provador constrói os dois circuitos aritméticos seguintes.
 O primeiro amarra o valor à Equação~\eqref{eq:bp-t0-relation}; o segundo amarra
 os vectores sem os revelar:
@@ -645,8 +670,11 @@ Mas enviar \(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
 \medskip
 \noindent\emph{A sorte é que:} há uma porta mais estreita.
 
-Ponhamos \(k=\log_2 64=6\). O argumento de produto interno que se desenvolverá
-já a seguir transforma os vectores num par de escalares \(a,b\) e estabelece
+Ponhamos \(k=\log_2 64=6\). Agora já sabemos por que há uma terceira parcela:
+ela transporta precisamente a igualdade
+\(t(x)=\langle\underline l(x),\underline r(x)\rangle\). O argumento de
+produto interno que se desenvolverá já a seguir transforma os vectores num
+par de escalares \(a,b\) e estabelece
 \begin{equation}
 \begin{split}
 &\langle\underline l(x),\underline G\rangle+
@@ -782,10 +810,11 @@ P_{k-1}={}&
 \end{align*}
 \marginnote{click!}
 
-Aqui deve ouvir-se o pequeno \emph{click!}: os termos diagonais recompõem
-\(P_k\), enquanto os cruzados são exactamente \(L_k\) e \(R_k\). E assim
-aparece a recursão, não por fumo, mas porque os factores se cancelam
-exactamente:
+Aí está. A porta estreita tinha uma fechadura e acaba de se abrir:
+\emph{click!} Os termos diagonais recompõem \(P_k\); os termos que atravessaram
+de uma metade para a outra são exactamente \(L_k\) e \(R_k\). Não é fumo nem
+uma identidade puxada da manga: as quatro dobras foram escolhidas para que os
+factores se encontrassem assim. A recursão pode agora descer, seta por seta:
 \[
 \begin{aligned}
 P_k&=P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\
@@ -821,30 +850,31 @@ Os escalares finais \(a,b\) têm de ser transmitidos. Os pontos finais
 de reticências, imagine-se um vector inicial com oito pontos e escreva-se
 \(G_{q,i}\) para o elemento \(i\) de \(\underline G_q\):
 \[
+\begin{array}{c@{\quad}c@{\quad}c}
 \begin{bmatrix}
 G_{3,0}\\G_{3,1}\\G_{3,2}\\G_{3,3}\\
 G_{3,4}\\G_{3,5}\\G_{3,6}\\G_{3,7}
 \end{bmatrix}
-\quad\xrightarrow{\ u_3\ }\quad
+&\xrightarrow{\ u_3\ }&
 \begin{bmatrix}
 G_{2,0}=u_3^{-1}G_{3,0}+u_3G_{3,4}\\
 G_{2,1}=u_3^{-1}G_{3,1}+u_3G_{3,5}\\
 G_{2,2}=u_3^{-1}G_{3,2}+u_3G_{3,6}\\
 G_{2,3}=u_3^{-1}G_{3,3}+u_3G_{3,7}
-\end{bmatrix},
-\]
-\[
-\begin{bmatrix}G_{2,0}\\G_{2,1}\\G_{2,2}\\G_{2,3}\end{bmatrix}
-\quad\xrightarrow{\ u_2\ }\quad
+\end{bmatrix}
+\\[-1mm]
+&&\overset{u_2}{\Big\downarrow}
+\\[-1mm]
+\begin{bmatrix}
+\ce{^{0}_{\ }\underline G}
+ =u_1^{-1}G_{1,0}+u_1G_{1,1}
+\end{bmatrix}
+&\xleftarrow{\ u_1\ }&
 \begin{bmatrix}
 G_{1,0}=u_2^{-1}G_{2,0}+u_2G_{2,2}\\
 G_{1,1}=u_2^{-1}G_{2,1}+u_2G_{2,3}
 \end{bmatrix}
-\quad\xrightarrow{\ u_1\ }\quad
-\begin{bmatrix}
-\ce{^{0}_{\ }\underline G}
- =u_1^{-1}G_{1,0}+u_1G_{1,1}
-\end{bmatrix}.
+\end{array}.
 \]
 Cada seta corta o vector ao meio e volta a cosê-lo com um desafio e o seu
 inverso. Nenhuma coordenada desaparece; muda apenas o peso com que chega ao

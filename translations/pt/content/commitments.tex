@@ -568,31 +568,6 @@ verificador pode obter sozinho. Nesta apresentação de uma saída, cada vector
 tem 64 elementos. O argumento de produto interno reduzirá essa dimensão a 1 em
 \(\log_2 64=6\) dobras.
 
-E de onde vem o ponto \(U\) que apareceu no fim do traslado? Não caiu do céu.
-Depois de absorver \(t(x)\), o traslado produz um desafio fresco
-\(x_{ip}\), e ambos os lados fabricam o mesmo ponto público
-\[
- U=x_{ip}H.
-\]
-Até aqui, \(t(x)\) era uma afirmação escalar:
-\(t(x)=\langle\underline l(x),\underline r(x)\rangle\). O argumento de
-produto interno, porém, vai dobrar pontos da curva. Se lhe déssemos apenas
-\(\langle\underline l(x),\underline G\rangle+
-\langle\underline r(x),\underline{H'}\rangle\), ele poderia comprimir os
-dois vectores, mas a afirmação sobre o produto entre eles ficaria de fora.
-Por isso prende-se também esse produto ao ponto \(U\):
-\[
- P_k=\langle\underline l_k(x),\underline G_k\rangle+
-     \langle\underline r_k(x),\underline{H'}_k\rangle+
-     \langle\underline l_k(x),\underline r_k(x)\rangle U.
-\]
-\(U\) não serve para esconder \(t(x)\), que já é público; serve para fazer a
-igualdade viajar dentro da mesma equação que será dobrada. Como \(x_{ip}\) só
-nasce depois de \(t(x)\) entrar no traslado, o provador não escolhe primeiro
-esse factor e só depois inventa o produto. Num percurso honesto, o termo
-\(\langle\underline l(x),\underline r(x)\rangle U\) é simplesmente
-\(t(x)U\) visto do lado dos vectores; no fim das seis dobras será \(abU\).
-
 Antes das dobras, o provador constrói os dois circuitos aritméticos seguintes.
 O primeiro amarra o valor à Equação~\eqref{eq:bp-t0-relation}; o segundo amarra
 os vectores sem os revelar:
@@ -655,7 +630,29 @@ dois vectores terão de atravessar a rede.
 \label{sec:bullet_ver}
 
 Se recebesse simplesmente os dois vectores de 64 elementos, o verificador já
-conseguiria conferir os dois circuitos:
+conseguiria conferir os dois circuitos. Mas não saltemos por cima da ponte:
+são mesmo \emph{duas} igualdades.
+
+Do primeiro circuito, o compromisso ao valor, vem
+\begin{equation}
+t(x)H+\tau_xG
+=z^2V+\delta(y,z)H+xT_1+x^2T_2.
+\label{eq:bp-value-check}
+\end{equation}
+Do segundo circuito, o compromisso aos dois vectores, vem
+\begin{equation}
+\begin{split}
+&\langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+\mu G\\
+&\qquad=A+xS+
+ \langle z\underline y^{\,n}+z^2\underline2^{\,n},\underline{H'}\rangle+
+ \langle-z\underline1,\underline G\rangle.
+\end{split}
+\label{eq:bp-vector-check}
+\end{equation}
+
+A regra é escolar: se \(a=b\) e \(c=d\), então \(a+c=b+d\). Somando os lados
+esquerdos das duas igualdades, e fazendo o mesmo aos lados direitos, obtemos
 \begin{align*}
 &t(x)H+\tau_xG+
  \langle\underline l(x),\underline G\rangle+
@@ -665,28 +662,48 @@ conseguiria conferir os dois circuitos:
           \underline{H'}\rangle
  +\langle-z\underline1,\underline G\rangle .
 \end{align*}
-Mas enviar \(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
+Esta linha é simplesmente a soma das Equações~\eqref{eq:bp-value-check} e
+\eqref{eq:bp-vector-check}. Mas enviar
+\(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
 
 \medskip
 \noindent\emph{A sorte é que:} há uma porta mais estreita.
 
-Ponhamos \(k=\log_2 64=6\). Agora já sabemos por que há uma terceira parcela:
-ela transporta precisamente a igualdade
-\(t(x)=\langle\underline l(x),\underline r(x)\rangle\). O argumento de
-produto interno que se desenvolverá já a seguir transforma os vectores num
-par de escalares \(a,b\) e estabelece
+Depois de \(t(x)\) entrar no traslado, ambos os lados extraem \(x_{ip}\) e
+calculam \(U=x_{ip}H\). A construção do polinómio dá então a seta decisiva:
+\[
+t(x)=\langle\underline l(x),\underline r(x)\rangle
+\quad\overset{\times U}{\Longrightarrow}\quad
+\underbrace{\langle\underline l(x),\underline r(x)\rangle U}
+            _{\text{vectores}}
+=\underbrace{t(x)U}_{\text{escalar}}.
+\]
+Acrescentemos esse mesmo ponto aos dois lados da igualdade grande:
+\begin{align*}
+&t(x)H+\tau_xG+
+ \underbrace{\langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+
+ \langle\underline l(x),\underline r(x)\rangle U}_{P_k}
+ +\mu G\\
+={}&t(x)U+z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\end{align*}
+
+Ponhamos \(k=\log_2 64=6\). O argumento de produto interno dobra o termo sob a
+chaveta até restarem os escalares \(a,b\):
 \begin{equation}
 \begin{split}
-&\langle\underline l(x),\underline G\rangle+
+P_k={}&\langle\underline l(x),\underline G\rangle+
  \langle\underline r(x),\underline{H'}\rangle+
  \langle\underline l(x),\underline r(x)\rangle U\\
-&\qquad=P_0-\sum_{j=1}^{k}
+={}&P_0-\sum_{j=1}^{k}
  \left(u_j^2L_j+u_j^{-2}R_j\right).
 \end{split}
 \label{eq:bp-ip-recursion}
 \end{equation}
-Como \(t(x)=\langle\underline l(x),\underline r(x)\rangle\), o provador envia
-apenas \(t(x)\), não os dois vectores:
+Substituir a chaveta \(P_k\) por esta expressão dá finalmente
 \begin{align*}
 &t(x)H+\tau_xG+P_0
  -\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right)+\mu G\\
@@ -810,11 +827,8 @@ P_{k-1}={}&
 \end{align*}
 \marginnote{click!}
 
-Aí está. A porta estreita tinha uma fechadura e acaba de se abrir:
-\emph{click!} Os termos diagonais recompõem \(P_k\); os termos que atravessaram
-de uma metade para a outra são exactamente \(L_k\) e \(R_k\). Não é fumo nem
-uma identidade puxada da manga: as quatro dobras foram escolhidas para que os
-factores se encontrassem assim. A recursão pode agora descer, seta por seta:
+E assim aparece a recursão, não por fumo, mas porque os factores se cancelam
+exactamente:
 \[
 \begin{aligned}
 P_k&=P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\
@@ -880,23 +894,53 @@ Cada seta corta o vector ao meio e volta a cosê-lo com um desafio e o seu
 inverso. Nenhuma coordenada desaparece; muda apenas o peso com que chega ao
 último ponto.
 
-Por exemplo, \(G_{3,2}\) segue o caminho
+\newpage
+Façamos o jogo das setas. Cada \(G_{3,i}\) começa com uma mochila vazia. Ao
+passar por uma seta, guarda nela o factor escrito por cima. As setas abaixo
+seguem a \emph{contribuição} de cada ponto; não afirmam que, por exemplo,
+\(G_{3,0}=G_{2,0}\), pois \(G_{2,0}\) recebe também \(G_{3,4}\).
+
 \[
- G_{3,2}\longrightarrow
- G_{3,2}u_3^{-1}\longrightarrow
- G_{3,2}u_3^{-1}u_2\longrightarrow
- G_{3,2}u_3^{-1}u_2u_1^{-1},
- \qquad 2=010_2,
+\begin{aligned}
+G_{3,0}&\xrightarrow{u_3^{-1}}G_{2,0}
+         \xrightarrow{u_2^{-1}}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_0&=u_3^{-1}u_2^{-1}u_1^{-1},&0&=000_2,\\
+G_{3,1}&\xrightarrow{u_3^{-1}}G_{2,1}
+         \xrightarrow{u_2^{-1}}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_1&=u_3^{-1}u_2^{-1}u_1,&1&=001_2,\\
+G_{3,2}&\xrightarrow{u_3^{-1}}G_{2,2}
+         \xrightarrow{u_2}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_2&=u_3^{-1}u_2u_1^{-1},&2&=010_2,\\
+G_{3,3}&\xrightarrow{u_3^{-1}}G_{2,3}
+         \xrightarrow{u_2}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_3&=u_3^{-1}u_2u_1,&3&=011_2,\\
+G_{3,4}&\xrightarrow{u_3}G_{2,0}
+         \xrightarrow{u_2^{-1}}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_4&=u_3u_2^{-1}u_1^{-1},&4&=100_2,\\
+G_{3,5}&\xrightarrow{u_3}G_{2,1}
+         \xrightarrow{u_2^{-1}}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_5&=u_3u_2^{-1}u_1,&5&=101_2,\\
+G_{3,6}&\xrightarrow{u_3}G_{2,2}
+         \xrightarrow{u_2}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_6&=u_3u_2u_1^{-1},&6&=110_2,\\
+G_{3,7}&\xrightarrow{u_3}G_{2,3}
+         \xrightarrow{u_2}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_7&=u_3u_2u_1,&7&=111_2.
+\end{aligned}
 \]
-enquanto
-\[
- G_{3,7}\longrightarrow
- G_{3,7}u_3\longrightarrow
- G_{3,7}u_3u_2\longrightarrow
- G_{3,7}u_3u_2u_1,
- \qquad 7=111_2.
-\]
-A seta geral é
+
+O padrão já se vê sem pedir licença: lendo os bits da esquerda para a direita,
+o primeiro escolhe o expoente de \(u_3\), o segundo o de \(u_2\) e o terceiro
+o de \(u_1\); \(0\) escolhe \(-1\), \(1\) escolhe \(+1\). Escrevendo a regra
+com \(m=1\) a partir do bit menos significativo, a seta geral é
 \begin{equation}
  G_{k,i}\longrightarrow
  G_{k,i}\prod_{m=1}^{k}u_m^{\,b(i,m)},
@@ -908,24 +952,32 @@ A seta geral é
  \end{cases}
 \label{eq:bp-g-arrow}
 \end{equation}
-contando \(m=1\) a partir do bit menos significativo. O verificador forma então
-o vector \(\underline\phi\) de pesos
+e o verificador forma o vector \(\underline\phi\) juntando o conteúdo das oito
+mochilas:
 \[
  \phi_i=\prod_{m=1}^{k}u_m^{\,b(i,m)},\qquad
  \ce{^{0}_{\ }\underline G}=\langle\underline\phi,\underline G_k\rangle.
 \]
 
-Para \(\underline{H'}\), as setas apontam com os expoentes trocados:
+Para \(\underline{H'}\), cada seta troca o sinal do expoente. O espelho fica
+visível nesta pequena tabela:
+\[
+\begin{array}{c|cc}
+ &\text{bit }0&\text{bit }1\\ \hline
+\underline G&u_m^{-1}&u_m\\
+\underline{H'}&u_m&u_m^{-1}
+\end{array}
+\qquad\Longrightarrow\qquad
+\varphi_i=\phi_i^{-1}.
+\]
+Portanto,
 \[
  \varphi_i=\prod_{m=1}^{k}u_m^{-b(i,m)},\qquad
  \ce{^{0}_{\ }\underline{H'}}
  =\langle\underline\varphi,\underline{H'}_k\rangle.
 \]
-Este sinal contrário é essencial. Em cada dobra,
-\(\underline G\) usa \(u^{-1}\) à esquerda e \(u\) à direita, enquanto
-\(\underline{H'}\) usa \(u\) à esquerda e \(u^{-1}\) à direita. A versão
-anterior escrevia os dois padrões com o mesmo sinal; essa era uma das avarias
-escondidas nas setas.
+Este sinal contrário é essencial. A versão anterior escrevia os dois padrões
+com o mesmo sinal; essa era uma das avarias escondidas nas setas.
 
 \newpage
 O verificador refaz agora toda a viagem do traslado:

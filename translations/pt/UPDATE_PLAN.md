@@ -38,24 +38,34 @@ recorrerá ao inglês se surgir material posterior identificável.
 6. **Lista de blocos, peso e taxas.** Rever a estrutura e validação de blocos,
    a dificuldade, a emissão, o peso dinâmico e as taxas segundo a versão 16.
    As regras de consenso serão distinguidas das escolhas da carteira e do nó.
-7. **Novo capítulo: mineração e RandomX.** Explicar a máquina virtual, o
+7. **Novo capítulo: FCMP++.** Produzir cerca de 33 páginas compiladas, como o
+   último capítulo da Parte I, ``Essenciais''. Começar na relação de Schnorr
+   `R+cX=sH`; construir visualmente as árvores de curvas; introduzir apenas a
+   maquinaria de divisores necessária; e chegar à composição de pertença,
+   autorização de gasto e ligação de Luke ``KayabaNerve'' Parker. Reservar no
+   total uma ou duas páginas finais para código, migração, hipóteses de
+   segurança e estado de implantação. Apresentar sempre FCMP++ como protocolo
+   futuro ainda em desenvolvimento, não como consenso activo da v16.
+8. **Novo capítulo: mineração e RandomX.** Explicar a máquina virtual, o
    programa aleatório, os modos leve e completo, a cache e o conjunto de
    dados, bem como a semente por épocas de 2 048 blocos com atraso de 64.
-   Relacionar cada pormenor de consenso com a implementação consultada.
-8. **Novo capítulo: difusão de transacções e Dandelion++.** Explicar as fases
+   Relacionar cada pormenor de consenso com a implementação consultada e
+   colocar este capítulo antes de FCMP++, que fecha os ``Essenciais''.
+9. **Novo capítulo: difusão de transacções e Dandelion++.** Explicar as fases
    `stem` e `fluff`, épocas, encaminhamento, temporizadores e embargo, além do
    comportamento distinto nas zonas públicas e nas ligações I2P/Tor. Este é
-   comportamento de rede implementado, não uma regra de consenso.
-9. **Provas sobre transacções.** Confrontar as provas de pagamento, chaves de
+   comportamento de rede implementado, não uma regra de consenso; o capítulo
+   ficará também antes de FCMP++.
+10. **Provas sobre transacções.** Confrontar as provas de pagamento, chaves de
    transacção e auditoria com as interfaces actuais da carteira e indicar os
    limites de cada afirmação.
-10. **Multi-assinaturas.** Rever o capítulo à luz da implementação actual da
+11. **Multi-assinaturas.** Rever o capítulo à luz da implementação actual da
     carteira, que continua deliberadamente desactivada por omissão e marcada
     como experimental. Não a apresentar como mecanismo de consenso.
-11. **Mercados com garantia e TxTangle.** Conservar o valor conceptual, mas
+12. **Mercados com garantia e TxTangle.** Conservar o valor conceptual, mas
     rotular com clareza os pressupostos, dependências e natureza experimental;
     retirar qualquer sugestão de que sejam funções correntes do Monero.
-12. **Apêndices e referências.** Trocar os exemplos de transacção e bloco por
+13. **Apêndices e referências.** Trocar os exemplos de transacção e bloco por
     exemplos da versão 16, ou marcá-los inequivocamente como históricos;
     reparar referências, índices, rótulos e notas de implementação.
 
@@ -64,10 +74,10 @@ recorrerá ao inglês se surgir material posterior identificável.
 O ramo consultado contém componentes iniciais de FCMP++ e tipos associados a
 Carrot. Não existe, nessa revisão, uma versão posterior à v16 programada para a
 rede principal, nem validação de transacções FCMP++ nas regras activas. Esse
-material só entra no corpo principal quando houver especificação estável,
-implementação suficientemente completa e activação definida. Até lá, pode ser
-registado como trabalho experimental, sem antecipar explicações que a fonte
-ainda não sustenta.
+material entra num capítulo próprio pelo seu valor pedagógico, mas fica
+historicamente e tecnicamente separado da descrição da v16. O capítulo fixa a
+revisão das fontes e do código que explica, identifica matéria provisória e não
+antecipa como definitivas regras cuja activação ainda não tenha sido definida.
 
 ## Disciplina de validação
 

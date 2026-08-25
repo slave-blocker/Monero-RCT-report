@@ -66,9 +66,10 @@
 
 %Tree drawing
 \usepackage{tikz}
-\usetikzlibrary{trees, arrows}
+\usetikzlibrary{trees, arrows, positioning}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.15}
+\usepackage{pdflscape}
 
 \usepackage[edges,linguistics]{forest}
 
@@ -229,6 +230,8 @@
 \include{content/commitments}
 \include{content/Transactions}
 \include{content/blockchain}
+\include{content/fcmpPlusPlus}
+\include{content/dlogRelations}
 
 \part{Extensões}
 \include{content/txKnowledgeProofs}

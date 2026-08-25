@@ -1,0 +1,2046 @@
+\chapter{Provas de pertença à cadeia completa (FCMP++)}
+\label{chapter:fcmp-plus-plus}
+\label{page:fcmp-start}
+
+\begin{quote}
+Uma raiz pode comprometer-se com uma árvore inteira sem dizer em que ramo
+estamos. O problema começa quando queremos convencer outra pessoa de que
+estamos mesmo num dos ramos --- e continuamos a recusar-nos a apontar para ele.
+\end{quote}
+
+Até aqui, uma assinatura CLSAG escondia a saída gasta entre dezasseis
+candidatas. O número dezasseis era pequeno o suficiente para escrever o anel
+na transacção, mas grande o suficiente para dar trabalho à intuição: Alice
+prova que conhece uma coluna, sem dizer qual. FCMP++ muda a pergunta. Em vez de
+Alice escolher dezasseis saídas, queremos que a própria cadeia responda:
+
+\begin{center}
+\emph{«a saída que Alice sabe gastar está algures entre todas as saídas
+admissíveis que alguma vez foram criadas.»}
+\end{center}
+
+Não se pode simplesmente despejar a cadeia inteira na assinatura. A prova
+cresceria com a história da moeda e cada nó verificaria novamente uma lista
+gigantesca. Precisamos de condensar a lista num ponto, provar em conhecimento
+zero um caminho até esse ponto, manter a autorização de gasto e ainda produzir
+um marcador que denuncie o gasto duplo. Tudo isto sem deixar uma cerimónia de
+parâmetros com lixo tóxico escondido debaixo da carpete.
+
+Curve Trees, de Matteo Campanelli, Mathias Hall-Andersen e Simon Holmgaard
+Kamp, dá-nos o acumulador transparente e o caminho escondido
+\cite{curve-trees}. Liam Eagen dá-nos uma forma de levar certas multiplicações
+de curvas elípticas para dentro de um circuito por meio de divisores
+\cite{eagen-divisors}. Luke «KayabaNerve» Parker reorganiza estas peças para
+a história específica do Monero: tuplas de saídas antigas e futuras,
+re-randomização, pertença à cadeia inteira, autorização de gasto e ligação
+\cite{fcmp-plus-plus-paper}. O \({++}\) não é açúcar no nome; é a composição
+que permite antecipar FCMP sem exigir primeiro a mudança completa para
+Seraphis.
+
+Este capítulo segue a invenção nessa ordem. Começaremos por uma equação que já
+conhecemos,
+\begin{align}
+ R+cX=sH,
+ \label{eq:fcmp-opening-schnorr}
+\end{align}
+e acabaremos por ver exactamente por que ela é necessária, exactamente o que
+prova e, sobretudo, o que \emph{não} prova.
+
+\section{Três letras \texorpdfstring{\(R\)}{R} entram num bar}
+\label{sec:fcmp-three-rs}
+
+Os artigos e o código foram escritos por pessoas perfeitamente razoáveis que,
+infelizmente, só receberam um alfabeto. A mesma letra \(R\) aparece com três
+empregos. Neste capítulo recusamo-nos a deixá-los trocar de casaco:
+
+\begin{align*}
+ \mathcal R_{\rm tree}
+   &:\quad \text{raiz pública da Curve Tree},\\
+ R_{\rm sig}
+   &:\quad \text{compromisso efémero de uma prova de Schnorr},\\
+ R_{\rm fcmp}
+   &:\quad \text{compromisso de consistência da tupla FCMP++}.
+\end{align*}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+  \tikzstyle{fcmpbox}=[rectangle,rounded corners,draw=black,
+    minimum width=3.4cm,minimum height=1.15cm,text centered,text width=3.2cm]
+  \node (root) [fcmpbox,fill=green!20]
+    {\(\mathcal R_{\rm tree}\)\\um ponto que resume a árvore};
+  \node (sig) [fcmpbox,fill=yellow!25,right of=root,xshift=2.2cm]
+    {\(R_{\rm sig}=rH\)\\um nonce de Schnorr};
+  \node (cons) [fcmpbox,fill=blue!15,right of=sig,xshift=2.2cm]
+    {\(R_{\rm fcmp}=r_iV+r_jT\)\\um compromisso a \(r_i\)};
+\end{tikzpicture}
+\end{center}
+
+A raiz é estado público e persiste enquanto aquele estado da árvore for
+referido. O nonce nasce para uma prova e não deve ser reutilizado. O terceiro
+ponto acompanha a entrada re-randomizada e permite provar, mais tarde, que o
+mesmo \(r_i\) foi usado para esconder uma imagem de chave. São três objectos,
+três ciclos de vida e três razões de segurança.
+
+\subsection{A equação familiar, lida devagar}
+
+Suponhamos que dois pontos públicos diferem por um múltiplo conhecido de uma
+base \(H\):
+\begin{align}
+ X=\widehat{\mathcal R}_{\rm tree}-\mathcal R_{\rm tree}
+   =\rho H.
+ \label{eq:fcmp-root-difference}
+\end{align}
+Alice quer provar que conhece \(\rho\), sem o publicar. Escolhe
+\(r\in_R\mathbb Z_q\), calcula
+\begin{align*}
+ R_{\rm sig}=rH,
+\end{align*}
+obtém da transcrição o desafio \(c\) e responde
+\begin{align*}
+ s=r+c\rho.
+\end{align*}
+O verificador calcula ambos os lados de
+\begin{align}
+ R_{\rm sig}+cX\stackrel{?}{=}sH.
+ \label{eq:fcmp-root-pok-check}
+\end{align}
+Funciona porque
+\begin{align*}
+ R_{\rm sig}+cX
+ &=rH+c(\rho H)\\
+ &=(r+c\rho)H=sH.
+\end{align*}
+
+Esta prova diz:
+\begin{quote}
+«Conheço a quantidade \(\rho\) pela qual a raiz que usei dentro da prova foi
+cegada relativamente à raiz pública.»
+\end{quote}
+
+Não diz:
+\begin{quote}
+«A minha moeda pertence à árvore.»
+\end{quote}
+
+A segunda frase é o trabalho do circuito de Curve Trees. Se retirássemos o
+circuito, Alice poderia cegar uma raiz perfeitamente bem e provar o
+conhecimento do cegamento de uma árvore onde não existe saída nenhuma. Schnorr
+autentica a \emph{diferença entre raízes}; não inventa o caminho que chega à
+raiz. Guarde esta distinção. Ela poupa vinte páginas de confusão.
+
+\section{Do anel que se escreve à árvore que se compromete}
+\label{sec:fcmp-ring-to-tree}
+
+Uma assinatura em anel parte de uma lista explícita
+\begin{align*}
+ \mathcal S=(P_0,P_1,\ldots,P_{N-1})
+\end{align*}
+e prova uma disjunção:
+\begin{align*}
+ \text{conheço a abertura de }P_0
+ \quad\mathbf{OU}\quad\cdots\quad\mathbf{OU}\quad
+ \text{conheço a abertura de }P_{N-1}.
+\end{align*}
+O custo mais ingénuo cresce com \(N\). Técnicas melhores comprimem a prova,
+mas o verificador ainda precisa de saber qual é a lista que a declaração
+designa. Com FCMP, essa lista é enorme e muda sempre que entram saídas novas.
+
+Um \emph{acumulador} substitui a lista por um resumo curto. Queremos três
+operações:
+
+\begin{enumerate}
+ \item \textbf{acumular}: transformar muitos membros num valor público curto;
+ \item \textbf{testemunhar}: obter informação privada que liga um membro ao
+ resumo;
+ \item \textbf{provar}: convencer um verificador da ligação sem revelar o
+ membro nem a posição.
+\end{enumerate}
+
+Uma árvore de Merkle resolve lindamente as duas primeiras operações. A raiz
+resume as folhas e um caminho de hashes autentica uma folha. Mas um caminho de
+Merkle normal revela a folha, o índice e os irmãos. Colocá-lo dentro de um
+circuito de conhecimento zero é possível, mas as hashes adequadas a bytes não
+são necessariamente económicas na aritmética de curvas que já estamos a
+usar.
+
+Curve Trees escolhe outra rota: cada nó é um compromisso de Pedersen
+\emph{vectorial} aos filhos. Assim, abrir um caminho é falar a língua nativa
+dos Bulletproofs. A árvore torna-se uma pilha de afirmações do mesmo género:
+
+\begin{center}
+\(\text{«este ponto, depois de cegado, é um dos pontos comprometidos
+naquele pai.»}\)
+\end{center}
+
+\section{Um compromisso suficientemente largo para ter filhos}
+\label{sec:fcmp-vector-commitment}
+
+Já conhecemos o compromisso de Pedersen com duas bases,
+\begin{align*}
+ C=yG+bH.
+\end{align*}
+Um compromisso vectorial oferece uma base por coordenada. Para o vector
+\(\mathbf v=(v_0,\ldots,v_{n-1})\), escrevemos
+\begin{align}
+ \operatorname{Com}(\mathbf v;r)
+   =rH+\sum_{j=0}^{n-1}v_jG_j
+   =rH+\langle\mathbf v,\mathbf G\rangle.
+ \label{eq:fcmp-vector-commitment}
+\end{align}
+O escalar \(r\) esconde a abertura. A família
+\((H,G_0,\ldots,G_{n-1})\) é pública e deve não ter relações de logaritmo
+discreto conhecidas. Se alguém soubesse coeficientes não todos nulos cuja
+combinação desse a identidade, poderia deslizar de uma abertura para outra
+sem mover o compromisso. É o truque de
+\(\gamma=\log_GH\) da secção \ref{gamma}, agora com mais cadeiras à mesa.
+
+Em Curve Trees, os filhos são pontos. Um ponto de curva afim
+\begin{align*}
+ P_i=(x_i,y_i)
+\end{align*}
+ocupa duas coordenadas escalares. Um pai que guarda \(m\) filhos pode ser
+escrito, omitindo por instantes o cegamento, como
+\begin{align}
+ C_{\rm pai}
+   =\sum_{i=0}^{m-1}x_iG_i^x
+    +\sum_{i=0}^{m-1}y_iG_i^y.
+ \label{eq:curve-tree-parent}
+\end{align}
+O pai não é uma caixa com os pontos lá dentro. É um único ponto produzido por
+uma combinação linear das coordenadas de todos eles.
+
+\subsection{Uma árvore de quatro em quatro}
+
+Façamos um brinquedo com dezasseis folhas e quatro filhos por pai. As folhas
+\(L_i\) são os objectos acumulados. Cada nó \(C_j\) compromete as coordenadas
+de quatro filhos. A raiz compromete as coordenadas dos quatro \(C_j\):
+
+\begin{center}
+\begin{forest}
+for tree={draw,rounded corners,align=center,l sep=1.2cm,s sep=.15cm}
+[\(\mathcal R_{\rm tree}\)
+  [\(C_0\)
+    [\(L_0\)] [\(L_1\)] [\(L_2\)] [\(L_3\)]]
+  [\(C_1\)
+    [\(L_4\)] [\(L_5\)] [\(L_6\)] [\(L_7\)]]
+  [\(C_2\)
+    [\(L_8\)] [\(L_9\)] [\(L_{10}\)] [\(L_{11}\)]]
+  [\(C_3\)
+    [\(L_{12}\)] [\(L_{13}\)] [\(L_{14}\)] [\(L_{15}\)]]]
+\end{forest}
+\end{center}
+
+Se a folha secreta é \(L_6\), o caminho conceptual é
+\begin{align*}
+ L_6\in C_1
+ \qquad\text{e}\qquad
+ C_1\in\mathcal R_{\rm tree}.
+\end{align*}
+Uma prova não precisa de falar sobre os restantes catorze caminhos. Precisa de
+demonstrar duas escolhas escondidas, uma por nível, e que o filho escolhido no
+primeiro nível é o mesmo ponto usado no segundo.
+
+A vantagem cresce exponencialmente. Com ramificação \(m\) e profundidade
+\(d\), cabem aproximadamente
+\begin{align*}
+ N=m^d
+\end{align*}
+folhas, mas o caminho tem apenas \(d=\log_mN\) níveis. A prova não se torna
+gratuita: cada nível exige restrições e a lista de filhos de um nó tem
+\(m\) posições. Contudo, já não cresce como a cadeia completa.
+
+\section{Escolher sem apontar}
+\label{sec:fcmp-select-rerandomize}
+
+Congelemos um único nível. O pai compromete
+\[
+ (P_0,\ldots,P_{m-1}),\qquad P_i=(x_i,y_i).
+\]
+Alice conhece um índice secreto \(i\) e quer apresentar o filho \(P_i\) sem
+permitir que o ponto apresentado denuncie imediatamente a posição. Para isso,
+re-randomiza-o:
+\begin{align}
+ \widehat P=P_i+\delta H_{\rm outro}.
+ \label{eq:curve-tree-rerandomized-child}
+\end{align}
+
+Aqui \(H_{\rm outro}\) é a base de cegamento na curva onde vivem os filhos. A
+declaração de um nível tem então duas metades:
+\begin{align}
+ C_{\rm pai}
+   &=\sum_{j=0}^{m-1}x_jG_j^x
+     +\sum_{j=0}^{m-1}y_jG_j^y+rH_{\rm pai},
+ \label{eq:curve-tree-open-parent}\\
+ \widehat P&=(x_i,y_i)+\delta H_{\rm outro}.
+ \label{eq:curve-tree-select-child}
+\end{align}
+As testemunhas são as coordenadas dos filhos, a abertura \(r\), o índice
+\(i\) e o cegamento \(\delta\). O circuito verifica a abertura do pai, que a
+posição escolhida existe, que as coordenadas escolhidas formam um ponto válido
+e que a versão pública \(\widehat P\) é uma re-randomização desse ponto.
+
+Podemos imaginar a operação como uma cortina que se desloca com a cadeira:
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.6cm]
+ \tikzstyle{seat}=[rectangle,draw=black,minimum width=1.7cm,
+   minimum height=.8cm,text centered]
+ \node (p0) [seat] {\(P_0\)};
+ \node (p1) [seat,right of=p0,xshift=.45cm] {\(P_1\)};
+ \node (p2) [seat,right of=p1,xshift=.45cm,fill=green!20] {\(P_i\)};
+ \node (p3) [seat,right of=p2,xshift=.45cm] {\(P_3\)};
+ \node (hat) [seat,right of=p3,xshift=1.6cm,fill=yellow!25]
+   {\(\widehat P\)};
+ \draw[->,thick] (p2.north) to[out=55,in=125]
+   node[pos=.55,above=1pt,fill=white,inner sep=1pt]
+   {\(+\delta H_{\rm outro}\)} (hat.north);
+\end{tikzpicture}
+\end{center}
+
+O compromisso vectorial garante que \(P_i\) veio da sala certa. O cegamento
+impede que alguém compare \(\widehat P\) com as cadeiras e diga «é aquela».
+E a prova de conhecimento zero impede que o verificador aprenda \(i\),
+\(\delta\) ou a abertura completa do pai.
+
+\subsection{A pequena OR escondida num produto}
+
+Uma maneira de reconhecer pertença a uma lista de escalares é escolher um
+valor \(z\) e impor
+\begin{align}
+ \prod_{j=0}^{m-1}(z-v_j)=0.
+ \label{eq:fcmp-product-membership}
+\end{align}
+Num campo, um produto é zero se pelo menos um factor é zero; portanto
+\(z=v_j\) para algum \(j\). Para tuplas, desafios aleatórios
+\(\alpha_0,\ldots,\alpha_{t-1}\) comprimem cada tupla
+\((v_{j,0},\ldots,v_{j,t-1})\) num escalar
+\begin{align*}
+ u_j=\sum_{k=0}^{t-1}\alpha_kv_{j,k},
+\end{align*}
+e fazem o mesmo ao membro alegado. Uma igualdade falsa em alguma coordenada
+só sobrevive à compressão com probabilidade desprezável.
+
+Esta é quase literalmente a silhueta do código actual: primeiro agrega as
+coordenadas de cada tupla com desafios da transcrição; depois multiplica
+sucessivamente as diferenças; por fim exige que o transporte final seja zero.
+Não é ainda a árvore inteira. É o pequeno motor «um destes» usado em cada
+ramo.
+
+\section{Por que uma árvore precisa de duas curvas}
+\label{sec:fcmp-curve-cycle}
+
+Agora aparece a invenção que dá nome a Curve Trees. O pai
+\(C_{\rm pai}\) é um ponto numa curva, mas as suas coordenadas são elementos do
+\emph{campo base} dessa curva. Para colocar essas coordenadas dentro de um
+compromisso de Pedersen, queremos tratá-las como escalares de outra curva.
+
+Escolhem-se duas curvas \(\mathbb E_1\) e \(\mathbb E_2\) que formam um ciclo:
+\begin{align}
+ \left|\mathbb E_1\right|&=q_2,
+ &\mathbb E_1&\text{ é definida sobre }\mathbb F_{q_1},\\
+ \left|\mathbb E_2\right|&=q_1,
+ &\mathbb E_2&\text{ é definida sobre }\mathbb F_{q_2}.
+ \label{eq:curve-cycle}
+\end{align}
+Em palavras:
+\begin{align*}
+ \text{coordenada em }\mathbb E_1
+ &\longleftrightarrow \text{escalar em }\mathbb E_2,\\
+ \text{coordenada em }\mathbb E_2
+ &\longleftrightarrow \text{escalar em }\mathbb E_1.
+\end{align*}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+ \tikzstyle{curvebox}=[ellipse,draw=black,minimum width=4.2cm,
+   minimum height=1.6cm,text centered,align=center]
+ \node (e1) [curvebox,fill=blue!12]
+   {\(\mathbb E_1/\mathbb F_{q_1}\)\\grupo de ordem \(q_2\)};
+ \node (e2) [curvebox,fill=green!15,right of=e1,xshift=4.5cm]
+   {\(\mathbb E_2/\mathbb F_{q_2}\)\\grupo de ordem \(q_1\)};
+ \draw[->,bend left=18,thick] (e1) to
+   node[above]{coordenadas em \(\mathbb F_{q_1}\)} (e2);
+ \draw[->,bend left=18,thick] (e2) to
+   node[below]{coordenadas em \(\mathbb F_{q_2}\)} (e1);
+\end{tikzpicture}
+\end{center}
+
+Uma camada compromete pontos de \(\mathbb E_1\) usando escalares em
+\(\mathbb E_2\). A camada seguinte compromete pontos de \(\mathbb E_2\)
+usando escalares em \(\mathbb E_1\). Depois regressa à primeira curva. A
+árvore sobe em ziguezague:
+\begin{align*}
+ \mathbb E_1\longrightarrow\mathbb E_2
+ \longrightarrow\mathbb E_1\longrightarrow\mathbb E_2\longrightarrow\cdots
+\end{align*}
+
+Sem o ciclo, teríamos uma desagradável aritmética «não nativa»: verificar
+dentro de um campo operações feitas noutro campo de tamanho incompatível. Com
+o ciclo, a coordenada que sai de uma curva cabe exactamente como escalar na
+outra. O que parecia uma árvore botânica é afinal uma escada de incêndio entre
+dois prédios.
+
+\subsection{Muitas camadas, só duas provas grandes}
+
+Os compromissos vectoriais e as restrições que vivem em
+\(\mathbb E_1\) podem ser agregados num Bulletproof; os que vivem em
+\(\mathbb E_2\), noutro. Assim, uma árvore com muitos níveis não exige um
+Bulletproof separado por nível. Exige duas famílias de restrições, uma por
+paridade:
+\begin{align*}
+ \Pi_1&:\quad \text{camadas }1,3,5,\ldots,\\
+ \Pi_2&:\quad \text{camadas }2,4,6,\ldots.
+\end{align*}
+
+É aqui que a prova de produto interno faz o mesmo truque editorial que fez no
+capítulo dos compromissos: junta muitas equações numa conversa curta. A prova
+ainda cresce com o número de camadas e entradas, mas logaritmicamente no
+tamanho dos vectores internos, e não copia a cadeia inteira.
+
+Campanelli, Hall-Andersen e Kamp demonstram a segurança do acumulador
+transparente sob o problema do logaritmo discreto e no modelo do oráculo
+aleatório \cite{curve-trees}. A página curta da demonstração não significa que
+a ideia seja evidente. Significa que, depois de escolher as interfaces
+certas, a redução pode dizer: uma prova falsa dá uma abertura inconsistente de
+um compromisso, uma colisão na selecção ou uma quebra do argumento
+subjacente. Encontrar essas interfaces foi a parte em que a floresta mordeu.
+
+\section{O caminho inteiro, sem saltar ramos}
+\label{sec:fcmp-whole-curve-tree-path}
+
+Voltemos à árvore de brinquedo. Alice quer provar pertença de \(L_6\). Não
+publica \(L_6\), nem \(C_1\), nem os índices \(2\) e \(1\). Em vez disso,
+produz versões cegadas
+\begin{align*}
+ \widehat L&=L_6+\delta_0H_0,\\
+ \widehat C&=C_1+\delta_1H_1,\\
+ \widehat{\mathcal R}
+   &=\mathcal R_{\rm tree}+\rho H_2.
+\end{align*}
+O circuito liga as três frases:
+\begin{align*}
+ \widehat L&\text{ abre para um filho de }C_1,\\
+ \widehat C&\text{ abre para a re-randomização desse }C_1,\\
+ \widehat{\mathcal R}&\text{ abre para um pai que contém esse }\widehat C.
+\end{align*}
+
+Repare na cola. Não bastava provar separadamente:
+\begin{align*}
+ \text{«conheço alguma folha de algum nó»}
+ \qquad\text{e}\qquad
+ \text{«conheço algum filho da raiz».}
+\end{align*}
+Os dois «algum» poderiam referir-se a ramos diferentes. As variáveis
+comprometidas que saem de um nível entram no nível seguinte. É essa igualdade
+de fios, e não a palavra árvore, que faz um caminho.
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.75cm]
+ \tikzstyle{pathbox}=[rectangle,rounded corners,draw=black,
+   minimum width=4.3cm,minimum height=1.05cm,text centered,text width=4.1cm]
+ \node (leaf) [pathbox,fill=green!18]
+   {folha escondida \(\widehat L\)};
+ \node (one) [pathbox,below of=leaf,yshift=-.15cm,fill=blue!12]
+   {seleccionar em \(C_1\)};
+ \node (mid) [pathbox,below of=one,yshift=-.15cm,fill=green!18]
+   {filho escondido \(\widehat C\)};
+ \node (two) [pathbox,below of=mid,yshift=-.15cm,fill=blue!12]
+   {seleccionar em \(\mathcal R_{\rm tree}\)};
+ \node (root) [pathbox,below of=two,yshift=-.15cm,fill=yellow!22]
+   {raiz interna \(\widehat{\mathcal R}\)};
+ \draw[->,thick] (leaf) -- (one);
+ \draw[->,thick] (one) -- (mid);
+ \draw[->,thick] (mid) -- (two);
+ \draw[->,thick] (two) -- (root);
+\end{tikzpicture}
+\end{center}
+
+No topo sobra uma aparente inconveniência. O circuito usa uma raiz
+\(\widehat{\mathcal R}\) que pertence a um compromisso vectorial da prova; o
+verificador conhece a raiz canónica \(\mathcal R_{\rm tree}\). Não queremos
+forçar o compromisso interno a ter cegamento zero, porque isso trataria a raiz
+de maneira especial e poderia interferir com a propriedade de conhecimento
+zero. Deixamo-lo cego e juntamos a pequena prova de Schnorr:
+\begin{align*}
+ X&=\widehat{\mathcal R}-\mathcal R_{\rm tree}=\rho H,\\
+ R_{\rm sig}+cX&=sH.
+\end{align*}
+
+Agora podemos ler a composição sem magia:
+\begin{align*}
+ \underbrace{\Pi_{\rm tree}}_{\substack{\text{há um caminho}\\
+      \text{até }\widehat{\mathcal R}}}
+ \quad+\quad
+ \underbrace{\Pi_{\rm root}}_{\substack{\widehat{\mathcal R}
+      -\mathcal R_{\rm tree}\\=\rho H\text{ e conheço }\rho}}
+ \quad\Longrightarrow\quad
+ \text{há um caminho até a raiz pública.}
+\end{align*}
+
+Se eliminarmos \(\Pi_{\rm root}\), a prova pode terminar numa raiz interna que
+não corresponde ao estado público. Se eliminarmos \(\Pi_{\rm tree}\), Schnorr
+só prova conhecimento de um número. As duas metades parecem pequenas quando
+escritas; a fronteira entre elas é precisamente onde se perderam muitas
+leituras deste protocolo.
+
+\subsection{Por que re-randomizar todos os níveis}
+
+Um ponto interno de uma árvore pública pode ser calculado por qualquer nó. Se
+Alice colocasse esse ponto sem cegamento na prova, a posição seria reconhecida
+por comparação. Cada re-randomização
+\begin{align*}
+ \widehat P=P+\delta H
+\end{align*}
+faz o mesmo valor comprometido adquirir uma aparência fresca. Como \(\delta\)
+é uniforme, \(\widehat P\) não permite testar eficientemente qual \(P\) foi
+usado sem quebrar o logaritmo discreto ou a propriedade de ocultação do
+compromisso.
+
+Mas cegamentos independentes também poderiam partir o caminho. Por isso o
+circuito não recebe apenas uma colecção de pontos cegados; recebe as aberturas
+que demonstram como cada um foi obtido e reaproveita as coordenadas certas no
+nível seguinte. Privacidade sem consistência seria só nevoeiro.
+
+\section{Generalizar Bulletproofs sem perder a referência}
+\label{sec:fcmp-generalized-bulletproofs}
+
+Um circuito aritmético comum compromete primeiro todas as suas variáveis e
+depois prova que satisfaz restrições de adição e multiplicação. Curve Trees
+tem, porém, muitos compromissos vectoriais já significativos: cada um é um nó
+ou um ramo. Copiar todas as coordenadas para um único compromisso monolítico
+e provar novamente que a cópia coincide desperdiçaria a estrutura.
+
+Generalized Bulletproofs permite que o circuito se refira directamente a
+coordenadas de vários compromissos vectoriais externos. Se
+\begin{align*}
+ C^{(a)}&=r_aH+\langle\mathbf v^{(a)},\mathbf G\rangle,\\
+ C^{(b)}&=r_bH+\langle\mathbf v^{(b)},\mathbf G\rangle,
+\end{align*}
+o circuito pode impor, por exemplo,
+\begin{align*}
+ v^{(a)}_7v^{(b)}_3=v^{(a)}_{12}
+\end{align*}
+sem publicar as três coordenadas e sem criar uma prova independente para cada
+compromisso. A prova global vincula as referências aos compromissos que
+aparecem na declaração.
+
+Este é o andaime actual da árvore. Os ramos são compromissos vectoriais; as
+variáveis do circuito sabem de que compromisso e de que posição vieram; o
+dispositivo de pertença recusa argumentos que não pertençam a esses
+compromissos. É uma restrição de tipo no código e uma restrição de segurança
+na matemática: uma variável solta não pode fingir que veio de uma folha.
+
+\subsection{Selene e Helios}
+
+A instanciação FCMP++ usa duas curvas chamadas Selene e Helios para a escada
+alternada. A tupla original do Monero vive na curva de saída, Ed25519; o
+primeiro circuito precisa de raciocinar sobre as suas coordenadas, e as
+camadas superiores alternam Selene e Helios. Os campos foram escolhidos para
+que esta torre de coordenadas e escalares encaixe.
+
+Chamaremos
+\begin{align*}
+ \mathbb E_{\rm S}&=\text{Selene},&
+ \mathbb E_{\rm H}&=\text{Helios}.
+\end{align*}
+Não confundir o \(H\) romano dos compromissos de Pedersen com a curva Helios.
+O protocolo, de novo, não recebeu letras suficientes.
+
+Cada curva tem os seus geradores de Generalized Bulletproofs,
+\begin{align*}
+ g,\ h,\qquad
+ \mathbf g=(g_0,g_1,\ldots),\qquad
+ \mathbf h=(h_0,h_1,\ldots).
+\end{align*}
+São derivados por hash com separação de domínio. Cada curva tem também um
+ponto que inicializa o hash de cada nó. Assim, um ramo actual tem a silhueta
+\begin{align}
+ C_{\rm ramo}
+  =J_{\rm init}+\sum_jv_jJ_j.
+ \label{eq:fcmp-current-branch-hash}
+\end{align}
+O inicializador distingue a construção de uma soma vectorial nua e evita que
+o vector todo zero seja simplesmente a identidade.
+
+«Transparente» quer dizer que estes parâmetros podem ser reproduzidos
+publicamente a partir dos rótulos. Não quer dizer que as relações entre os
+pontos sejam conhecidas. Pelo contrário, a vinculação exige a hipótese
+generalizada:
+\begin{align}
+ a_0J_0+a_1J_1+\cdots+a_nJ_n=\mathcal O
+ \quad\Longrightarrow\quad
+ a_0=\cdots=a_n=0
+ \label{eq:fcmp-generalized-dlog}
+\end{align}
+para adversários eficientes, salvo probabilidade desprezável. É a versão
+multidimensional da porta de \(\gamma\).
+
+\section{A pedra dentro do sapato: multiplicar pontos dentro do circuito}
+\label{sec:fcmp-embedded-dlog-problem}
+
+O ciclo de curvas torna coordenadas nativas, mas não apaga todas as operações
+de curva. Em vários pontos queremos afirmar:
+\begin{align}
+ Q=kJ
+ \label{eq:fcmp-embedded-dlog}
+\end{align}
+e \(Q\), \(k\) e as coordenadas dos múltiplos de \(J\) estão escondidos dentro
+de um circuito aritmético. Fora do circuito, calcular \(kJ\) por duplicações e
+adições é rotina. Dentro dele, cada adição de pontos exige multiplicações,
+inversões ou coordenadas projectivas e restrições para casos excepcionais. Se
+repetirmos isso para centenas de bits e muitos níveis, a árvore emagrece de um
+lado e engorda do outro.
+
+É aqui que entra a ideia de Eagen: em vez de representar toda a sequência de
+adições, representar a \emph{soma de pontos} por uma função racional cujo
+divisor serve de recibo. Para perceber a frase precisamos de quatro degraus:
+
+\begin{enumerate}
+ \item um divisor é uma contabilidade de zeros e pólos;
+ \item um divisor principal vem de uma função racional;
+ \item numa curva elíptica, ser principal codifica uma soma de pontos igual à
+ identidade;
+ \item a reciprocidade de Weil permite trocar uma avaliação enorme por outra
+ que o circuito comprime com um desafio aleatório.
+\end{enumerate}
+
+Se esses nomes parecem uma emboscada de álgebra, façamos primeiro a
+contabilidade.
+
+\section{Divisores para pessoas que só queriam gastar uma moeda}
+\label{sec:fcmp-divisors}
+
+\subsection{Zeros têm endereço}
+
+Para um polinómio de uma variável, dizer que
+\begin{align*}
+ f(x)=(x-a)^2(x-b)
+\end{align*}
+é dizer que \(a\) é um zero de multiplicidade dois e \(b\) um zero de
+multiplicidade um. Uma função racional também tem pólos, os sítios onde o
+denominador se anula. Um divisor escreve esta lista de moradas e
+multiplicidades:
+\begin{align}
+ D=\sum_Pm_P[P].
+ \label{eq:fcmp-divisor-formal}
+\end{align}
+Um coeficiente \(m_P>0\) conta um zero em \(P\); \(m_P<0\) conta um pólo; quase
+todos os coeficientes são zero. Os parênteses rectos lembram que \([P]\) é uma
+entrada formal da lista, não uma multiplicação escalar do ponto.
+
+O grau é a soma dos multiplicadores:
+\begin{align*}
+ \deg D=\sum_Pm_P.
+\end{align*}
+Se \(f\) é uma função racional não nula na curva, o seu divisor
+\begin{align*}
+ \operatorname{div}(f)
+\end{align*}
+lista os zeros menos os pólos de \(f\). Há tantos zeros como pólos quando se
+contam multiplicidades, portanto
+\begin{align*}
+ \deg\operatorname{div}(f)=0.
+\end{align*}
+Um divisor que nasce assim chama-se \emph{principal}.
+
+\subsection{A lei de grupo reaparece disfarçada}
+
+Numa curva elíptica, um divisor de grau zero é principal precisamente quando a
+soma dos seus pontos, ponderada pelas multiplicidades, dá a identidade:
+\begin{align}
+ D\text{ principal}
+ \quad\Longleftrightarrow\quad
+ \sum_Pm_PP=\mathcal O,
+ \qquad \deg D=0.
+ \label{eq:fcmp-principal-divisor-criterion}
+\end{align}
+Esta equivalência é a ponte. O lado direito fala a língua da multiplicação
+escalar. O lado esquerdo fala de uma função.
+
+Suponha-se, para intuição, que
+\begin{align*}
+ k=\sum_{i=0}^{n-1}b_i2^i,\qquad b_i\in\{0,1\},
+\end{align*}
+e preparemos a tabela pública
+\begin{align*}
+ J_i=2^iJ.
+\end{align*}
+Então
+\begin{align*}
+ Q=kJ=\sum_{i=0}^{n-1}b_iJ_i
+\end{align*}
+equivale a a soma
+\begin{align*}
+ \sum_i b_iJ_i-Q=\mathcal O.
+\end{align*}
+Podemos embrulhá-la no divisor de grau zero
+\begin{align}
+ D_k=\sum_i b_i[J_i]+[-Q]
+      -\left(1+\sum_i b_i\right)[\mathcal O].
+ \label{eq:fcmp-dlog-divisor}
+\end{align}
+O ponto no infinito \(\mathcal O\) equilibra o grau e não altera a soma do
+grupo. Logo,
+\begin{align*}
+ Q=kJ\quad\Longleftrightarrow\quad D_k\text{ é principal},
+\end{align*}
+desde que as restantes restrições garantam uma representação válida de
+\(k\).
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+ \tikzstyle{receipt}=[rectangle,rounded corners,draw=black,
+   minimum width=4.4cm,minimum height=1.2cm,text centered,text width=4.2cm]
+ \node (sum) [receipt,fill=blue!12]
+   {\(\sum_i b_i(2^iJ)-Q=\mathcal O\)};
+ \node (div) [receipt,right of=sum,xshift=4.1cm,fill=green!15]
+   {\(D_k=\operatorname{div}(f)\)\\para alguma função \(f\)};
+ \draw[<->,thick] (sum) -- node[above]{lei de grupo da curva} (div);
+\end{tikzpicture}
+\end{center}
+
+Não é necessário que a implementação use bits canónicos exactamente desta
+maneira. O dispositivo actual admite representações escalares congruentes e
+garante consistência da representação que reutiliza. O exemplo binário serve
+para ver o recibo; as condições exactas do circuito tratam a maleabilidade sem
+fingir que cada variável chamada \texttt{bit} foi magicamente constrangida a
+\(0\) ou \(1\).
+
+\subsection{A função que testemunha o recibo}
+
+Para uma curva de Weierstrass curta
+\begin{align*}
+ y^2=x^3+ax+b,
+\end{align*}
+uma função racional pode ser reduzida à forma
+\begin{align}
+ f(x,y)=A(x)-yB(x)
+ \label{eq:fcmp-divisor-function-shape}
+\end{align}
+para polinómios \(A,B\) de graus limitados. Se
+\(\operatorname{div}(f)=D_k\), os coeficientes de \(A\) e \(B\) são uma
+testemunha algébrica de que os zeros e pólos alegados se equilibram.
+
+Poderíamos pedir ao circuito que verificasse \(f\) em todos os pontos da
+tabela. Isso voltaria a custar linearmente em todas as entradas, exactamente o
+que queríamos evitar. Precisamos de testar a identidade sem visitar cada
+morada.
+
+\section{A linha aleatória e a troca de Weil}
+\label{sec:fcmp-weil-reciprocity}
+
+Escolha-se da transcrição uma linha
+\begin{align}
+ Z(x,y)=y-\lambda x-\mu.
+ \label{eq:fcmp-random-line}
+\end{align}
+Uma linha encontra a curva elíptica em três pontos, contando
+multiplicidades:
+\begin{align*}
+ A_0,\ A_1,\ A_2,
+ \qquad A_0+A_1+A_2=\mathcal O.
+\end{align*}
+O divisor da linha é, esquematicamente,
+\begin{align*}
+ \operatorname{div}(Z)
+  =[A_0]+[A_1]+[A_2]-3[\mathcal O].
+\end{align*}
+
+A reciprocidade de Weil diz, quando os suportes não colidem, que duas funções
+racionais podem trocar o lugar onde são avaliadas:
+\begin{align}
+ f\bigl(\operatorname{div}Z\bigr)
+   =Z\bigl(\operatorname{div}f\bigr).
+ \label{eq:fcmp-weil-reciprocity}
+\end{align}
+Se
+\begin{align*}
+ f(D)=\prod_P f(P)^{m_P},
+\end{align*}
+então o lado esquerdo de \eqref{eq:fcmp-weil-reciprocity} olha para \(f\)
+apenas nos três pontos aleatórios \(A_0,A_1,A_2\). O lado direito olha para a
+linha simples \(Z\) nos pontos que codificam a tabela de múltiplos e o
+resultado \(Q\). Trocámos «função complicada em muitos pontos fixos» por
+«função complicada em três pontos aleatórios» e «linha simples nos pontos
+fixos».
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+ \tikzstyle{weilbox}=[rectangle,rounded corners,draw=black,
+   minimum width=4.7cm,minimum height=1.5cm,text centered,text width=4.5cm]
+ \node (left) [weilbox,fill=yellow!22]
+   {\(f(A_0)f(A_1)f(A_2)\)\\poucos pontos, função grande};
+ \node (right) [weilbox,right of=left,xshift=4.7cm,fill=blue!12]
+   {\(\prod_P Z(P)^{m_P}\)\\muitos pontos, função pequena};
+ \draw[<->,thick] (left) -- node[above]{Weil} (right);
+\end{tikzpicture}
+\end{center}
+
+O desafio vem \emph{depois} de os compromissos à testemunha entrarem na
+transcrição. Alice não pode escolher a função depois de ver uma linha
+conveniente. Uma identidade racional falsa pode coincidir nos pontos
+aleatórios por acaso, mas um polinómio não nulo de grau limitado tem apenas um
+número limitado de raízes. É a mesma moral de Schwartz--Zippel que já
+encontrámos: avaliar num ponto aleatório transforma uma identidade inteira
+num teste curto com erro desprezável.
+
+\subsection{Produtos ainda são caros; deriva-se o logaritmo}
+
+O lado
+\begin{align*}
+ \prod_P Z(P)^{m_P}
+\end{align*}
+contém produtos e expoentes dependentes da representação de \(k\). A derivada
+logarítmica converte multiplicidades em coeficientes:
+\begin{align}
+ \mathrm d\log\left(\prod_i u_i^{m_i}\right)
+   =\sum_i m_i\,\mathrm d\log u_i
+   =\sum_i m_i\frac{\mathrm du_i}{u_i}.
+ \label{eq:fcmp-logarithmic-derivative}
+\end{align}
+Em vez de construir uma torre de produtos, o circuito verifica combinações
+lineares de valores e inversos nos pontos desafiados. As inversões tornam-se
+restrições multiplicativas
+\begin{align*}
+ u\cdot u^{-1}=1.
+\end{align*}
+O código amostra pontos de desafio na curva, calcula a linha que passa por
+eles, avalia a testemunha do divisor e interpola a contribuição da tabela de
+múltiplos. A igualdade final diz: o recibo da soma escondida e o recibo do
+ponto alegado responderam da mesma maneira à linha aleatória.
+
+Não precisamos de copiar aqui as dezenas de coeficientes de \(A(x)\),
+\(B(x)\), numeradores e denominadores. O que o leitor deve conseguir
+reconstruir é a cadeia causal:
+\begin{align*}
+ Q=kJ
+ &\Longrightarrow \sum_i b_i(2^iJ)-Q=\mathcal O\\
+ &\Longrightarrow D_k\text{ é principal}\\
+ &\Longrightarrow D_k=\operatorname{div}(f)\\
+ &\Longrightarrow
+ f(\operatorname{div}Z)=Z(\operatorname{div}f)\\
+ &\Longrightarrow
+ \text{as avaliações comprimidas coincidem.}
+\end{align*}
+Na direcção de segurança, uma prova aceitável para uma igualdade falsa teria
+de fabricar um divisor/função inconsistente que sobrevivesse aos desafios
+aleatórios e às restrições do argumento.
+
+\subsection{A excepção que não cabe debaixo do tapete}
+
+Fixar um coeficiente de \(f\) a \(1\) é uma forma de impedir a solução
+inteiramente nula. Contudo, há divisores legítimos para os quais precisamente
+esse coeficiente é zero. Uma revisão da zkSecurity chamou a atenção para esta
+incompletude \cite{zksecurity-divisor-notes}. A consequência não é aceitar uma
+prova falsa; é o provador, com probabilidade desprezável, escolher máscaras
+para as quais a forma normalizada não existe e não conseguir produzir a
+prova.
+
+A regra de implementação é portanto:
+\begin{align*}
+ \text{amostrar os cegamentos}
+ &\longrightarrow
+ \text{construir e verificar que o divisor utilizável existe}\\
+ &\longrightarrow \text{provar}.
+\end{align*}
+Se falhar, reamostra-se. Não se empurra uma inversão de zero para o
+verificador e não se confunde uma falha rara de completude com uma falha de
+solidez.
+
+\subsection{Por que a prova curta dos especialistas parece uma página}
+
+Depois de abstrair o dispositivo, a demonstração pode tratá-lo como uma caixa
+com uma interface pequena:
+\begin{quote}
+se a caixa aceita, existe uma representação consistente de \(k\) cujo ponto é
+\(Q=kJ\), excepto com o erro do desafio aleatório.
+\end{quote}
+Curve Trees usa essa interface; não precisa de repetir a geometria algébrica a
+cada nível. A composição de segurança enumera as caixas, liga as entradas e
+aplica as garantias. É por isso que um algebraísta pode fechar a redução numa
+página enquanto o leitor levou várias a construir o significado de
+«principal». A página não contém menos matemática; contém matemática já
+empacotada.
+
+\section{A mudança de Luke Parker: uma folha já não é uma chave}
+\label{sec:fcmp-output-tuple}
+
+Curve Trees acumula pontos genéricos. O Monero precisa de acumular a
+\emph{história gastável} de uma saída. Uma chave pública sozinha não chega:
+temos de ligar a autorização, a imagem de chave que impedirá gasto duplo e o
+compromisso de montante usado no equilíbrio. A folha FCMP++ é portanto a
+tupla
+\begin{align}
+ \mathsf{out}=(O,I,C).
+ \label{eq:fcmp-output-tuple}
+\end{align}
+Os três pontos têm trabalhos diferentes:
+
+\begin{description}
+ \item[\(O\)] é a chave de saída, o ponto cuja abertura autoriza o gasto;
+ \item[\(I\)] é a \emph{base} de imagem de chave derivada da chave de saída;
+ não é ainda a imagem de chave publicada;
+ \item[\(C\)] é o compromisso de montante associado à saída.
+\end{description}
+
+Para uma saída histórica,
+\begin{align*}
+ O=xG,\qquad I=\mathcal H_p(O),\qquad C=aG+bH,
+\end{align*}
+onde \(x\) é a chave privada de utilização única, \(a\) a máscara e \(b\) o
+montante. A imagem de chave que aparecerá ao gastar é
+\begin{align*}
+ L=xI=x\mathcal H_p(O).
+\end{align*}
+Usamos a letra \(L\) neste capítulo para não confundir o ponto armazenado
+\(I\) com a imagem de chave final.
+
+\subsection{Uma porta para chaves futuras}
+
+FCMP++ escreve a abertura geral de \(O\) como
+\begin{align}
+ O=xG+yT.
+ \label{eq:fcmp-output-general-opening}
+\end{align}
+As saídas antigas encaixam tomando \(y=0\). O gerador \(T\) permite que um
+formato futuro use uma segunda coordenada secreta sem expulsar as saídas
+históricas da mesma árvore. É uma dobradiça de compatibilidade.
+
+Como o grupo é cíclico, existe matematicamente um \(\tau\) tal que
+\(T=\tau G\). O protocolo exige que ninguém o conheça. Se \(\tau\) fosse
+conhecido,
+\begin{align*}
+ xG+yT=(x+y\tau)G
+\end{align*}
+e a abertura em duas coordenadas deixaria de ser vinculante. Este é o primeiro
+dos novos parentes de \(\gamma=\log_GH\).
+
+\section{Quatro cortinas para uma saída}
+\label{sec:fcmp-output-rerandomization}
+
+Não podemos entregar \((O,I,C)\) ao verificador da prova: ele procuraria a
+tupla na árvore e descobriria imediatamente a folha. Alice escolhe cegamentos
+frescos
+\begin{align*}
+ r_o,\ r_i,\ r_j,\ r_c\in_R\mathbb Z_l
+\end{align*}
+e publica a tupla de entrada re-randomizada
+\begin{align}
+ \widetilde O&=O+r_oT,
+ \label{eq:fcmp-rerand-o}\\
+ \widetilde I&=I+r_iU,
+ \label{eq:fcmp-rerand-i}\\
+ R_{\rm fcmp}&=r_iV+r_jT,
+ \label{eq:fcmp-rerand-r}\\
+ \widetilde C&=C+r_cG.
+ \label{eq:fcmp-rerand-c}
+\end{align}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.45cm]
+ \tikzstyle{oldbox}=[rectangle,draw=black,rounded corners,
+   minimum width=2.5cm,minimum height=.9cm,text centered]
+ \tikzstyle{newbox}=[rectangle,draw=black,rounded corners,
+   minimum width=3.6cm,minimum height=.9cm,text centered,fill=yellow!22]
+ \node (o) [oldbox] {\(O\)};
+ \node (ot) [newbox,right of=o,xshift=3.0cm]
+   {\(\widetilde O=O+r_oT\)};
+ \node (i) [oldbox,below of=o] {\(I\)};
+ \node (it) [newbox,right of=i,xshift=3.0cm]
+   {\(\widetilde I=I+r_iU\)};
+ \node (rf) [newbox,below of=it,fill=blue!15]
+   {\(R_{\rm fcmp}=r_iV+r_jT\)};
+ \node (c) [oldbox,below of=i,yshift=-1.45cm] {\(C\)};
+ \node (ct) [newbox,right of=c,xshift=3.0cm]
+   {\(\widetilde C=C+r_cG\)};
+ \draw[->,thick] (o) -- (ot);
+ \draw[->,thick] (i) -- (it);
+ \draw[->,thick] (c) -- (ct);
+ \draw[->,thick] (it) -- node[right,xshift=1mm]{mesmo \(r_i\)} (rf);
+\end{tikzpicture}
+\end{center}
+
+Cada base foi escolhida por uma razão:
+
+\begin{itemize}
+ \item somar \(r_oT\) transforma \(O=xG+yT\) em
+ \[
+ \widetilde O=xG+\widetilde yT,\qquad \widetilde y=y+r_o;
+ \]
+ a chave de autorização \(x\) sobre \(G\) fica intacta;
+ \item somar \(r_iU\) esconde a base \(I\) da imagem de chave;
+ \item \(R_{\rm fcmp}\) compromete-se com o \emph{mesmo} \(r_i\) noutra base
+ \(V\), enquanto \(r_jT\) o oculta;
+ \item somar \(r_cG\) muda apenas a máscara do compromisso
+ \(C=aG+bH\), conservando o montante \(b\).
+\end{itemize}
+
+Se usássemos apenas \(\widetilde I=I+r_iU\), a prova de autorização precisaria
+de retirar \(xr_iU\) para recuperar \(xI\), mas não teria uma pega pública que
+vinculasse \(r_i\) ao restante testemunho. \(R_{\rm fcmp}\) é essa pega. Ele
+não revela \(r_i\), porque está cegado por \(r_jT\), e não é o nonce da prova
+de Schnorr da raiz.
+
+\subsection{O que o primeiro circuito verifica}
+
+Dentro do primeiro circuito, Alice fornece aberturas que permitem recuperar
+\((O,I,C)\) das versões públicas:
+\begin{align*}
+ O&=\widetilde O-r_oT,\\
+ I&=\widetilde I-r_iU,\\
+ C&=\widetilde C-r_cG.
+\end{align*}
+Também demonstra a decomposição
+\begin{align*}
+ R_{\rm fcmp}=r_iV+r_jT
+\end{align*}
+e, crucialmente, reutiliza \emph{as mesmas variáveis comprometidas} que
+representam \(r_i\) na multiplicação por \(U\) e por \(V\). Não são duas
+afirmações de que existem números com o mesmo nome; é um fio único no
+circuito.
+
+Depois verifica que os três pontos recuperados estão na curva e comprime as
+seis coordenadas
+\begin{align}
+ (O_x,O_y,I_x,I_y,C_x,C_y)
+ \label{eq:fcmp-leaf-six-coordinates}
+\end{align}
+para testar que a tupla é uma das folhas do primeiro ramo. É por isso que a
+folha tem seis escalares embora a vejamos como três pontos.
+
+Nas camadas superiores, um nó já é o hash/compromisso de um ramo anterior. A
+construção actual acumula a coordenada \(x\) desse ponto no ramo seguinte e
+usa o dispositivo por divisores para provar que a versão cegada abre para o
+ponto válido correspondente. Assim, a primeira camada é especial:
+\begin{align*}
+ \text{folha}&:\quad 3\text{ pontos}=6\text{ coordenadas},\\
+ \text{camada superior}&:\quad
+   \text{coordenada }x\text{ do hash anterior}.
+\end{align*}
+As equações de curva e a prova de logaritmo discreto impedem uma coordenada
+\(x\) arbitrária de fingir que é o nó certo.
+
+\section{A prova de pertença que resulta}
+\label{sec:fcmp-membership-result}
+
+Já podemos escrever a declaração FCMP sem esconder substantivos. São públicos:
+
+\begin{align*}
+ &\mathcal R_{\rm tree},\\
+ &(\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C),\\
+ &\text{o número e a forma das camadas},\\
+ &\text{os parâmetros transparentes de Selene e Helios}.
+\end{align*}
+
+A testemunha contém:
+
+\begin{align*}
+ &(O,I,C),\quad r_o,r_i,r_j,r_c,\\
+ &\text{a posição da tupla no primeiro ramo},\\
+ &\text{os ramos e posições do caminho até à raiz},\\
+ &\text{as aberturas dos compromissos vectoriais e testemunhas de divisores}.
+\end{align*}
+
+O verificador aprende apenas que existe uma testemunha que satisfaz:
+\begin{enumerate}
+ \item as quatro relações
+ \eqref{eq:fcmp-rerand-o}--\eqref{eq:fcmp-rerand-c};
+ \item a pertença de \((O,I,C)\) ao primeiro ramo;
+ \item a pertença consistente de cada nó ao ramo seguinte;
+ \item a ligação da raiz interna à raiz pública pela prova
+ \eqref{eq:fcmp-root-pok-check}.
+\end{enumerate}
+
+O resultado ainda não diz que Alice conhece \(x\) em \(O=xG+yT\), nem produz
+uma imagem de chave. Uma pessoa que copiasse a tupla re-randomizada e a prova
+de pertença não deveria por isso conseguir gastar. A pertença responde
+\begin{center}
+\emph{«esta entrada esconde uma saída histórica».}
+\end{center}
+A autorização e a ligação responderão
+\begin{center}
+\emph{«conheço a chave dessa saída e este é o seu marcador único».}
+\end{center}
+
+Separar as frases foi uma das decisões centrais da evolução de FCMP. Uma prova
+especializada comprime a árvore; outra prova especializada fala a língua de
+uma assinatura.
+
+\section{SAL: autorização de gasto e ligação}
+\label{sec:fcmp-sal}
+
+SAL abrevia \emph{Spend Authorization and Linkability}. Comecemos pelas
+testemunhas simples que Alice conhece:
+\begin{align*}
+ \widetilde O&=xG+\widetilde yT,\\
+ \widetilde I&=I+r_iU,\\
+ R_{\rm fcmp}&=r_iV+r_jT.
+\end{align*}
+Queremos provar conhecimento de \(x,\widetilde y,r_i,r_j\), vincular
+\(z=xr_i\) e publicar
+\begin{align}
+ L=xI.
+ \label{eq:fcmp-linking-tag-goal}
+\end{align}
+
+O truque que torna \(L\) público sem revelar qual \(I\) estava na árvore é
+calcular
+\begin{align}
+ L=x\widetilde I-zU,\qquad z=xr_i.
+ \label{eq:fcmp-linking-tag-rerandomized}
+\end{align}
+Substituindo \(\widetilde I=I+r_iU\),
+\begin{align*}
+ L
+ &=x(I+r_iU)-(xr_i)U\\
+ &=xI+xr_iU-xr_iU\\
+ &=xI.
+\end{align*}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+ \tikzstyle{cancelbox}=[rectangle,rounded corners,draw=black,
+   minimum width=3.8cm,minimum height=1.15cm,text centered]
+ \node (masked) [cancelbox,fill=yellow!22]
+   {\(x\widetilde I=xI+xr_iU\)};
+ \node (minus) [cancelbox,right of=masked,xshift=3.9cm,fill=blue!12]
+   {\(-zU=-xr_iU\)};
+ \node (link) [cancelbox,below of=minus,xshift=-3.9cm,yshift=-.2cm,
+   fill=green!18]
+   {\(L=xI\)};
+ \draw[->,thick] (masked) -- (link);
+ \draw[->,thick] (minus) -- (link);
+\end{tikzpicture}
+\end{center}
+
+O cegamento \(r_iU\) desaparece, mas só desaparece correctamente se o mesmo
+\(r_i\) usado na prova de pertença entrar em \(z=xr_i\). É agora que
+\(R_{\rm fcmp}\) deixa de parecer bagagem.
+
+\subsection{Um compromisso que contém o produto}
+
+SAL publica ainda
+\begin{align}
+ P=xG+r_iV+zU+r_pT,
+ \qquad z=xr_i,
+ \label{eq:fcmp-sal-p}
+\end{align}
+com um cegamento fresco \(r_p\). Pense em \(P\) como um compromisso a
+\((x,r_i,z)\) nas bases \((G,V,U)\), escondido com \(T\). Uma prova de estilo
+Bulletproofs+ demonstra que a terceira coordenada é o produto das duas
+primeiras:
+\begin{align*}
+ z=xr_i.
+\end{align*}
+
+Contudo, \(P\) sozinho ainda poderia conter valores sem relação com
+\(\widetilde O\), \(R_{\rm fcmp}\) ou \(L\). Três provas Schnorr generalizadas
+partilham respostas com a prova do produto:
+
+\begin{align}
+ \widetilde O&=xG+\widetilde yT,
+ \label{eq:fcmp-sal-open-o}\\
+ P-\widetilde O-R_{\rm fcmp}
+   &=zU+r_p'T,
+ \label{eq:fcmp-sal-open-p-prime}\\
+ L&=x\widetilde I-zU,
+ \label{eq:fcmp-sal-open-l}
+\end{align}
+onde
+\begin{align*}
+ r_p'=r_p-\widetilde y-r_j.
+\end{align*}
+
+A segunda igualdade merece ser feita à mão:
+\begin{align*}
+ P-\widetilde O-R_{\rm fcmp}
+ &=(xG+r_iV+zU+r_pT)\\
+ &\quad-(xG+\widetilde yT)-(r_iV+r_jT)\\
+ &=zU+(r_p-\widetilde y-r_j)T\\
+ &=zU+r_p'T.
+\end{align*}
+Os termos em \(G\) e \(V\) cancelam. Portanto, o \(r_i\) comprometido em
+\(P\) tem de ser compatível com o \(r_iV\) de \(R_{\rm fcmp}\), enquanto
+\eqref{eq:fcmp-sal-open-l} liga \(x,z\) ao marcador \(L\).
+
+\section{As quatro equações do verificador SAL}
+\label{sec:fcmp-sal-verifier}
+
+Agora abrimos a máquina sem a desmontar em parafusos. Alice escolhe máscaras
+\begin{align*}
+ \alpha,\beta,\delta,\mu,r_y,r_z,r_p^{\prime\prime}
+   \in_R\mathbb Z_l
+\end{align*}
+e constrói:
+\begin{align}
+ A&=\alpha G+\beta V+
+    (\alpha r_i+\beta x)U+\delta T,
+ \label{eq:fcmp-sal-a}\\
+ B&=\alpha\beta U+\mu T,
+ \label{eq:fcmp-sal-b}\\
+ R_O&=\alpha G+r_yT,
+ \label{eq:fcmp-sal-ro}\\
+ R_P&=r_zU+r_p^{\prime\prime}T,
+ \label{eq:fcmp-sal-rp}\\
+ R_L&=\alpha\widetilde I-r_zU.
+ \label{eq:fcmp-sal-rl}
+\end{align}
+O desafio
+\begin{align*}
+ e=\mathcal H_l(&\text{domínio},\text{hash da transacção},
+ \widetilde O,\widetilde I,\widetilde C,R_{\rm fcmp},\\
+ &L,P,A,B,R_O,R_P,R_L)
+\end{align*}
+prende a prova à transacção e a todos os pontos relevantes. As respostas são
+\begin{align}
+ s_\alpha&=\alpha+ex,
+ &s_\beta&=\beta+er_i,
+ \label{eq:fcmp-sal-responses-one}\\
+ s_\delta&=\mu+e\delta+e^2r_p,
+ &s_y&=r_y+e\widetilde y,
+ \label{eq:fcmp-sal-responses-two}\\
+ s_z&=r_z+ez,
+ &s_{r_p}&=r_p^{\prime\prime}+er_p'.
+ \label{eq:fcmp-sal-responses-three}
+\end{align}
+
+O verificador aceita as quatro relações:
+\begin{align}
+ e^2P+eA+B
+ &=es_\alpha G+es_\beta V+s_\alpha s_\beta U+s_\delta T,
+ \label{eq:fcmp-sal-verify-bp}\\
+ R_O+e\widetilde O
+ &=s_\alpha G+s_yT,
+ \label{eq:fcmp-sal-verify-o}\\
+ R_P+e(P-\widetilde O-R_{\rm fcmp})
+ &=s_zU+s_{r_p}T,
+ \label{eq:fcmp-sal-verify-p}\\
+ R_L+eL
+ &=s_\alpha\widetilde I-s_zU.
+ \label{eq:fcmp-sal-verify-l}
+\end{align}
+
+Estas linhas parecem ter caído do céu. Vamos devolvê-las ao chão.
+
+\subsection{Primeira linha: onde mora
+\texorpdfstring{\(z=xr_i\)}{z = x r\_i}}
+
+Expanda o lado direito de \eqref{eq:fcmp-sal-verify-bp}:
+\begin{align*}
+ &e(\alpha+ex)G+e(\beta+er_i)V\\
+ &\quad+(\alpha+ex)(\beta+er_i)U
+   +(\mu+e\delta+e^2r_p)T\\
+ &=e\alpha G+e^2xG+e\beta V+e^2r_iV\\
+ &\quad+\bigl(\alpha\beta+e\alpha r_i+
+          e\beta x+e^2xr_i\bigr)U\\
+ &\quad+\mu T+e\delta T+e^2r_pT.
+\end{align*}
+Agrupando por potências de \(e\),
+\begin{align*}
+ &=\underbrace{\alpha\beta U+\mu T}_{B}\\
+ &\quad+e\underbrace{\bigl(
+   \alpha G+\beta V+(\alpha r_i+\beta x)U+\delta T
+   \bigr)}_{A}\\
+ &\quad+e^2\underbrace{\bigl(
+   xG+r_iV+xr_iU+r_pT\bigr)}_{P}.
+\end{align*}
+É exactamente \(B+eA+e^2P\), porque \(z=xr_i\) em
+\eqref{eq:fcmp-sal-p}. O termo cruzado do produto
+\((\alpha+ex)(\beta+er_i)\) fabrica ao mesmo tempo os termos lineares que
+entram em \(A\) e o produto verdadeiro que entra em \(P\). Esta é a pequena
+dobradiça Bulletproofs+.
+
+\subsection{Segunda linha: o mesmo
+\texorpdfstring{\(x\) abre \(\widetilde O\)}{x abre O til}}
+
+Usando \(\widetilde O=xG+\widetilde yT\),
+\begin{align*}
+ R_O+e\widetilde O
+ &=\alpha G+r_yT+e(xG+\widetilde yT)\\
+ &=(\alpha+ex)G+(r_y+e\widetilde y)T\\
+ &=s_\alpha G+s_yT.
+\end{align*}
+Não se cria uma resposta nova para \(x\): reutiliza-se \(s_\alpha\). Por isso
+o \(x\) comprometido em \(P\) é o mesmo que abre \(\widetilde O\).
+
+\subsection{Terceira linha: o mesmo produto encontra
+\texorpdfstring{\(R_{\rm fcmp}\)}{R fcmp}}
+
+Da equação \eqref{eq:fcmp-sal-open-p-prime},
+\begin{align*}
+ R_P+e(P-\widetilde O-R_{\rm fcmp})
+ &=r_zU+r_p^{\prime\prime}T+e(zU+r_p'T)\\
+ &=(r_z+ez)U+(r_p^{\prime\prime}+er_p')T\\
+ &=s_zU+s_{r_p}T.
+\end{align*}
+Aqui a resposta partilhada é \(s_z\). O produto \(z=xr_i\) da primeira linha
+é o mesmo que sobrevive depois de subtrair \(\widetilde O\) e
+\(R_{\rm fcmp}\) a \(P\).
+
+\subsection{Quarta linha: o marcador perde a máscara}
+
+Finalmente, usando \(L=x\widetilde I-zU\),
+\begin{align*}
+ R_L+eL
+ &=\alpha\widetilde I-r_zU
+   +e(x\widetilde I-zU)\\
+ &=(\alpha+ex)\widetilde I-(r_z+ez)U\\
+ &=s_\alpha\widetilde I-s_zU.
+\end{align*}
+Esta linha reutiliza as duas respostas: \(s_\alpha\) para \(x\) e \(s_z\)
+para \(z\). Assim, não basta conhecer uma abertura de \(\widetilde O\), outra
+de \(P\) e inventar um \(L\) independente. O desafio comum e as respostas
+comuns cosem as três relações.
+
+\subsection{A anatomia da ligação}
+
+Uma saída concreta tem \(I=\mathcal H_p(O_{\rm original})\) fixo e chave
+privada \(x\) fixa. Qualquer gasto honesto produz
+\begin{align*}
+ L=xI,
+\end{align*}
+independentemente dos cegamentos frescos
+\(r_o,r_i,r_j,r_c,r_p\). Duas tentativas de gastar a mesma saída publicam o
+mesmo \(L\) e os nós rejeitam a repetição. Duas saídas diferentes deverão
+produzir marcadores não relacionados.
+
+O verificador nunca vê \(I\). Vê \(\widetilde I\), que muda a cada
+re-randomização, e vê \(L\), que é determinístico. A SAL prova que a máscara
+foi retirada de \(L\) de modo consistente sem revelar o ponto de que partiu.
+É a mesma filosofia da imagem de chave CLSAG, mas a lista explícita do anel
+foi substituída por uma prova de pertença separada.
+
+\section{A composição completa, vista de cima}
+\label{sec:fcmp-full-composition}
+
+O protocolo pode agora ser percorrido da esquerda para a direita:
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.55cm]
+ \tikzstyle{flowbox}=[rectangle,rounded corners,draw=black,
+   minimum width=5.0cm,minimum height=1.0cm,text centered,text width=4.8cm]
+ \node (chain) [flowbox,fill=green!17]
+   {cadeia: folha \((O,I,C)\)};
+ \node (rerand) [flowbox,below of=chain,yshift=-.1cm,fill=yellow!22]
+   {re-randomizar:
+   \((\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C)\)};
+ \node (member) [flowbox,below of=rerand,yshift=-.1cm,fill=blue!12]
+   {FCMP: abrir a tupla\\e subir até
+   \(\mathcal R_{\rm tree}\)};
+ \node (sal) [flowbox,below of=member,yshift=-.1cm,fill=blue!12]
+   {SAL: provar \(O=xG+yT\), \(z=xr_i\) e
+   \(L=xI\)};
+ \node (tx) [flowbox,below of=sal,yshift=-.1cm,fill=green!17]
+   {transacção aceite:\\pertença + autorização\\
+   + equilíbrio + \(L\) novo};
+ \draw[->,thick] (chain) -- (rerand);
+ \draw[->,thick] (rerand) -- (member);
+ \draw[->,thick] (rerand.east) -- ++(1.0,0) |- (sal.east);
+ \draw[->,thick] (member) -- (sal);
+ \draw[->,thick] (sal) -- (tx);
+\end{tikzpicture}
+\end{center}
+
+As interfaces são:
+\begin{align*}
+ \Pi_{\rm FCMP}
+   &\longleftrightarrow
+   (\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C),\\
+ \Pi_{\rm SAL}
+   &\longleftrightarrow
+   (\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C,L,
+     \mathcal H(\text{transacção})).
+\end{align*}
+\(\widetilde C\) entra na transcrição SAL embora as equações
+\eqref{eq:fcmp-sal-verify-bp}--\eqref{eq:fcmp-sal-verify-l} não o abram:
+FCMP liga-o ao compromisso histórico e as regras RingCT ligam os
+pseudo-compromissos ao equilíbrio da transacção. A hash comum impede recortar
+a SAL de uma transacção e colá-la noutra.
+
+\subsection{Ler a prova ao contrário}
+
+Se preferir verificar de trás para a frente:
+
+\begin{enumerate}
+ \item \(L\) ainda não apareceu antes; logo não é um gasto duplo conhecido.
+ \item A SAL prova conhecimento de \(x,r_i,\widetilde y,r_j,r_p\), com
+ \(z=xr_i\), compatíveis com
+ \(\widetilde O,\widetilde I,R_{\rm fcmp}\), e prova
+ \(L=xI\) para o \(I\) escondido.
+ \item A FCMP prova que esses mesmos pontos re-randomizados abrem para uma
+ tupla \((O,I,C)\) numa folha.
+ \item O caminho Curve Trees termina numa raiz interna cuja diferença para
+ \(\mathcal R_{\rm tree}\) é um cegamento de Pedersen conhecido.
+ \item A raiz pública compromete o conjunto de saídas admissíveis naquele
+ estado da cadeia.
+\end{enumerate}
+
+Nenhum passo isolado pronuncia a frase completa. A segurança da composição
+vem de não haver uma folga entre a saída de um passo e a entrada do seguinte.
+
+\section{Um exemplo pequeno de ponta a ponta}
+\label{sec:fcmp-end-to-end-toy}
+
+Façamos uma execução conceptual com números simbólicos. A árvore contém quatro
+folhas:
+\begin{align*}
+ (O_0,I_0,C_0),\ldots,(O_3,I_3,C_3).
+\end{align*}
+Alice possui a terceira, índice secreto \(2\), com
+\begin{align*}
+ O_2=xG,\qquad I_2=\mathcal H_p(O_2),\qquad
+ C_2=aG+bH.
+\end{align*}
+Escolhe \(r_o,r_i,r_j,r_c\) e anuncia
+\begin{align*}
+ \widetilde O&=O_2+r_oT,\\
+ \widetilde I&=I_2+r_iU,\\
+ R_{\rm fcmp}&=r_iV+r_jT,\\
+ \widetilde C&=C_2+r_cG.
+\end{align*}
+
+O primeiro circuito recupera os três pontos sem os publicar, agrega as seis
+coordenadas com desafios
+\(\alpha_0,\ldots,\alpha_5\) e obtém
+\begin{align*}
+ u&=\alpha_0O_{2,x}+\alpha_1O_{2,y}
+   +\alpha_2I_{2,x}+\alpha_3I_{2,y}\\
+  &\quad+\alpha_4C_{2,x}+\alpha_5C_{2,y}.
+\end{align*}
+Para cada folha \(j\), calcula dentro dos compromissos o agregado
+\begin{align*}
+ u_j=\alpha_0O_{j,x}+\cdots+\alpha_5C_{j,y}
+\end{align*}
+e impõe
+\begin{align*}
+ (u_0-u)(u_1-u)(u_2-u)(u_3-u)=0.
+\end{align*}
+O factor \(u_2-u\) é zero. O verificador não sabe qual factor.
+
+Se houvesse mais níveis, o circuito abriria o compromisso deste ramo,
+re-randomizaria o nó resultante e repetiria a selecção no pai, alternando
+Selene e Helios, até obter \(\widehat{\mathcal R}\). A prova Schnorr autentica
+\begin{align*}
+ \widehat{\mathcal R}-\mathcal R_{\rm tree}=\rho H_{\rm raiz}.
+\end{align*}
+
+Em paralelo, Alice calcula
+\begin{align*}
+ z=xr_i,\qquad
+ L=x\widetilde I-zU=xI_2
+\end{align*}
+e produz a SAL. Se tentar gastar a mesma folha amanhã com máscaras totalmente
+novas, FCMP e SAL terão outra aparência, mas
+\begin{align*}
+ L'=xI_2=L.
+\end{align*}
+O caminho não denuncia a posição; o marcador denuncia a repetição. Essa
+assimetria é o objectivo inteiro.
+
+\subsection{O que um observador consegue comparar}
+
+Entre dois gastos distintos, o observador vê:
+\begin{align*}
+ &\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C,
+ P,A,B,R_O,R_P,R_L,\text{ respostas},L.
+\end{align*}
+Todos os pontos excepto \(L\) incorporam nonces ou cegamentos frescos, directa
+ou indirectamente. A transcrição liga-os à transacção. Para a mesma saída,
+\(L\) repete-se e o segundo gasto é inválido. Para saídas diferentes, não há
+um teste público que compare as respectivas folhas na árvore.
+
+Uma prova de conhecimento zero formal precisa demonstrar esta
+indistinguibilidade por simuladores e jogos, não apenas pela contagem de
+máscaras. A contagem serve de mapa: mostra onde esperar frescura e onde exigir
+determinismo.
+
+\section{As constelações de logaritmos desconhecidos}
+\label{sec:fcmp-unknown-dlogs}
+
+No compromisso de montante, havia uma relação desconhecida famosa:
+\begin{align*}
+ H=\gamma G.
+\end{align*}
+FCMP++ usa uma família maior. No grupo da saída aparecem
+\begin{align*}
+ G,\ H,\ T,\ U,\ V,\ \mathcal H_p(O).
+\end{align*}
+Nas curvas Selene e Helios aparecem ainda
+\begin{align*}
+ g,\ h,\ \mathbf g,\ \mathbf h,\ J_{\rm init}.
+\end{align*}
+
+Então FCMP++ trouxe três novos \(H\)? A resposta curta é: três novos
+logaritmos desconhecidos, sim; três cópias de \(H\), não. Como o grupo é
+cíclico, existem necessariamente
+\begin{align}
+ T=\tau G,\qquad U=\upsilon G,\qquad V=\nu G.
+ \label{eq:fcmp-three-new-dlogs}
+\end{align}
+Ninguém deve conhecer \(\tau,\upsilon,\nu\). Contudo, cada ponto tem um
+emprego diferente:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{|c|c|c|}
+ \hline
+ \textbf{base} & \textbf{onde trabalha} & \textbf{relação desconhecida}\\
+ \hline
+ \(H\) & \(C=aG+bH\), montante & \(\log_GH\) (o \(\gamma\) histórico)\\
+ \hline
+ \(T\) & \(O=xG+yT\), segunda coordenada & \(\log_GT\)\\
+ \hline
+ \(U\) & \(\widetilde I-I=r_iU\), cortina de \(I\) & \(\log_GU\)\\
+ \hline
+ \(V\) & \(R_{\rm fcmp}=r_iV+r_jT\), compromisso a \(r_i\) &
+ \(\log_GV\) e \(\log_TV\)\\
+ \hline
+\end{tabular}
+\end{center}
+
+Precisão: \(\mathcal H_p(O)\) muda com a saída. As bases dos Bulletproofs são
+uma família estática e indexada, não um único ponto nomeado. Portanto, no
+sentido estrito de uma base global como \(H=\gamma G\), sim: \(H\) era o
+antecedente; FCMP++ acrescenta \(T,U,V\).
+
+Como a SAL mistura \(G,T,U,V\), a hipótese útil é conjunta: um adversário não
+deve conseguir encontrar
+\begin{align}
+ aG+bT+cU+dV=\mathcal O
+ \label{eq:fcmp-output-generators-relation}
+\end{align}
+com \((a,b,c,d)\ne(0,0,0,0)\).
+Conhecer \(\log_TV\) já daria tal relação. Por isso a frase certa é
+\emph{logaritmo discreto generalizado}, não «três gammas secretos». \(T,U,V\)
+são derivados por hash para ponto, com rótulos distintos e reproduzíveis;
+\(G\) é canónico e \(H\) conserva a derivação histórica.
+
+\subsection{Relação desconhecida não é testemunho desconhecido}
+
+Há três situações que convém não misturar:
+
+\begin{enumerate}
+ \item \(T=\tau G\), com \(\tau\) desconhecido por todos: bases de um
+ compromisso;
+ \item \(O=xG\), com \(x\) conhecido por Alice: uma chave pública;
+ \item \(O=xG\) e \(L=x\mathcal H_p(O)\): o mesmo testemunho conhecido em duas
+ bases cuja relação é desconhecida.
+\end{enumerate}
+
+O dispositivo por divisores prepara deliberadamente
+\begin{align*}
+ J,\ 2J,\ 4J,\ldots,2^{n-1}J.
+\end{align*}
+Essas relações são públicas por desenho; não são parâmetros comprometidos. O
+dispositivo prova que uma representação escondida selecciona e soma estes
+múltiplos de modo consistente. Fazer uma caça cega a qualquer igualdade
+entre pontos marcaria como «suspeita» precisamente a tabela que o algoritmo
+precisa.
+
+\subsection{Se uma relação multibase fosse conhecida}
+
+Suponha-se que alguém conhece
+\begin{align*}
+ aG+bT+cU+dV=\mathcal O
+\end{align*}
+com, digamos, \(d\ne0\). Então pode isolar
+\begin{align*}
+ V=-d^{-1}(aG+bT+cU).
+\end{align*}
+Um compromisso que usava \(V\) como coordenada independente passa a poder ser
+reescrito nas outras três bases. Dependendo dos coeficientes, isto pode criar
+aberturas alternativas para \(P\) ou \(R_{\rm fcmp}\) e destruir o argumento
+de que as respostas partilhadas representam testemunhos únicos.
+
+Não afirmamos que qualquer relação dê automaticamente a mesma exploração que
+\(\gamma\) dá aos montantes; é preciso seguir onde as bases entram. A regra de
+auditoria é mais modesta e mais forte: toda redução que usa vinculação de um
+compromisso multibase deve enumerar a família de geradores e a hipótese de
+relações lineares, em vez de dizer vagamente «assumimos o PLD».
+
+\section{Como a floresta cresce sem ser replantada}
+\label{sec:fcmp-tree-growth}
+
+A cadeia é uma lista que só cresce; a Curve Tree também. Enquanto um ramo
+ainda tem lugares vazios, o acumulador pode representá-los por escalares zero.
+Se o lugar \(j\) tinha o valor \(v_j\) e recebe \(v_j'\), o compromisso muda
+por
+\begin{align}
+ C_{\rm novo}=C_{\rm antigo}+(v_j'-v_j)G_j.
+ \label{eq:fcmp-hash-grow}
+\end{align}
+Não é preciso recomputar as restantes multiplicações. Quando o ramo enche,
+o seu hash torna-se um filho do nível seguinte. Se esse pai encher, a
+propagação continua para cima, como o transporte de uma soma.
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.6cm]
+ \tikzstyle{slot}=[rectangle,draw=black,minimum width=1.5cm,
+   minimum height=.75cm,text centered]
+ \node (a0) [slot] {\(v_0\)};
+ \node (a1) [slot,right of=a0,xshift=.25cm] {\(v_1\)};
+ \node (a2) [slot,right of=a1,xshift=.25cm,fill=yellow!20] {\(0\)};
+ \node (a3) [slot,right of=a2,xshift=.25cm] {\(0\)};
+ \node (b0) [slot,below of=a0,yshift=-.55cm] {\(v_0\)};
+ \node (b1) [slot,right of=b0,xshift=.25cm] {\(v_1\)};
+ \node (b2) [slot,right of=b1,xshift=.25cm,fill=green!18] {\(v_2\)};
+ \node (b3) [slot,right of=b2,xshift=.25cm] {\(0\)};
+ \draw[->,thick] (a2) -- node[right]{entra uma folha} (b2);
+\end{tikzpicture}
+\end{center}
+
+Os zeros de enchimento não são membros gastáveis. Na primeira camada, um
+membro válido tem seis coordenadas de três pontos não identidade e o circuito
+verifica que os pontos estão na curva. Nas camadas seguintes, a declaração
+define quais posições pertencem ao ramo real. Preencher o vector da prova até
+ao tamanho esperado é aritmética de compromisso, não criar moedas
+fantasmas.
+
+Uma nova folha altera todos os nós no seu caminho até ao topo, logo altera a
+raiz. Isto não invalida a matemática de raízes antigas: cada raiz continua a
+comprometer o seu instantâneo da árvore. A regra de consenso que decide qual
+raiz uma transacção pode referir e por quanto tempo é uma política de
+implantação por cima do acumulador. A prova recebe uma raiz concreta como
+parte da declaração; não prova a frase temporal «esta raiz é recente» por si
+só.
+
+\subsection{Por que as camadas superiores guardam
+\texorpdfstring{\(x\)}{x}}
+
+Uma folha precisa de \(O,I,C\) completos porque essas identidades serão
+abertas e usadas no gasto. Um nó superior só precisa de um rótulo vinculante
+para o hash do ramo inferior. A construção toma
+\begin{align*}
+ h_j=x(C_j)
+\end{align*}
+e compromete os \(h_j\) no pai. Assim, cada filho ocupa uma posição escalar,
+em vez de duas coordenadas.
+
+Um mesmo \(x\) pode corresponder a \(P\) e \(-P\). A árvore superior é
+deliberadamente definida sobre o rótulo \(x(P)\), não sobre uma codificação
+afim injectiva. O circuito não recebe, contudo, um sinal à escolha sem
+consequências: demonstra que o ponto cegado abre para um ponto válido e que
+esse ponto é o compromisso/hash construído pelo ramo anterior. A pertença no
+pai pergunta somente se o seu \(x\) está na lista, que é a relação
+especificada. Ser claro sobre esta quotientização é melhor do que murmurar
+«coordenada do ponto» e esperar que o sinal desapareça educadamente.
+
+\section{Dois desenhos de divisores na própria curva}
+\label{sec:fcmp-divisor-pictures}
+
+A equivalência \eqref{eq:fcmp-principal-divisor-criterion} fica menos
+sobrenatural com duas funções conhecidas.
+
+\subsection{A recta vertical}
+
+Uma recta vertical passa por \(P=(x_P,y_P)\), por
+\(-P=(x_P,-y_P)\) e pelo ponto no infinito. A função
+\begin{align*}
+ v_P(x,y)=x-x_P
+\end{align*}
+tem zeros em \(P\) e \(-P\) e um pólo duplo em \(\mathcal O\):
+\begin{align}
+ \operatorname{div}(v_P)
+ =[P]+[-P]-2[\mathcal O].
+ \label{eq:fcmp-vertical-divisor}
+\end{align}
+O grau é \(1+1-2=0\), e a soma de grupo é
+\begin{align*}
+ P+(-P)-2\mathcal O=\mathcal O.
+\end{align*}
+O divisor principal escreveu a lei do inverso.
+
+\subsection{A recta por dois pontos}
+
+Uma recta não vertical que passa por \(P\) e \(Q\) encontra a cúbica uma
+terceira vez em \(-(P+Q)\). Se \(\ell\) é a função dessa recta,
+\begin{align}
+ \operatorname{div}(\ell)
+ =[P]+[Q]+[-(P+Q)]-3[\mathcal O].
+ \label{eq:fcmp-line-divisor}
+\end{align}
+Outra vez,
+\begin{align*}
+ P+Q-(P+Q)=\mathcal O.
+\end{align*}
+O desenho usual da adição de pontos --- recta, terceira intersecção,
+reflexão --- já era uma afirmação sobre um divisor principal. Eagen não
+importou uma criatura sem parentes; aproveitou a contabilidade escondida na
+própria lei de grupo.
+
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+ \draw[->] (-.2,0) -- (7.2,0) node[right]{\(x\)};
+ \draw[->] (0,-2.0) -- (0,2.4) node[above]{\(y\)};
+ \draw[thick,domain=.35:6.5,samples=80,smooth]
+   plot (\x,{.055*(\x-1.0)*(\x-3.4)*(\x-6.0)});
+ \draw[thick,blue] (.45,-1.25) -- (6.75,1.75);
+ \fill (1.45,-.78) circle (2pt) node[below]{\(P\)};
+ \fill (3.35,.13) circle (2pt) node[below right]{\(Q\)};
+ \fill (5.72,1.26) circle (2pt) node[above left]{\(-(P+Q)\)};
+\end{tikzpicture}
+\end{center}
+
+No dispositivo real há muitas somas e multiplicidades, por isso a função
+\(f=A(x)-yB(x)\) é mais rica que uma recta. A reciprocidade de Weil escolhe
+outra recta aleatória para auditar essa função. Mas o certificado continua a
+dizer a mesma coisa que \eqref{eq:fcmp-line-divisor}: os pontos listados
+fecham-se sob a lei de grupo.
+
+\section{O que mudou relativamente à CLSAG}
+\label{sec:fcmp-versus-clsag}
+
+É tentador dizer «FCMP++ é uma assinatura em anel enorme». A frase ajuda
+durante cinco segundos e depois começa a mentir. A CLSAG junta, num único
+percurso circular, a escolha entre membros explícitos, o conhecimento das
+chaves e a imagem de chave. FCMP++ separa três máquinas:
+
+\begin{description}
+ \item[conjunto:] uma raiz pública compromete a árvore; os membros não são
+ copiados para a transacção;
+ \item[pertença:] Generalized Bulletproofs prova um caminho de uma tupla
+ re-randomizada à raiz;
+ \item[autorização e ligação:] SAL prova a abertura da chave e produz \(L\).
+\end{description}
+
+Na CLSAG, aumentar o anel aumenta a lista de chaves e compromissos que a
+transacção referencia. Em Curve Trees, aumentar o conjunto enche ramos e só
+ocasionalmente acrescenta uma camada. O custo por prova depende do número de
+camadas e das capacidades dos ramos, não é uma linha por saída histórica.
+
+Também muda quem escolhe o conjunto. Uma carteira CLSAG selecciona desvios e
+essa selecção pode introduzir distribuições reconhecíveis. Uma FCMP refere um
+estado canónico do acumulador. «Cadeia completa» não quer dizer literalmente
+qualquer byte que já apareceu: só entram tuplas que as regras consideram
+saídas admissíveis, com validação de pontos e tratamento de compatibilidade.
+Mas a carteira deixa de desenhar um pequeno bairro estatístico à volta da sua
+moeda.
+
+\subsection{Quatro falsificações imaginárias}
+
+Podemos testar as fronteiras tentando fazer batota:
+
+\begin{enumerate}
+ \item \textbf{Inventar uma folha e conhecer bem o cegamento da raiz.}
+ A prova Schnorr passa apenas se a raiz interna diferir da pública por
+ \(\rho H\); o circuito de pertença continua a ter de abrir um caminho válido.
+ \item \textbf{Provar pertença de uma saída alheia.}
+ FCMP pode demonstrar pertença sem conhecer \(x\), mas SAL exige a abertura de
+ \(\widetilde O=xG+\widetilde yT\). Pertença não é autorização.
+ \item \textbf{Usar um \(r_i\) em \(\widetilde I\) e outro em
+ \(R_{\rm fcmp}\).}
+ O primeiro circuito reutiliza a representação de \(r_i\), e SAL partilha
+ \(s_\beta,s_z\) através das relações. A costura rejeita os dois números.
+ \item \textbf{Mudar \(L\) num segundo gasto.}
+ A equação \(L=x\widetilde I-zU=xI\) e o produto \(z=xr_i\) eliminam todos os
+ cegamentos frescos. Com a mesma saída e chave, o marcador repete-se.
+\end{enumerate}
+
+Estas tentativas também mostram por que não há uma única «equação FCMP++».
+\(R_{\rm sig}+cX=sH\) fecha a raiz; o circuito fecha o caminho; a prova por
+divisores fecha multiplicações de pontos; a SAL fecha autorização, produto e
+ligação. Retirar uma caixa não simplifica a mesma frase: apaga uma frase
+diferente.
+
+\section{Mapa para guardar na cabeça}
+\label{sec:fcmp-memory-map}
+
+\begin{align*}
+ \boxed{\text{saída}}&\quad (O,I,C),\\
+ \boxed{\text{cortina}}&\quad
+ (\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C),\\
+ \boxed{\text{folha}}&\quad
+ (O_x,O_y,I_x,I_y,C_x,C_y),\\
+ \boxed{\text{caminho}}&\quad
+ \text{seleccionar e re-randomizar, alternando curvas},\\
+ \boxed{\text{topo}}&\quad
+ R_{\rm sig}+c(\widehat{\mathcal R}-\mathcal R_{\rm tree})=sH,\\
+ \boxed{\text{gasto}}&\quad
+ z=xr_i,\qquad L=x\widetilde I-zU=xI.
+\end{align*}
+
+Se estas seis linhas fizerem sentido, o resto do capítulo já não é uma
+colecção de símbolos: é a justificação de cada seta.
+
+\section{Uma segunda passagem: quem sabe o quê}
+\label{sec:fcmp-second-pass}
+
+Na primeira passagem construímos a máquina peça a peça. Façamos agora o
+caminho outra vez, mas separando rigorosamente a declaração, a testemunha e o
+que fica visível depois da prova. É frequentemente aqui que Curve Trees deixa
+de parecer uma nuvem de compromissos e passa a parecer um protocolo.
+
+Antes do gasto, a cadeia já determinou um conjunto ordenado de folhas
+admissíveis
+\begin{align*}
+ \mathcal S=\bigl((O_0,I_0,C_0),\ldots,(O_{N-1},I_{N-1},C_{N-1})\bigr)
+\end{align*}
+e uma raiz \(\mathcal R_{\rm tree}\) que se compromete com esse estado. Alice
+conhece um índice \(j\), a chave \(x\) e a informação de abertura necessária
+para a sua saída. O nó conhece a raiz e as regras para reconstruir a árvore,
+mas não conhece \(j\) nem \(x\).
+
+\begin{center}
+\begin{tabular}{|l|p{5.1cm}|p{5.1cm}|}
+ \hline
+ & \textbf{Público} & \textbf{Privado de Alice}\\
+ \hline
+ conjunto & \(\mathcal R_{\rm tree}\), forma e profundidade da árvore &
+ índice, ramos e aberturas do caminho\\
+ \hline
+ entrada & \(\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C\) &
+ \(O,I,C,r_o,r_i,r_j,r_c\)\\
+ \hline
+ autorização & \(L,P,A,B,R_O,R_P,R_L\) e respostas &
+ \(x,\widetilde y,z,r_p\) e nonces\\
+ \hline
+ transacção & mensagem/hash assinada, equilíbrio RingCT &
+ segredos de gasto e máscaras ainda não publicados\\
+ \hline
+\end{tabular}
+\end{center}
+
+O verificador não recebe \(\mathcal S\) dentro de cada transacção. Recebe a
+raiz que identifica a versão do conjunto e compromissos que já fazem parte do
+estado da cadeia. A árvore não apaga a lista do mundo; evita repeti-la na
+declaração de cada prova e fornece uma interface curta para falar dela.
+
+\subsection{Primeiro comprometer, depois desafiar}
+
+As provas não são uma colecção de igualdades escolhidas à vontade. A
+transcrição põe os objectos numa ordem causal. De forma esquemática:
+\begin{align*}
+ &\text{domínio, raiz, entrada, mensagem}\nonumber\\
+ &\quad\longrightarrow
+ \text{compromissos aos testemunhos e nonces}\nonumber\\
+ &\quad\longrightarrow
+ \text{desafios por hash}\nonumber\\
+ &\quad\longrightarrow
+ \text{respostas}.
+\end{align*}
+Alice compromete-se antes de conhecer os desafios que agregam tuplas,
+seleccionam avaliações do divisor ou fecham as relações Schnorr. Se pudesse
+escolher os compromissos depois, procuraria uma fotografia em que uma
+igualdade falsa parecesse verdadeira. Fiat--Shamir transforma a conversa
+interactiva num desafio imprevisível derivado de tudo o que veio antes.
+
+Este detalhe explica por que «usar o mesmo desafio» é uma ferramenta e não
+preguiça tipográfica. Nas equações SAL, por exemplo, o mesmo \(e\) produz
+\begin{align*}
+ s_\alpha=\alpha+ex,\qquad
+ s_\beta=\beta+er_i,\qquad
+ s_z=r_z+e(xr_i).
+\end{align*}
+As respostas aparecem em mais de uma relação. Uma abertura inventada para
+\(\widetilde O\) e outra inventada para \(L\) teriam de concordar nos mesmos
+coeficientes depois de um desafio que o provador não controlou. A transcrição
+é a agulha; as respostas partilhadas são a linha.
+
+\subsection{Quatro conversas que formam uma frase}
+
+Podemos imaginar quatro verificadores sentados à mesma mesa:
+
+\begin{description}
+ \item[Verificador da selecção:] «Mostre-me que as seis coordenadas de
+ \((O,I,C)\) ocupam juntas uma posição do primeiro ramo.»
+ \item[Verificador do caminho:] «Mostre-me que o hash desse ramo ocupa uma
+ posição do pai, e continue até uma raiz interna.»
+ \item[Verificador da raiz:] «Mostre-me que conhece o cegamento entre essa
+ raiz interna e \(\mathcal R_{\rm tree}\).»
+ \item[Verificador SAL:] «Mostre-me que conhece a chave da saída escondida e
+ que \(L\) é o seu marcador sem máscaras.»
+\end{description}
+
+Cada resposta isolada admite uma coisa que não queremos. Pertença sem SAL
+pode ser provada por quem não possui a moeda. SAL sem pertença pode autorizar
+uma chave inventada fora da cadeia. Um caminho sem a prova da raiz pode acabar
+num acumulador privado. A prova da raiz sem caminho é apenas
+\(R_{\rm sig}+cX=sH\), um Schnorr perfeitamente honesto acerca de uma
+diferença irrelevante.
+
+Juntas, as interfaces impõem a sequência
+\begin{align*}
+ \text{raiz pública}
+ &\longleftarrow \text{caminho escondido}
+ \longleftarrow (O,I,C)\\
+ &\longleftrightarrow
+ (\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C)
+ \longleftrightarrow (x,L).
+\end{align*}
+Os símbolos no centro aparecem nas duas provas. É aí que a composição vive:
+não numa quinta prova misteriosa, mas na identidade das portas onde as provas
+se tocam.
+
+\section{O que cresce e o que fica curto}
+\label{sec:fcmp-growth-intuition}
+
+«Cadeia completa» pode sugerir que a prova tem tamanho constante qualquer que
+seja a idade da cadeia. Não tem. A árvore troca crescimento linear por
+crescimento em profundidade. Se cada ramo tiver capacidade \(m\), uma árvore
+com \(d\) níveis representa aproximadamente \(m^d\) folhas. Duplicar o número
+de folhas geralmente não muda \(d\); atravessar a próxima potência de \(m\)
+acrescenta um nível.
+
+Para capacidades alternadas \(m_1,m_2\), a silhueta é
+\begin{align*}
+ N_d\approx
+ \begin{cases}
+  m_1^{(d+1)/2}m_2^{(d-1)/2},&d\text{ ímpar},\\
+  (m_1m_2)^{d/2},&d\text{ par}.
+ \end{cases}
+\end{align*}
+Uma nova camada multiplica brutalmente a capacidade, mas acrescenta apenas
+mais uma selecção, uma abertura de ramo e as restrições que as sustentam. É
+por isso que a árvore consegue acompanhar anos de saídas sem fazer a prova
+copiar anos de cadeia.
+
+Há três tamanhos diferentes que convém não chamar todos «tamanho da FCMP»:
+
+\begin{enumerate}
+ \item o \textbf{estado do acumulador}, mantido por nós e construtores da
+ árvore;
+ \item a \textbf{testemunha do provador}, que inclui os ramos privados do
+ caminho;
+ \item a \textbf{prova publicada}, comprimida pelos Generalized
+ Bulletproofs e pelas agregações da transcrição.
+\end{enumerate}
+
+O estado não cabe na raiz no sentido de permitir recuperar todos os membros a
+partir dela; a raiz é um compromisso, não um ficheiro comprimido. A carteira
+precisa de obter ou manter a testemunha do seu caminho. A prova publicada é
+curta porque convence sem transportar essa testemunha inteira em claro.
+
+\section{O que «cadeia completa» não promete}
+\label{sec:fcmp-not-a-promise}
+
+FCMP++ remove uma fonte importante de informação: a carteira já não publica
+um pequeno anel escolhido, com quinze desvios e uma saída real. Mas uma prova
+de conhecimento zero não torna invisível tudo o que rodeia uma transacção.
+Continuam públicos, entre outros, a altura e o momento aproximado, o número de
+entradas e saídas, as taxas, os marcadores \(L\) e a própria existência da
+transacção.
+
+O conjunto também não é «todos os pontos de 32 bytes desde o Génesis». É o
+conjunto que as regras de consenso admitem na árvore: saídas desbloqueadas,
+representações válidas e conversões históricas tratadas segundo regras
+determinísticas. Uma raiz só é canónica porque todos os nós honestos aplicam
+as mesmas regras de inserção e reorganização.
+
+Curve Trees e FCMP++ ocultam a posição e tornam canónico um conjunto enorme;
+não ocultam tempos de difusão, endereços de rede nem conhecimento externo.
+Um conjunto maior reduz o poder das heurísticas de selecção de desvios; não
+revoga a estatística.
+
+Há ainda um paradoxo útil: quase tudo deve parecer fresco, mas \(L\) deve
+repetir-se. Publicar \(I\) revelaria a folha; re-randomizar também o marcador
+impediria detectar inflação. O produto \(z=xr_i\) resolve precisamente essa
+tensão:
+\begin{align*}
+ \widetilde I=I+r_iU,\qquad
+ L=x\widetilde I-zU=xI.
+\end{align*}
+A cortina muda; o alarme de gasto duplo não.
+
+\clearpage
+\section{Nota final I: das equações ao código}
+\label{sec:fcmp-code-note}
+
+Esta nota fixa uma fotografia do código em desenvolvimento, não uma promessa
+de que nomes e limites nunca mudarão. A referência principal foi o ramo
+\texttt{fcmp++} de \texttt{monero-oxide}, revisão de 18 de Agosto de 2026
+\cite{monero-oxide-fcmp-source}. O mapa abaixo dá os caminhos relativos ao
+repositório:
+
+\begin{description}
+ \item[\texttt{circuit.rs}:] abre as quatro
+ re-randomizações; verifica \((O,I,C)\) na curva; testa juntas as seis
+ coordenadas da primeira folha; reutiliza a variável de \(r_i\) para as bases
+ \(U\) e \(V\); nas camadas seguintes testa \(x\) do hash anterior.
+ \item[\texttt{lib.rs}:] organiza ramos, duas provas
+ aritméticas e transcrição; no fim verifica literalmente
+ \(R+cX=sH\), com \(X\) igual à diferença entre a raiz alegada pelo circuito
+ e a raiz pública.
+ \item[\texttt{dlog.rs}:] liga a variável escalar
+ ao ponto \(Q=kJ\) pelo dispositivo de divisor e pelos desafios da
+ transcrição.
+ \item[\texttt{sal/mod.rs}:] cria as quatro
+ re-randomizações e implementa \(P,A,B,R_O,R_P,R_L\), as respostas e as quatro
+ relações de verificação da secção \ref{sec:fcmp-sal-verifier}.
+ \item[\texttt{generators/lib.rs}:] fixa \(U,V\), os
+ inicializadores de hash e os geradores reproduzíveis de Selene e Helios.
+\end{description}
+
+Na fotografia citada, a primeira família de ramos tem 38 posições e a segunda
+18; uma folha ocupa seis vezes a largura da primeira. A infraestrutura reserva
+até 12 camadas e agrega até 128 entradas. São limites da referência constante
+e desta instanciação, não teoremas de Curve Trees.
+
+O lado C++ da integração prepara a tupla histórica. Um pormenor pouco vistoso
+é decisivo: a base \(I\) é derivada da chave pública original da saída antes
+de limpar a torsão de \(O\) e \(C\). Assim, uma saída antiga com componente de
+torsão não ganha uma imagem de chave diferente antes e depois da migração e
+uma segunda oportunidade de gasto. É o tipo de linha que parece engenharia
+até se perceber que está a conservar a definição de «o mesmo gasto».
+
+O repositório local antigo \texttt{fcmp-plus-plus} foi útil para seguir a
+história, mas está arquivado; não foi tratado como autoridade sobre a
+implementação corrente. Também não se devem misturar bytes de geradores ou
+formatos de uma fotografia parcial do ramo principal do Monero com os da
+referência mais recente: a integração ainda se move.
+
+\clearpage
+\section{Nota final II: hipóteses, auditorias e estado}
+\label{sec:fcmp-security-status-note}
+
+A frase «seguro sob o PLD» é curta demais para esta composição. As garantias
+dependem, pelo menos, da dificuldade do logaritmo discreto e de relações
+lineares multibase; da ocultação e vinculação dos compromissos; da solidez e
+conhecimento zero dos Generalized Bulletproofs; do modelo de oráculo aleatório
+usado por Fiat--Shamir; da correcção do dispositivo de divisores; da
+validação de pontos, subgrupos e casos excepcionais; de nonces e máscaras
+imprevisíveis; e de transcrições com separação de domínio que prendam raiz,
+entrada e mensagem.
+
+O trabalho recebeu revisões com âmbitos diferentes. A Cypher Stack analisou
+Generalized Bulletproofs e a composição FCMP++/SAL
+\cite{generalized-bulletproofs-review,fcmp-composition-review}. A Veridise
+auditou os circuitos e usou Picus para verificar formalmente dispositivos não
+interactivos \cite{veridise-fcmp-audit}. A objecção inicial ao argumento de
+divisores ganhou evidência independente quando a construção SLVer Bullet foi
+reconhecida como equivalente ao nível das equações
+\cite{slver-bullet}; a revisão da zkSecurity registou também a rara questão de
+completude descrita neste capítulo \cite{zksecurity-divisor-notes}. Uma
+biblioteca de optimização usada apenas pelo provador, \texttt{ec-divisors},
+continuava assinalada como não auditada na fotografia consultada. Isso não dá
+ao verificador uma licença para aceitar falsidades, mas continua a importar
+para disponibilidade, fugas e segurança da implementação do provador.
+
+A Trail of Bits reviu a implementação criptográfica incremental em Agosto de
+2026: seis achados informativos, nenhum classificado alto, médio ou baixo;
+cinco resolvidos e um parcialmente resolvido, relativo à fragilidade do
+layout de memória na fronteira Rust--C++ \cite{trailofbits-fcmp-audit}. Uma
+auditoria é evidência dentro do seu âmbito e revisão; não converte código em
+consenso activo por aclamação.
+
+Em 25 de Agosto de 2026, o marco público de integração indicava 69\% concluído,
+27 itens fechados, 12 abertos e nenhuma data limite
+\cite{monero-fcmp-milestone}. O pedido de integração continuava marcado como
+rascunho/WIP e abrangia FFI, construção e persistência da árvore, migração,
+transacções, consenso e carteira \cite{monero-fcmp-integration-pr}. A proposta
+de auditoria da integração divide o trabalho em criptografia, construção da
+árvore e integração de consenso; a página pública mostrava ainda zero dos
+três marcos pagos/concluídos \cite{monero-fcmp-integration-audit}.
+
+Portanto, «próximo FCMP++» é a descrição certa. O ramo principal já contém
+peças de curvas, geradores e árvores, mas a activação de consenso não estava
+concluída nesta fotografia. Os números acima envelhecerão; as interfaces
+matemáticas --- folha, caminho, raiz, re-randomização e SAL --- são o que este
+capítulo pretende deixar quando isso acontecer.
+
+\begin{quote}
+A raiz não diz onde está Alice. A FCMP prova que ela veio da floresta. A SAL
+prova que trouxe a chave. E \(L\), antipático mas necessário, lembra-se se ela
+voltar com a mesma moeda.
+\end{quote}
+
+\label{page:fcmp-end}

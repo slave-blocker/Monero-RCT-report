@@ -787,6 +787,70 @@
     note = {\url{https://www.monerooutreach.org/stories/RandomX.php} [Online; accessed 10/12/2019]},
 }
 
+@misc{randomx-spec-v1,
+    author = {Tevador and RandomX contributors},
+    title = {{RandomX Specification, version 1}},
+    year = {2026},
+    note = {Especifica\c{c}\~ao na revis\~ao \texttt{12f2c2ffe2108d6cf54c391fee33c8bc3646cdab}
+    (vers\~ao 1.2.3), incorporada como subm\'odulo pelo c\'odigo Monero
+    consultado, \url{https://github.com/tevador/RandomX/blob/12f2c2ffe2108d6cf54c391fee33c8bc3646cdab/doc/specs.md}},
+}
+
+@misc{randomx-design-v1,
+    author = {Tevador and RandomX contributors},
+    title = {{RandomX Design}},
+    year = {2026},
+    note = {Descri\c{c}\~ao, an\'alise e resultados emp\'iricos da vers\~ao 1,
+    na revis\~ao incorporada pelo Monero,
+    \url{https://github.com/tevador/RandomX/blob/12f2c2ffe2108d6cf54c391fee33c8bc3646cdab/doc/design.md}},
+}
+
+@misc{randomx-audits,
+    author = {{RandomX contributors}},
+    title = {{RandomX Security Audits}},
+    year = {2019},
+    note = {Relat\'orios de Trail of Bits, X41 D-Sec, Kudelski Security e
+    QuarksLab, \url{https://github.com/tevador/RandomX/tree/master/audits}},
+}
+
+@misc{randomx-v2-release,
+    author = {{RandomX contributors}},
+    title = {{RandomX version 2 releases}},
+    year = {2026},
+    note = {Vers\~ao algor\'itmica posterior, publicada separadamente e n\~ao
+    incorporada na fotografia de consenso Monero descrita neste livro,
+    \url{https://github.com/tevador/RandomX/releases/tag/v2.0.1}},
+}
+
+@inproceedings{argon2-paper,
+    author = {Alex Biryukov and Daniel Dinu and Dmitry Khovratovich},
+    title = {{Argon2: New Generation of Memory-Hard Functions for Password
+    Hashing and Other Applications}},
+    booktitle = {2016 IEEE European Symposium on Security and Privacy},
+    year = {2016},
+    pages = {292--302},
+    note = {\url{https://www.password-hashing.net/argon2-specs.pdf}},
+}
+
+@misc{memory-hard-tradeoffs,
+    author = {Alex Biryukov and Daniel Dinu and Dmitry Khovratovich},
+    title = {{Fast and Tradeoff-Resilient Memory-Hard Functions for
+    Cryptocurrencies and Password Hashing}},
+    howpublished = {Cryptology ePrint Archive, Report 2015/430},
+    year = {2015},
+    note = {\url{https://eprint.iacr.org/2015/430}},
+}
+
+@inproceedings{blake2-paper,
+    author = {Jean-Philippe Aumasson and Samuel Neves and Zooko Wilcox-O'Hearn
+    and Christian Winnerlein},
+    title = {{BLAKE2: Simpler, Smaller, Fast as MD5}},
+    booktitle = {Applied Cryptography and Network Security},
+    year = {2013},
+    pages = {119--135},
+    note = {\url{https://blake2.net/blake2.pdf}},
+}
+
 @misc{boronbutterfly-v10,
     title = {{Monero 0.14.0 ``Boron Butterfly" Release}},
     note = {\url{https://web.getmonero.org/2019/02/25/monero-0.14.0-released.html} [Online; accessed 10/12/2019]},
@@ -1397,8 +1461,55 @@ choosing safe curves for elliptic-curve cryptography}},
     title = {{Monero source code}},
     year = {2026},
     month = {August},
-    note = {Fotografia do código-fonte datada de 14 de Agosto de 2026,
-    \url{https://github.com/monero-project/monero}},
+    note = {Revis\~ao 3646f648db57f60cca86430e25a635d19fa9b92a, datada de
+    14 de Agosto de 2026,
+    \url{https://github.com/monero-project/monero/tree/3646f648db57f60cca86430e25a635d19fa9b92a}},
+}
+
+@article{dandelion-plus-plus,
+    author = {Giulia Fanti and Shaileshh Bojja Venkatakrishnan and Surya Bakshi
+    and Bradley Denby and Shruti Bhargava and Andrew Miller and Pramod Viswanath},
+    title = {{Dandelion++: Lightweight Cryptocurrency Networking with Formal
+    Anonymity Guarantees}},
+    journal = {Proceedings of the ACM on Measurement and Analysis of Computing
+    Systems},
+    volume = {2},
+    number = {2},
+    pages = {29:1--29:34},
+    year = {2018},
+    month = {June},
+    doi = {10.1145/3224424},
+    note = {\url{https://arxiv.org/abs/1805.11060}},
+}
+
+@misc{monero-pruning-doc,
+    author = {{Monero Project}},
+    title = {{Pruning --- Moneropedia}},
+    year = {2026},
+    note = {Documenta\c{c}\~ao oficial consultada em Agosto de 2026,
+    \url{https://www.getmonero.org/resources/moneropedia/pruning.html}},
+}
+
+@misc{monero-dandelion-inbound-proposal,
+    author = {Boog900},
+    title = {{Proving maximum outbound connection count to allow selecting
+    inbound peers as a Dandelion++ stem}},
+    year = {2026},
+    month = {May},
+    howpublished = {Monero Research Lab, proposta \#160},
+    note = {Proposta aberta, n\~ao implementada na revis\~ao consultada,
+    \url{https://github.com/monero-project/research-lab/issues/160}},
+}
+
+@misc{monero-tx-inventory-proposal,
+    author = {Boog900},
+    title = {{Change how transactions are broadcasted to significantly reduce
+    P2P bandwidth usage}},
+    year = {2024},
+    month = {May},
+    howpublished = {Monero, proposta \#9334},
+    note = {Proposta aberta, n\~ao implementada na revis\~ao consultada,
+    \url{https://github.com/monero-project/monero/issues/9334}},
 }
 
 @inproceedings{curve-trees,

@@ -1195,34 +1195,14 @@ incluídas. Mas há um pormenor: a poda real de Monero não corta ramos desta
 árvore. É a decomposição $h_p\|h_b\|h_r$ do ID da transacção que permite
 retirar dados e ainda reconstruir o mesmo ID.
 
-\subsubsection*{Poda da base de dados}
+\subsubsection*{Da decomposição à poda}
 
-A poda é comportamento local do nó, não regra de consenso.
-\marginnote{\scriptsize src/crypto- note\_protocol/ cryptonote\_ protocol\_ handler.inl
-{\tt should\_ask\_for\_ pruned\_data()}}
-Ao podar uma base
-de dados que construiu normalmente, o nó verificou primeiro os blocos e as
-transacções completos. Depois conserva sempre o prefixo, a parte RingCT de
-base, $h_r$ e os índices necessários à validação; pode eliminar a parte RingCT
-podável de transacções v2 antigas. Transacções v1 não são podadas por este
-mecanismo.
-
-Desde a versão 0.14.1 do programa, os blocos antigos são repartidos em oito
-faixas determinísticas, cada uma formada por troços de 4096 blocos. Um nó
-podado conserva os dados podáveis completos da sua faixa e apaga-os nas outras
-sete; conserva ainda, por inteiro, a ponta mais recente de 5500 blocos
-\cite{monero-pruning-1/8}.\marginnote{\scriptsize src/common/ pruning.cpp
-{\tt has\_unpruned\_ block()}}
-
-Escolher faixas diferentes ajuda a rede a distribuir os dados, mas não há uma
-garantia de consenso de que ``um em cada oito nós'' guarde cada transacção. Um
-nó sem poda conserva tudo; um nó podado deixa de poder servir aos pares os
-dados antigos que apagou. Por omissão, a sincronização continua a pedir dados
-completos. A opção explícita {\tt --sync-pruned-blocks} permite, apenas na zona
-coberta pelos hashes de blocos compilados no programa, receber de outro nó os
-dados já podados; nesse modo não é possível reverificar localmente as provas e
-assinaturas ausentes. Esta é uma troca de sincronização do nó, não uma regra
-nova para os blocos.
+A decomposição acima diz exactamente que material de uma transacção é
+podável. A política da base de dados, as oito faixas, a ponta conservada e as
+três formas de sincronizar um nó podado pertencem ao capítulo
+\ref{chapter:dandelion}, secção \ref{sec:node-pruning}. Ali acompanharemos o
+que o nó verifica antes de apagar --- e o que não pode reverificar se já
+receber a história sem as provas.
 
 
 

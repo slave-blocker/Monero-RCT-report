@@ -10,6 +10,23 @@ and commit it without asking for routine confirmation.
 Do not push, open a pull request, or perform any other remote Git operation
 unless the user explicitly requests it.
 
+## Monero source reference
+
+The read-only Monero source checkout used to audit protocol and implementation
+claims is located at
+`/media/dollner/aa266fbc-54ce-4aca-abc2-e91b713bb6e8/home/dollner/monero`.
+Before relying on it, verify its revision; the report currently pins
+`3646f648db57f60cca86430e25a635d19fa9b92a` (14 August 2026). Do not modify
+that checkout while working on this report.
+
+## User shorthand
+
+When the user says “AMDCC”, interpret it as “answer me, don't change code”:
+answer or explain only, without modifying repository files, rebuilding
+artifacts, or running mutating commands. Read-only inspection is allowed. If
+the same request explicitly authorizes a narrow exception, limit changes to
+that exception.
+
 ## Authorial voice and mathematical exposition
 
 The author's voice, magic, humour, pacing, visual notation, and pedagogical

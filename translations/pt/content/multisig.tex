@@ -16,8 +16,7 @@ blocos, o endereço partilhado parece um endereço Monero e a transacção final
 parece uma transacção RingCT vulgar. A política \(M\)-de-\(N\) vive nas
 chaves, nos dados conservados pelas carteiras e no protocolo interactivo que
 produz a assinatura. A lista de blocos não anuncia se o dinheiro pertence a
-uma pessoa, a uma empresa ou a três pessoas que ainda estão a decidir quem
-guardou o cabo USB.
+uma pessoa, a uma empresa ou a um grupo de co-signatários.
 
 As observações sobre a implementação neste capítulo referem-se à revisão do
 código Monero datada de 14 de Agosto de 2026
@@ -79,7 +78,7 @@ antes das operações correspondentes. O aviso não é decorativo: um erro de
 protocolo, uma cópia de segurança inadequada ou um participante malicioso
 pode bloquear fundos; certas falhas podem ainda expor segredos. A
 multi-assinatura deve, por isso, ser tratada como um protocolo criptográfico
-interactivo, não como uma simples caixa com duas palavras-passe.
+interactivo, e não como autenticação convencional com várias palavras-passe.
 
 \section{Modelo e objectivos de segurança}
 
@@ -102,9 +101,9 @@ Há três propriedades diferentes que convém não confundir:
  participantes.
 \end{itemize}
 A última propriedade não obriga ninguém a colaborar. Um co-signatário pode
-recusar uma proposta, apagar os seus dados ou abandonar a conversa a meio.
-Multi-assinatura reduz o número de participantes indispensáveis; não converte
-um adversário num colega prestável.
+recusar uma proposta, apagar os seus dados ou abandonar a sessão do protocolo.
+Multi-assinatura reduz o número de participantes indispensáveis; não garante
+a cooperação dos participantes disponíveis.
 
 Todos os membros aprendem a chave privada de vista comum. Conseguem, portanto,
 detectar as saídas recebidas pelo endereço, descodificar os respectivos
@@ -137,8 +136,8 @@ chaves públicas resultantes.
 Os formatos actuais começam por \texttt{MultisigxV2R1} na primeira ronda e
 \texttt{MultisigxV2Rn} nas rondas seguintes. O código consultado rejeita os
 formatos V1, considerados inseguros. Forçar a aceitação de um conjunto
-incompleto de mensagens pode produzir uma conta inconsistente ou permitir que
-um participante mantenha os restantes reféns de uma chave que só ele conhece.
+incompleto de mensagens pode produzir uma conta inconsistente ou tornar os
+restantes participantes dependentes de uma chave conhecida por um só membro.
 
 \section{Agregação das chaves de gasto}
 \label{sec:key-aggregation}
@@ -164,9 +163,8 @@ A soma anunciada é então
 \begin{align*}
  A+B=T,
 \end{align*}
-cuja chave privada \(t\) é conhecida por Bob. A cerimónia pode ter actas,
-assinaturas e uma mesa muito solene; a álgebra não se deixa impressionar.
-Este é um ataque de cancelamento de chaves.
+cuja chave privada \(t\) é conhecida por Bob. As assinaturas do traslado não
+corrigem esta relação algébrica. Este é um ataque de cancelamento de chaves.
 
 \subsection{Coeficientes de agregação}
 \label{sec:robust-key-aggregation}
@@ -195,9 +193,8 @@ Quem conhece \(b_j\), onde \(B_j=b_jG\), conserva como parcela privada
 \end{align*}
 A dependência de \(\lambda_j\) em todo o conjunto impede que o último
 participante escolha uma chave que cancele as anteriores sem resolver um
-problema criptográfico. A ordenação é essencial: sem ela, duas carteiras
-podiam ter exactamente as mesmas chaves e, ainda assim, passar a tarde a
-discutir qual delas estava avariada.
+problema criptográfico. A ordenação é essencial: sem ela, duas carteiras com
+as mesmas chaves poderiam calcular agregados diferentes.
 
 \section{Construção de uma política M-de-N}
 \label{sec:m-of-n}
@@ -325,9 +322,8 @@ não consegue formar a chave completa.
 
 Nos extremos, uma política \(N\)-de-\(N\) tem \(q=1\): cada participante
 possui uma parcela exclusiva. Uma política 1-de-\(N\) tem \(q=N\): todos
-derivam a mesma parcela e qualquer um consegue usá-la. Isto é exactamente o
-que «1-de-\(N\)» diz nas letras pequenas; não oferece protecção contra um
-membro que decida gastar sozinho.
+derivam a mesma parcela e qualquer um consegue usá-la. Portanto, a política
+1-de-\(N\) não oferece protecção contra um membro que decida gastar sozinho.
 
 O número combinatório de parcelas cresce depressa. O código limita \(N\) a
 16 participantes, um limite prático e não uma propriedade matemática do
@@ -545,9 +541,9 @@ pares públicos. Uma resposta enviada para uma delas consome os respectivos
 segredos, mesmo que a transacção nunca seja submetida. Reutilizar o par na
 outra proposta abre a equação de extracção vista na secção anterior.
 
-A chave privada da transacção é derivada de entropia fresca e das imagens de
+A chave privada da transacção é derivada de entropia nova e das imagens de
 chave das entradas. Isto evita que propostas repetidas criem as mesmas chaves
-de saída de uso único e acabem por queimar fundos destinados a transacções
+de saída de uso único e tornem inacessíveis fundos destinados a transacções
 diferentes.
 
 \subsection{Respostas e submissão}
@@ -556,8 +552,7 @@ Ao receber o conjunto de transacções, cada carteira reconstrói a proposta e
 verifica a estrutura, as entradas, os destinos, a taxa, o equilíbrio dos
 compromissos e a prova de intervalo. O utilizador deve ainda confirmar os
 destinos e montantes no seu próprio dispositivo. Uma estrutura
-criptograficamente válida pode pagar com grande rigor matemático ao endereço
-errado.
+criptograficamente válida pode conter um endereço de destino incorrecto.
 
 Se aceitar, o signatário acrescenta as suas respostas parciais a todas as
 tentativas em que participa. Antes de expor essas respostas, a carteira apaga
@@ -574,7 +569,7 @@ co-signatários.
 \subsection{Comunicação simplificada}
 \label{sec:simplified-communication}
 
-Em termos operacionais, uma sessão saudável segue esta sequência:
+Em termos operacionais, uma sessão correcta segue esta sequência:
 \begin{enumerate}
  \item todos sincronizam a carteira com a lista de blocos;
  \item cada signatário exporta informação nova uma vez;
@@ -588,12 +583,13 @@ Em termos operacionais, uma sessão saudável segue esta sequência:
  despesa.
 \end{enumerate}
 O Sistema de Mensagens de Multi-assinatura, MMS, automatiza o transporte e o
-estado desta conversa na carteira de linha de comandos
+estado desta troca de protocolo na carteira de linha de comandos
 \cite{mms-manual,mms-project-proposal}. Automatizar reduz erros de operação,
 mas não remove a necessidade de autenticar os contactos e confirmar a
 transacção.
 
 \section{Sequência mínima de comandos}
+\label{sec:multisig-cli}
 
 Os comandos seguintes não constituem um guia de instalação; fixam apenas a
 correspondência entre o protocolo matemático e a interface que realmente o
@@ -641,7 +637,7 @@ Depois da última verificação, uma carteira difunde a transacção completa:
 \begin{verbatim}
 submit_multisig multisig_monero_tx
 \end{verbatim}
-Assim, a sequência operacional é apenas a imagem das equações anteriores:
+Assim, a sequência operacional corresponde às equações anteriores:
 trocar chaves para obter \(K^s\), trocar dados para obter \(I\) e os pontos
 aleatórios, fixar o traslado, somar respostas e submeter a CLSAG resultante.
 O MMS automatiza o transporte e o estado destas mensagens
@@ -662,8 +658,8 @@ Na revisão consultada aplicam-se ainda os seguintes limites:
 
 Uma carteira clonada possui as mesmas parcelas e pode repetir material de
 assinatura que a original julgava consumido. As cópias de segurança devem ser
-entendidas como recuperação do mesmo participante, não como mais um voto no
-limiar.
+entendidas como recuperação do mesmo participante, não como um participante
+adicional no limiar.
 
 \section{Políticas compostas não implementadas}
 \label{sec:general-key-families}

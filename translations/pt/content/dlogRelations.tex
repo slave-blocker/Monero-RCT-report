@@ -1,6 +1,6 @@
 \newgeometry{outer=1.65cm,inner=1.65cm,top=1.75cm,bottom=1.75cm,
   marginparwidth=1.1cm,marginparsep=.2cm}
-\chapter{A chave privada de um gerador}
+\chapter{Relações de logaritmo discreto entre geradores}
 \label{chapter:dlog-relations}
 \label{page:dlog-relations-start}
 
@@ -17,8 +17,8 @@
 \setlength{\abovedisplayshortskip}{2pt plus 1pt}
 \setlength{\belowdisplayshortskip}{2pt plus 1pt}
 
-Chamaram-lhes por vezes «chaves privadas dos geradores». A alcunha é boa,
-desde que não ponha duas criaturas diferentes dentro do mesmo sobretudo. Uma
+Estas relações são por vezes designadas «chaves privadas dos geradores». É
+necessário distinguir dois casos. Uma
 chave privada vulgar é intencional:
 \[
  P=xG,
@@ -32,17 +32,18 @@ ou, com mais bases,
 \[
  a_1J_1+\cdots+a_nJ_n=\mathcal O.
 \]
-A segunda relação pode ser conhecida sem oferecer um quociente conveniente
-entre um par escolhido: os outros termos continuam no caminho. A hipótese
+A segunda relação pode ser conhecida sem fornecer o logaritmo entre um par
+escolhido, porque os restantes termos continuam presentes. A hipótese
 certa é, pois, a \emph{vinculação por logaritmo discreto generalizado}, não
 uma colecção de «três gammas secretos».
 
-Também importa \emph{quem} sabe. Uma relação deliberadamente pública pode ser
-parte do protocolo; uma relação escondida pelo criador dos parâmetros é uma
-porta das traseiras; uma descoberta posterior torna a porta pública daquele
-momento em diante. Esta última não extrai retroactivamente todas as chaves
-ordinárias. A pessoa que queira reabrir um ponto continua muitas vezes a
-precisar de uma primeira abertura.
+Também importa \emph{quem} conhece a relação. Uma relação deliberadamente
+pública pode ser parte do protocolo; uma relação conservada em segredo pelo
+criador dos parâmetros é uma armadilha; uma descoberta posterior torna a
+relação pública daquele momento em diante. Esta última não extrai
+retroactivamente todas as chaves ordinárias. Para calcular uma abertura
+alternativa de um ponto continua geralmente a ser necessária uma abertura
+inicial.
 
 \begin{center}
 \begin{tikzpicture}[>=stealth,thick,
@@ -63,20 +64,21 @@ precisar de uma primeira abertura.
 
 Este é o \emph{grafo de relações}. Os vértices são geradores; uma aresta
 \(A\xrightarrow{q}B\) significa \(B=qA\). Como os escalares não nulos têm
-inverso, o caminho pode ser percorrido para trás, e os rótulos multiplicam-se.
+inverso, o caminho pode ser percorrido para trás, e os rótulos dos caminhos
+são os produtos dos escalares das arestas.
 Cada componente ligada entrega todos os logaritmos aos pares \emph{dentro}
-dela. No desenho, porém, \(G\) e \(V\) continuam ilhas: conhecer a aresta
-\(H-T\) não revela \(\log_GH\). Uma relação de aridade superior é uma
-hiper-aresta e não cabe inteiramente neste desenho.
+dela. No desenho, porém, \(G\) e \(V\) continuam em componentes desligadas:
+conhecer a aresta \(H-T\) não revela \(\log_GH\). Uma relação de aridade
+superior é representada por uma hiper-aresta.
 
-Convém ainda separar as consequências. Neste capítulo usaremos cinco carimbos:
+Convém ainda separar as consequências. Neste capítulo usaremos cinco
+classificações:
 \emph{exploração algébrica directa}; \emph{exploração provável que exige
 composição}; \emph{falha só de privacidade}; \emph{hipótese de segurança
 invalidada sem exploração concreta demonstrada}; e \emph{relação inofensiva
 ou deliberadamente conhecida}. Roubo, gasto duplo, pertença falsa, prova de
-intervalo falsa e inflação não são sinónimos. Uma campainha partida não abre
-necessariamente o cofre; às vezes limita-se, com notável profissionalismo, a
-deixar de tocar.
+intervalo falsa e inflação são resultados distintos. A invalidação de uma
+hipótese de segurança não demonstra automaticamente uma exploração concreta.
 
 As equações seguintes foram confrontadas com os geradores do Monero e com a
 SAL corrente nas revisões fixadas nas notas do capítulo anterior
@@ -84,7 +86,7 @@ SAL corrente nas revisões fixadas nas notas do capítulo anterior
 análise de composição FCMP++ \cite{fcmp-plus-plus-paper,fcmp-composition-review}.
 
 \clearpage
-\section{O antecedente: montante; o recém-chegado: saída}
+\section{Relações que envolvem montantes e saídas}
 
 \subsection*{Se \(H=\gamma G\)}
 
@@ -138,7 +140,7 @@ um estranho; a detecção do segundo gasto deixou de reconhecer o primeiro.
 de uma saída afectada quebrar a ligação SAL e tentar o gasto duplo. O roubo
 por um observador não foi demonstrado; falta-lhe uma abertura de \(O\).
 
-\subsection*{As três pontes de \(H\)}
+\subsection*{Relações de \(H\) com \(T\), \(U\) e \(V\)}
 
 Se \(H=qT\), \(H=qU\) ou \(H=qV\), a aresta liga a família de montantes à
 família FCMP++, mas \(H\) e a outra base não aparecem juntas num compromisso
@@ -163,16 +165,16 @@ então
 \[
  \boxed{L=\eta_OO.}
 \]
-O marcador da saída torna-se calculável a partir de dados públicos. Conhecer
+O marcador da saída passa a ser calculável a partir de dados públicos. Conhecer
 \(\eta_O\) para uma saída permite reconhecê-la quando \(L\) aparece; conhecer
-as relações para todas permite varrer a cadeia. Não revela \(x\), não assina
+as relações para todas permite testar todas as saídas da cadeia. Não revela \(x\), não assina
 uma transacção e não faz \(L\) deixar de repetir.
 
 \textbf{Conclusão --- falha só de privacidade:} identificação retroactiva da
-saída gasta; sem roubo, sem quebra da autorização e sem inflação demonstrada.
+saída gasta; sem roubo, quebra da autorização ou inflação demonstrada.
 
 \clearpage
-\section{SAL: quatro bases, um produto e três maneiras de cortar o fio}
+\section{Consequências de relações entre as bases da SAL}
 \scriptsize
 
 O código corrente não se limita a \(\widetilde I\) e \(R_{\rm fcmp}\). Para
@@ -184,11 +186,11 @@ uma abertura \(O=xG+yT\), escreve, com \(z=xr_i\),
  P-\widetilde O-R_{\rm fcmp}&=zU+r_p''T,&
  L&=x\widetilde I-zU.
 \end{align*}
-A prova de produto prende \(z=xr_i\) dentro de \(P\); três provas de
-representação prendem \(x\) a \(\widetilde O\), \(z\) à terceira linha e
-\((x,z)\) a \(L\). A pertença FCMP prende o seu \(r_i\) simultaneamente a
-\(\widetilde I\) e \(R_{\rm fcmp}\). É uma costura: cada ponto público faz
-duas peças dizerem «usei o mesmo escalar».
+A prova de produto vincula \(z=xr_i\) a \(P\); três provas de
+representação vinculam \(x\) a \(\widetilde O\), \(z\) à terceira linha e
+\((x,z)\) a \(L\). A pertença FCMP vincula o mesmo \(r_i\) a
+\(\widetilde I\) e \(R_{\rm fcmp}\). Cada ponto público impõe a igualdade das
+variáveis partilhadas entre as provas.
 
 \subsection*{\(U=qT\): muda o coeficiente de \(U\)}
 
@@ -202,9 +204,9 @@ A última equação publica então
 \[
  L=x\widetilde I-z_{\rm lig}U,
 \]
-que o dono pode variar entre gastos da mesma folha. A armadilha não muda
+que o dono pode variar entre gastos da mesma folha. A relação conhecida não muda
 \(r_i\) em \(\widetilde I=I+r_iU\); muda a interpretação do coeficiente de
-\(U\) onde \(T\) lhe serve de cortina.
+\(U\) na representação conjunta nas bases \(U,T\).
 
 \textbf{Conclusão --- exploração algébrica directa:} falha de ligação SAL e
 gasto duplo pelo dono; não roubo de uma saída arbitrária.
@@ -216,16 +218,14 @@ Agora
  r_iV+r_jT=(r_i+\Delta)V+(r_j-q\Delta)T.
 \]
 A prova FCMP pode usar o \(r_i\) que abre \(\widetilde I\), enquanto a SAL
-usa \(r_i'=r_i+\Delta\) no produto \(z'=xr_i'\); o mesmo ponto
-\(R_{\rm fcmp}\) conta as duas histórias. O termo extra em \(V\) é absorvido
+usa \(r_i'=r_i+\Delta\) no produto \(z'=xr_i'\); o mesmo ponto \(R_{\rm fcmp}\) admite as duas aberturas. O termo extra em \(V\) é absorvido
 pela máscara em \(T\) de \(P\). Resulta
 \(L=x\widetilde I-xr_i'U\), variável com \(\Delta\).
 
-\textbf{Conclusão --- exploração algébrica directa:} perdeu-se exactamente
-o compromisso a \(r_i\) que compunha pertença e SAL; o dono pode produzir
+\textbf{Conclusão --- exploração algébrica directa:} perdeu-se a vinculação do compromisso a \(r_i\) que compunha pertença e SAL; o dono pode produzir
 marcadores diferentes.
 
-\subsection*{\(V=qU\): produto certo, ligação errada}
+\subsection*{\(V=qU\): inconsistência entre produto e ligação}
 
 No ponto \(P\),
 \[
@@ -246,7 +246,7 @@ Escolher \(r'\) muda \(L\), salvo o caso degenerado \(x=-q\).
 \textbf{Conclusão --- exploração algébrica directa:} novamente gasto duplo
 por quebra da ligação; ainda exige conhecer uma abertura autorizada da saída.
 
-\subsection*{\(U=qG\) e \(V=qG\): uma fenda que as outras linhas tapam}
+\subsection*{\(U=qG\) e \(V=qG\) consideradas isoladamente}
 
 Se \(U=qG\), \(xG+zU\) admite
 \((x,z)\mapsto(x-q\Delta,z+\Delta)\). Se \(V=qG\), \(xG+r_iV\)
@@ -259,7 +259,7 @@ sob as relações restantes desconhecidas. Não obtivemos uma transacção falsa
 concreta demonstrada:} \(G-U\) e \(G-V\) isoladas; outra aresta que permita
 absorver uma destas diferenças pode completar o ataque.
 
-\subsection*{A forma que contém todos os pares}
+\subsection*{Relação multibase geral}
 
 Se for conhecida
 \[
@@ -269,19 +269,19 @@ então qualquer compromisso multibase
 \[
  M=xG+pT+zU+rV
 \]
-conserva o ponto sob a seta
+conserva o ponto sob a transformação
 \[
  (x,p,z,r)\longmapsto
  (x,p,z,r)+\lambda(a,b,c,d).
 \]
 Isto é perda directa de vinculação do vector-testemunho. A consequência final
 depende dos coeficientes que as equações externas voltam a fixar; os três
-ataques acima mostram relações cujo suporte corta a costura certa. Uma relação
+ataques acima mostram relações cujo suporte elimina a vinculação necessária. Uma relação
 de aridade superior não deve ser promovida automaticamente a inflação, nem
-rebaixada por não oferecer \(\log_GT\) numa bandeja.
+ignorada por não fornecer isoladamente \(\log_GT\).
 
 \begin{landscape}
-\section{As dez arestas, sem adivinhação}
+\section{Análise das dez relações por pares}
 
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -334,17 +334,16 @@ gasto duplo. & Não.\\ \hline
 \end{center}
 
 \footnotesize
-«Existentes» não quer dizer que um estranho possa escolher a moeda de Alice.
-Quer dizer que, depois da descoberta, o titular que ainda conserva a abertura
+«Existentes» não quer dizer que um estranho possa escolher uma saída de
+terceiro. Quer dizer que, depois da descoberta, o titular que ainda conserva a abertura
 consegue aplicá-la ao ponto já publicado. O criador malicioso dos parâmetros
 teve essa possibilidade desde o princípio; uma descoberta pública dá-a a
 todos os titulares e simultaneamente dá aos verificadores a oportunidade de
-parar, actualizar regras ou rejeitar a família comprometida. Provas antigas
-não se apagam por cortesia.
+parar, actualizar regras ou rejeitar a família comprometida. As provas antigas permanecem registadas.
 \end{landscape}
 
 \footnotesize
-\section{Bulletproofs: quando o intervalo deixa de ser uma cerca}
+\section{Consequências para as provas de intervalo}
 
 As bases indexadas das Bulletproofs e Bulletproof+ formam compromissos do
 género
@@ -365,11 +364,12 @@ Então, sem mudar \(Q\), existe a seta
  (\rho,\boldsymbol a,\boldsymbol b)
        +\lambda(\rho_0,\boldsymbol u,\boldsymbol v).
 \]
-Uma abertura vectorial já não fixa os bits, os vectores de produtos ou as
-máscaras que as equações de produto interno pretendiam coser. É a mesma
-doença de Pedersen, agora com muitos sintomas \cite{Bulletproofs_paper}.
+Uma abertura vectorial deixa de fixar os bits, os vectores de produtos ou as
+máscaras vinculadas pelas equações de produto interno. É a perda de vinculação
+de Pedersen aplicada a um compromisso multibase
+\cite{Bulletproofs_paper}.
 
-Isto não autoriza a frase «qualquer relação vectorial fabrica dinheiro». Uma
+Isto não implica que qualquer relação vectorial permita criar valor. Uma
 relação pode cair numa direcção que não altera a coordenada constrangida, ou
 invalidar apenas a redução sem oferecer uma transcrição falsa. Se a direcção
 permite trocar um vector inválido por uma abertura que satisfaz as equações da
@@ -391,7 +391,7 @@ prova, porém, a solidez de intervalo desaparece: um compromisso fora de
 \end{tikzpicture}
 \end{center}
 
-O compromisso não vinculante \(G-H\) dá a primeira rota directa. Uma prova de
+A relação \(G-H\) fornece o primeiro mecanismo directo. Uma prova de
 intervalo falsa dá outra: permite que a aritmética módulo \(l\) esconda um
 valor negativo ou transbordado, enquanto as saídas recebidas parecem montantes
 canónicos. É uma \emph{exploração provável que exige composição} com uma
@@ -408,19 +408,19 @@ As tabelas
 usadas pelo dispositivo de logaritmo discreto têm relações públicas por
 desenho: os dígitos recompõem um múltiplo. Também \(P=xG\), um nonce \(R=rH\)
 e qualquer ponto construído com testemunho conhecido são declarações, não
-falhas de parâmetros. A solidez vem da prova de conhecimento e das restantes
-restrições, não de fingir que \(2J\) nasceu sem família. \textbf{Conclusão ---
+falhas de parâmetros. A solidez vem da prova de conhecimento e das restantes restrições; as relações
+públicas entre os múltiplos fazem parte da declaração. \textbf{Conclusão ---
 relação inofensiva ou deliberadamente conhecida.}
 
 \clearpage
-\section{Curve Trees, Selene e Helios: uma raiz não é uma escritura}
+\section{Consequências para Curve Trees, Selene e Helios}
 
 Cada curva tem a sua própria família
 \[
  g, h, \boldsymbol g, \boldsymbol h, J_{\rm init}.
 \]
-Selene e Helios são grupos distintos: não há um caminho de arestas que
-atravesse de uma curva para a outra. Em cada uma, os compromissos da prova têm
+Selene e Helios são grupos distintos: uma relação dentro de uma curva não se
+estende à outra. Em cada uma, os compromissos da prova têm
 a forma
 \[
  Q=rh+\langle\boldsymbol a,\boldsymbol g\rangle
@@ -430,7 +430,7 @@ e um nó que compromete os filhos tem a forma
 \[
  N=J_{\rm init}+\sum_i v_iJ_i.
 \]
-As famílias são derivadas de rótulos separados e sem cerimónia confiada na
+As famílias são derivadas de rótulos separados, sem configuração confiada, na
 implementação consultada; «transparente» significa que todos reproduzem os
 pontos, não que uma relação linear conhecida fosse aceitável
 \cite{curve-trees,generalized-bulletproofs-review}.
@@ -444,13 +444,13 @@ filhos:
  (v_0,\ldots,v_m)+\lambda(d_0,\ldots,d_m),
  \qquad N\ \hbox{inalterado}.
 \]
-Se essa colisão troca um filho honesto por outro compromisso, pode fabricar
-uma passagem falsa numa camada e propagá-la honestamente até à raiz. Relações
+Se essa colisão troca um filho honesto por outro compromisso, pode produzir
+uma passagem falsa numa camada e propagá-la até à raiz. Relações
 que envolvem \(g\) ou as bases vectoriais podem, em vez disso, falsificar as
 restrições de selecção e re-randomização. O resultado possível é uma prova de
 pertença de uma saída que nunca esteve na árvore.
 
-\(J_{\rm init}\) merece uma vírgula. Se o seu coeficiente é sempre exactamente
+O caso de \(J_{\rm init}\) deve ser tratado separadamente. Se o seu coeficiente é sempre exactamente
 um, ele cancela ao comparar dois nós bem formados; conhecer apenas
 \(J_{\rm init}=qJ_0\) não produz automaticamente dois vectores de filhos com o
 mesmo nó. A relação torna-se utilizável se o inicializador puder ser absorvido
@@ -468,8 +468,8 @@ o verificador exige
 \]
 Uma armadilha que permita converter uma diferença de \emph{conteúdo} falsa
 num múltiplo conhecido de \(h\) faz esta equação aceitar a raiz comprometida.
-Saber apenas um caminho verdadeiro não faz isso: permite provar pertença do
-membro verdadeiro, que é precisamente o serviço comprado.
+Conhecer apenas um caminho verdadeiro permite provar a pertença do membro
+correspondente, que é a propriedade pretendida.
 
 \begin{center}
 \begin{tikzpicture}[>=stealth,node distance=7mm,
@@ -486,18 +486,18 @@ membro verdadeiro, que é precisamente o serviço comprado.
 \end{tikzpicture}
 \end{center}
 
-Pertença falsa, sozinha, não é autorização. Provar que a saída de Alice está
-na floresta não revela \(x\) e não produz a SAL. Para chegar à inflação, o
-atacante fabrica uma tupla que ele próprio sabe abrir, atribui-lhe um
+Pertença falsa, isoladamente, não é autorização. Provar a pertença de uma
+saída alheia não revela \(x\) e não produz a SAL. Para chegar à inflação, o
+atacante constrói uma tupla que ele próprio sabe abrir, atribui-lhe um
 compromisso de montante, usa a armadilha para provar um caminho inexistente e
 produz uma SAL válida. A entrada sem antepassado financia saídas novas. É uma
-\emph{exploração provável que exige composição}: armadilha utilizável de
+\emph{exploração provável que exige composição}: relação utilizável em
 Selene \emph{ou} Helios, pertença falsa concreta, saída fabricada possuída e
 balanço válido. Roubo de uma saída alheia não resulta da pertença falsa.
 
 Esta conclusão vale separadamente nas duas curvas. Uma colisão utilizável numa
-camada Selene pode bastar sem uma armadilha Helios, e vice-versa; uma relação
-que só reabre um compromisso auxiliar mas não altera uma restrição relevante
+camada Selene pode bastar sem uma segunda relação Helios, e vice-versa; uma
+relação que apenas reabre um compromisso auxiliar mas não altera uma restrição relevante
 pode ficar no nível «solidez assumida, exploração não demonstrada».
 
 \begin{landscape}
@@ -553,8 +553,8 @@ O único «yes» directo na coluna de inflação é \(G-H\). As arestas SAL
 assinaladas quebram directamente a ligação, mas a inflação vem
 condicionalmente de um segundo gasto. Bulletproofs e Curve Trees exigem uma
 relação que atinja a restrição certa e a composição indicada. \(\eta_O\) é
-privacidade sem autorização; «hipótese invalidada» continua a merecer
-reparação mesmo sem assalto concreto demonstrado.
+privacidade sem autorização; uma hipótese invalidada continua a exigir
+correcção mesmo sem uma exploração concreta demonstrada.
 
 \label{page:dlog-relations-end}
 \end{landscape}

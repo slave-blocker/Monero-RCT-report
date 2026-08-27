@@ -14,7 +14,7 @@ Pedersen ocultam os montantes e preservam somas; provas de intervalo obrigam
 cada montante de saída a pertencer a \([0,2^{64}-1]\).
 
 Salvo indicação em contrário, as referências à implementação neste capítulo
-dizem respeito à fotografia do código Monero identificada no resumo inicial.
+dizem respeito à revisão do código Monero identificada no resumo inicial.
 
 \section{Compromissos}
 \label{sec:commitments}
@@ -30,17 +30,16 @@ a mensagem originalmente fixada. Queremos duas propriedades:
  conseguir abri-lo como duas mensagens diferentes.
 \end{description}
 
-Suponhamos que Alice tem de escolher «cara» ou «coroa» antes de Bob lançar uma
-moeda. Ela gera um sal aleatório longo \(s\) e publica
+Para comprometer uma mensagem \(m\), Alice gera um sal aleatório longo \(s\) e
+publica
 \[
- h=\mathcal H\bigl(s\mathbin\|\text{``cara''}\bigr).
+ h=\mathcal H\bigl(s\mathbin\|m\bigr).
 \]
-Depois do lançamento, revela \((s,\text{``cara''})\). Bob repete o hash e
-compara-o com \(h\). O sal impede-o de ensaiar antecipadamente as duas
-mensagens possíveis. Neste compromisso por hash, a ocultação depende do sal e
-a vinculação depende, em particular, de ser impraticável encontrar colisões.
-Nada nesta construção faz com que compromissos somem como os valores
-comprometidos.
+Na abertura, revela \((s,m)\). Bob repete o hash e compara-o com \(h\). O sal
+impede a enumeração antecipada quando o domínio de mensagens é pequeno. Neste
+compromisso por hash, a ocultação depende do sal e a vinculação depende, em
+particular, de ser impraticável encontrar colisões. Esta construção não
+preserva a adição das mensagens comprometidas.
 
 \section{Compromissos de Pedersen}
 \label{pedersen_section}
@@ -54,10 +53,10 @@ prima \(l\). O grupo é cíclico, portanto existe matematicamente um escalar
 \]
 Aqui «geradores independentes» não quer dizer independência linear: quer dizer
 que ninguém conhece essa relação de logaritmo discreto. O valor fixo de \(H\)
-usado pelo Monero nasceu historicamente da interpretação de
+usado pelo Monero foi derivado historicamente pela interpretação de
 Keccak--256 da codificação de \(G\) como um ponto comprimido, seguida de
-multiplicação pelo cofactor~8. Essa receita particular não deve ser reutilizada
-como função hash-para-ponto genérica.
+multiplicação pelo cofactor~8. Essa construção específica não deve ser
+reutilizada como função hash-para-ponto genérica.
 \marginnote{src/ringct/
 rctTypes.h, {\tt H};
 tests/unit\_ tests/
@@ -267,7 +266,7 @@ apesar de \(l-10\) não ser um montante admissível. O problema não é que a cu
 tenha inteiros negativos; é que a mesma classe modular admite representantes
 que dariam a aparência de criar valor.
 
-Uma prova de intervalo fecha esta porta. Para cada compromisso de saída
+Uma prova de intervalo exclui esses representantes modulares. Para cada compromisso de saída
 \(C_t^b\), a afirmação exacta é
 \begin{equation}
  \exists\,y_t\in\mathbb Z_l,\quad
@@ -837,7 +836,7 @@ P_{k-1}=\\[-1mm]
 \end{aligned}}_{u_k^2L_k+u_k^{-2}R_k}.
 \end{gathered}
 \]
-\marginnote{click!}
+\marginnote{clik!}
 
 E como tal possibilita-se a seguinte recursão:
 \[
@@ -988,7 +987,7 @@ Portanto,
  =\langle\underline\varphi,\underline{H'}_k\rangle.
 \]
 Este sinal contrário é essencial. A versão anterior escrevia os dois padrões
-com o mesmo sinal; essa era uma das avarias escondidas nas setas.
+com o mesmo sinal, o que estava incorrecto.
 
 \newpage
 O verificador refaz agora toda a viagem do traslado:

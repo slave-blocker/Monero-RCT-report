@@ -119,7 +119,8 @@ e prova uma disjunção:
 \end{align*}
 O custo mais ingénuo cresce com \(N\). Técnicas melhores comprimem a prova,
 mas o verificador ainda precisa de saber qual é a lista que a declaração
-designa. Com FCMP, essa lista é enorme e muda sempre que entram saídas novas.
+designa. Com FCMP, o tamanho dessa lista cresce com o número de saídas e muda
+sempre que entram saídas novas.
 
 Um \emph{acumulador} substitui a lista por um resumo curto. Queremos três
 operações:
@@ -324,14 +325,13 @@ Em palavras:
 
 Uma camada compromete pontos de \(\mathbb E_1\) usando escalares em
 \(\mathbb E_2\). A camada seguinte compromete pontos de \(\mathbb E_2\)
-usando escalares em \(\mathbb E_1\). Depois regressa à primeira curva. A
-árvore sobe em ziguezague:
+usando escalares em \(\mathbb E_1\), alternando depois entre as duas curvas:
 \begin{align*}
  \mathbb E_1\longrightarrow\mathbb E_2
  \longrightarrow\mathbb E_1\longrightarrow\mathbb E_2\longrightarrow\cdots
 \end{align*}
 
-Sem o ciclo, teríamos uma desagradável aritmética «não nativa»: verificar
+Sem o ciclo, seria necessário usar aritmética «não nativa»: verificar
 dentro de um campo operações feitas noutro campo de tamanho incompatível. Com
 o ciclo, a coordenada que sai de uma curva cabe exactamente como escalar na
 outra. A alternância permite que as coordenadas de cada curva sejam escalares nativos
@@ -339,7 +339,7 @@ na curva seguinte.
 
 \subsection{Muitas camadas e duas provas agregadas}
 
-Os compromissos vectoriais e as restrições que vivem em
+Os compromissos vectoriais e as restrições definidos em
 \(\mathbb E_1\) podem ser agregados num Bulletproof; os que vivem em
 \(\mathbb E_2\), noutro. Assim, uma árvore com muitos níveis não exige um
 Bulletproof separado por nível. Exige duas famílias de restrições, uma por
@@ -486,7 +486,7 @@ e uma restrição de segurança na matemática.
 
 \subsection{Selene e Helios}
 
-A instanciação FCMP++ usa duas curvas chamadas Selene e Helios para a alternância entre curvas. A tupla original do Monero vive na curva de saída, Ed25519; o
+A instanciação FCMP++ usa duas curvas chamadas Selene e Helios para a alternância entre curvas. A tupla original do Monero é definida na curva de saída, Ed25519; o
 primeiro circuito precisa de raciocinar sobre as suas coordenadas, e as
 camadas superiores alternam Selene e Helios. Os campos foram escolhidos para
 que esta torre de coordenadas e escalares encaixe.
@@ -552,8 +552,8 @@ factos:
  \item um divisor principal vem de uma função racional;
  \item numa curva elíptica, ser principal codifica uma soma de pontos igual à
  identidade;
- \item a reciprocidade de Weil permite trocar uma avaliação enorme por outra
- que o circuito comprime com um desafio aleatório.
+ \item a reciprocidade de Weil permite substituir uma avaliação de custo
+ elevado por outra que o circuito comprime com um desafio aleatório.
 \end{enumerate}
 
 Começamos pela definição de divisor.
@@ -576,7 +576,7 @@ multiplicidades:
  \label{eq:fcmp-divisor-formal}
 \end{align}
 Um coeficiente \(m_P>0\) conta um zero em \(P\); \(m_P<0\) conta um pólo; quase
-todos os coeficientes são zero. Os parênteses rectos lembram que \([P]\) é uma
+todos os coeficientes são zero. Os parênteses rectos indicam que \([P]\) é uma
 entrada formal da lista, não uma multiplicação escalar do ponto.
 
 O grau é a soma dos multiplicadores:
@@ -608,7 +608,7 @@ soma dos seus pontos, ponderada pelas multiplicidades, dá a identidade:
 Esta equivalência converte uma relação de multiplicação escalar numa condição
 sobre uma função racional.
 
-Suponha-se, para intuição, que
+Para simplificar a exposição, suponha-se que
 \begin{align*}
  k=\sum_{i=0}^{n-1}b_i2^i,\qquad b_i\in\{0,1\},
 \end{align*}
@@ -706,12 +706,11 @@ Se
 \begin{align*}
  f(D)=\prod_P f(P)^{m_P},
 \end{align*}
-então o lado esquerdo de \eqref{eq:fcmp-weil-reciprocity} olha para \(f\)
-apenas nos três pontos aleatórios \(A_0,A_1,A_2\). O lado direito olha para a
-linha simples \(Z\) nos pontos que codificam a tabela de múltiplos e o
-resultado \(Q\). Trocámos «função complicada em muitos pontos fixos» por
-«função complicada em três pontos aleatórios» e «linha simples nos pontos
-fixos».
+então o lado esquerdo de \eqref{eq:fcmp-weil-reciprocity} avalia \(f\) apenas
+nos três pontos aleatórios \(A_0,A_1,A_2\). O lado direito avalia a linha \(Z\)
+nos pontos que codificam a tabela de múltiplos e o resultado \(Q\). A
+identidade substitui a avaliação de \(f\) em muitos pontos fixos pela avaliação
+de \(f\) em três pontos aleatórios e de \(Z\) nos pontos fixos.
 
 \begin{center}
 \begin{tikzpicture}[node distance=2cm]
@@ -1487,7 +1486,7 @@ de que as respostas partilhadas representam testemunhos únicos.
 
 Não afirmamos que qualquer relação dê automaticamente a mesma exploração que
 \(\gamma\) dá aos montantes; é preciso seguir onde as bases entram. A regra de
-auditoria é mais modesta e mais forte: toda redução que usa vinculação de um
+auditoria é mais precisa: toda redução que usa vinculação de um
 compromisso multibase deve enumerar a família de geradores e a hipótese de
 relações lineares, em vez de afirmar apenas «assumimos o PLD».
 
@@ -1553,7 +1552,7 @@ deliberadamente definida sobre o rótulo \(x(P)\), não sobre uma codificação
 afim injectiva. O circuito não recebe, contudo, um sinal à escolha sem
 consequências: demonstra que o ponto cegado abre para um ponto válido e que
 esse ponto é o compromisso/hash construído pelo ramo anterior. A pertença no
-pai pergunta somente se o seu \(x\) está na lista, que é a relação
+pai verifica somente se o seu \(x\) está na lista, que é a relação
 especificada. A especificação deve, por isso, tratar explicitamente esta identificação
 entre \(P\) e \(-P\).
 
@@ -1845,7 +1844,7 @@ representações válidas e conversões históricas tratadas segundo regras
 determinísticas. Uma raiz só é canónica porque todos os nós honestos aplicam
 as mesmas regras de inserção e reorganização.
 
-Curve Trees e FCMP++ ocultam a posição e tornam canónico um conjunto enorme;
+Curve Trees e FCMP++ ocultam a posição e tornam canónico o conjunto completo;
 não ocultam tempos de difusão, endereços de rede nem conhecimento externo.
 Um conjunto maior reduz o poder das heurísticas de selecção de desvios; não
 revoga a estatística.

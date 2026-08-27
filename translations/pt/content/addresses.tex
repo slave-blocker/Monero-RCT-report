@@ -1,9 +1,9 @@
 \chapter{Endereços}
 \label{chapter:addresses}
 
-Um endereço de Monero não é um cofre escrito na lista de blocos. É uma
-instrução pública que permite a um remetente criar uma nova saída para o
-destinatário. A lista de blocos guarda essa saída sob uma chave pública de
+Um endereço de Monero é uma instrução pública que permite a um remetente criar
+uma nova saída para o destinatário. O endereço não é registado directamente na
+lista de blocos. A lista de blocos guarda essa saída sob uma chave pública de
 utilização única; quem conhecer a chave privada correspondente poderá depois
 usá-la como entrada de uma nova transacção. A mesma saída não pode ser gasta
 duas vezes.
@@ -16,7 +16,7 @@ nos capítulos \ref{chapter:pedersen-commitments} e \ref{chapter:transactions};
 aqui isolaremos o encaminhamento e a detecção das saídas.
 
 Salvo indicação em contrário, todas as observações sobre a implementação
-neste capítulo referem-se à fotografia do código Monero identificada no resumo
+neste capítulo referem-se à revisão do código Monero identificada no resumo
 inicial. A distinção será importante:
 algumas formas estão impostas pelo consenso da versão~16, ao passo que outras
 são convenções das carteiras para que remetentes e destinatários se entendam.
@@ -31,7 +31,7 @@ Bob escolhe dois escalares privados não nulos do corpo escalar,
 \end{align*}
 Como na Secção \ref{ec:keys}, \(G\) gera o subgrupo de ordem prima \(l\).
 Chamaremos a \(k_B^s\) \emph{chave privada de gasto} e a \(k_B^v\)
-\emph{chave privada de vista}; os expoentes \(s\) e \(v\) recordar-nos-ão
+\emph{chave privada de vista}; os expoentes \(s\) e \(v\) indicam
 essas duas funções. O endereço principal é o par público
 \((K_B^s,K_B^v)\), nunca o par privado.
 
@@ -43,7 +43,7 @@ de pagamento curto destinado a Bob. Não consegue calcular a chave privada de
 utilização única, criar a respectiva imagem de chave, autorizar um gasto nem
 assinar uma transacção. Sem imagens de chave importadas de uma carteira
 completa, também não consegue decidir com segurança se uma saída detectada já
-foi gasta. Ver não é possuir; muito menos é gastar.
+foi gasta. A capacidade de observação não confere autoridade de gasto.
 
 As carteiras determinísticas da implementação consultada geram primeiro
 \(k^s\) e derivam normalmente \(k^v=\mathcal H_n(k^s)\). É uma convenção de
@@ -54,8 +54,8 @@ subgrupo gerado por \(G\).
 
 \subsection*{Codificação de um endereço principal}
 
-Para comunicar o par sem uma salada de bytes, Monero usa uma variante própria
-de Base58 \cite{base-58-encoding,luigi-address}. Na rede principal, a entrada
+Para comunicar o par numa representação textual, Monero usa uma variante
+própria de Base58 \cite{base-58-encoding,luigi-address}. Na rede principal, a entrada
 binária de um endereço principal é
 \[
  \operatorname{varint}(18)\mathbin\|K^s\mathbin\|K^v,
@@ -90,7 +90,7 @@ troca semelhante a Diffie--Hellman e cria uma chave pública nova para cada
 saída \cite{cryptoNoteWhitePaper}. O livro chamou historicamente a estes
 objectos \emph{endereços ocultos}; diremos também, com maior precisão,
 \emph{chaves de saída de utilização única}. Um observador pode ver a chave de
-saída, mas não o endereço público de que ela nasceu.
+saída, mas não o endereço público do qual ela foi derivada.
 
 \subsection*{Uma saída para um endereço principal}
 

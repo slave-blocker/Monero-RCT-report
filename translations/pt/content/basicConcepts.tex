@@ -672,7 +672,7 @@ resposta \(r\) também é uniforme \cite{SCOZZAFAVA1993313}. Mais ainda, no caso
 de um verificador que escolhe honestamente um desafio uniforme, podemos simular
 um registo sem conhecer \(k\): escolhemos \(c,r\in_R\mathbb{F}_l\) e pomos
 \(A=rG-cK\). O resultado tem a mesma distribuição que uma execução real. Esta
-é a intuição precisa de que a conversa não revela informação adicional sobre
+é a propriedade de que a interacção não revela informação adicional sobre
 \(k\) além da que já estava na chave pública \(K\).
 %If $\alpha$ was chosen randomly by the prover then $r$ is randomly distributed \cite{SCOZZAFAVA1993313} and $k$ is information-theoretically secure within $r$ (it can still be found by solving the DLP for $K$ or $\alpha G$).
 %???within $r$
@@ -681,10 +681,10 @@ Há, porém, uma condição decisiva: o provador não pode reutilizar \(\alpha\)
 Se o mesmo compromisso \(A\) receber desafios distintos \(c\ne c'\) e produzir
 respostas válidas
 \(r=\alpha+ck\) e \(r'=\alpha+c'k\), qualquer observador extrai a chave:
-\footnote{Podemos imaginar que alguém copia o estado de um computador depois
-de este escolher \(\alpha\) e apresenta um desafio diferente a cada cópia. Nas
-provas de segurança, esta imagem está próxima da técnica de ``rebobinar'' o
-provador.}
+\footnote{Numa prova de segurança, um extractor pode executar o provador duas
+vezes a partir do mesmo estado posterior à escolha de \(\alpha\), fornecendo um
+desafio diferente em cada execução. Esta técnica é designada por
+``rebobinagem'' do provador.}
 
 %However, if the prover reuses $\alpha$ to prove his knowledge of $k$, anyone who knows both challenges in $r = \alpha + c*k$ and $r' = \alpha + c'*k$ can compute $k$ (two equations, two unknowns).
 %If the prover is a computer, you could imagine someone `cloning'/copying the computer after it generates $\alpha$, then presenting each copy with a different challenge.}
@@ -764,7 +764,7 @@ nas secções \ref{blsag_note} e \ref{sec:robust-key-aggregation}.}
 %\draw [arrow] (pro2b) -- node[anchor=west] {$c$} (pro2c);
 \end{tikzpicture}
 
-Já não há uma conversa: o provador calcula o desafio localmente e publica uma
+Já não há interacção: o provador calcula o desafio localmente e publica uma
 única prova. Qualquer pessoa pode repetir a hash e a verificação. A correcção
 continua a ser a mesma,
 \[
@@ -881,7 +881,6 @@ r&=\alpha-ck_A,\\
 A'&=rG+cK_A\\
   &=(\alpha-ck_A)G+cK_A\\
   &=\alpha G-cK_A+cK_A\\
-\marginnote{``dabra pokus!''}
   &=\alpha G=A.
 \end{align*}
 Logo,
@@ -952,8 +951,9 @@ totalmente explicada \cite{elliptic-curve-rigidity}.}
 %Even if a curve appears to have no cryptographic security problems, it's possible the person/organization that created it knows a secret issue that only crops up in very rare curves. Such a person may have to randomly generate many curves in order to find one with a hidden weakness and no known weaknesses. If reasonable explanations are required for curve parameters, then it becomes even more difficult to find weak curves that will be accepted by the cryptographic community. Curve Ed25519 is known as a `fully rigid' curve, which means its generation process was fully explained. \cite{elliptic-curve-rigidity}} 
 O cuidado não é apenas teórico. O gerador Dual\_EC\_DRBG, que chegou a ser
 normalizado pelo NIST\footnote{\label{NIST_note}National Institute of Standards
-and Technology, \url{https://www.nist.gov/}}, ficou associado a uma potencial
-porta de trás baseada nos seus parâmetros elípticos \cite{hales2014nsa}. A
+and Technology, \url{https://www.nist.gov/}}, ficou associado a um potencial
+mecanismo secreto de exploração baseado nos seus parâmetros elípticos
+\cite{hales2014nsa}. A
 influência da NSA sobre esse processo de normalização tornou-se um exemplo dos
 riscos de concentrar escolhas criptográficas pouco transparentes
 \cite{NSA-NIST}. Isto não implica que todos os standards do NIST sejam

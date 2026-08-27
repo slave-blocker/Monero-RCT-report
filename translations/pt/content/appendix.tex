@@ -4,18 +4,18 @@
 	\textcolor{red}{\small
 		\arabic{FancyVerbLine}}}
 
-\chapter{Espécime histórico: estrutura de transacção
+\chapter{Exemplo histórico: estrutura de transacção
 {\tt RCTTypeBulletproof2}}
 \label{appendix:RCTTypeBulletproof2}
-\chaptermark{Espécime histórico: {\tt RCTTypeBulletproof2}}
+\chaptermark{Exemplo histórico: {\tt RCTTypeBulletproof2}}
 %\addcontentsline{toc}{chapter}{Estrutura de transacção {\tt RCTTypeBulletproof2}}
 
 Apresenta-se neste apêndice uma transacção de Monero real do tipo
 {\tt RCTTypeBulletproof2}, juntamente com explicações dos seus campos
-relevantes. É um espécime histórico, incluído no bloco \(2\,045\,821\), em
+relevantes. É um exemplo histórico, incluído no bloco \(2\,045\,821\), em
 2020, quando a versão 12 estava activa. Os seus anéis de onze membros, as
 assinaturas MLSAG, os Bulletproofs clássicos e os alvos sem etiquetas de
-visualização não descrevem uma nova transacção v16. O caminho activo é
+visualização não descrevem uma nova transacção v16. O formato activo é
 {\tt RCTTypeBulletproofPlus}, explicado no capítulo
 \ref{chapter:transactions}.
 %We present in this appendix a dump from a real Monero transacção of type {\tt RCTTypeBulletproof2}, together with explanatory notes for relevant fields.
@@ -223,12 +223,12 @@ Found in blockchain at height 2045821
 		blocos as chaves e os compromissos dos membros do anel. O primeiro
 		índice é absoluto e os seguintes são diferenças relativas. Por exemplo,
 		\(\{7,11,15,20\}\) serializa-se como \(\{7,4,4,5\}\), pois
-		\(7+4+4+5=20\). Cada lista deste espécime tem onze elementos, o tamanho
+		\(7+4+4+5=20\). Cada lista deste exemplo tem onze elementos, o tamanho
 		histórico; na versão 16 teria dezasseis (secção
 		\ref{subsec:space-and-ver-rcttypefull}).
 %This allows verifiers to find ring member keys and commitments in the blockchain, and makes it obvious those members are legitimate. The first offset is absolute within the blockchain history, and each subsequent offset is relative to the previous. For example, with real offsets \{7,11,15,20\}, the blockchain records \{7,4,4,5\}. Verifiers compute the last offset like (7+4+4+5 = 20) (Section \ref{subsec:space-and-ver-rcttypefull}).
 		\item {\tt k\_image} (linha 12) -- Imagem de chave da primeira
-		entrada. Neste espécime é a imagem ligada pela MLSAG; nas transacções
+		entrada. Neste exemplo é a imagem ligada pela MLSAG; nas transacções
 		actuais, a mesma posição do prefixo contém a imagem ligada pela CLSAG.
 %Key image \(\tilde{K_j}\) from Section \ref{sec:MLSAG}, where $j = 1$ since this is the first input.
 	\item {\tt vout} (linhas 24-35) - Lista de saídas (existem duas aqui)
@@ -254,7 +254,7 @@ actual é explicada no capítulo \ref{chapter:transactions}. Vejam-se
 %Miscellaneous\marginnote{src/crypto- note\_basic/ tx\_extra.h} data, including the {\em transacção public key}, i.e. the share secret $r G$ of Section  \ref{sec:one-time-addresses}, and encrypted payment ID from Section \ref{sec:integrated-addresses}. It typically works like this: each number is one byte (it can be 0-255), and each kind of thing that can be in the field has a `tag' and `length'. The tag indicates which information comes next, and length indicates how many bytes that info occupies. The first number is always a tag. Here, `1' indicates a `transacção public key'. Tx public keys are always 32 bytes, so we don't need to include the length. Thirty-two numbers later we find a new tag `2' which means `extra nonce', its length is `9', and the next byte is `1' which means an 8-byte encrypted payment ID (the extra nonce can have fields inside it, for some reason). Eight bytes go by, and that's the end of this extra field. See \cite{extra-field-stackexchange} for more details. (note: in the original Cryptonote specification the first byte indicated the size of the field. Monero doesn't use that.) \cite{tx-extra-field}
 	\item {\tt rct\_signatures} (linhas 40-50) - Primeira parte dos dados de assinatura 
 %First part of signature data
-		\item {\tt type} (linha 41) -- Tipo RingCT; neste espécime,
+		\item {\tt type} (linha 41) -- Tipo RingCT; neste exemplo,
 		{\tt RCTTypeBulletproof2} é `4'. {\tt RCTTypeFull} e
 		{\tt RCTTypeSimple} são `1' e `2'; as transacções de mineiro usam
 		{\tt RCTTypeNull}, `0'. O caminho ordinário v16 usa
@@ -272,7 +272,7 @@ Montante oculto para cada uma das saídas $t \in \{0, ..., p-1\}$; em que $p = 2
     \item {\tt rctsig\_prunable} (linhas 51-132) - Segunda parte dos dados da assinatura
 %Second part of signature data
     \item {\tt nbp} (linha 52) -- Número de provas de domínio
-    \emph{Bulletproof} neste espécime. A prova única cobre as duas saídas.
+    \emph{Bulletproof} neste exemplo. A prova única cobre as duas saídas.
 %Number of Bulletproof range proofs in this transacção
     \item {\tt bp} (linhas 53-80) - elementos da prova {\em Bulletproof}\vspace{.175cm}
 %Bulletproof proof elements (Bulletproofs were not explored in this document, so we will not itemize further)
@@ -404,10 +404,17 @@ reward: 4634817937431
 %Genesis Block}
 \label{appendix:genesis-block}
 
-Neste apêndice mostra-se a estrutura do bloco génese, o bloco tem zero transacções, só envia o primeiro subsídio de bloco para thankful\_for\_today \cite{bitmonero-launched}). O fundador de Monero não adicionou um carimbo no tempo, talvez uma marca de Bytecoin, a moeda da qual provêm o código fonte de Monero. Mais sobre a história de Bytecoin pode ser lida aqui \cite{monero-history}, e aqui \cite{bytecoin-network}.  
+Este apêndice mostra a estrutura do bloco de génese. O bloco não contém
+transacções normais; contém apenas a transacção de mineiro que atribui a
+primeira subvenção a thankful\_for\_today \cite{bitmonero-launched}. O campo de
+carimbo temporal tem valor zero. O código inicial de Monero derivou de
+Bytecoin, cuja história é descrita em \cite{monero-history,bytecoin-network}.
 %In this appendix we show the structure of the Monero genesis block. The block has 0 transactions (it just sends the first block reward to thankful\_for\_today \cite{bitmonero-launched}). Monero's founder did not add a timestamp, perhaps as a relic of Bytecoin, the coin Monero's code was forked from, whose creators apparently tried to hide a large pre-mine \cite{monero-history}, and may operate a shady network of cryptocurrency-related software and services \cite{bytecoin-network}.
 
-O bloco 1 foi adicionado á rede com o carimbo no tempo 2014-04-18 10:49:53 UTC, assume-se que o bloco 0, de génese tenha sido minerado no mesmo dia. Isto corresponde com a data de lançamento anunciada por thankful\_for\_today \cite{bitmonero-launched}.
+O bloco 1 foi adicionado à rede com o carimbo temporal
+2014-04-18 10:49:53 UTC. É plausível que o bloco 0 tenha sido minerado no
+mesmo dia, em concordância com a data de lançamento anunciada por
+thankful\_for\_today \cite{bitmonero-launched}.
 %Block 1 was added to the blockchain at timestamp 2014-04-18 10:49:53 UTC (as reported by the block's miner), so we can assume the genesis block was created the same day. This corresponds with the launch date announced by thankful\_for\_today \cite{bitmonero-launched}.
 
 \begin{Verbatim}[commandchars=\\\{\}, numbers=left]

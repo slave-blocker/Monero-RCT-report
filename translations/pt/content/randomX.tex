@@ -1,61 +1,55 @@
-\chapter{RandomX: a máquina que muda de ideias}
+\chapter{RandomX: função de prova de trabalho}
 \label{chapter:randomx}
 \label{page:randomx-start}
 
-\begin{quote}
-Um ASIC nasce sabendo uma profissão e, como certos cavalheiros de fortuna,
-dedica o resto da vida a impedir que se note quão poucas coisas sabe fazer.
-RandomX oferece-lhe uma profissão nova a cada tentativa.
-\end{quote}
-
-No capítulo anterior deixámos o mineiro diante de uma condição curta. Dado o
+No capítulo anterior, a validade da prova de trabalho foi reduzida a uma
+condição curta. Dado o
 objecto de hash de um bloco, uma dificuldade \(d\) e um resultado de prova de
 trabalho \(h_{\rm PoW}\), o bloco passa quando
 \begin{align}
  h_{\rm PoW}\,d\leq 2^{256}-1.
  \label{eq:randomx-difficulty-check}
 \end{align}
-Nada nessa desigualdade diz quanto custa produzir \(h_{\rm PoW}\). Uma função
-hash vulgar faz sempre a mesma sequência de operações. Um circuito construído
-para essa sequência pode deitar fora tudo o que não usa e repetir o resto com
-uma eficiência que um processador geral dificilmente alcança. A matemática do
-alvo continua impecável; a economia de quem o procura mudou de dono.
+Nada nessa desigualdade determina o custo de produzir \(h_{\rm PoW}\). Uma
+função hash convencional executa sempre a mesma sequência de operações. Um
+circuito construído especificamente para essa sequência pode omitir recursos
+que ela não utiliza e superar a eficiência de um processador geral.
 
 RandomX é a função de prova de trabalho activa em Monero desde a versão 12.
 Foi desenhada para estreitar a vantagem entre processadores de uso geral e
-máquinas especializadas. Em vez de pedir a cada tentativa a mesma receita,
+máquinas especializadas. Em vez de repetir em cada tentativa uma sequência
+fixa,
 gera programas imprevisíveis, executa-os numa máquina virtual, movimenta um
 conjunto grande de memória e condensa o estado final num hash de 256 bits
 \cite{randomx-spec-v1,randomx-design-v1}. O nome vem daí: execução aleatória.
 
-Convém declarar já a modéstia da promessa. RandomX não demonstra que um ASIC é
-impossível, nem identifica uma essência metafísica chamada «CPU». Prende o
+RandomX não demonstra que um ASIC é impossível, nem define uma CPU por uma
+propriedade abstracta. Associa o
 trabalho a uma colecção ampla de recursos que os processadores correntes já
 possuem: aritmética inteira, vírgula flutuante, registos, vários níveis de
 memória, saltos, execução especulativa e largura para instruções independentes.
-Uma máquina especializada pode reproduzi-los; a esperança é que, ao terminar,
-tenha pago por grande parte de um processador.
+Uma máquina especializada pode reproduzi-los, mas tem de implementar uma
+parte substancial dos recursos presentes num processador geral.
 
 Este capítulo não reproduz programas, instruções de montagem ou funções do
-código. Trataremos RandomX como tratámos uma assinatura: entradas, estado,
-transformações e condições de segurança. A implementação consultada fixa a
-versão 1.2.3 de RandomX como submódulo do código Monero fotografado em Agosto
+código. A análise usa entradas, estado, transformações e condições de
+segurança. A implementação consultada fixa a versão 1.2.3 de RandomX como
+submódulo da revisão do código Monero consultada em Agosto
 de 2026 \cite{monero-source-v16,randomx-spec-v1}. Cada parâmetro numérico
 abaixo pertence a essa instanciação.
 
 
-\section{Uma fábrica demasiado perfeita}
+\section{Especialização de hardware numa função fixa}
 \label{sec:randomx-fixed-work}
 
-Suponhamos primeiro uma prova de trabalho de receita fixa,
+Considere-se primeiro uma prova de trabalho definida por uma função fixa,
 \begin{align*}
  h=F(B,n),
 \end{align*}
 onde \(B\) representa a parte fixa do bloco e \(n\) o argumento que o mineiro
-vai alterando. Um processador geral lê instruções que dizem como avaliar
-\(F\). Um circuito especializado pode transformar a própria fábrica numa
-imagem de \(F\): não precisa de compreender outras instruções, guardar estados
-que nunca aparecem ou servir amanhã para escrever uma carta.
+altera. Um processador geral interpreta instruções para avaliar \(F\). Um
+circuito especializado pode implementar directamente \(F\), sem suportar
+instruções ou estados que essa função nunca utiliza.
 
 Se uma unidade de capital compra \(r\) tentativas por segundo em equipamento
 geral e \(\alpha r\) em equipamento especializado, \(\alpha>1\) é a vantagem
@@ -71,11 +65,9 @@ capital produz mais de metade das tentativas. O modelo ignora electricidade,
 preço do equipamento e concorrência entre fabricantes, mas mostra por que a
 eficiência do dispositivo acaba por ser uma questão de consenso económico.
 
-RandomX procura aproximar \(\alpha\) de 1. Não o faz proibindo fábricas ou
-concedendo licenças de mineração. O protocolo, com uma falta de vocação
-burocrática que talvez lhe fique bem, não manda fiscais examinar silício;
-limita-se a apresentar a qualquer máquina a mesma conta de memória, cálculo e
-imprevisibilidade. Quem a pagar melhor pode entrar.
+RandomX procura aproximar \(\alpha\) de 1 impondo a qualquer dispositivo os
+mesmos requisitos de memória, cálculo e imprevisibilidade. O protocolo não
+restringe a arquitectura usada para os satisfazer.
 
 A mudança essencial é passar de uma função fixa para uma família de funções
 determinada por uma chave de época \(K\):
@@ -87,19 +79,19 @@ Aqui \(H\) é o objecto de hash do bloco, incluindo o nonce, e \(K\) deriva de
 um bloco anterior. Para cada tentativa, os bytes derivados de \(H\) escolhem
 os programas; de época para época, \(K\) muda a grande tabela de memória que
 esses programas consultam. Todos conseguem reconstruir ambas as coisas. O que
-ninguém consegue é escolher uma receita curta e conservá-la durante anos.
+um dispositivo não pode conservar uma única sequência curta de operações
+durante todas as épocas.
 
 
-\section{A viagem inteira num mapa}
+\section{Estrutura completa de uma avaliação}
 \label{sec:randomx-map}
 
-Antes de entrarmos na casa das máquinas, vejamos as duas estradas que se
-encontram no cálculo. A estrada superior começa na cadeia: um bloco antigo
-fornece \(K\), de que nascem uma \emph{Cache} de 256 MiB e um \emph{Dataset}
-de aproximadamente 2080 MiB. Essa preparação vale para muitas tentativas da
-mesma época. A estrada inferior começa no bloco candidato: \(H\) inicializa o
-espaço de trabalho e a sucessão de oito programas. O Dataset intervém em cada
-volta; o estado final fornece o resultado.
+O cálculo tem duas entradas principais. Um bloco anterior fornece \(K\), da
+qual se derivam uma \emph{Cache} de 256 MiB e um \emph{Dataset} de
+aproximadamente 2080 MiB. Esta preparação é reutilizada em muitas tentativas
+da mesma época. O bloco candidato fornece \(H\), que inicializa o espaço de
+trabalho e a sucessão de oito programas. O Dataset intervém em cada volta e o
+estado final determina o resultado.
 
 \begin{center}
 \begin{tikzpicture}[>=stealth,node distance=.72cm and .55cm,
@@ -133,22 +125,22 @@ Este desenho já separa três tempos que facilmente se confundem:
  ao seguinte uma nova semente.
 \end{enumerate}
 
-O mineiro repete a estrada inferior muitas vezes. Um nó que recebe um bloco só
-precisa de a percorrer uma vez para verificar a prova. O Dataset torna essa
+O mineiro repete a avaliação dependente de \(H\) muitas vezes. Um nó que
+recebe um bloco só precisa de a executar uma vez para verificar a prova. O
+Dataset torna essa
 avaliação rápida quando está materializado; a Cache permite obter exactamente
-o mesmo resultado com menos memória e mais tempo. Esta equivalência será a
-dobradiça do capítulo.
+o mesmo resultado com menos memória e mais tempo.
 
 
-\section{A chave que chega sessenta e quatro blocos depois}
+\section{Derivação e atraso da chave de época}
 \label{sec:randomx-seed}
 
 Se o próprio mineiro pudesse escolher \(K\), procuraria uma chave que gerasse
-um Dataset particularmente favorável ao seu equipamento. A prova de trabalho
-passaria a incluir uma segunda lotaria, disputada antes da lotaria visível. A
-chave deve portanto vir da cadeia e mudar; mas não pode vir do bloco que se
-está a minerar, pois então o nonce também escolheria o terreno onde será
-testado.
+um Dataset particularmente favorável ao seu equipamento. A procura da chave
+introduziria uma etapa de selecção anterior à procura do nonce. A chave deve
+portanto derivar da cadeia e mudar, mas não pode derivar do bloco que está a
+ser minerado, pois nesse caso o nonce também influenciaria os dados usados na
+própria avaliação.
 
 Monero divide as alturas em épocas de
 \begin{align*}
@@ -158,7 +150,7 @@ e introduz um atraso de
 \begin{align*}
  L=64\text{ blocos}.
 \end{align*}
-Para uma altura candidata \(h\), a função usada na fotografia do código
+Para uma altura candidata \(h\), a função usada na revisão do código consultada
 escolhe a altura-semente
 \begin{align}
  s(h)=
@@ -173,7 +165,7 @@ convenção exacta das alturas no nó. Em regime normal, a chave do bloco
 \(jE\) começa a servir aos candidatos depois de existirem os 64 blocos
 intermédios \(jE+1,\ldots,jE+64\).
 
-Por exemplo, ponhamos \(E=16\) e \(L=3\) num relógio de brincar. A semente da
+Por exemplo, com \(E=16\) e \(L=3\), a semente da
 altura 32 fica conhecida quando esse bloco entra na cadeia, mas só governa a
 mineração a partir da altura 36:
 
@@ -204,36 +196,31 @@ também essa história.
 
 A mudança a cada 2048 blocos equilibra dois custos. Se \(K\) mudasse a cada
 bloco, os mineiros teriam de reconstruir gigabytes de Dataset antes de cada
-nova corrida. Se nunca mudasse, uma fábrica poderia ser afinada ou até gravada
-para uma tabela eterna. Com blocos de dois minutos, uma época dura cerca de
+nova tentativa. Se nunca mudasse, um dispositivo poderia ser optimizado para
+uma tabela permanente. Com blocos de dois minutos, uma época dura cerca de
 \begin{align*}
  2048\cdot2\text{ minutos}=4096\text{ minutos}
  \approx 2{,}84\text{ dias}.
 \end{align*}
-É tempo bastante para amortizar a preparação e curto bastante para que a
-memória continue sendo um objecto da cadeia, não mobília de fábrica.
+Este intervalo permite amortizar a preparação, mas exige a substituição
+periódica dos dados dependentes da cadeia.
 
 
-\section{Duas memórias entram numa hospedaria}
+\section{Cache e Dataset}
 \label{sec:randomx-two-memories}
 
-Entram a Cache e o Dataset numa hospedaria. A primeira traz 256 MiB e pede um
-quarto; o segundo traz perto de 2080 MiB, exige a cave, a despensa e uma ala do
-edifício. O estalajadeiro pergunta qual deles faz o trabalho. «Ambos», responde
-a Cache, «mas ele chegou mais cedo.»
-
-A anedota contém a construção inteira. A chave \(K\) alimenta Argon2d, uma
+A chave \(K\) alimenta Argon2d, uma
 função deliberadamente intensiva em memória \cite{argon2-paper}. Nesta
 instanciação, Argon2d preenche 262144 blocos de 1 KiB, numa só pista, e faz
 três passagens. O resultado final da fase de preenchimento --- não o resumo
 curto normalmente devolvido por uma função de derivação de chave --- é a
 Cache:
 \begin{align}
- C_K=(C_K[0],C_K[1],\ldots,C_K[m-1]),qquad |C_K|=256\text{ MiB}.
+ C_K=(C_K[0],C_K[1],\ldots,C_K[m-1]),\qquad |C_K|=256\text{ MiB}.
  \label{eq:randomx-cache}
 \end{align}
 
-Da Cache nasce o Dataset. Ele contém 34078719 itens de 64 bytes, pouco menos
+O Dataset deriva da Cache. Contém 34078719 itens de 64 bytes, pouco menos
 de 2080 MiB. Cada item pode ser calculado separadamente. Se \(i\) for o seu
 índice, escrevemos de forma abstracta
 \begin{align}
@@ -243,7 +230,7 @@ de 2080 MiB. Cada item pode ser calculado separadamente. Se \(i\) for o seu
 onde \(\Phi_K\) faz oito acessos dependentes dos valores anteriores à Cache e,
 entre acessos, aplica oito funções de mistura geradas a partir de \(K\). A
 especificação chama a essa mistura \emph{SuperscalarHash}. Não é uma nona
-função hash criptográfica posta ali por cerimónia: é uma carga longa de
+função hash criptográfica adicional: é uma sequência longa de
 aritmética inteira, sobretudo multiplicações de 64 bits, escolhida para ocupar
 as unidades de execução de um processador.
 
@@ -261,13 +248,12 @@ pedir um item obriga a seguir uma cadeia de oito leituras imprevisíveis e oito
 misturas dependentes.
 
 Como os itens são independentes entre si, os mineiros podem construir o
-Dataset em paralelo quando começa uma época. Como todos derivam de \(K\), não
-é preciso publicá-lo nem confiar em quem o preparou. E como \(K\) muda, o
-Dataset é uma propriedade que se dissolve periodicamente --- uma forma de
-posse privada que nem o mais zeloso cartório conseguiria conservar.
+Dataset em paralelo no início de uma época. Como todos derivam de \(K\), não
+é preciso publicá-lo nem confiar em quem o preparou. A mudança de \(K\) exige
+uma nova construção do Dataset em cada época.
 
 
-\section{Guardar agora ou calcular depois}
+\section{Modos completo e leve}
 \label{sec:randomx-fast-light}
 
 Há duas maneiras de responder quando a máquina virtual pede \(D_K[i]\):
@@ -301,8 +287,7 @@ Os modos não são duas provas de trabalho. São duas avaliações da mesma
 função. Se a Cache, a chave e o índice forem iguais, a equação
 \eqref{eq:randomx-dataset-item} determina os mesmos 64 bytes. Um nó leve pode
 portanto verificar um bloco minerado em modo completo; o bloco não anuncia
-qual modo foi usado, tal como uma soma não anuncia se foi feita de cabeça ou
-num papel.
+qual modo foi usado.
 
 O modo completo é apropriado à repetição. Paga uma vez a construção do
 Dataset e troca cada pedido futuro por uma leitura de DRAM. O modo leve poupa
@@ -320,7 +305,7 @@ com Dataset, mas verifica ainda uma vez; o mineiro teria de pagar essa lentidão
 milhares de vezes por segundo.
 
 
-\section{Memória difícil não significa memória abundante}
+\section{Compromissos entre memória e tempo}
 \label{sec:randomx-memory-hardness}
 
 Exigir dois gigabytes sem mais cuidado não basta. Um adversário pode comprimir
@@ -328,7 +313,7 @@ a tabela, guardar apenas uma parte ou construir memória especial junto dos
 circuitos de cálculo. Uma função é chamada intensiva em memória quando reduzir
 a memória obriga a pagar um aumento desproporcionado de tempo ou trabalho.
 
-Para comparar dispositivos, o desenho de RandomX usa a intuição do produto
+Para comparar dispositivos, o desenho de RandomX usa o modelo do produto
 área--tempo
 \begin{align}
  AT=A\cdot T,
@@ -354,32 +339,30 @@ Argon2d protege a própria Cache contra reduções mais agressivas. As referênc
 de desenho estimam que, com três passagens, reduzir a memória de Argon2d para
 metade aumenta por um factor de 3423 o trabalho do melhor compromisso analisado
 \cite{memory-hard-tradeoffs,randomx-design-v1}. Esse número pertence a um
-modelo de ataque, não é uma garantia de que toda a invenção futura pagará
-exactamente 3423. A conclusão robusta é mais sóbria: não há uma interpolação
-barata entre guardar a Cache inteira e fingir que ela nunca existiu.
+modelo de ataque, não é uma garantia sobre todas as arquitecturas futuras. No
+modelo analisado, não há uma redução de baixo custo entre guardar a Cache
+inteira e recalculá-la.
 
-Há, por fim, duas latências diferentes. O Dataset vive em DRAM e custa uma
-viagem relativamente longa mas energeticamente natural para um processador.
-A Cache pode caber em memória muito mais próxima num ASIC. SuperscalarHash
-serve para estragar essa festa: a viagem poupada é substituída por longas
-cadeias de dependências e muitas multiplicações. O modo leve não recebe de
-presente a vantagem de ter posto 256 MiB dentro do chip.
+Há, por fim, duas latências diferentes. O Dataset reside em DRAM e cada acesso
+tem latência relativamente alta. A Cache pode caber em memória mais próxima
+das unidades de execução num ASIC. SuperscalarHash substitui parte da latência
+de memória evitada por cadeias longas de dependências e muitas multiplicações.
+Assim, colocar 256 MiB no circuito não elimina o custo computacional do modo
+leve.
 
-RandomX não impede que alguém gaste mais capital para construir memória
-melhor. Faz com que o custo seja internalizado no dispositivo que procura a
-vantagem. É uma defesa muito própria de uma rede sem porteiro: não pergunta
-quem fabricou a máquina; altera os preços relativos que ela enfrenta.
+RandomX não impede o investimento em memória mais eficiente. O objectivo é
+incorporar esse investimento no custo do dispositivo e alterar o compromisso
+entre memória e tempo.
 
 
-\section{A máquina virtual sem linhas de programa}
+\section{Máquina virtual RandomX}
 \label{sec:randomx-vm}
 
-Uma máquina virtual é um acordo sobre uma máquina imaginária. Não interessa
-se o nó real tem arquitectura x86, ARM ou RISC-V; interessa que todos concordem
-no estado inicial e na transformação causada por cada instrução imaginária.
-Um participante pode interpretar as instruções uma a uma ou traduzi-las para
-instruções nativas antes de executar. Se a tradução for correcta, o estado
-final é o mesmo.
+Uma máquina virtual especifica um estado e a transformação causada por cada
+instrução, independentemente de o nó real usar arquitectura x86, ARM ou
+RISC-V. Um participante pode interpretar as instruções uma a uma ou traduzi-las
+para instruções nativas antes da execução. Se a tradução for correcta, o
+estado final é o mesmo.
 
 Podemos condensar o estado relevante de RandomX numa tupla
 \begin{align}
@@ -406,9 +389,9 @@ Cada membro de \(\mathbf f,\mathbf e,\mathbf a\) contém duas faixas
 \emph{binary64}; as operações de vírgula flutuante actuam portanto sobre pares
 de números em 128 bits.
 
-Os registos juntos ocupam 256 bytes. O Scratchpad ocupa 2 MiB e funciona como
-mesa de trabalho de leitura e escrita. O Dataset é uma biblioteca exterior de
-leitura: enorme, comum às tentativas da época e consultada uma vez por volta.
+Os registos juntos ocupam 256 bytes. O Scratchpad ocupa 2 MiB e permite leitura
+e escrita. O Dataset é uma estrutura externa apenas de leitura, comum às
+tentativas da época e consultada uma vez por volta.
 
 Um programa \(P\) contém 256 instruções e uma configuração. Executar uma
 volta é aplicar uma função de transição
@@ -425,19 +408,17 @@ potência. Durante cada volta, endereços derivados do estado seleccionam o que
 ler e escrever; por isso, não se pode em geral saltar directamente para
 \(\mathcal S_{2048}\).
 
-\subsection{Uma língua em que todo o ruído é uma frase}
+\subsection{Codificação total das instruções}
 
-Cada instrução ocupa oito bytes. A codificação foi disposta de modo que
+Cada instrução ocupa oito bytes. A codificação foi definida de modo que
 \emph{qualquer} palavra de oito bytes seja uma instrução válida e qualquer
-sequência dessas palavras seja um programa válido. Não há parêntesis por
-fechar, nomes por declarar ou gramática que obrigue a rejeitar bytes até sair
-um texto aceitável. Basta produzir bytes pseudo-aleatórios e interpretá-los.
+sequência dessas palavras seja um programa válido. Os bytes pseudo-aleatórios
+podem portanto ser interpretados sem uma etapa de rejeição sintáctica.
 
-Isto não quer dizer que os programas sejam arbitrários no sentido de poderem
-apagar o disco ou telefonar ao vizinho. A linguagem só alcança o estado
-\eqref{eq:randomx-vm-state}; não dispõe do sistema operativo. «Todo o ruído é
-uma frase» significa apenas que todos os 64 bits de uma palavra recebem uma
-interpretação válida dentro dessa cerca.
+O programa só pode alterar o estado da equação
+\eqref{eq:randomx-vm-state}; não tem acesso ao sistema operativo. Todos os 64
+bits de cada palavra recebem uma interpretação válida dentro dessa máquina
+virtual.
 
 Os oito bytes escolhem uma operação, registos de origem e destino,
 modificadores e uma constante. Há 256 valores possíveis para a parte que
@@ -446,8 +427,7 @@ valores à mesma espécie fixa a sua frequência sem construir uma tabela de
 probabilidades separada. Se 16 dos 256 valores representassem uma operação,
 por exemplo, ela apareceria em média uma vez por cada 16 instruções.
 
-Não precisamos dos nomes das 29 espécies. Precisamos do que fazem ao custo de
-uma máquina:
+Para a análise de custo, basta agrupar as 29 espécies pelo recurso utilizado:
 
 \begin{center}
 \begin{tabular}{>{\raggedright\arraybackslash}p{2.3cm}
@@ -466,18 +446,18 @@ falhadas\\
 \end{tabular}
 \end{center}
 
-O repertório é suficientemente próximo das operações nativas para que a
-tradução seja rápida, mas suficientemente largo para que um circuito selectivo
-não possa ficar apenas com multiplicadores ou apenas com somadores. A
-especificação não pretende escrever bons programas. Pretende escrever
-programas que sejam maus de uma maneira variada e perfeitamente repetível.
+O repertório é suficientemente próximo das operações nativas para permitir
+tradução rápida, mas suficientemente amplo para impedir que um circuito
+selectivo conserve apenas multiplicadores ou apenas somadores. Os programas
+não são optimizados para uma tarefa externa; servem para distribuir de modo
+reprodutível o trabalho pelas unidades do processador.
 
 
-\section{A casa de três andares}
+\section{Hierarquia do Scratchpad}
 \label{sec:randomx-scratchpad}
 
 O Scratchpad de 2 MiB é uma só sequência de bytes, vista através de três
-janelas aninhadas:
+regiões aninhadas:
 \begin{align*}
  |M_1|&=16\text{ KiB},\\
  |M_2|&=256\text{ KiB},\\
@@ -496,11 +476,12 @@ janelas aninhadas:
 \end{tikzpicture}
 \end{center}
 
-Os nomes sugerem as caches físicas L1, L2 e L3 de um processador, mas não
-prometem uma correspondência perfeita. A maior parte das instruções de memória
-visita as duas janelas pequenas; as leituras dirigidas a \(M_1\) e \(M_2\)
+Os nomes correspondem aproximadamente às caches físicas L1, L2 e L3 de um
+processador, mas não especificam uma correspondência exacta. A maior parte das
+instruções de memória acede às duas regiões pequenas; as leituras dirigidas a
+\(M_1\) e \(M_2\)
 aparecem numa razão de aproximadamente \(3:1\), acompanhando a razão inversa
-das latências típicas. Há também dois acessos aleatórios à janela grande por
+das latências típicas. Há também dois acessos aleatórios à região grande por
 volta, e certas leituras repetidas de endereço fixo acabam naturalmente
 promovidas pela cache física.
 
@@ -517,17 +498,18 @@ Como há \(8\cdot2048=16384\) voltas numa tentativa, isto dá aproximadamente
  16384\cdot256&=4194304\text{ bytes}=4\text{ MiB escritos}.
 \end{align*}
 Dentro das leituras há precisamente 16384 itens de Dataset de 64 bytes, isto
-é, 1 MiB de dados pedidos à memória exterior. O volume não parece enorme; o
-custo vem de os endereços serem dependentes do estado e de cada pedido trazer
+é, 1 MiB de dados pedidos à memória exterior. O custo decorre de os endereços
+serem dependentes do estado e de cada pedido trazer
 uma linha curta depois de uma latência longa.
 
-Um varredor sequencial pode mover muitos gigabytes por segundo porque sabe já
-qual porta abrir a seguir. RandomX faz perguntas de 64 bytes cujo endereço
-nasce da resposta anterior. A largura de banda continua a importar, mas a
-latência e o número de bancos de memória tornam-se limites de paralelismo.
+Um acesso sequencial pode mover muitos gigabytes por segundo porque o endereço
+seguinte é conhecido antecipadamente. Em RandomX, cada pedido de 64 bytes pode
+ter um endereço dependente do estado anterior. A largura de banda continua a
+importar, mas a latência e o número de bancos de memória também limitam o
+paralelismo.
 
 
-\section{O paralelismo que não se vê na página}
+\section{Paralelismo ao nível de instruções}
 \label{sec:randomx-ilp}
 
 Considere-se uma sequência abstracta de quatro operações:
@@ -537,24 +519,22 @@ Considere-se uma sequência abstracta de quatro operações:
 As duas primeiras não dependem uma da outra e podem avançar ao mesmo tempo.
 A terceira espera por \(u\); a quarta espera por \(v\) e \(w\). Um processador
 \emph{superscalar} possui várias unidades capazes de executar operações no
-mesmo ciclo. Um processador \emph{fora de ordem} não fica cerimoniosamente
-parado diante de \(w\): adianta qualquer trabalho cujos operandos estejam
-prontos.
+mesmo ciclo. Um processador \emph{fora de ordem} pode adiantar operações cujos
+operandos estejam prontos enquanto aguarda por \(w\).
 
 RandomX gera instruções com dependências e independências misturadas. O
-processador corrente investiu enorme área em descobrir estas últimas,
+processador corrente dedica uma área substancial a descobrir estas últimas,
 renomear registos e manter muitas operações em voo. Um circuito simples que
 execute pela ordem escrita desperdiça essa estrutura. Um ASIC sofisticado
 pode reproduzi-la, mas paga pela sofisticação que pretendia evitar.
 
-Os saltos condicionais acrescentam outro embaraço. Cada salto depende de um
+Os saltos condicionais acrescentam outro custo. Cada salto depende de um
 valor obtido em execução e tem probabilidade aproximada de \(1/256\) de ser
 tomado. Prever «não salta» é quase sempre correcto; quando falha, o trabalho
 especulativo é abandonado. As regras de destino impedem ciclos infinitos: o
-registo que controla o salto não é alterado no trecho para onde ele volta, de
-modo que o mesmo salto não pode continuar a inventar eternidade. Nesta
-construção, um salto condicional pode voltar para trás no máximo duas vezes
-seguidas.
+registo que controla o salto não é alterado no trecho para onde ele volta.
+Nesta construção, um salto condicional pode voltar para trás no máximo duas
+vezes seguidas.
 
 Uma simulação simplificada publicada com o desenho mediu o programa de 256
 instruções em dez processadores imaginários. O modelo mais simples, com uma
@@ -562,23 +542,17 @@ unidade aritmética, uma unidade de memória, ordem fixa e sem especulação,
 precisou em média de 293 ciclos. Um modelo com quatro unidades aritméticas,
 duas de memória, execução fora de ordem e especulação precisou de 64
 \cite{randomx-design-v1}. Os números não prevêem um processador comercial;
-mostram que os programas recompensam justamente os mecanismos caros que já
-existem nos processadores gerais.
+mostram que os programas utilizam mecanismos já presentes nos processadores
+gerais.
 
-Há aqui uma inversão curiosa. Uma função hash fixa costuma ser desenhada para
-ter uma estrutura limpa, fácil de analisar e de implementar em paralelo.
-RandomX usa primitivas criptográficas limpas nas fronteiras, mas põe no centro
-uma pequena desordem administrativa. O caos não é um defeito do programa; é o
-produto vendido ao hardware especializado.
+Uma função hash fixa costuma ter uma estrutura regular e fácil de implementar
+em paralelo. RandomX usa primitivas criptográficas regulares nas fronteiras e
+uma sequência irregular de instruções na máquina virtual. Essa irregularidade
+aumenta o custo de especialização do hardware.
 
 
-\section{Oito programas entram num bar}
+\section{Encadeamento de oito programas}
 \label{sec:randomx-eight-programs}
-
-O empregado olha para os oito programas e pergunta quem paga. O primeiro
-aponta para o segundo, o segundo para o terceiro, e assim por diante. O oitavo
-aponta para o hash final. Ninguém pode sair discretamente deixando apenas os
-programas caros à mesa, porque cada um traz no bolso a semente do seguinte.
 
 Esta corrente resolve o \emph{problema do programa fácil}. O tempo \(T\) de um
 programa aleatório não é constante. Programas com mais dependências, divisões
@@ -607,7 +581,7 @@ Antes de executar \(P_j\), o mineiro não conhece o estado que gerará
 \(P_{j+1}\). Pode abandonar a corrente quando vê um sucessor indesejável, mas
 nesse caso perde todos os programas já executados.
 
-\subsection{O preço de ser esquisito}
+\subsection{Custo da filtragem de programas}
 
 Suponhamos que uma máquina aceita apenas uma fracção \(Q\) dos programas e
 detecta gratuitamente os restantes. Para terminar uma corrente de \(N\)
@@ -633,7 +607,7 @@ tudo. Para \(Q=3/4\), obtemos:
 \end{tabular}
 \end{center}
 
-Imagine agora que, nos programas aceites, o dispositivo é 50\% mais rápido
+Considere-se agora um dispositivo que, nos programas aceites, é 50\% mais rápido
 do que uma CPU. A sua velocidade relativa, ignorando todos os outros custos,
 é
 \begin{align*}
@@ -644,11 +618,11 @@ fica em cerca de
 \begin{align*}
  \frac{12}{27}\approx0{,}44.
 \end{align*}
-O dispositivo brilhante para três quartos da linguagem torna-se menos de
-metade tão rápido por resultado. A corrente não torna impossível rejeitar;
-torna cara a selectividade.
+O dispositivo optimizado para três quartos da linguagem fica com menos de
+metade da velocidade da CPU por resultado. A corrente não impede a rejeição,
+mas aumenta o custo da selectividade.
 
-\subsection{Somar também domestica a cauda}
+\subsection{Variância do tempo acumulado}
 
 Se os tempos \(T_1,\ldots,T_N\) fossem independentes, com média \(\mu\) e
 variância \(\sigma^2\), o tempo total teria
@@ -662,21 +636,21 @@ O desvio relativo, ou coeficiente de variação, cairia como
  =\frac{1}{\sqrt N}\frac{\sigma}{\mu}.
  \label{eq:randomx-chain-variance}
 \end{align}
-Os programas reais ligam-se pelas sementes e não são uma experiência ideal de
-manual, mas a conta explica a intuição: somar oito durações torna a tentativa
-inteira mais regular do que apostar numa duração isolada. Fica menos cauda
-onde um seleccionador possa esconder vantagem.
+Os programas reais ligam-se pelas sementes e não são independentes. Ainda
+assim, o cálculo mostra por que a soma de oito durações tem menor variação
+relativa do que uma duração isolada, reduzindo a vantagem disponível para um
+mecanismo de selecção baseado no tempo previsto.
 
 
-\section{O contabilista de vírgula flutuante}
+\section{Aritmética de vírgula flutuante}
 \label{sec:randomx-floating-point}
 
-Uma regra de consenso deve dar o mesmo resultado em máquinas diferentes. A
-vírgula flutuante tem má reputação nesse assunto, não inteiramente imerecida:
-compiladores podem trocar a ordem das operações, guardar precisão adicional,
-contrair duas operações numa só ou tratar valores excepcionais de maneira
-diversa. RandomX usa-a precisamente porque uma unidade de vírgula flutuante é
-cara de reproduzir, mas cerca-a com regras destinadas a conservar o consenso.
+Uma regra de consenso deve dar o mesmo resultado em máquinas diferentes.
+Operações de vírgula flutuante podem divergir quando compiladores trocam a
+ordem das operações, guardam precisão adicional, contraem duas operações numa
+só ou tratam valores excepcionais de maneira distinta. RandomX usa essas
+operações porque a respectiva unidade é dispendiosa de reproduzir, mas fixa
+regras destinadas a conservar o consenso.
 
 Um número normal de dupla precisão IEEE 754 tem um bit de sinal \(s\), onze
 bits de expoente e 52 bits de fracção. O seu valor é
@@ -718,19 +692,19 @@ misturado pelos seus bits.
 Os quatro registos aditivos \(\mathbf f\) ficam num domínio em que somar um
 operando de módulo maior do que 1 ainda altera bits significativos. Caso
 contrário, uma máquina especializada poderia substituir grande parte da
-vírgula flutuante por aritmética fixa mais estreita: adicionar uma migalha a
-um número gigantesco seria sempre uma operação nula. Outra transformação muda
-bits do expoente para tornar essa representação simplificada menos atraente.
+vírgula flutuante por aritmética fixa mais estreita: a adição de um operando
+pequeno a um valor de grande módulo poderia ser sempre nula. Outra
+transformação muda bits do expoente para tornar essa representação
+simplificada menos eficiente.
 
 Um compilador que resolva associar
 \begin{align*}
  (x+y)+z\quad\text{como}\quad x+(y+z)
 \end{align*}
 pode obter outro resultado, pois cada parêntesis contém um arredondamento. Por
-isso a tradução para código nativo não tem liberdade algébrica de compilador
-optimista; deve preservar a ordem e o modo prescritos. O intérprete e o
-tradutor são dois criados encarregados da mesma contabilidade. Podem andar a
-velocidades distintas, mas não lhes é permitido acertar a coluna por intuição.
+isso, a tradução para código nativo deve preservar a ordem e o modo prescritos,
+sem aplicar reassociações algébricas. O intérprete e o tradutor podem ter
+desempenhos distintos, mas devem produzir exactamente os mesmos bits.
 
 Esta parte de RandomX é matematicamente relevante justamente porque não há uma
 prova abstracta sobre reais. Há uma função finita sobre padrões de 64 bits,
@@ -739,7 +713,7 @@ ideal \(x\circ y\); pergunta pelos bits de
 \(\operatorname{round}_\rho(x\circ y)\).
 
 
-\section{Da primeira semente ao último bit}
+\section{Derivação completa do hash}
 \label{sec:randomx-full-hash}
 
 Podemos agora descrever uma tentativa completa sem uma única linha de
@@ -758,7 +732,7 @@ As rondas de AES aqui são blocos de construção acelerados por processadores;
 não estão a cifrar uma mensagem secreta.
 
 Se \(\operatorname{RF}(\mathcal S_j)\) for o ficheiro de registos de 256 bytes
-depois de executar o programa \(P_j\), os sete elos intermédios satisfazem
+depois de executar o programa \(P_j\), os sete estados intermédios satisfazem
 \begin{align}
  S_{j+1}=\mathcal B_{512}
    \bigl(\operatorname{RF}(\mathcal S_j)\bigr),
@@ -766,7 +740,7 @@ depois de executar o programa \(P_j\), os sete elos intermédios satisfazem
  \label{eq:randomx-next-program-seed}
 \end{align}
 Cada \(S_{j+1}\) gera a configuração e o programa seguintes. O Scratchpad não
-é reiniciado entre programas; traz consigo as marcas acumuladas da tentativa.
+é reiniciado entre programas e conserva as alterações acumuladas na tentativa.
 
 Depois de \(P_7\), uma função baseada em rondas de AES percorre o Scratchpad
 inteiro e produz uma impressão de 64 bytes \(A\). Essa impressão substitui o
@@ -820,7 +794,7 @@ Scratchpad ao longo de 16384 voltas. Qualquer atalho deve reproduzir não uma
 saída isolada, mas a rede de dependências que a alimentou.
 
 
-\section{A lotaria depois da máquina}
+\section{Condição de dificuldade e probabilidade de êxito}
 \label{sec:randomx-lottery}
 
 RandomX termina onde começou o capítulo: num inteiro de 256 bits. Se tratarmos
@@ -846,12 +820,12 @@ tentativas independentes,
  \operatorname E[N]&=\frac1{p_d}\approx d,\\
  \operatorname{Var}(N)&=\frac{1-p_d}{p_d^2}.
 \end{align*}
-O mineiro não prova que executou exactamente \(d\) hashes. Pode acertar à
-primeira ou falhar muito depois da média. Prova apenas que apresentou um
-bilhete cuja raridade esperada corresponde à dificuldade.
+O mineiro não prova que executou exactamente \(d\) hashes. Pode obter êxito na
+primeira tentativa ou exceder a média. Prova apenas que apresentou um resultado
+cuja probabilidade corresponde à dificuldade.
 
-Esta lotaria é cega à marca do processador. Se o mineiro \(i\) produz \(r_i\)
-tentativas por segundo e a rede produz
+Esta condição não depende da marca do processador. Se o mineiro \(i\) produz
+\(r_i\) tentativas por segundo e a rede produz
 \begin{align*}
  R=\sum_i r_i,
 \end{align*}
@@ -866,7 +840,7 @@ transitoriamente \(R\), e a dificuldade acompanha-a. A vantagem duradoura do
 mineiro é económica, uma fracção maior das recompensas por unidade de custo.
 
 
-\section{Mercado de hashes, sem ministério dos processadores}
+\section{Economia da produção de hashes}
 \label{sec:randomx-economics}
 
 Se um bloco paga recompensa base \(B\) e taxas \(F\), o rendimento bruto
@@ -883,8 +857,8 @@ electricidade; há um incentivo persistente para procurar eficiência.
 
 Um algoritmo que favoreça fortemente um dispositivo escasso pode concentrar
 essa procura em fabricantes e operadores com acesso privilegiado. Um algoritmo
-favorável a CPUs não distribui magicamente a mineração por uma pessoa e um
-portátil. Explorações profissionais continuam a beneficiar de escala,
+favorável a CPUs não garante mineração individual nem distribuição uniforme.
+Explorações profissionais continuam a beneficiar de escala,
 electricidade barata, memória bem configurada e refrigeração. A afirmação mais
 estreita é que o principal bem de capital também tem mercados amplos e usos
 alternativos.
@@ -894,24 +868,22 @@ particular pode tornar-se sucata se a moeda mudar de algoritmo; uma CPU pode
 ser revendida ou aplicada a outra tarefa. Chamemos \(P\) ao preço de compra,
 \(V\) ao valor alternativo depois da mineração e \(L=P-V\) ao capital
 efectivamente preso. Para equipamento reaproveitável, \(V\) tende a ser maior
-e \(L\) menor. A decisão de entrar exige menos fé numa licença informal
-concedida pelo protocolo ao fabricante.
+e \(L\) menor. A decisão de entrada fica menos dependente da continuidade de
+uma função de prova de trabalho específica.
 
-Há também um lado menos romântico. CPUs disseminadas podem ser abusadas por
-\emph{malware} ou redes de máquinas comprometidas. RandomX exige memória
-substancial para mineração eficiente e deixa actividade pesada mais visível,
-mas não converte computadores alheios em propriedade sem dono. Acessibilidade
-honesta e acesso criminoso são coisas diferentes; o algoritmo só consegue
-moldar custos técnicos, não redigir títulos de propriedade.
+CPUs disseminadas também podem ser abusadas por \emph{malware} ou redes de
+máquinas comprometidas. RandomX exige memória substancial para mineração
+eficiente e torna a actividade intensiva mais visível, mas não impede o uso
+não autorizado de computadores. O algoritmo altera custos técnicos; não
+resolve o problema de autorização do equipamento.
 
-Por isso «mais igualitário» deve ser lido como objectivo relativo de desenho,
-não como distribuição prometida. O protocolo abre a praça; não reparte as
-bancas. Se muitos preferirem delegar a mineração em \emph{pools}, se a energia
-for concentrada ou se aparecer hardware superior, a potência pode concentrar-se
-mesmo com RandomX.
+Por isso, «mais igualitário» designa um objectivo relativo de desenho, não uma
+garantia de distribuição. Se muitos participantes delegarem a mineração em
+\emph{pools}, se a energia for concentrada ou se aparecer hardware superior, a
+potência pode concentrar-se mesmo com RandomX.
 
 
-\section{O que a resistência a ASIC quer dizer}
+\section{Limites da resistência a ASIC}
 \label{sec:randomx-asic-resistance}
 
 Há três afirmações de força crescente que não devemos confundir:
@@ -920,7 +892,7 @@ Há três afirmações de força crescente que não devemos confundir:
  \item RandomX \textbf{usa recursos caros de omitir}: isto pode ser modelado,
  comparado e atacado;
  \item RandomX \textbf{impede para sempre qualquer ASIC vantajoso}: isto não
- foi demonstrado e seria uma promessa imprudente.
+ foi demonstrado.
 \end{enumerate}
 
 O termo mais exacto usado no desenho é \emph{vinculação ao dispositivo}. A
@@ -931,8 +903,8 @@ não usa. Pode especializar a circulação de dados, escolher tecnologia de
 memória diferente e explorar regularidades ainda desconhecidas. Há portanto
 espaço para alguma vantagem.
 
-O obstáculo é que a vantagem não deve vir de substituir uma longa função fixa
-por uma passadeira de circuito. O dispositivo precisa de:
+O objectivo é impedir que a vantagem resulte apenas da implementação directa
+de uma longa função fixa. O dispositivo precisa de:
 \begin{itemize}
  \item executar todas as famílias de instruções, sob pena do custo de filtragem
  da equação \eqref{eq:randomx-filter-cost};
@@ -947,9 +919,9 @@ por uma passadeira de circuito. O dispositivo precisa de:
 Uma FPGA enfrenta dificuldade semelhante. Reconfigurar fisicamente o circuito
 para cada programa demoraria incomparavelmente mais do que a tentativa; manter
 um processador virtual dentro da FPGA aproxima-a justamente da máquina geral
-que pretendia superar. O espaço de programas deriva de sementes de 512 bits,
-portanto contém até \(2^{512}\) possibilidades: não há armazém onde se
-preparem antecipadamente circuitos para todas.
+que pretendia superar. O espaço de programas deriva de sementes de 512 bits e
+contém até \(2^{512}\) possibilidades, o que impede a preparação antecipada de
+um circuito distinto para cada programa.
 
 Nem todos estes argumentos têm o mesmo estatuto. A igualdade dos modos leve e
 completo e a transição da máquina virtual pertencem à especificação. A
@@ -964,9 +936,9 @@ Uma boa exposição deve dizer onde acaba a função e começa a previsão.
 RandomX foi submetido em 2019 a quatro auditorias independentes, por Trail of
 Bits, X41 D-Sec, Kudelski Security e QuarksLab. Os relatórios não registaram
 vulnerabilidades críticas; encontraram questões e recomendações que levaram a
-alterações no algoritmo e na implementação \cite{randomx-audits}. Isto é
-evidência valiosa, não uma canonização. As auditorias têm revisões, plataformas
-e âmbitos; não testam todo o silício futuro.
+alterações no algoritmo e na implementação \cite{randomx-audits}. As auditorias
+constituem evidência limitada às revisões, plataformas e âmbitos analisados;
+não testam hardware futuro.
 
 Também há duas espécies de actualização. Uma implementação pode corrigir a
 tradução para uma arquitectura sem mudar a função abstracta: os hashes
@@ -975,7 +947,7 @@ portanto exige coordenação de consenso. Se dois nós calcularem funções
 RandomX diferentes para o mesmo \((K,H)\), podem discordar sobre
 \eqref{eq:randomx-difficulty-check}.
 
-Na fotografia desta edição, o código principal de Monero fixa o compromisso
+Na revisão consultada para esta edição, o código principal de Monero fixa o compromisso
 RandomX 1.2.3, da linha algorítmica 1 \cite{randomx-spec-v1,monero-source-v16}.
 O projecto RandomX publicou entretanto a versão algorítmica 2
 \cite{randomx-v2-release}. Ela acrescenta trabalho na mistura dos registos de
@@ -983,17 +955,16 @@ vírgula flutuante, entre outras alterações, mas não é por isso uma regra ac
 de Monero. Substituir a biblioteca por iniciativa individual não seria uma
 optimização: seria calcular outra prova de trabalho.
 
-Esta distinção protege o leitor de um hábito perigoso. «Mais recente» é um bom
-critério para corrigir uma gralha e um péssimo critério para adivinhar
-consenso. A regra activa é a versão que todos os nós devem aplicar àquela
-altura. Uma proposta posterior pode merecer estudo sem ser contrabandeada para
-o passado.
+Uma versão mais recente pode corrigir uma falha de implementação sem alterar
+o consenso, mas não deve substituir automaticamente a versão algorítmica
+activa. A regra de consenso é a versão que todos os nós devem aplicar àquela
+altura; uma proposta posterior só se torna activa por coordenação de consenso.
 
 
-\section{Uma tentativa, de novo, sem a maquinaria}
+\section{Resumo da avaliação RandomX}
 \label{sec:randomx-summary}
 
-Reunamos a viagem. Para minerar um bloco à altura \(h\):
+Para minerar um bloco à altura \(h\):
 \begin{enumerate}
  \item calcula-se \(s(h)\) pela equação \eqref{eq:randomx-seed-height} e toma-se
  como chave \(K\) o ID desse bloco-semente;
@@ -1010,22 +981,15 @@ Reunamos a viagem. Para minerar um bloco à altura \(h\):
  \(h_{\rm PoW}d\leq2^{256}-1\).
 \end{enumerate}
 
-O verificador refaz estes passos uma vez. O mineiro volta ao nonce e refaz a
-tentativa até a lotaria o favorecer. A dificuldade mede a raridade do bilhete;
-RandomX procura determinar que espécie de oficina é mais barata para o
-imprimir.
+O verificador executa estes passos uma vez. O mineiro altera o nonce e repete a
+tentativa até obter um resultado abaixo do alvo. A dificuldade determina a
+probabilidade de êxito; RandomX procura reduzir a vantagem económica de
+hardware especializado na produção de cada tentativa.
 
-Matematicamente, não encontrámos aqui uma nova hipótese de logaritmo discreto
-nem uma prova de conhecimento zero. Encontrámos uma função determinística
-composta, uma variável geométrica, cadeias aleatórias, produtos área--tempo,
-estados finitos, arredondamentos e modelos de custo. É menos geometria de
-curvas e mais aritmética da escassez. Continua a ser matemática, apenas com o
-silício sentado à mesa.
-
-\begin{quote}
-A Cache lembra a época. O Dataset paga a memória. O Scratchpad lembra a
-tentativa. Os oito programas impedem escolher só os dias fáceis. BLAKE2b fecha
-a conta; a dificuldade decide se o recibo compra um bloco.
-\end{quote}
+A análise usa uma função determinística composta, uma variável geométrica,
+cadeias de programas, produtos área--tempo, estados finitos, arredondamentos e
+modelos de custo. A Cache e o Dataset dependem da época; o Scratchpad e os oito
+programas dependem da tentativa; BLAKE2b produz o resultado submetido à
+condição de dificuldade.
 
 \label{page:randomx-end}

@@ -6,8 +6,8 @@ partir de uma só relação \(K=kG\). Podemos agora ligar várias relações ao 
 esconder a posição da relação verdadeira num anel e, por fim, tornar as
 assinaturas ligáveis. SAG e bLSAG servirão de antepassados conceptuais; MLSAG
 explica a evolução histórica de RingCT; CLSAG é a construção usada pelas
-transacções activas na versão 16 do protocolo. Esta ordem permite-nos ver o
-mecanismo a crescer sem confundir história com consenso actual.
+transacções activas na versão 16 do protocolo. Esta ordem apresenta a extensão
+progressiva do mecanismo sem confundir história com consenso actual.
 
 Em todo o capítulo trabalhamos no subgrupo de ordem prima \(l\) e escrevemos
 \(\mathbb Z_l\) para os escalares. As listas passadas a uma função hash têm
@@ -223,10 +223,10 @@ confiança para formar o grupo e, em certas variantes, para resolver
 disputas \cite{Chaum:1991:GS:1754868.1754897}. Uma assinatura em anel segue
 outra filosofia: o signatário escolhe espontaneamente um conjunto de chaves
 públicas e não precisa da autorização nem da colaboração dos respectivos
-donos. A ideia nasceu no trabalho de Rivest, Shamir e Tauman
+donos. A construção foi introduzida por Rivest, Shamir e Tauman
 \cite{rivest-leak-secret}; Liu, Wei e Wong desenvolveram depois a variante
 ligável LSAG \cite{Liu2004}. Começaremos por SAG, sem ligação, porque o seu
-anel de desafios será a engrenagem das construções seguintes.
+anel de desafios será reutilizado nas construções seguintes.
 
 \subsection*{Declaração, testemunha e índice}
 

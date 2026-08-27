@@ -1,27 +1,27 @@
-Criptografia. A palavra pode sugerir uma matéria reservada a matemáticos e
-cientistas da computação: obscura, poderosa e, para quem lhe conhece as peças,
-elegante. Na verdade, muitos dos seus conceitos fundamentais estão ao alcance
-de qualquer leitor disposto a acompanhar o raciocínio passo a passo.
+A criptografia usa construções matemáticas e computacionais para estabelecer
+propriedades de segurança. Muitos dos conceitos fundamentais necessários neste
+livro podem ser apresentados a partir de álgebra linear básica e ciência da
+computação.
 
 Uma cripto-moeda usa criptografia para definir e transferir a posse de fundos.
 Para impedir que a mesma moeda seja gasta duas vezes ou que novas moedas sejam
 criadas arbitrariamente, as transacções são registadas numa lista de blocos
-(\emph{blockchain}): um livro de contas público e distribuído que terceiros
-podem verificar \cite{Nakamoto_bitcoin}. À primeira vista, essa verificabilidade
-parece exigir que remetentes, destinatários e montantes fiquem expostos. Monero
-mostra que não. É possível ocultar esses dados e, ainda assim, permitir que a
-rede confirme a validade das transacções \cite{cryptoNoteWhitePaper}.
+(\emph{blockchain}): um registo público e distribuído que terceiros
+podem verificar \cite{Nakamoto_bitcoin}. A verificabilidade pública não exige
+que remetentes, destinatários e montantes fiquem expostos: Monero oculta esses
+dados e permite que a rede confirme a validade das transacções
+\cite{cryptoNoteWhitePaper}.
 
 Para os leitores experientes: a rede principal usa criptografia sobre a curva
 Edwards25519 \cite{Bernstein2008}, endereços de utilização única, assinaturas
 em anel CLSAG, compromissos de Pedersen e provas de intervalo Bulletproof+.
 Cada anel tem 16 membros e as saídas incluem etiquetas de vista. RandomX
 protege a prova de trabalho; Dandelion++ intervém na difusão inicial de
-transacções, não nas regras de consenso. Este livro constrói a intuição e a
-notação necessárias antes de reunir estas peças.
+transacções, não nas regras de consenso. Este livro apresenta os fundamentos e
+a notação antes de descrever a sua composição no protocolo.
 
 A segunda edição original descreve o protocolo v12. A rede principal actual de
-Monero usa o protocolo v16, estado conferido na fotografia do código-fonte
+Monero usa o protocolo v16, estado conferido na revisão do código-fonte
 datada de 14 de Agosto de 2026 \cite{monero-source-v16}. A edição portuguesa
 está a ser revista progressivamente para esse estado; por isso, os capítulos
 de protocolo que ainda não tenham sido actualizados devem ser lidos como uma

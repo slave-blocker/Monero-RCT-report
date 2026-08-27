@@ -1,26 +1,21 @@
 \chapter{Transacções Confidenciais em Anel (RingCT)}
 \label{chapter:transactions}
 
-Depois dos capítulos \ref{chapter:addresses} e
-\ref{chapter:pedersen-commitments}, uma transacção de um remetente anónimo
-para um destinatário anónimo soa mais ou menos assim:
+Os capítulos \ref{chapter:addresses} e
+\ref{chapter:pedersen-commitments} definiram os componentes necessários a uma
+transacção RingCT. Cada saída contém uma chave de utilização única, uma
+etiqueta de visualização, um montante cifrado e um compromisso. Uma prova
+Bulletproofs+ demonstra que os montantes de saída pertencem ao intervalo de 64
+bits. Cada entrada oculta a saída gasta entre quinze desvios; a CLSAG demonstra
+conhecimento da chave de gasto e da diferença correcta de máscaras na mesma
+posição do anel. A imagem de chave permite detectar gastos repetidos, e os
+pseudo-compromissos das entradas equilibram os compromissos das saídas e a
+taxa.
 
-``A minha transacção publica uma chave de transacção e cria duas saídas,
-cada uma com o seu endereço oculto, a sua etiqueta de visualização, o seu
-montante em código e o seu compromisso. Uma única prova Bulletproofs+
-mostra que ambos os montantes cabem em 64 bits. Para pagar, gasto uma saída
-que escondo entre quinze desvios. A assinatura CLSAG mostra que conheço a
-chave de gasto e a abertura correcta de um dos compromissos do anel, sem
-dizer qual. A imagem de chave mostra que não gastei antes essa mesma saída.
-Finalmente, os pseudo-compromissos das entradas equilibram os compromissos
-das saídas e a taxa.''
-
-É uma frase curta para um mecanismo com muitas rodas dentadas. Ainda ficam
-as perguntas certas. O remetente possui mesmo uma das saídas de cada anel?
-O montante escondido nessa saída é o montante colocado no respectivo
-pseudo-compromisso? Nenhuma saída cria dinheiro? E será que alguém mudou o
-destinatário, a taxa, os anéis ou as provas depois de a transacção ter sido
-assinada?
+É necessário verificar quatro propriedades: o remetente conhece uma chave de
+gasto em cada anel; o montante da saída real coincide com o usado no
+pseudo-compromisso; as saídas não criam valor; e a assinatura autentica o
+destinatário, a taxa, os anéis e as provas da transacção.
 
 As respostas vêm de três construções que já conhecemos:
 
@@ -32,17 +27,17 @@ As respostas vêm de três construções que já conhecemos:
     \item a assinatura CLSAG da secção \ref{sec:CLSAG}.
 \end{itemize}
 
-Este capítulo encaixa essas peças nos bytes que a versão 16 aceita. As
-afirmações acerca da implementação referem-se à fotografia do código Monero
+Este capítulo relaciona esses componentes com os bytes que a versão 16 aceita.
+As afirmações acerca da implementação referem-se à revisão do código Monero
 identificada no resumo inicial. Nesse estado, a versão 16 activou-se na rede
 principal à altura \(2\,689\,608\) e
-é a última versão agendada. Isto é um retrato verificável dessa revisão, não
-uma promessa de que o protocolo nunca mais mudará.\footnote{Veja-se
+é a última versão agendada. Esta descrição é verificável para essa revisão e
+não afirma que o protocolo permanecerá inalterado.\footnote{Veja-se
 \texttt{src/hardforks/hardforks.cpp} para a agenda da rede principal e
 \texttt{src/cryptonote\_config.h} para as constantes de cada versão.}
 
 
-\section{O caminho activo: \texttt{RCTTypeBulletproofPlus}}
+\section{Formato activo: \texttt{RCTTypeBulletproofPlus}}
 \label{sec:RCTTypeBulletproofPlus}
 
 Uma transacção ordinária criada pelo programa de referência na versão 16
@@ -66,18 +61,18 @@ declarada. Nenhuma destas duas propriedades esconde tudo: a taxa, o número
 de entradas, o número de saídas, os membros de cada anel, as imagens de
 chave e o campo \texttt{extra} continuam públicos.
 
-\subsection*{Uma placa de arquivo: \texttt{RCTTypeBulletproof2}}
+\subsection*{Formato histórico: \texttt{RCTTypeBulletproof2}}
 \label{sec:RCTTypeBulletproof2}
 
 O tipo `4', \texttt{RCTTypeBulletproof2}, pertence à história do
 protocolo. Usava Bulletproofs e MLSAG, e era o tipo activo na versão 12
 descrita pela edição anterior deste relatório. O apêndice
 \ref{appendix:RCTTypeBulletproof2} conserva uma transacção real desse período
-como espécime histórico: é óptima para aprender a ler os bytes, mas não é um
-molde de uma nova transacção v16. Entre os dois extremos existiu ainda o
+como exemplo histórico para a leitura dos bytes, mas não representa uma nova
+transacção v16. Entre os dois extremos existiu ainda o
 tipo `5', \texttt{RCTTypeCLSAG}, que já trocava MLSAG por CLSAG mas ainda não
 usava Bulletproofs+. Os tipos `1'--`5' continuam necessários para validar a
-história da cadeia; na versão 16 não são o caminho para novas transacções
+história da cadeia; na versão 16 não são permitidos em novas transacções
 ordinárias.\footnote{As transições estão codificadas em
 \texttt{src/cryptonote\_core/blockchain.cpp}: CLSAG é admitida desde v13,
 Bulletproofs+ desde v15, e v16 deixa de admitir os Bulletproofs anteriores
@@ -87,7 +82,7 @@ em novas transacções.}
 \subsection{Compromissos a montantes e taxas de transacção}
 \label{sec:commitments-and-fees}
 
-Um moneriano recebeu \(m\) saídas com montantes
+Um remetente recebeu \(m\) saídas com montantes
 \(a_1,\ldots,a_m\), endereços ocultos
 \(P_{\pi_1,1},\ldots,P_{\pi_m,m}\) e compromissos
 \begin{align*}
@@ -126,7 +121,7 @@ Para cada entrada cria também um pseudo-compromisso
  \widetilde C^a_j=x'_jG+a_jH.
 \end{align*}
 As primeiras \(m-1\) pseudo-máscaras \(x'_j\) são escolhidas ao acaso. A
-última fecha a cortina sem deixar uma frincha:
+última é determinada pela condição de balanço:
 \begin{align*}
  x'_m=\sum_{t=1}^{p}y_t-\sum_{j=1}^{m-1}x'_j\pmod l.
 \end{align*}
@@ -147,7 +142,7 @@ O programa de referência baralha as saídas antes de lhes atribuir os índices
 da carteira; o consenso recebe apenas a ordem final.
 
 
-\subsection{O que nasce em cada saída}
+\subsection{Dados de cada saída}
 
 Para a saída \(t\), o remetente escolhe a chave de transacção apropriada e
 calcula a derivação partilhada \(D_t\), o escalar
@@ -167,12 +162,12 @@ byte de
 A etiqueta deixa a carteira rejeitar quase todas as saídas alheias antes de
 fazer o trabalho mais caro; não é uma prova de propriedade.
 
-O montante em código contém apenas oito bytes:
+O montante cifrado contém apenas oito bytes:
 \begin{align*}
  b_t\oplus_8
  \mathcal H(``\texttt{amount}''\,\|\,h_t)[0\ldots7].
 \end{align*}
-A máscara não viaja cifrada ao lado do montante. O destinatário volta a
+A máscara não é transmitida cifrada ao lado do montante. O destinatário volta a
 calcular \(y_t\) pela fórmula anterior e confirma que o compromisso publicado
 é \(C^b_t=y_tG+b_tH\). Esta confirmação é importante:
 decifrar oito bytes com aspecto razoável não basta para possuir uma saída.
@@ -210,12 +205,12 @@ O objecto serializado é
  (A,A_1,B,r_1,s_1,d_1,\mathbf L,\mathbf R).
 \end{align*}
 Os compromissos \(V_t\) não são serializados dentro da prova: o nó
-reconstrói-os a partir dos \(C^b_t\) que já estão na base RingCT. Há aqui uma
-convenção de cofactor que é fácil perder de vista. \texttt{outPk} guarda o
+reconstrói-os a partir dos \(C^b_t\) que já estão na base RingCT. Aplica-se a
+seguinte convenção de cofactor. \texttt{outPk} guarda o
 compromisso normal \(C^b_t\), enquanto a prova usa
-\(V_t=8^{-1}C^b_t\). Do mesmo modo, \(A,A_1,B,L_i,R_i\) viajam divididos por
-8 e o verificador multiplica-os por 8. Isto é representação no fio, não uma
-mudança do montante comprometido. A prova e a verificação completas estão na
+\(V_t=8^{-1}C^b_t\). Do mesmo modo, \(A,A_1,B,L_i,R_i\) são serializados
+divididos por 8 e o verificador multiplica-os por 8. Esta codificação não
+altera o montante comprometido. A prova e a verificação completas estão na
 secção \ref{sec:bulletproof_plus}. Os compromissos históricos do anel, os
 compromissos de saída em \texttt{outPk} e os pseudo-compromissos são
 serializados na representação normal; não se lhes aplica esta divisão por 8.
@@ -298,8 +293,8 @@ serializa, para um anel v16, dezasseis respostas
  \bar D_j=8^{-1}D_j.
 \end{align*}
 Não serializa \(I_j\) uma segunda vez. Os pesos de agregação, o ciclo de
-desafios e as equações completas estão na secção \ref{sec:CLSAG}; repeti-los
-aqui só vestiria a mesma assinatura com outro casaco.
+desafios e as equações completas estão na secção \ref{sec:CLSAG} e não são
+repetidos aqui.
 
 Em suma, a \emph{declaração pública} de uma CLSAG desta transacção contém
 \(\mathfrak m\), os dezasseis pares
@@ -307,9 +302,8 @@ Em suma, a \emph{declaração pública} de uma CLSAG desta transacção contém
 Os \emph{testemunhos privados} são o índice \(\pi_j\), a chave de utilização
 única \(p_j\) e a diferença de máscaras \(z_j=x_j-x'_j\). Os \emph{hashes} de
 agregação incluem ambas as filas, as imagens e o pseudo-compromisso; o ciclo
-de desafios usa os dois testemunhos na mesma coluna. É esta coincidência de
-índice, e não uma vaga prova de que ``alguém conhece alguma coisa'', que
-prende a chave de gasto à diferença correcta de compromissos.
+de desafios usa os dois testemunhos na mesma coluna. Esta coincidência de
+índice vincula a chave de gasto à diferença correcta de compromissos.
 
 Para \(m\) entradas, a assinatura total é
 \begin{align*}
@@ -323,8 +317,8 @@ passarem.
 
 \subsection{A mensagem que as CLSAG assinam}
 
-``Assina-se toda a transacção'' é uma boa intuição, mas não é uma descrição
-de bytes suficientemente exacta. Na revisão congelada, a mensagem anterior
+As CLSAG dependem de toda a transacção, mas essa afirmação não descreve os
+bytes com precisão suficiente. Na revisão consultada, a mensagem anterior
 às CLSAG é
 \begin{align}
  \mathfrak m=\mathcal H(h_0\,\|\,h_1\,\|\,h_2),
@@ -365,7 +359,7 @@ taxa, \texttt{extra}, os montantes em código, os compromissos de saída, a
 prova de domínio e cada pseudo-compromisso à autorização do dono. Uma
 alteração deixa de fechar pelo menos um ciclo CLSAG.
 
-Cada camada responde apenas à sua pergunta. Bulletproofs+ não prova
+Cada camada verifica apenas a sua propriedade. Bulletproofs+ não prova
 propriedade, destinatário, ausência de gasto duplo nem validade completa da
 transacção. CLSAG não prova que os novos montantes estão no domínio. A equação
 de equilíbrio não autoriza uma entrada. A transacção só é válida quando estas
@@ -461,21 +455,18 @@ em \path{src/cryptonote_core/blockchain.cpp}, a política em
 mineiro em \path{src/cryptonote_core/cryptonote_tx_utils.cpp}.}
 
 
-\subsection{o segredo público \texorpdfstring{$\gamma$}{gamma}}
+\subsection{A relação desconhecida \texorpdfstring{$\gamma=\log_GH$}{gamma}}
 \label{gamma}
 
-Chamemos ``segredo público'' ao segredo que toda a gente sabe que existe e
-ninguém deve saber qual é. O ponto \(H\) é público e, por viver no subgrupo
-gerado por \(G\), existe matematicamente um escalar \(\gamma\) tal que
+O ponto \(H\) é público e, por pertencer ao subgrupo gerado por \(G\), existe
+matematicamente um escalar \(\gamma\) tal que
 \begin{align*}
  H=\gamma G.
 \end{align*}
-O que se exige é que ninguém conheça esse escalar. A construção de \(H\) por
-\emph{hash} para ponto destina-se precisamente a não deixar uma pessoa com
-esta porta das traseiras. \(\gamma\) não é, portanto, um segredo publicamente
-conhecido: é o logaritmo discreto desconhecido por detrás de uma relação
-pública. Daqui em diante, toda a aritmética escalar desta conversa é módulo
-\(l\).
+A segurança exige que esse escalar seja desconhecido. A construção de \(H\)
+por \emph{hash} para ponto procura impedir que algum participante conheça a
+relação durante a escolha dos parâmetros. Daqui em diante, toda a aritmética
+escalar desta secção é módulo \(l\).
 
 Suponha-se, contudo, que o Óscar conhece \(\gamma\). Compra ou recebe
 \(0{,}1\) xmr numa saída já gastável que possui. Conhece a chave de gasto, o
@@ -484,9 +475,9 @@ montante
 \begin{align*}
  C^a=yG+bH.
 \end{align*}
-Não precisa de publicar um novo ponto \(C^a_{\mathrm{mau}}\). Escolhe qualquer
-montante de 64 bits e quer uma \emph{segunda abertura do mesmo ponto}; para
-continuar a história, toma \(b_{\mathrm{mau}}=100\) xmr. Define
+Não precisa de publicar um novo ponto \(C^a_{\mathrm{mau}}\). Escolhe um
+montante alternativo de 64 bits, por exemplo
+\(b_{\mathrm{mau}}=100\) xmr, e calcula uma segunda abertura do mesmo ponto:
 \begin{align}
  y_{\mathrm{mau}}
    =y+(b-b_{\mathrm{mau}})\gamma\pmod l.
@@ -500,11 +491,10 @@ Então
  &=yG+b\gamma G\\
  &=C^a.
 \end{align*}
-O ponto na cadeia não mexeu um milímetro; foi a história que o Óscar conta
-sobre ele que engordou.
+As duas aberturas representam montantes diferentes no mesmo ponto publicado na
+cadeia.
 
-Agora podemos seguir a burla até ao fim, em vez de parar à porta. Ao gastar
-a saída, o Óscar trata \(C^a\) como compromisso a
+Ao gastar a saída, o Óscar trata \(C^a\) como compromisso a
 \(b_{\mathrm{mau}}\). Escolhe uma pseudo-máscara \(x'\) e publica
 \begin{align*}
  \widetilde C^a=x'G+b_{\mathrm{mau}}H.
@@ -520,24 +510,23 @@ saída: conhecer \(\gamma\) não rouba moedas alheias por si só. Mas permite
 reabrir as próprias moedas com montantes inventados.
 
 O Óscar cria, por exemplo, duas saídas cuja soma, mais a taxa, é
-\(b_{\mathrm{mau}}\). Escolhe as máscaras de saída, fecha
+\(b_{\mathrm{mau}}\). Escolhe as máscaras de saída, satisfaz
 \eqref{eq:transaction-commitment-balance}, produz uma Bulletproofs+ válida
 para esses dois novos montantes de 64 bits e assina cada entrada. Tudo passa:
 a CLSAG conhece \(p\) e \(z\), o equilíbrio usa a abertura falsa e a prova de
 domínio só pergunta se os \emph{novos} montantes de saída estão no domínio.
-A prova de domínio que acompanhou \(C^a\) quando este nasceu demonstrava que
+A prova de domínio que acompanhou \(C^a\) quando este foi criado demonstrava que
 existia uma abertura antiga em 64 bits; não demonstrava que essa abertura
 era única, e o gasto não volta a provar o domínio das entradas.
 
-Sem \(\gamma\), o mesmo truque pediria
+Sem \(\gamma\), obter uma abertura alternativa exigiria
 \begin{align*}
  y_{\mathrm{mau}}
   =\log_G\!\left(C^a-b_{\mathrm{mau}}H\right),
 \end{align*}
-e agora, ``ah e tal'', queremos calcular um logaritmo discreto. É aqui que o
-PLD fecha a porta.
+o cálculo de um logaritmo discreto.
 
-\subsubsection*{Duas aberturas, um segredo}
+\subsubsection*{Extracção a partir de duas aberturas}
 
 O ponto essencial é que não conseguimos calcular \(\gamma\) olhando apenas
 para \(C^a\). Precisamos de conhecer duas descrições completas do mesmo ponto:
@@ -573,14 +562,14 @@ nula módulo o primo \(l\). Encontrar uma segunda abertura não trivial quebra,
 pois, a vinculação computacional e revela exactamente
 \(\gamma=\log_GH\), a relação de logaritmo discreto entre os geradores.
 
-\subsubsection*{Um exemplo pequenino}
+\subsubsection*{Exemplo num grupo de ordem 11}
 
-Imaginemos, apenas para aprender, um grupo de ordem \(11\) no qual a relação
+Considere-se um grupo de ordem \(11\) no qual a relação
 secreta é
 \begin{align*}
  H=4G.
 \end{align*}
-Neste brinquedo, portanto, \(\gamma=4\). Uma primeira abertura é
+Neste exemplo, \(\gamma=4\). Uma primeira abertura é
 \begin{align*}
  y=2,\qquad b=3.
 \end{align*}
@@ -614,20 +603,19 @@ porque \(9\cdot5=45\equiv1\pmod{11}\). Assim,
 \begin{align*}
  \gamma=3\cdot5=15\equiv4\pmod{11}.
 \end{align*}
-Recuperámos precisamente o segredo com que construímos o brinquedo.
+Recuperámos precisamente a relação usada para construir o exemplo.
 
-Vemos agora as duas direcções sem saltos:
+As duas implicações são:
 \begin{itemize}
  \item se o Óscar conhece \(\gamma\), consegue fabricar uma segunda abertura;
  \item se alguém consegue fabricar uma segunda abertura diferente e
  conhecemos as duas aberturas, conseguimos extrair \(\gamma\).
 \end{itemize}
-Uma máquina que recebesse a primeira abertura e encontrasse facilmente a
+Um algoritmo que recebesse a primeira abertura e encontrasse eficientemente a
 segunda dar-nos-ia, pela equação \eqref{eq:gamma-extraction}, um algoritmo para
-calcular \(\log_GH\). Portanto, encontrar uma segunda abertura não é uma porta
-lateral mais barata para evitar o PLD; se o fosse, essa mesma porta resolveria
-o PLD. \(\gamma\) não sai de \(C^a\) sozinho: sai da comparação entre duas
-aberturas distintas do mesmo \(C^a\).
+calcular \(\log_GH\). Portanto, encontrar uma segunda abertura é pelo menos tão
+difícil quanto resolver o PLD. \(\gamma\) não pode ser extraído apenas de
+\(C^a\); a extracção usa duas aberturas distintas do mesmo compromisso.
 
 Os 64 bits dos montantes também não encolhem o problema para 64 bits. Depois
 de escolher um candidato \(b_{\mathrm{mau}}\), o Óscar consegue calcular o
@@ -637,48 +625,46 @@ ponto
 \end{align*}
 mas continua a precisar do escalar \(y_{\mathrm{mau}}\) tal que
 \(P=y_{\mathrm{mau}}G\). Como \(G\) gera o subgrupo, qualquer montante candidato
-produz um ponto que tem algum logaritmo; o compromisso não acende uma luz para
-dizer se esse montante é o histórico. O obstáculo é calcular o logaritmo
+produz um ponto que tem algum logaritmo; o compromisso não indica se esse
+montante corresponde à abertura original. O obstáculo é calcular o logaritmo
 correspondente, um PLD no grupo inteiro, cujo tamanho é \(l\), não uma busca no
 intervalo dos montantes.
 
-Há, claro, quem se esfole a tentar arrombar esta porta. Os melhores ataques
-\emph{genéricos} clássicos conhecidos, como o método rho de Pollard, precisam
+Os melhores ataques \emph{genéricos} clássicos conhecidos, como o método rho
+de Pollard, precisam
 de uma ordem de grandeza de
 \begin{align*}
  \sqrt l
 \end{align*}
-operações de grupo: encontram uma colisão depois de explorar aproximadamente
-a raiz quadrada do espaço, pelo mesmo efeito do paradoxo dos aniversários.
+operações de grupo, devido à complexidade de colisão de ordem \(\sqrt l\).
 Aqui \(l\) está um pouco acima de \(2^{252}\), logo \(\sqrt l\) está perto de
-\(2^{126}\), cerca de \(8{,}5\times10^{37}\) operações. Mesmo uma máquina
-fantasiosa que executasse \(10^{18}\) operações de grupo por segundo levaria
-cerca de \(2{,}7\times10^{12}\) anos. Uma operação de grupo real é, de resto,
-muito mais trabalhosa do que uma instrução elementar de processador.
+\(2^{126}\), cerca de \(8{,}5\times10^{37}\) operações. À taxa hipotética de
+\(10^{18}\) operações de grupo por segundo, o cálculo levaria cerca de
+\(2{,}7\times10^{12}\) anos. Uma operação de grupo real também custa mais do
+que uma instrução elementar de processador.
 
 ``Genérico'' quer dizer que o ataque usa apenas as operações do grupo e não
 uma fraqueza especial da curva, da geração de \(H\) ou da implementação. A
 estimativa \(2^{126}\) não é uma prova de que nunca surgirá matemática melhor;
 é o nível de segurança clássico que resulta dos melhores métodos conhecidos.
-Um atalho genuíno não faria apenas o Óscar rico: abalaria todas as construções
-que dependem do mesmo PLD. É por isso que as pessoas tentam --- e é também por
-isso que não lhes basta tentar com um computador um bocadinho maior.
+Um algoritmo assintoticamente ou estruturalmente melhor afectaria todas as
+construções que dependem do mesmo PLD; aumentar moderadamente os recursos
+computacionais não altera a ordem de grandeza deste custo.
 
 O segredo de \(\gamma\) é, pois, a hipótese de \emph{vinculação} dos
 compromissos e da oferta monetária. Não é a hipótese de ocultação: com uma
 máscara uniforme, \(yG+bH\) esconde perfeitamente \(b\) mesmo de quem
-conhecesse \(\gamma\). E os muitos logaritmos que aparecem ao variar
+conhecesse \(\gamma\). Os logaritmos que aparecem ao variar
 \(b_{\mathrm{mau}}\) não são segredos independentes; são transformações
-afins da mesma porta das traseiras \(\gamma\). Se ela se abre, pode-se
-``gamar''; se fica fechada, cada transformação continua a parecer um PLD
-novo.
+afins da mesma relação \(\gamma\). Se a relação for conhecida, torna-se
+possível criar montantes; se permanecer desconhecida, cada transformação exige
+resolver um PLD.
 
-Finalmente, três gammas que partilham a letra não partilham a função. Este
+Três utilizações da letra gamma designam objectos diferentes. Este
 \(\gamma=\log_GH\) é a relação desconhecida entre geradores. A distribuição
 gamma da \texttt{gamma\_picker} escolhe idades de desvios. E os símbolos
 \(\gamma_j\) usados por vezes na literatura de Bulletproofs para máscaras de
-compromissos são apenas escalares escolhidos pelo provador. Confundi-los é
-dar a mesma alcunha ao cofre, ao carteiro e à cortina.
+compromissos são apenas escalares escolhidos pelo provador.
 
 
 \subsubsection*{Provas de domínio (saídas)}
@@ -737,21 +723,26 @@ antiga; as diferenças estão assinaladas no próprio apêndice.
 \end{itemize}
 
 \newpage
-Finalmente, uma transacção exemplo com uma entrada e duas saídas soa assim:
-
-``A transacção publica as chaves necessárias para os destinatários
-reconhecerem as saídas. Gasto uma das dezasseis saídas do meu anel. A CLSAG
-prova que conheço, na mesma posição escondida, a chave privada do endereço
-oculto e a diferença de máscaras entre o compromisso histórico e o
-pseudo-compromisso. A imagem de chave ainda não apareceu, portanto esta
-saída não foi aceite antes noutro gasto. Crio duas saídas com endereços
-ocultos, etiquetas de visualização, compromissos e montantes em código. Uma
-Bulletproofs+ prova que ambos os montantes estão no domínio de 64 bits. A
-taxa \(f\) é pública, e
-\(\widetilde C^a=C^b_1+C^b_2+fH\). A mensagem CLSAG prende o prefixo, a base
-RingCT e a prova, e a transcrição da própria CLSAG prende ainda o
-pseudo-compromisso. Não vos digo qual entrada era minha nem quanto transferi;
-dou-vos exactamente as provas necessárias para não ter de mo dizer.''
+Numa transacção com uma entrada e duas saídas, a validade exige que:
+\begin{itemize}
+ \item as chaves públicas de transacção permitam aos destinatários reconhecer
+ as respectivas saídas;
+ \item a CLSAG prove o conhecimento, na mesma posição secreta do anel, da
+ chave privada da saída e da diferença de máscaras entre o compromisso
+ histórico e o pseudo-compromisso;
+ \item a imagem de chave ainda não tenha aparecido num gasto aceite;
+ \item cada saída inclua endereço oculto, etiqueta de vista, compromisso e
+ montante cifrado;
+ \item a Bulletproof+ prove que os dois montantes pertencem ao intervalo de
+ 64 bits;
+ \item a taxa \(f\) seja pública e se verifique
+ \(\widetilde C^a=C^b_1+C^b_2+fH\); e
+ \item a mensagem CLSAG vincule o prefixo, a base RingCT e a prova, enquanto a
+ transcrição CLSAG vincula também o pseudo-compromisso.
+\end{itemize}
+Estas condições ocultam a posição real do anel e os montantes transferidos,
+sem impedir a verificação da autorização, da ausência de gasto duplo, do
+intervalo dos montantes e do equilíbrio.
 
 
 \subsection{Requisitos de espaço}

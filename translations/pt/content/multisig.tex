@@ -12,9 +12,10 @@ se um participante estiver indisponível, mas nenhum participante decide
 sozinho.
 
 Este resultado não é obtido por um tipo especial de saída. Na lista de
-blocos, o endereço partilhado parece um endereço Monero e a transacção final
-parece uma transacção RingCT vulgar. A política \(M\)-de-\(N\) vive nas
-chaves, nos dados conservados pelas carteiras e no protocolo interactivo que
+blocos, o endereço partilhado tem o formato de um endereço Monero e a
+transacção final tem o formato de uma transacção RingCT vulgar. A política
+\(M\)-de-\(N\) é aplicada pelas chaves, pelos dados conservados nas carteiras e
+pelo protocolo interactivo que
 produz a assinatura. A lista de blocos não anuncia se o dinheiro pertence a
 uma pessoa, a uma empresa ou a um grupo de co-signatários.
 
@@ -675,7 +676,7 @@ análise conceptual.
 
 Conceptualmente, cada folha de uma árvore teria uma chave pública. Um nó
 interno agregaria as chaves dos filhos segundo a sua própria regra de limiar,
-e a raiz forneceria a chave pública de gasto. Também se poderia imaginar que
+e a raiz forneceria a chave pública de gasto. Uma extensão possível permitiria que
 um «participante» de uma carteira exterior fosse ele próprio uma carteira
 interior.
 

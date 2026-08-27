@@ -35,19 +35,19 @@ Monero adopta outra estratégia. Endereços de utilização única escondem o
 destinatário na lista de blocos; assinaturas em anel tornam ambígua a saída que
 foi efectivamente gasta; e compromissos criptográficos ocultam os montantes sem
 impedir a verificação da contabilidade. O resultado é uma cripto-moeda com um
-elevado grau de privacidade e fungibilidade. Não se trata, porém, de magia: o
-comportamento do utilizador e a informação disponível fora da lista de blocos
-podem permitir alguma análise.\footnote{Para um exemplo de heurísticas
+elevado grau de privacidade e fungibilidade. Estas propriedades não eliminam a
+informação produzida pelo comportamento do utilizador ou disponível fora da
+lista de blocos, que pode permitir alguma análise.\footnote{Para um exemplo de heurísticas
 aplicadas às assinaturas em anel, veja-se \cite{monero-ring-heuristics-ryo}.}
 
 \section{Objectivos}
 \label{sec:goals}
 
-Monero nasceu em 2014 e conta com uma história continuada de desenvolvimento
+Monero foi lançado em 2014 e tem uma história continuada de desenvolvimento
 \cite{bitmonero-launched, monero-history}. Quando a segunda edição deste livro
-foi preparada, a comunidade e a adopção da moeda continuavam a crescer
-\cite{justin-defcon-2019-community-growth}.\footnote{Como retrato daquele
-período, Monero ocupava o 14.º lugar por capitalização de mercado em 14 de
+foi preparada, a comunidade e a adopção da moeda continuavam a aumentar
+\cite{justin-defcon-2019-community-growth}.\footnote{Naquele período, Monero
+ocupava o 14.º lugar por capitalização de mercado em 14 de
 Junho de 2018 e o 12.º em 5 de Janeiro de 2020; veja-se
 \url{https://coinmarketcap.com/}. Estes valores não são uma medida técnica nem
 uma afirmação sobre a posição actual.}
@@ -64,21 +64,21 @@ continuam a ser indispensáveis os artigos e as provas que a fundamentam.
 esquemas de assinatura. Tal como a primeira edição de \emph{Zero a Monero}
 \cite{ztm-1}, concentra-se no protocolo v7.}
 
-Para quem não traz consigo uma formação matemática, até os fundamentos da
-criptografia de curva elíptica podem parecer uma sucessão de portas fechadas.
+Para leitores sem formação matemática, os fundamentos da criptografia de
+curva elíptica podem exigir conceitos preliminares que outras descrições
+pressupõem.
 Uma explicação anterior do funcionamento de Monero
 \cite{MRL-0003-about-monero}, por exemplo, não desenvolvia esses fundamentos,
-era incompleta e ficou obsoleta. Este livro procura abrir as portas pela ordem
-certa: introduz os conceitos necessários, revê os algoritmos criptográficos e
-reúne uma descrição construtiva, passo a passo, do funcionamento interno de
-Monero.
+era incompleta e ficou obsoleta. Este livro introduz os conceitos necessários,
+revê os algoritmos criptográficos e reúne uma descrição construtiva, passo a
+passo, do funcionamento interno de Monero.
 
 \section{Âmbito técnico desta edição}
 \label{sec:technical-scope}
 
 A segunda edição original descreve o protocolo v12 e o programa Monero
 v0.15.x.x. A revisão portuguesa toma esse texto como ponto de partida, mas
-confere o estado corrente contra a rede principal e a fotografia do código
+confere o estado corrente contra a rede principal e a revisão do código
 identificada no resumo inicial.\footnote{Foram conferidos, entre
 outros, \path{README.md}, \path{src/hardforks/hardforks.cpp},
 \path{src/cryptonote_core/blockchain.cpp},
@@ -139,9 +139,9 @@ introdução extensa à criptografia aplicada encontra-se em
 Alguns pormenores matemáticos foram omitidos ou remetidos para notas de rodapé
 quando prejudicariam a clareza. Também não seguimos cada detalhe de
 implementação quando ele não é necessário para compreender o mecanismo. O
-objectivo é caminhar a meio caminho entre a criptografia matemática e a
-programação: suficientemente formal para não esconder as hipóteses,
-suficientemente concreto para mostrar como as peças trabalham juntas.
+objectivo é combinar criptografia matemática e implementação: apresentar as
+hipóteses formalmente e mostrar de forma concreta como os componentes se
+relacionam.
 \footnote{Certas notas de rodapé antecipam capítulos posteriores. Foram
 pensadas para ganhar utilidade numa segunda leitura, quando os detalhes de
 implementação já têm onde assentar.}
@@ -174,7 +174,7 @@ anel. No capítulo \ref{chapter:addresses}, vemos como os endereços controlam a
 recepção de fundos e por que uma saída não revela publicamente o destinatário.
 
 O capítulo \ref{chapter:pedersen-commitments} introduz compromissos e provas de
-intervalo para ocultar montantes. Reunidas as peças, o capítulo
+intervalo para ocultar montantes. Em conjunto, o capítulo
 \ref{chapter:transactions} constrói uma transacção RingCT. O capítulo
 \ref{chapter:blockchain} abre por fim a lista de blocos: mineração, dificuldade,
 emissão, peso e taxas. O capítulo \ref{chapter:randomx} segue uma tentativa de
@@ -184,16 +184,16 @@ de máquinas especializadas. O capítulo \ref{chapter:dandelion} acompanha
 depois a vida de um nó: Dandelion++ afasta a origem de uma transacção do ponto
 onde começa a difusão pública, enquanto a poda e a sincronização podada
 distribuem pela rede a conservação da história sem as confundir com
-anonimato. O capítulo \ref{chapter:fcmp-plus-plus} olha para a
+anonimato. O capítulo \ref{chapter:fcmp-plus-plus} analisa a
 alteração FCMP++ ainda em
 desenvolvimento: parte das provas de Schnorr e das árvores de curvas para
-explicar como uma entrada poderá esconder-se no conjunto de saídas da cadeia
+explicar como uma entrada poderá pertencer privadamente ao conjunto de saídas da cadeia
 inteira. Como fecho dos ``Essenciais'', o capítulo
 \ref{chapter:dlog-relations} pergunta o que aconteceria se alguém descobrisse
 as relações supostamente desconhecidas entre os geradores: quando se perde só
-privacidade, quando se abre a porta ao gasto duplo e quando aparece inflação.
-Essa posição prepara o caminho criptográfico seguinte; não transforma a
-proposta FCMP++ em regra activa da versão 16.
+privacidade, quando se torna possível o gasto duplo e quando aparece inflação.
+Esta ordem fornece a base criptográfica para a parte seguinte; não transforma
+a proposta FCMP++ em regra activa da versão 16.
 
 \subsection{Parte 2: ``Extensões''}
 
@@ -247,7 +247,7 @@ leia-as com o cuidado devido.
 
 \section{A história de Zero a Monero}
 
-\emph{Zero a Monero} nasceu como expansão da tese de mestrado de Kurt Alonso,
+\emph{Zero a Monero} começou como expansão da tese de mestrado de Kurt Alonso,
 ``Monero --- Privacy in the Blockchain'' \cite{kurt-original}, publicada em
 Maio de 2018. A primeira edição do livro apareceu em Junho desse ano
 \cite{ztm-1}.
@@ -280,6 +280,6 @@ Este relatório não existiria sem a tese de mestrado de Kurt Alonso
 Noether'' Goodell e o investigador conhecido pelo pseudónimo ``Sarang Noether'',
 do Monero Research Lab, foram fontes constantes de conhecimento durante as duas
 edições. ``moneromooo'', um dos programadores mais prolíficos do projecto,
-indicou inúmeras vezes o caminho certo através do código. Agradecemos também a
+identificou inúmeras vezes as partes relevantes do código. Agradecemos também a
 todos os contribuidores que responderam a perguntas e aos leitores que enviaram
 correcções e palavras de encorajamento.

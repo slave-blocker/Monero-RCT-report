@@ -23,7 +23,8 @@ a notação antes de descrever a sua composição no protocolo.
 A segunda edição original descreve o protocolo v12. A rede principal actual de
 Monero usa o protocolo v16, estado conferido na revisão do código-fonte
 datada de 14 de Agosto de 2026 \cite{monero-source-v16}. A edição portuguesa
-está a ser revista progressivamente para esse estado; por isso, os capítulos
-de protocolo que ainda não tenham sido actualizados devem ser lidos como uma
-descrição histórica da v12.
+foi revista relativamente a esse estado. As construções de épocas anteriores
+permanecem quando ensinam uma derivação que o protocolo moderno herdou; nesses
+casos, são identificadas expressamente como históricas. As propostas que nunca
+foram implementadas são igualmente separadas das funcionalidades disponíveis.
 %For our experienced readers: Monero is a standard one-dimensional distributed acyclic graph (DAG) cryptocurrency blockchain \cite{Nakamoto_bitcoin} where transactions are based on elliptic curve cryptography using curve Ed25519 \cite{Bernstein2008}, transaction inputs are signed with Schnorr-style multilayered linkable spontaneous anonymous group signatures (MLSAG) \cite{MRL-0005-ringct}, and output amounts (communicated to recipients via ECDH \cite{Diffie-Hellman}) are concealed with Pedersen commitments \cite{maxwell-ct} and proven in a legitimate range with Bulletproofs \cite{Bulletproofs_paper}. Much of the first part of this report is spent explaining these ideas.

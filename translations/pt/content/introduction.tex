@@ -211,7 +211,8 @@ como experimental e desactivada por omissão. O capítulo
 \ref{chapter:escrowed-market} usa multi-assinaturas para desenhar mercados com
 garantia. O capítulo \ref{chapter:txtangle} apresenta TxTangle, uma proposta
 original e descentralizada para reunir as transacções de várias pessoas numa
-só.
+só; o capítulo conserva a sua álgebra, mas deixa claro que o protocolo não foi
+implementado no Monero.
 
 \subsection{Conteúdo adicional}
 
@@ -220,12 +221,16 @@ O apêndice \ref{appendix:RCTTypeBulletproof2} disseca uma transacção
 aceita para novas transacções. O apêndice \ref{appendix:block-content} explica
 a estrutura de um bloco, incluindo o cabeçalho e a transacção de mineiro. O
 apêndice \ref{appendix:genesis-block} fecha o percurso com o bloco génese de
-Monero. Em conjunto, ligam a teoria a objectos concretos da lista de blocos.
+Monero. O apêndice \ref{appendix:nota} fixa a notação vectorial e deriva o
+termo \(\delta(y,z)\) das Bulletproofs sem saltos algébricos. Em conjunto,
+ligam a teoria a objectos concretos da lista de blocos e às identidades que os
+verificam.
 
 As notas de margem \marginnote{isto é útil!} apontam para locais relevantes no
-código-fonte. Nos capítulos ainda não revistos, os caminhos referem-se ao
-programa v0.15.x.x e podem ter mudado; a história completa continua disponível
-em Git. Uma nota contém normalmente um caminho, como
+código-fonte. Os caminhos modernos foram conferidos na revisão indicada no
+resumo; quando se conserva um caminho da v0.15.x.x para acompanhar uma
+construção histórica, o contexto assinala essa época. A história completa
+continua disponível em Git. Uma nota contém normalmente um caminho, como
 \path{src/ringct/rctOps.cpp}, e por vezes uma função, como
 \texttt{ecdhEncode()}. Um hífen num caminho estreito pode ser apenas uma quebra
 tipográfica; os qualificadores de \emph{namespace}, como

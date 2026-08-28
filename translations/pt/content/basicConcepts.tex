@@ -399,7 +399,6 @@ exemplo, se \(u=5\), o subgrupo contém \(0,P,2P,3P,4P\), e
 \(5P=0\), donde \(5P+P=P\).
 %Each point $P$ in EC can generate a subgroup of order (size) $u$ out of some of the other points in EC using multiples of itself. For example, some point $P$’s subgroup might have order 5 and contain the points $(0, P, 2P, 3P, 4P)$, each of which is in EC. 
 %which is like the `zero’ position on an EC, and has coordinates $(0, 1)$.
-%??? and has coordinates $(0, 1)$.
 %It turns out elliptic curves have {\em abelian group} structure under the addition operation described, since their point-at-infinity's are identity elements. A concise definition of this notion can be found under \url{https://brilliant.org/wiki/abelian-group/}.}
 %!!! Não é bem, porque para um subgrupo ou grupo ser cíclico só pode ter um gerador ! 
 %Conveniently, $5P + P = P$. This means the subgroup is {\em cyclic}.
@@ -456,7 +455,6 @@ Desde que $N= h l$, existe só um subgrupo de tamanho $l$.
 %Let's expand our understanding. Say there is a point $P'$ with order $N$, where $N=h l$. Any other point $P_i$ can be found with some integer $n_i$ such that $P_i=n_i P'$.
 
 %If $P_1=n_1 P'$ has order $l$, any $P_2=n_2 P'$ with order $l$ must be in the same subgroup as $P_1$ because $l P_1=0 = l P_2$, and if $l(n_1 P') \equiv l(n_2 P') \equiv N P'=0$, then $n_1$ \& $n_2$ must both be multiples of $h$. 
-%????
 %Since $N= h l$, there are only $l$ multiples of $h$, implying only one subgroup of size $l$ is possible.
 
 Put simply, the subgroup formed by multiples of $(h P')$ always contains $P_1$ and $P_2$. Furthermore, $h(n' P')=0$ when $n'$ is a multiple of $l$, and there are only $h$ such variations of $n' \pmod N$ (including the point at infinity for $n' = hl$) because when $n' = h l$ it cycles back to 0: $h l P' = 0$. So, there are only $h$ points $P$ in EC where $h P$ will equal 0.
@@ -525,7 +523,6 @@ do livro.
 \label{ec:keys}
 %Algoritmos de criptografia de chave pública, são comparáveis a aritmética modular.   
 %Public key cryptography algorithms can be devised in a way analogous to modular arithmetic.
-%??? what
 
 Escolhamos uniformemente um escalar \(k\) em \(\{1,\ldots,l-1\}\). Este
 escalar é a {\em chave privada}, também chamada chave secreta. A chave pública
@@ -675,7 +672,6 @@ um registo sem conhecer \(k\): escolhemos \(c,r\in_R\mathbb{F}_l\) e pomos
 é a propriedade de que a interacção não revela informação adicional sobre
 \(k\) além da que já estava na chave pública \(K\).
 %If $\alpha$ was chosen randomly by the prover then $r$ is randomly distributed \cite{SCOZZAFAVA1993313} and $k$ is information-theoretically secure within $r$ (it can still be found by solving the DLP for $K$ or $\alpha G$).
-%???within $r$
 %\footnote{\label{information_theoretic_note}A cryptosystem with information-theoretic security is one where even an adversary with infinite computing power could not break it, because they simply wouldn't have enough information.} 
 Há, porém, uma condição decisiva: o provador não pode reutilizar \(\alpha\).
 Se o mesmo compromisso \(A\) receber desafios distintos \(c\ne c'\) e produzir
@@ -698,7 +694,6 @@ conhecimento, salvo a probabilidade negligível de adivinhar o desafio.
 
 %Se o provador sabia $c$ do início  
 %If the prover knew $c$ from the beginning (e.g. if the verifier secretly gave it to her), she could generate a random response $r$ and compute $\alpha G = r G - c K$. When she later sends $r$ to the verifier, she `proves' knowledge of $k$ without ever having to know it. Someone observing the transcript of events between prover and verifier would be none the wiser. The scheme is not {\em publicly verifiable}. \cite{Signatures2015BorromeanRS}\\
-%??? why even mention this? Don't focus on how it does not work... but rather on how it does! 
 
 O atraso do desafio é essencial. Se conhecesse \(c\) antes de fixar \(A\), um
 impostor poderia escolher \(r\) ao acaso e definir \(A=rG-cK\); a verificação
@@ -999,7 +994,6 @@ e uma codificação canónica: têm o mesmo tamanho exterior, não o mesmo domí
 %Elements of \(\mathbb{F}_{2^{255} - 19} \) are encoded as 256-bit integers, so they can be represented using 32 bytes. Since each element only requires 255 bits, the most significant bit is always zero.
 
 %Consequently, any point in Ed25519 could be expressed using 64 bytes. By applying {\em point compression} techniques, described here below, however, it is possible to reduce this amount by half, to 32 bytes.
-%??? expressed using 64 bytes ? or 32 ?
 
 \subsection{Compressão de ponto elíptico}
 \label{point_compression_section}
@@ -1028,7 +1022,6 @@ pretendida.
 Esse bit cabe na posição 255, que estava livre na codificação de \(y\). Eis o
 procedimento conceptual para um ponto \((x,y)\):
 
-%???
 
 %If we have a curve point and know its $x$ is even, but given its $y$ value the transformed curve equation outputs an odd number, then we know negating that number will give us the right $x$. One bit can convey this information, and conveniently the $y$ coordinate has an extra bit.
 
@@ -1079,7 +1072,6 @@ O gerador convencional do subgrupo de ordem \(l\) é
 codificação usa \(y=4/5\bmod q\) e bit de sinal zero.
 
 %Implementations of Ed25519 (such as Monero) typically use the generator $G = (x,4/5)$ \cite{Bernstein2012}, where x is the `even', or $b = 0$, variant based on point decompression of \(y = 4/5 \pmod q\).
-%??? or $b = 0$, variant ?
 
 \subsection{Algoritmo de assinatura EdDSA}
 \label{EdDSA_section}
@@ -1158,7 +1150,6 @@ a sua componente de pequena ordem; não demonstra que o ponto original já
 pertencia ao subgrupo primo. Em particular, a equação cofactorizada compara os
 dois lados depois de apagar possíveis componentes de torção.
 %The $2^c$ term comes from Bernstein {\em et al.}’s general form of the EdDSA algorithm \cite{Bernstein2012}. According to that paper, though it isn’t required for adequate verification, removing $2^c$ provides stronger equations.
-%???stronger ? 
 Uma verificação explícita \(lA\stackrel{?}{=}0\), acompanhada da rejeição da
 identidade, testa se a chave pública pertence ao subgrupo de ordem \(l\). Não é
 sinónima de multiplicar toda a equação pelo cofactor. Protocolos e bibliotecas

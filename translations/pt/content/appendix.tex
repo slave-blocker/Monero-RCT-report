@@ -201,102 +201,85 @@ Found in blockchain at height 2045821
 
 
 \section*{Componentes de transacção}
-	
-\begin{itemize}
-    \item (linha 2) - O comando {\tt print\_tx} iria reportar o bloco em que foi encontrada a transacção, o que é replicado aqui com o propósito de demonstração.  
-%The command {\tt print\_tx} would report the block where it found the transacção, which we replicate here for demonstration purposes.
-		\item {\tt version} (linha 4) -- A versão de serialização da
-		transacção; `2' é a versão usada pelos formatos RingCT, históricos e
-		actuais.
-%Transacção format/era version; `2' corresponds to RingCT.
-		\item {\tt unlock\_time} (linha 5) -- Impede que as saídas sejam
-		gastas antes do limite comum. Um valor inferior a \(500\,000\,000\) é
-		uma altura de bloco; um valor a partir daí é um tempo Unix. Zero não
-		acrescenta bloqueio.
-%Prevents a transacção's outputs from being spent until the time has past. It is either a block height, or a UNIX timestamp if the number is larger than the beginning of UNIX time. It defaults to zero when no limit is specified.	
-	\item {\tt vin} (linha 6-23) - lista de entradas (existem duas aqui)
-%List of inputs (there are two here)
-		\item {\tt amount} (linha 8) -- Campo de montante visível. É zero
-		nestas entradas RingCT porque o montante está comprometido.
-%Deprecated (legacy) amount field for type 1 transactions
-		\item {\tt key\_offsets} (linha 9) -- Permitem encontrar na lista de
-		blocos as chaves e os compromissos dos membros do anel. O primeiro
-		índice é absoluto e os seguintes são diferenças relativas. Por exemplo,
-		\(\{7,11,15,20\}\) serializa-se como \(\{7,4,4,5\}\), pois
-		\(7+4+4+5=20\). Cada lista deste exemplo tem onze elementos, o tamanho
-		histórico; na versão 16 teria dezasseis (secção
-		\ref{subsec:space-and-ver-rcttypefull}).
-%This allows verifiers to find ring member keys and commitments in the blockchain, and makes it obvious those members are legitimate. The first offset is absolute within the blockchain history, and each subsequent offset is relative to the previous. For example, with real offsets \{7,11,15,20\}, the blockchain records \{7,4,4,5\}. Verifiers compute the last offset like (7+4+4+5 = 20) (Section \ref{subsec:space-and-ver-rcttypefull}).
-		\item {\tt k\_image} (linha 12) -- Imagem de chave da primeira
-		entrada. Neste exemplo é a imagem ligada pela MLSAG; nas transacções
-		actuais, a mesma posição do prefixo contém a imagem ligada pela CLSAG.
-%Key image \(\tilde{K_j}\) from Section \ref{sec:MLSAG}, where $j = 1$ since this is the first input.
-	\item {\tt vout} (linhas 24-35) - Lista de saídas (existem duas aqui)
-%List of outputs (there are two here)
-		\item {\tt amount} (linha 25) -- Campo de montante visível, zero numa
-		saída RingCT ordinária.
-		\item {\tt key} (linha 27) -- Chave do endereço oculto de destino para
-		a saída \(t=0\), como descrito na secção
-		\ref{sec:one-time-addresses}. O alvo histórico não tem o \emph{view
-		tag} que passou a ser obrigatório nas saídas v16.
-%One-time destination key for output $t = 0$ as described in Section \ref{sec:one-time-addresses}
-	\item {\tt extra} (linhas 36--39) -- Dados convencionais da carteira.
-\marginnote{\footnotesize\path{src/cryptonote_basic/tx_extra.h}} Cada número
-mostrado é
-um byte. A etiqueta `1' anuncia a chave pública de transacção \(rG\), de 32
-bytes, que permite ao destinatário derivar o segredo partilhado da secção
-\ref{sec:one-time-addresses}; por ter tamanho fixo, não leva um comprimento.
-Segue-se a etiqueta `2', um \emph{nonce} de nove bytes: o primeiro, `1',
-identifica um ID de pagamento cifrado, e os oito restantes contêm-no. As
-etiquetas dão significado convencional aos bytes; a fronteira de validação
-actual é explicada no capítulo \ref{chapter:transactions}. Vejam-se
-\cite{extra-field-stackexchange,tx-extra-field}.
-%Miscellaneous\marginnote{src/crypto- note\_basic/ tx\_extra.h} data, including the {\em transacção public key}, i.e. the share secret $r G$ of Section  \ref{sec:one-time-addresses}, and encrypted payment ID from Section \ref{sec:integrated-addresses}. It typically works like this: each number is one byte (it can be 0-255), and each kind of thing that can be in the field has a `tag' and `length'. The tag indicates which information comes next, and length indicates how many bytes that info occupies. The first number is always a tag. Here, `1' indicates a `transacção public key'. Tx public keys are always 32 bytes, so we don't need to include the length. Thirty-two numbers later we find a new tag `2' which means `extra nonce', its length is `9', and the next byte is `1' which means an 8-byte encrypted payment ID (the extra nonce can have fields inside it, for some reason). Eight bytes go by, and that's the end of this extra field. See \cite{extra-field-stackexchange} for more details. (note: in the original Cryptonote specification the first byte indicated the size of the field. Monero doesn't use that.) \cite{tx-extra-field}
-	\item {\tt rct\_signatures} (linhas 40-50) - Primeira parte dos dados de assinatura 
-%First part of signature data
-		\item {\tt type} (linha 41) -- Tipo RingCT; neste exemplo,
-		{\tt RCTTypeBulletproof2} é `4'. {\tt RCTTypeFull} e
-		{\tt RCTTypeSimple} são `1' e `2'; as transacções de mineiro usam
-		{\tt RCTTypeNull}, `0'. O caminho ordinário v16 usa
-		{\tt RCTTypeBulletproofPlus}, `6'.
-%Signature type; {\tt RCTTypeBulletproof2} is type 4. Deprecated RingCT types {\tt RCTTypeFull} and {\tt RCTTypeSimple} were 1 and 2 respectively. Miner transactions use {\tt RCTTypeNull}, type 0.
-	\item {\tt txnFee} (linha 42) - Taxa de transacção em texto claro, neste caso 0.00003246 xmr.
-%Transacção fee in clear text, in this case 0.00003246 XMR
-	\item {\tt ecdhInfo} (linhas 43-47) - ‘elliptic curve diffie-hellman Info’: 
-Montante oculto para cada uma das saídas $t \in \{0, ..., p-1\}$; em que $p = 2$
-%Obscured amount for each of the outputs $t \in \{0, ..., p-1\}$; here $p = 2$
-    \item {\tt amount} (linha 44) - O campo {\sl amount} com $t = 0$ é descrito na secção \ref{sec:pedersen_monero}.
-    \item {\tt outPk} (linhas 48-49) - Compromissos para cada saída, secção \ref{sec:ringct-introduction}.
-%Commitments for each output, Section \ref{sec:ringct-introduction}
+As linhas 2--132 misturam três camadas: o prefixo da transacção, a parte
+RingCT não podável e a parte RingCT podável. A enumeração seguinte conserva os
+nomes do JSON, mas diz expressamente a que época pertencem.
 
-    \item {\tt rctsig\_prunable} (linhas 51-132) - Segunda parte dos dados da assinatura
-%Second part of signature data
-    \item {\tt nbp} (linha 52) -- Número de provas de domínio
-    \emph{Bulletproof} neste exemplo. A prova única cobre as duas saídas.
-%Number of Bulletproof range proofs in this transacção
-    \item {\tt bp} (linhas 53-80) - elementos da prova {\em Bulletproof}\vspace{.175cm}
-%Bulletproof proof elements (Bulletproofs were not explored in this document, so we will not itemize further)
-    \[\Pi_{BP} = (A, S, T_1, T_2, \tau_x, \mu, \mathbb{L}, \mathbb{R}, a, b, t)\]
-    \item {\tt MGs} (linhas 81-129) -- Duas assinaturas MLSAG, uma por
-    entrada. Uma transacção v16 teria o vector {\tt CLSAGs}.
-%MLSAG signatures
-    \item {\tt ss} (linhas 82-103) - Componentes \(r_{i,1}\) e \(r_{i,2}\) da assinatura MLSAG para a primeira entrada.\vspace{.175cm}
-%from the first input's MLSAG signature\vspace{.175cm}
-    \[\sigma_j(\mathfrak{m}) = (c_1, r_{1, 1}, r_{1, 2}, ..., r_{v+1, 1}, r_{v+1, 2})\]
-    \item {\tt cc} (linha 104) - Componente \(c_1\) da assinatura MLSAG, para a primeira entrada.
-%from aforementioned MLSAG signature
-    \item {\tt pseudoOuts} (linhas 130-131) -- Pseudo-compromissos de saída
-    \(\widetilde C^a_j\), como descrito na secção
-    \ref{sec:pedersen_monero}. A sua soma é igual à soma dos dois compromissos
-    de saída mais o compromisso da taxa \(fH\).
-%Pseudo output commitments $C'^a_j$, as described in Section  \ref{sec:pedersen_monero}. Please recall that the sum of these commitments will equal the sum of the two output commitments of this transacção (plus the transacção fee commitment $f H$).
+\begin{itemize}
+ \item A linha 2, acrescentada por {\tt print\_tx}, indica a altura em que o nó
+ encontrou a transacção. Não pertence à sua serialização.
+
+ \item {\tt version} (linha 4) é a versão de serialização. O valor `2' abrange
+ os formatos RingCT históricos e o formato activo.
+
+ \item {\tt unlock\_time} (linha 5) impõe um limite comum às saídas. Um valor
+ inferior a \(500\,000\,000\) representa uma altura; a partir daí, representa
+ tempo Unix. Zero não acrescenta bloqueio.
+
+ \item {\tt vin} (linhas 6--23) contém as duas entradas. Em cada uma,
+ {\tt amount}=0 porque o montante RingCT não é publicado.
+
+ \item {\tt key\_offsets} codifica os índices globais dos membros do anel. O
+ primeiro é absoluto; os restantes são diferenças. Assim,
+ \(\{7,11,15,20\}\) torna-se \(\{7,4,4,5\}\). Os onze elementos de cada lista
+ pertencem à regra da época; uma transacção v16 usa dezasseis membros
+ (secção \ref{subsec:space-and-ver-rcttypefull}).
+
+ \item {\tt k\_image} é a imagem de chave da entrada. Aqui é ligada pela
+ MLSAG; numa transacção activa, a mesma posição do prefixo contém a imagem
+ ligada pela CLSAG.
+
+ \item {\tt vout} (linhas 24--35) contém duas saídas. O campo visível
+ {\tt amount} é zero e {\tt key} é o endereço oculto da secção
+ \ref{sec:one-time-addresses}. O alvo histórico não tem a etiqueta de
+ visualização obrigatória nas saídas v16.
+
+ \item {\tt extra} (linhas 36--39) contém bytes interpretados por etiquetas.
+ \marginnote{\scriptsize\path{src/cryptonote_basic/tx_extra.h}} A etiqueta
+ `1' introduz a chave pública de transacção \(rG\), de 32 bytes e comprimento
+ implícito. A etiqueta `2' introduz um \emph{nonce} de nove bytes: o primeiro,
+ `1', identifica um ID de pagamento cifrado; os oito seguintes contêm-no.
+ Estas são convenções da carteira sujeitas aos limites de consenso explicados
+ no capítulo \ref{chapter:transactions}; vejam-se
+ \cite{extra-field-stackexchange,tx-extra-field}.
+
+ \item {\tt rct\_signatures} (linhas 40--50) é a parte RingCT não podável. O
+ campo {\tt type} vale `4', isto é, o tipo histórico
+ {\tt RCTTypeBulletproof2}. O caminho v16 usa o valor `6', correspondente a
+ {\tt RCTTypeBulletproofPlus}. Finalmente, {\tt txnFee}=32\,460\,000 unidades
+ atómicas, ou \(0{,}00003246\) XMR.
+
+ \item {\tt ecdhInfo} contém, para cada saída, o montante cifrado segundo a
+ construção da secção \ref{sec:pedersen_monero}. {\tt outPk} contém os dois
+ compromissos de saída da secção \ref{sec:ringct-introduction}.
+
+ \item {\tt rctsig\_prunable} (linhas 51--132) é a parte podável. O campo
+ {\tt nbp}=1 anuncia uma única Bulletproof agregada para as duas saídas, com
+ \[
+  \Pi_{\rm BP}=(A,S,T_1,T_2,\tau_x,\mu,\mathbb L,\mathbb R,a,b,t).
+ \]
+
+ \item {\tt MGs} contém duas MLSAG, uma por entrada. Em cada assinatura,
+ {\tt ss} guarda as respostas escalares e {\tt cc} o desafio inicial. Uma
+ transacção v16 teria {\tt CLSAGs}, com outra estrutura.
+
+ \item {\tt pseudoOuts} contém os pseudo-compromissos
+ \(\widetilde C^a_j\). A equação verificável é
+ \[
+  \sum_j\widetilde C^a_j=\sum_t C^b_t+fH.
+ \]
+ Nenhum dos lados revela os montantes individuais; a igualdade apenas exclui
+ criação ou destruição oculta de valor para além da taxa.
 \end{itemize}
 
 \chapter{Conteúdo de bloco}
 \label{appendix:block-content}
 
-Neste apêndice mostra-se a estrutura de um bloco, nomeadamente o bloco n° 1582196. Este bloco contêm 5 transacções, e foi minerado para a lista de blocos com o carimbo no tempo 2018-05-27 21:56:01 UTC, pelo seu mineiro.
-%In this appendix we show the structure of a sample block, namely the 1582196\nth block after the genesis block. The block has 5 transactions, and was added to the blockchain at timestamp 2018-05-27 21:56:01 UTC (as reported by the block's miner).
+Este apêndice abre o bloco de altura \(1\,582\,196\). Além da transacção de
+mineiro, contém cinco transacções ordinárias. O mineiro declarou o instante
+2018-05-27 21:56:01 UTC; como vimos no capítulo \ref{chapter:blockchain}, um
+carimbo temporal de bloco é uma entrada limitada pelo consenso, não o
+testemunho infalível de um relógio.
 
 \begin{Verbatim}[commandchars=\\\{\}, numbers=left]
 print_block 1582196
@@ -351,65 +334,67 @@ reward: 4634817937431
 
 
 \section*{Componentes do bloco}
-%Block components}
 
 \begin{itemize}
-	\item (linhas 2-10) - Informação dada pelo software cliente, isto não faz parte do bloco. 
-%Block information collected by software, not actually part of the block properly speaking.
-    \item {\tt is orphan} (linha 5) - Significa que este bloco foi orfão. Os {\em nodes} usualmente guardam todos os ramos durante uma situação de garfo de rede, e discartam ramos desnecessários quando uma outra dificuldade comulativa vencedora emerge, o que torna os blocos do outro garfo órfaos.
-%Signifies if this block was orphaned. Nodes usually store all branches during a fork situation, and discard unnecessary branches when a cumulative difficulty winner emerges, thereby orphaning the blocks.
-    \item {\tt depth} (linha 7) - A profundidade de qualquer dado bloco, é a distância desse bloco ao último bloco na lista (distância ao bloco mais recente).
-%??? guarda-se isto no bloco?
-%In a blockchain copy, the depth of any given block is how far back in the chain it is relative to the most recent block.
-    \item {\tt hash} (linha 8) - A ID deste bloco.
-%This block's block ID.
-    \item {\tt difficulty} (linha 9) - A dificuldade não é guardada num bloco, desde que os utilizadores podem calcular {\em todas} as dificuldades de bloco a partir dos carimbos no tempo e com as regras na secção \ref{sec:difficulty}. 
-%Difficulty isn't stored in a block, since users can compute {\em all} block difficulties from block timestamps and the rules in Section \ref{sec:difficulty}.
-    \item {\tt major\_version} (linha 12) - Corresponde á versão do protocolo usada para verificar este bloco.
-%Corresponds to the protocol version used to verify this block.
-    \item {\tt minor\_version} (linha 13) - Originalmente destinada para ser um mecanismo entre mineiros, agora simplesmente repete a {\tt major\_version}. 
-%Originally intended as a voting mechanism among miners, it now merely reiterates the {\tt major\_version}. Since the field does not occupy much space, the developers probably thought deprecating it would not be worth the effort.
-    \item {\tt timestamp} (linha 14) - Uma representação com um inteiro do carimbo no tempo em UTC, posto pelo mineiro.
-%An integer representation of this block's UTC timestamp, as reported by the block's miner.
-    \item {\tt prev\_id} (linha 15) - A ID do bloco anterior.
-%The previous block's block ID. Herein lies the essence of Monero's blockchain.
-    \item {\tt nonce} (linha 16) - A nonce usada pelo mineiro do bloco para passar o alvo de dificuldade. É possível verificar que esta prova de trabalho é válida para esta nonce.  
-%The nonce used by this block's miner to pass its difficulty target. Anyone can recompute the proof of work and verify the nonce is valid.
-    \item {\tt miner\_tx} (linhas 17-40) - A transacção de mineiro
-%This block's miner transacção.
-    \item {\tt version} (linha 18) - O formato/era da transacção; version `2' corresponde a RingCT.
-    \item {\tt unlock\_time} (linha 19) - A transacção de mineiro não pode ser gasta até ao bloco 1582256, até que mais 59 blocos tenham sido minerados (é um tempo de bloqueio de 60 blocos pois não pode ser gasto até que 60 intervalos de tempo entre blocos tenham passado, e.g. $2*60 = 120$ minutos).
-%The miner transacção's output can't be spent until the 1582256\nth block, after 59 more blocks have been mined (it is a 60 block lock time since it can't be spent until 60 block time intervals have passed, e.g. $2*60 = 120$ minutes).
-    \item {\tt vin} (linhas 20-25) - Entradas para as transacção de mineiro, não existem, pois a transacção de mineiro é usada para gerar o subsídio de bloco e coleccionar taxas de transacção.
-%Inputs to the miner tx. There are none, since the miner tx is used to generate block rewards and collect transacção fees.
-    \item {\tt gen} (linha 21) - Forma curta para `gerar'.
-%Short for `generate'.
-    \item {\tt height} (linha 22) - A altura de bloco. Cada altura de bloco só pode gerar o subsídio de bloco, uma vez.
-%The block height for which this miner tx's block reward was generated. Each block height can only generate a block reward once.
-    \item {\tt vout} (linhas 26-32) - Saídas da transacção de mineiro.
-%Outputs of the miner tx.
-    \item {\tt amount} (linha 27) - Montante da transacção de mineiro, contêm o subsídio do bloco e as taxas de transacção deste bloco. Usa a unidade atómica {\em piconero} . 
-%Amount dispersed by the miner tx, containing block reward and fees from this block's transactions. Recorded in atomic units.
-    \item {\tt key} (linha 29) - Endereço oculto que é proprietário do montante na transacção de mineiro.
-%One-time address assigning ownership of the miner tx's amount.
-    \item {\tt extra} (linhas 33-36) - Informação extra para a transacção de mineiro, inclui a chave pública de transacção.
-%Extra information for the miner tx, including the transacção public key.
-    \item {\tt type} (linha 38) - Tipo de transacção, neste caso `0' para {\tt RCTTypeNull}.  
-%Type of transacção, in this case `0' for {\tt RCTTypeNull}, indicating a miner tx.
-    \item {\tt tx\_hashes} (linhas 41-46) - Todas as ID's de transacção incluídas neste bloco (mas não a ID da transacção de mineiro, que é : \newline {\tt 06fb3e1cf889bb972774a8535208d98db164394ef2b14ecfe74814170557e6e9}).
-%All transacção IDs included in this block (but not the miner tx ID, which is {\tt 06fb3e1cf889bb972774a8535208d98db164394ef2b14ecfe74814170557e6e9}).
+ \item As linhas 2--10 são metadados calculados pelo nó para o comando
+ {\tt print\_block}; não fazem parte da serialização do bloco. O valor
+ {\tt is orphan}=0 diz precisamente que o bloco \emph{não} é órfão. A
+ profundidade `2' é a distância ao topo que o nó conhecia nesse instante.
+
+ \item {\tt hash} é o identificador calculado do bloco. {\tt difficulty} e
+ {\tt reward} são também resultados calculáveis: a dificuldade decorre do
+ histórico e a recompensa, do peso, da emissão e das taxas. Não se devem
+ confundir os dados impressos pelo cliente com os bytes assinados pelo mineiro.
+
+ \item {\tt major\_version}=7 selecciona as regras de consenso desta altura.
+ {\tt minor\_version} pertencia ao antigo mecanismo de sinalização dos
+ mineiros; no exemplo repete a versão principal.
+
+ \item {\tt timestamp}=1\,527\,458\,161 é o tempo Unix declarado pelo
+ mineiro. {\tt prev\_id} compromete-se com o bloco anterior; é este elo, e não
+ o aspecto tabular do JSON, que encadeia a lista.
+
+ \item {\tt nonce} é o valor variado pelo mineiro. Em conjunto com o resto do
+ cabeçalho e a função de prova de trabalho da época, produz um \emph{hash} que
+ satisfaz a dificuldade exigida.
+
+ \item {\tt miner\_tx} (linhas 17--40) é a transacção de mineiro, incluída
+ integralmente no bloco. Tem versão 2 e uma única entrada {\tt txin\_gen},
+ representada por {\tt gen}; esta não gasta uma saída anterior e declara a
+ altura \(1\,582\,196\).
+
+ \item {\tt unlock\_time}=1\,582\,256 é exactamente a altura do bloco mais
+ 60. A saída de mineiro só pode ser gasta numa transacção incluída nessa
+ altura ou depois dela.
+
+ \item {\tt vout} contém uma saída de
+ \(4\,634\,817\,937\,431\) unidades atómicas. O montante reúne a subvenção e
+ as taxas do bloco; {\tt key} atribui-o a um endereço oculto. Ao contrário de
+ uma saída RingCT ordinária, a saída de mineiro publica o montante.
+
+ \item {\tt extra} contém a chave pública da transacção e um \emph{nonce}
+ adicional. {\tt RCTTypeNull}, valor `0', confirma que a transacção de mineiro
+ não transporta as provas RingCT de uma transacção ordinária.
+
+ \item {\tt tx\_hashes} contém os cinco identificadores das transacções
+ ordinárias incluídas. O identificador da transacção de mineiro não aparece
+ neste vector. Para este bloco é, com uma quebra meramente tipográfica,
+ \begin{center}
+  {\tt 06fb3e1cf889bb972774a8535208d98d}\\
+  {\tt b164394ef2b14ecfe74814170557e6e9}.
+ \end{center}
 \end{itemize}
 
 \chapter{Bloco de génese}
 %Genesis Block}
 \label{appendix:genesis-block}
 
-Este apêndice mostra a estrutura do bloco de génese. O bloco não contém
-transacções normais; contém apenas a transacção de mineiro que atribui a
-primeira subvenção a thankful\_for\_today \cite{bitmonero-launched}. O campo de
-carimbo temporal tem valor zero. O código inicial de Monero derivou de
-Bytecoin, cuja história é descrita em \cite{monero-history,bytecoin-network}.
-%In this appendix we show the structure of the Monero genesis block. The block has 0 transactions (it just sends the first block reward to thankful\_for\_today \cite{bitmonero-launched}). Monero's founder did not add a timestamp, perhaps as a relic of Bytecoin, the coin Monero's code was forked from, whose creators apparently tried to hide a large pre-mine \cite{monero-history}, and may operate a shady network of cryptocurrency-related software and services \cite{bytecoin-network}.
+O bloco de génese é a excepção que permite todas as regras posteriores: não
+tem antecessor, e a sua identidade é fixada pela implementação. Não contém
+transacções ordinárias; contém apenas a transacção de mineiro que atribui a
+primeira subvenção a thankful\_for\_today \cite{bitmonero-launched}. O campo
+temporal vale zero. O código inicial do Monero derivou de Bytecoin, cuja
+história se encontra descrita em \cite{monero-history,bytecoin-network}.
 
 O bloco 1 foi adicionado à rede com o carimbo temporal
 2014-04-18 10:49:53 UTC. É plausível que o bloco 0 tenha sido minerado no
@@ -463,52 +448,83 @@ reward: 17592186044415
 \section*{Componentes do bloco de génese}
 %Genesis block components}
 
-Como foi usado o mesmo software para imprimir o bloco de génese e o bloco do apêndice \ref{appendix:block-content}, a estrutura parece ser básicamente a mesma. São dadas algumas diferenças.
-%Since we used the same software to print the genesis block and the block from Appendix \ref{appendix:block-content}, the structure appears basically the same. We point out some unique differences.
+O mesmo comando imprimiu este bloco e o do apêndice
+\ref{appendix:block-content}; por isso, a forma exterior é semelhante. As
+diferenças, porém, dizem exactamente onde começa a cadeia.
 
 \begin{itemize}
-	\item {\tt difficulty} (linha 9) - A dificuldade é 1, o que significa que qualquer nonce serve.
-%The genesis block's difficulty is reported as 1, which means any nonce could work.
-	\item {\tt timestamp} (linha 14) - O bloco de génese não tem um carimbo no tempo significante.
-%The genesis block doesn't have a meaningful timestamp.
-	\item {\tt prev\_id} (linha 15) - Usam-se 32 bytes a zero para o ID anterior, por convenção.
-%We use an empty 32 bytes for the previous ID, by convention.
-	\item {\tt nonce} (linha 16) - $n = 10000$ por convenção.
-	\item {\tt amount} (linha 27) - Isto corresponde exactamente ao cálculo para o primeiro subsídio de bloco (17.592186044415 xmr) da secção \ref{subsec:block-reward}.
-%This exactly corresponds to our calculation for the first block reward (17.592186044415 XMR) in Section \ref{subsec:block-reward}.
-	\item {\tt key} (linha 29) - Os primeiros moneroj foram dispersados para o fundador de Monero thankful\_for\_today.
-%The very first Moneroj were dispersed to Monero's founder thankful\_for\_today.
-	\item {\tt extra} (linhas 33-36) - 
-Usa-se a codificação discutida no apêndice %\ref{appendix:RCTTypeBulletproof2},
-o campo {\tt extra} da transacção de mineiro, só contêm uma chave pública de transacção.   
-%Using the encoding discussed in Appendix \ref{appendix:RCTTypeBulletproof2}, the genesis block's miner tx {\tt extra} field just contains one transacção public key.
-	\item {\tt signatures} (linha 37) - Não existem assinaturas no bloco de génese. Isto aparece aqui devido á função {\tt print\_block}. O mesmo é verdade para {\tt tx\_hashes} na linha 39.
-%There are no signatures in the genesis block. This is here as an artifact of the {\tt print\_block} function. The same is true for {\tt tx\_hashes} in linha 39.
+ \item A dificuldade calculada é `1', o mínimo. O \emph{nonce} `10000' é o
+ valor fixado para este bloco; não resulta de uma competição de mineração
+ observável na cadeia.
+
+ \item {\tt timestamp}=0 não representa uma data civil significativa. O
+ primeiro carimbo temporal posterior fornece apenas um limite plausível, não
+ uma data criptograficamente provada para a criação do bloco 0.
+
+ \item {\tt prev\_id} contém 32 bytes nulos. Não existe bloco anterior; a
+ sequência de zeros é o sentinela convencional dessa ausência.
+
+ \item O montante \(17{,}592186044415\) XMR coincide com a primeira subvenção
+ derivada na secção \ref{subsec:block-reward}. A chave de saída atribui esses
+ primeiros moneroj a thankful\_for\_today.
+
+ \item {\tt extra} contém somente a etiqueta `1' e a chave pública da
+ transacção. Não há \emph{nonce} adicional.
+
+ \item Os vectores {\tt signatures} e {\tt tx\_hashes} estão vazios: a
+ transacção de mineiro v1 não tem assinatura de gasto e o bloco não inclui
+ transacções ordinárias. O JSON mostra explicitamente o vazio; a cadeia, com
+ uma sobriedade muito sua, nada acrescenta.
 \end{itemize}
 
-\chapter{Uma nota sobre notações}
-%Genesis Block}
+\chapter{Notação vectorial das Bulletproofs}
 \label{appendix:nota}
 
-Neste apêndice explica-se a notação dentro de bulletproofs. Existem pois duas operações básicas $a+b=c$ é sobre os escalares em $F_p$, e $A+B=C$ é sobre todos os pontos de CE disponíveis em ed25519.
+As Bulletproofs alternam escalares e pontos com tal frequência que uma letra
+mal lida pode trocar um corpo por um grupo. Adoptamos a convenção usada no
+capítulo \ref{chapter:pedersen-commitments}: minúsculas são escalares em
+\(\mathbb Z_l\); maiúsculas são pontos do subgrupo de ordem prima. Assim,
+\(a+b=c\) é uma igualdade de escalares, ao passo que \(A+B=C\) é uma
+igualdade de pontos.
 
-sobre os pontos de CE : \newline
-$a\underline{B} = \{a B_1, a B_2, a B_3, ...,a B_n\}$\newline
-em que a operação $\circ$ não é relevante (hadamard).\newline
-$\langle\underline{a}, \underline{B}\rangle = \sum_{j=1}^{n} a_j B_j$\newline
-existem optimizações específicas para o seguinte : \newline
-$\langle\underline{a}, \underline{B}\rangle + \langle\underline{b}, \underline{C}\rangle + \langle\underline{c}, \underline{D}\rangle . . . $\newline
-para mais informações sobre algoritmos de factorização sobre pontos de CE (Pippenger et al.) veja-se[].
+Para vectores de escalares
+\(\underline a=(a_1,\ldots,a_n)\) e
+\(\underline b=(b_1,\ldots,b_n)\), definimos
+\begin{align*}
+ \lambda\underline a
+   &=(\lambda a_1,\ldots,\lambda a_n),\\
+ \underline a\circ\underline b
+   &=(a_1b_1,\ldots,a_nb_n),\\
+ \langle\underline a,\underline b\rangle
+   &=\sum_{i=1}^{n}a_ib_i,\\
+ \underline y^{\,n}
+   &=(1,y,y^2,\ldots,y^{n-1}),\\
+ \underline 1&=(1,\ldots,1).
+\end{align*}
+O símbolo \(\circ\) é o produto de Hadamard: multiplica coordenadas com o
+mesmo índice. Da definição seguem, por exemplo,
+\begin{align*}
+ \langle\underline a,\underline b\rangle
+   &=\langle\underline1,\underline a\circ\underline b\rangle,\\
+ \langle\underline a,\underline b\rangle
+  +\langle\underline a,\underline c\rangle
+   &=\langle\underline a,\underline b+\underline c\rangle.
+\end{align*}
 
-sobre os escalares : \newline
-$a\underline{b} = \{a b_1, a b_2, a b_3, ...,a b_n\} = a\underline{1}\circ \underline{b}$\newline
-$a\underline{1} = \underline{a}$\newline
-$\underline{a}^n = \{a^0, a^1, a^2, ...a^{n-1}\}$\newline
-$\underline{a}\circ\underline{b} = \{a_1 b_1, a_2 b_2, a_3 b_3, ...,a_n b_n\}$\newline
-$\langle\underline{a}, \underline{b}\rangle = \sum_{j=1}^{n} a_j b_j$\newline
-$\langle\underline{a}, \underline{b}\rangle = \langle \underline{1}, \underline{a}\circ\underline{b}\rangle$\newline
-$\langle\underline{a}, \underline{b}\rangle + \langle \underline{a}, \underline{c}\rangle = \langle \underline{a}, \underline{b} + \underline{c}\rangle$\newline
+Para um vector de pontos
+\(\underline B=(B_1,\ldots,B_n)\), a notação angular significa uma soma
+multiescalar:
+\[
+ \langle\underline a,\underline B\rangle
+   =\sum_{i=1}^{n}a_iB_i.
+\]
+O resultado é um ponto, não um escalar. As implementações podem calcular em
+conjunto várias somas destas por algoritmos de multiplicação multiescalar; a
+optimização não altera a igualdade matemática verificada.
 
+\iffalse
+% Derivação preliminar conservada no fonte; substituída abaixo pela versão
+% tipada e verificada.
 para extraír $\delta(y, z)$ de :
 \begin{align*}
 vz^2 = \langle\underline{a}_L, \underline{2}^n\rangle z^2\\
@@ -547,5 +563,59 @@ vz^2 + (z - z^2)\langle \underline{1}, \underline{y}^n \rangle - z^3 \langle \un
 \begin{align*}
 vz^2 + \underbrace{(z - z^2)\langle \underline{1}, \underline{y}^n \rangle - z^3 \langle \underline{1}, \underline{2}^n\rangle}_{\delta(y,z)} = \langle\underline{a}_L - z\underline{1}, \underline{y}^n \circ (\underline{1}z + \underline{a}_R) + \underline{2}^n z^2 \rangle
 \end{align*}
+\fi
+
+\section*{De onde vem \(\delta(y,z)\)}
+
+Tomemos os vectores de bits \(\underline a_L\) e
+\(\underline a_R=\underline a_L-\underline1\). Para cada coordenada,
+\(a_{L,i}\in\{0,1\}\), e portanto
+\begin{align}
+ \langle\underline a_L,\underline2^{\,n}\rangle&=v,
+ \label{eq:appendix-bp-value}\\
+ \underline a_L-\underline1-\underline a_R&=0,
+ \label{eq:appendix-bp-shift}\\
+ \underline a_L\circ\underline a_R&=0.
+ \label{eq:appendix-bp-bits}
+\end{align}
+Na parte constante dos polinómios da Bulletproof aparecem
+\begin{align*}
+ \underline l_0&=\underline a_L-z\underline1,\\
+ \underline r_0&=
+   \underline y^{\,n}\circ(\underline a_R+z\underline1)
+   +z^2\underline2^{\,n}.
+\end{align*}
+Expandimos o seu produto interno, sem omitir as duas igualdades que fazem o
+trabalho:
+\begin{align*}
+ \langle\underline l_0,\underline r_0\rangle
+ &=\underbrace{\langle\underline a_L,
+       \underline y^{\,n}\circ\underline a_R\rangle}_{=0}
+   +z\langle\underline a_L,\underline y^{\,n}\rangle
+   +z^2\underbrace{\langle\underline a_L,
+       \underline2^{\,n}\rangle}_{=v}\\
+ &\quad-z\langle\underline1,
+       \underline y^{\,n}\circ\underline a_R\rangle
+   -z^2\langle\underline1,\underline y^{\,n}\rangle
+   -z^3\langle\underline1,\underline2^{\,n}\rangle\\
+ &=z^2v+(z-z^2)\langle\underline1,\underline y^{\,n}\rangle
+       -z^3\langle\underline1,\underline2^{\,n}\rangle.
+\end{align*}
+Na última passagem usámos
+\(\underline a_L-\underline a_R=\underline1\). Define-se, por isso,
+\begin{align}
+ \delta(y,z)
+   =(z-z^2)\langle\underline1,\underline y^{\,n}\rangle
+    -z^3\langle\underline1,\underline2^{\,n}\rangle.
+ \label{eq:appendix-bp-delta}
+\end{align}
+Obtemos a identidade limpa
+\[
+ \langle\underline l_0,\underline r_0\rangle=z^2v+\delta(y,z).
+\]
+O termo \(\delta(y,z)\) não é um remendo misterioso: é exactamente o resto
+conhecido produzido pelas deslocações em \(z\). As componentes aleatórias dos
+polinómios acrescentam os coeficientes de grau um e dois; esta igualdade fixa
+o termo constante ao montante comprometido.
 
 \end{appendices}

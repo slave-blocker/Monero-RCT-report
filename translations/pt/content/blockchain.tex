@@ -412,7 +412,6 @@ quanto à fase inicial da rede, não quanto ao algoritmo:
 
 %After $w$ blocks, chop off high and low outliers, scaling the amount chopped until $b$ blocks. If the amount of previous blocks (minus $w$) is odd, remove one more low outlier than high.
 
-%???
 
 \subsection*{Prova de trabalho em Monero}
 Monero usou historicamente CryptoNight, uma função concebida para ser
@@ -825,7 +824,6 @@ $B_0/M\cdot0{,}002$, e os exemplos com recompensa de 2 XMR descreviam a
 política anterior a v15. A regra activa depende de $B_0/M_L^2$ e a cauda fixa
 $B_0$ em pelo menos 0,6 XMR.}
 
-%??? Se a mediana é igual á mediana de longo termo, seria no cenário de {\em spam} 1/50 da zona de multa.
 
 %An attacker can spend just enough in fees for the short term median to hit 50*long-term-median. With current (as of this writing) block rewards at 2 XMR, an optimized attacker can increase the short term median by 17\% every 50 blocks, and reach the upper bound after about 1300 blocks (about 43 hours), spending 0.39*2 XMR per block, for a total setup cost of about 1000 XMR (or around 65k USD at current valuations), and then go back to the minimum fee. When the fee median equals the penalty-free zone, then the minimum total fee to fill the penalty-free zone is 0.004 XMR (about 0.26 USD at current valuations). If the fee median equals the long term median, it would in the spam scenario be 1/50th the penalty-free zone. Therefore it would just be 50x the short-median case, for 0.2 XMR per block (13 USD per block). This comes out to 2.88 XMR per day vs 144 XMR per day (for 69 days, until the long term median rises by 40\%) to maintain every block with 50*long-term-median block weight. The 1000 XMR setup cost would be worthwhile in the former case, but not the latter. This will reduce to 300 XMR setup, and 43 XMR maintenance, at the emission tail.}\vspace{.1cm}
 \[M_{\rm taxa}=\min\{M_N,M_L\}=M_L.\]
@@ -866,7 +864,6 @@ transacção de mineiro.
 transacção entra na zona penalizada quando a sua taxa compensa a subvenção que
 o mineiro perde ao acrescentar-lhe o peso. Não há, porém, uma regra de
 consenso que obrigue o mineiro a maximizar esse rendimento.}
-%???3x no total de taxas?
 %The marginal penalty from the last bytes to fill up a block can be considered a `transaction' comparable to other transactions. In order for a clump of transactions to buy that transaction space from a miner, all its individual transaction fees should be higher than the penalty, since if any one of them is lower then the miner will keep the marginal reward instead. This last marginal reward, assuming a block filled with small transactions, requires at least 4x the base block reward in total fees to be purchased. If transaction weights are maximized (50\% of the minimum penalty-free zone, i.e. 150kB) then if the median is minimized (300kB) the last marginal transaction requires at least 3x in total fees.}
 
 
@@ -976,12 +973,10 @@ mineiro, inclui a chave pública da transacção no campo {\tt extra} e pode
 incluir aí um argumento adicional fornecido pela reserva de mineração. Esta é
 uma escolha de modelo; o consenso permite várias saídas, desde que todas as
 condições acima e o peso máximo do bloco sejam satisfeitos.
-%??? só uma saída ? não há mais ?
 %The output amount(s) of a miner transaction must be no more than the sum of transaction fees and block reward, and are communicated in clear text.
 %In place of an input, the block's height is recorded (i.e. ``I claim the block reward and fees for the n\nth block").
 %Ownership of the miner output(s) is assigned to a standard one-time address
 %\footnote{The miner transaction output can theoretically be sent to a subaddress and/or use multisig and/or an encoded payment ID. We don't know if any implementations have any of those features.} 
-%??? o queee?
 
 %with a corresponding transaction public key stored in the extra field. The funds are locked, unspendable, until the 60\nth block after it is published \cite{transaction-lock}.
 \footnote{Se esta transacção aparece no bloco 10, a altura de desbloqueio é 70

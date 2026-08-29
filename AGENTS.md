@@ -97,3 +97,10 @@ When newer protocol material is needed, add it after the existing exposition
 as a clearly separated section or subsection whenever that preserves the
 original pedagogical journey. Never treat technical modernization by itself as
 authorization to erase the author's voice or presentation.
+
+## Portuguese final page
+
+Leave the final page of the Portuguese edition exactly as it is. Do not modify,
+replace, regenerate, remove, rename, crop, recolor, retouch, or otherwise alter
+the Monero-chan artwork or the LaTeX that places it, unless the user explicitly
+withdraws this instruction.

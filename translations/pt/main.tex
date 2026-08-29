@@ -1,7 +1,13 @@
-\documentclass[usletter,12pt,english,oneside,onecolumn,final,openany]{report}
+\documentclass[letterpaper,12pt,english,oneside,onecolumn,final,openany]{report}
 
 %Primary packages
 \usepackage{fancyvrb}
+
+% Typewriter braces in FancyVerb use the standard Computer Modern symbol font.
+\DeclareFontShape{OT1}{cmtt}{bx}{n}{<-> ssub * cmtt/m/n}{}
+\DeclareFontFamily{OMS}{cmtt}{\skewchar\font 48}
+\DeclareFontShape{OMS}{cmtt}{m}{n}{<-> ssub * cmsy/m/n}{}
+\DeclareFontShape{OMS}{cmtt}{bx}{n}{<-> ssub * cmsy/b/n}{}
 
 \usepackage[utf8]{inputenc}
 \usepackage[portuguese]{babel}

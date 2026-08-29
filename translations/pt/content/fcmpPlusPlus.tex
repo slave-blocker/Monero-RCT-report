@@ -807,8 +807,8 @@ cada uma.
 \section{Tuplas de saída na instanciação do Monero}
 \label{sec:fcmp-output-tuple}
 
-Curve Trees acumula pontos genéricos. O Monero precisa de acumular a
-os dados necessários ao gasto de uma saída. Uma chave pública sozinha não chega:
+Curve Trees acumula pontos genéricos. O Monero precisa de acumular os dados
+necessários ao gasto de uma saída. Uma chave pública sozinha não chega:
 temos de ligar a autorização, a imagem de chave que impedirá gasto duplo e o
 compromisso de montante usado no equilíbrio. A folha FCMP++ é portanto a
 tupla
@@ -1121,9 +1121,10 @@ e constrói:
  R_L&=\alpha\widetilde I-r_zU.
  \label{eq:fcmp-sal-rl}
 \end{align}
-O desafio
+Na implementação, \(\mathcal H_l\) reduz a escalar uma saída BLAKE2b de 64
+bytes, com a personalização \texttt{Monero}. O desafio
 \begin{align*}
- e=\mathcal H_l(&\text{domínio},\text{hash da transacção},
+ e=\mathcal H_l(&\text{hash da transacção},
  \widetilde O,\widetilde I,\widetilde C,R_{\rm fcmp},\\
  &L,P,A,B,R_O,R_P,R_L)
 \end{align*}
@@ -1262,7 +1263,7 @@ O protocolo pode agora ser percorrido da esquerda para a direita:
    {FCMP: abrir a tupla\\e subir até
    \(\mathcal R_{\rm tree}\)};
  \node (sal) [flowbox,below of=member,yshift=-.1cm,fill=blue!12]
-   {SAL: provar \(O=xG+yT\), \(z=xr_i\) e
+   {SAL: provar \(\widetilde O=xG+\widetilde yT\), \(z=xr_i\) e
    \(L=xI\)};
  \node (tx) [flowbox,below of=sal,yshift=-.1cm,fill=green!17]
    {transacção aceite:\\pertença + autorização\\

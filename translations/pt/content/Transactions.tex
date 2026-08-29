@@ -4,7 +4,7 @@
 Os capítulos \ref{chapter:addresses} e
 \ref{chapter:pedersen-commitments} definiram os componentes necessários a uma
 transacção RingCT. Cada saída contém uma chave de utilização única, uma
-etiqueta de visualização, um montante cifrado e um compromisso. Uma prova
+etiqueta de vista, um montante cifrado e um compromisso. Uma prova
 Bulletproofs+ demonstra que os montantes de saída pertencem ao intervalo de 64
 bits. Cada entrada oculta a saída gasta entre quinze desvios; a CLSAG demonstra
 conhecimento da chave de gasto e da diferença correcta de máscaras na mesma
@@ -14,8 +14,9 @@ taxa.
 
 É necessário verificar quatro propriedades: o remetente conhece uma chave de
 gasto em cada anel; o montante da saída real coincide com o usado no
-pseudo-compromisso; as saídas não criam valor; e a assinatura autentica o
-destinatário, a taxa, os anéis e as provas da transacção.
+pseudo-compromisso; as saídas não criam valor; e a assinatura vincula à
+autorização os bytes exactos da transacção, incluindo as saídas, a taxa, os
+anéis e as provas.
 
 As respostas vêm de três construções que já conhecemos:
 
@@ -330,7 +331,7 @@ onde:
     \item[\(h_0\)] é o \emph{hash} do prefixo serializado: versão,
     \texttt{unlock\_time}, entradas (montantes visíveis zero, \emph{offsets}
     e imagens de chave), saídas (montantes visíveis zero, tipo de alvo,
-    endereços ocultos e etiquetas de visualização) e os bytes exactos de
+    endereços ocultos e etiquetas de vista) e os bytes exactos de
     \texttt{extra};
 
     \item[\(h_1\)] é o \emph{hash} da base RingCT serializada: tipo `6',
@@ -723,10 +724,11 @@ antiga; as diferenças estão assinaladas no próprio apêndice.
 \end{itemize}
 
 \newpage
-Numa transacção com uma entrada e duas saídas, a validade exige que:
+Numa transacção com uma entrada e duas saídas, a validade segundo o consenso e
+a utilização pelos destinatários dependem das condições seguintes:
 \begin{itemize}
- \item as chaves públicas de transacção permitam aos destinatários reconhecer
- as respectivas saídas;
+ \item para que a transacção seja utilizável, as chaves públicas de transacção
+ permitam aos destinatários reconhecer as respectivas saídas;
  \item a CLSAG prove o conhecimento, na mesma posição secreta do anel, da
  chave privada da saída e da diferença de máscaras entre o compromisso
  histórico e o pseudo-compromisso;

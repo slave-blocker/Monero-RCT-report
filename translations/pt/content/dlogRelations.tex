@@ -513,43 +513,43 @@ pode ficar no nível «solidez assumida, exploração não demonstrada».
 & \textbf{\shortstack{Privaci-\\dade?}} & \textbf{Roubo?} & \textbf{Pertença falsa?}
 & \textbf{Intervalo falso?} & \textbf{Detecção gasto duplo?}
 & \textbf{Inflação?} & \textbf{Hipóteses adicionais} & \textbf{Confiança / evidência}\\ \hline
-\(G,H\) & \(H=\gamma G\) & compromisso de montante & no & no & no & no & no & yes
+\(G,H\) & \(H=\gamma G\) & compromisso de montante & não & não & não & não & não & sim
 & abertura e transacção normal & alta: álgebra e código RingCT\\ \hline
-\(G,T\) & \(T=\tau G\) & abertura \(x,y\) da saída & no & no & no & no & yes & conditional
+\(G,T\) & \(T=\tau G\) & abertura \(x,y\) da saída & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: álgebra SAL/código\\ \hline
-\(G,U\) & \(U=qG\) & \(x,z\) dentro de \(P\) & no & no & no & no & conditional & conditional
+\(G,U\) & \(U=qG\) & \(x,z\) dentro de \(P\) & não & não & não & não & condicional & condicional
 & outra relação que vença \(O,P'\) & média: álgebra; exploração não demonstrada\\ \hline
-\(G,V\) & \(V=qG\) & \(x,r_i\) dentro de \(P\) & no & no & no & no & conditional & conditional
+\(G,V\) & \(V=qG\) & \(x,r_i\) dentro de \(P\) & não & não & não & não & condicional & condicional
 & outra relação que vença \(O,R\) & média: álgebra; exploração não demonstrada\\ \hline
-\(H,T\) & \(H=qT\) & nenhuma equação isolada & no & no & no & no & no & conditional
+\(H,T\) & \(H=qT\) & nenhuma equação isolada & não & não & não & não & não & condicional
 & caminho \(T\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(H,U\) & \(H=qU\) & nenhuma equação isolada & no & no & no & no & no & conditional
+\(H,U\) & \(H=qU\) & nenhuma equação isolada & não & não & não & não & não & condicional
 & caminho \(U\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(H,V\) & \(H=qV\) & nenhuma equação isolada & no & no & no & no & no & conditional
+\(H,V\) & \(H=qV\) & nenhuma equação isolada & não & não & não & não & não & condicional
 & caminho \(V\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(T,U\) & \(U=qT\) & \(zU+rT\) & no & no & no & no & yes & conditional
+\(T,U\) & \(U=qT\) & \(zU+rT\) & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(T,V\) & \(V=qT\) & \(R_{\rm fcmp}\) em \(r_i\) & no & no & no & no & yes & conditional
+\(T,V\) & \(V=qT\) & \(R_{\rm fcmp}\) em \(r_i\) & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(U,V\) & \(V=qU\) & \(r_iV+zU\) & no & no & no & no & yes & conditional
+\(U,V\) & \(V=qU\) & \(r_iV+zU\) & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(G,T,U,V\) & \(aG+bT+cU+dV=0\) & compromisso multibase & condi\-tional & not demonstrated & condi\-tional & no & condi\-tional & condi\-tional
+\(G,T,U,V\) & \(aG+bT+cU+dV=0\) & compromisso multibase & condi\-cional & não demonstrado & condi\-cional & não & condi\-cional & condi\-cional
 & suporte deve vencer equações externas & média: vinculação certa; efeito depende do suporte\\ \hline
-\(\mathcal H_p(O)\) & \(\mathcal H_p(O)=\eta_OG\) & bases da DLEQ tornam-se relacionadas & yes & no & no & no & no & no
+\(\mathcal H_p(O)\) & \(\mathcal H_p(O)=\eta_OG\) & bases da DLEQ tornam-se relacionadas & sim & não & não & não & não & não
 & relação para a saída observada & alta: \(L=\eta_OO\)\\ \hline
-BP/BP+ & relação em \(H,\boldsymbol G,\boldsymbol H\) & compromisso vectorial & no & no & no & conditional & no & conditional
+BP/BP+ & relação em \(H,\boldsymbol G,\boldsymbol H\) & compromisso vectorial & não & não & não & condicional & não & condicional
 & direcção altera testemunho; balanço & média: abertura explícita; falsificação depende da relação\\ \hline
-Selene & relação em \(g,h,\boldsymbol g,\boldsymbol h,J_{\rm init}\) & nó ou compromisso da prova & no & no & conditional & no & no & conditional
+Selene & relação em \(g,h,\boldsymbol g,\boldsymbol h,J_{\rm init}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
 & colisão/restrição útil; saída própria e SAL & média: Curve Trees e composição\\ \hline
-Helios & relação em \(g,h,\boldsymbol g,\boldsymbol h,J_{\rm init}\) & nó ou compromisso da prova & no & no & conditional & no & no & conditional
+Helios & relação em \(g,h,\boldsymbol g,\boldsymbol h,J_{\rm init}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
 & colisão/restrição útil; saída própria e SAL & média: Curve Trees e composição\\ \hline
-Controlo & \(J,2J,\ldots;\ P=xG;\ R=rH\) & nenhuma & no & no & no & no & no & no
+Controlo & \(J,2J,\ldots;\ P=xG;\ R=rH\) & nenhuma & não & não & não & não & não & não
 & prova de conhecimento normal & alta: relação deliberada\\ \hline
 \end{tabular}
 \end{center}
 
 \scriptsize
-O único «yes» directo na coluna de inflação é \(G-H\). As arestas SAL
+O único «sim» directo na coluna de inflação é \(G-H\). As arestas SAL
 assinaladas quebram directamente a ligação, mas a inflação vem
 condicionalmente de um segundo gasto. Bulletproofs e Curve Trees exigem uma
 relação que atinja a restrição certa e a composição indicada. \(\eta_O\) é

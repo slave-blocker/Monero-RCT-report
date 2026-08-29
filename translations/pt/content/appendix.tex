@@ -32,7 +32,7 @@ Para replicar estes resultados, o leitor faz o seguinte:
 \begin{enumerate}
     \item É preciso o programa de linha de comandos de Monero, disponível no
     sítio oficial de descargas.\footnote{\url{https://web.getmonero.org/downloads/}}
-    Descarregue a versão para o seu sistema operativo e extraia o arquivo.
+    Descarregue a versão para o seu sistema operativo e extraia o ficheiro.
 %We need the Monero command linha tool (CLI), which can be found at \url{https://web.getmonero.org/downloads/} (among other places). Get the `Command Line Tools Only' for your operating system, move the file to a useful location, and unzip it.
     \item Abra um terminal e navegue para o directório criado pela extracção.
 %Open the terminal/command linha and navigate into the folder created by unzipping.
@@ -231,8 +231,8 @@ nomes do JSON, mas diz expressamente a que época pertencem.
 
  \item {\tt vout} (linhas 24--35) contém duas saídas. O campo visível
  {\tt amount} é zero e {\tt key} é o endereço oculto da secção
- \ref{sec:one-time-addresses}. O alvo histórico não tem a etiqueta de
- visualização obrigatória nas saídas v16.
+ \ref{sec:one-time-addresses}. O alvo histórico não tem a etiqueta de vista
+ obrigatória nas saídas v16.
 
  \item {\tt extra} (linhas 36--39) contém bytes interpretados por etiquetas.
  \marginnote{\scriptsize\path{src/cryptonote_basic/tx_extra.h}} A etiqueta
@@ -268,8 +268,10 @@ nomes do JSON, mas diz expressamente a que época pertencem.
  \[
   \sum_j\widetilde C^a_j=\sum_t C^b_t+fH.
  \]
- Nenhum dos lados revela os montantes individuais; a igualdade apenas exclui
- criação ou destruição oculta de valor para além da taxa.
+ Nenhum dos lados revela os montantes individuais. Em conjunto com a
+ vinculação dos compromissos, as provas de intervalo e as assinaturas das
+ entradas, esta igualdade exclui criação ou destruição oculta de valor para
+ além da taxa.
 \end{itemize}
 
 \chapter{Conteúdo de bloco}

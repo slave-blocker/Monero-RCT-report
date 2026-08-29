@@ -120,7 +120,7 @@ e o escalar dependente do índice
               \operatorname{varint}(t)\bigr).
 \]
 Para um endereço principal ordinário, \(\mathcal D_B=8rK_B^v\) do lado de
-Alice e \(\mathcal D_B=8k_B^vR\) do lado de Bob. Subendereços, troco e chaves
+Alice e \(\mathcal D_B=8k_B^vR\) do lado de Bob. Sub-endereços, troco e chaves
 adicionais escolhem a chave pública de transacção apropriada como descrito no
 capítulo anterior; depois de obtido \(h_t\), o tratamento do montante é o
 mesmo.
@@ -156,14 +156,15 @@ bytes são serializados; a máscara não é transmitida porque ambos os lados a
 recompõem pela
 Equação~\eqref{eq:commitment-mask}. O formato anterior, mais volumoso, guardava
 32 bytes de montante e uma máscara codificada; a versão~10 introduziu a forma
-compacta sob o nome histórico \texttt{RCTTypeBulletproof2} \cite{ztm-1}.
+compacta sob o nome histórico \texttt{RCTTypeBulletproof2}
+\cite{monero-source-v16}.
 \marginnote{src/device/
 device\_ default.cpp,
 {\tt generate\_ output\_ ephemeral\_ keys()};
 src/ringct/
 rctOps.cpp,
 {\tt genCommit- mentMask()} e
-{\tt ecdh- Encode()}}
+{\tt ecdh- Encode()}}[-6cm]
 
 Bob calcula o mesmo \(h_t\), recupera
 \[
@@ -242,7 +243,7 @@ Logo, \(\sum_jx'_j=\sum_ty_t\), e o verificador testa a equação de pontos
 \marginnote{src/ringct/
 rctSigs.cpp,
 {\tt genRct- Simple()} e
-{\tt verRct- Semantics- Simple()}}
+{\tt verRct- Semantics- Simple()}}[-6cm]
 
 Ao expandi-la, o componente em \(G\) cancela por construção e sobra a
 Equação~\eqref{eq:amount-balance}, interpretada módulo~\(l\). O público vê os
@@ -572,6 +573,9 @@ implementação calcula
                      \mathbin\|t),\\
  w_j&=\mathcal H_n(w_{j-1}\mathbin\|L_j\mathbin\|R_j),&w_0&=x_{ip}.
 \end{align*}
+Nestes hashes, \(V_j=8^{-1}C_j\) é a representação interna reconstruída a
+partir do compromisso normal \(C_j\); nas equações algébricas, \(V\) continua a
+designar o ponto matemático já restaurado.
 
 Vectores são sublinhados: \(\underline a\) contém escalares e
 \(\underline G\) pontos da curva elíptica. Um ponto sobre uma letra, como em
@@ -1200,7 +1204,7 @@ coordenada é 0 ou 1. Aqui
 coordenada e \(\boldsymbol a_L^{(j)}\) é o bloco de 64 coordenadas do montante
 \(j\), para \(0\leq j<p\).
 
-O provador compromete-se a estes vectores sem os revelar. Cada dobra publica
+O provador compromete-se com estes vectores sem os revelar. Cada dobra publica
 dois pontos, pelo que são necessárias \(\log_2(64M)\) rondas em vez de 64
 compromissos por saída. A verificação continua a ter trabalho proporcional a
 \(64M\): a agregação poupa sobretudo espaço, não transforma toda a verificação

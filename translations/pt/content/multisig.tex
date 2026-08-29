@@ -62,10 +62,10 @@ Políticas em árvore & Não implementadas &
 São uma extensão conceptual conservada para explicar propostas de capítulos
 posteriores, não uma função da carteira Monero. \\
 \hline
-Multi-assinatura FCMP++ ou Carrot & Não implementada nesta revisão &
-É possível em princípio, mas o construtor examinado assina CLSAG; uma
-integração precisa de um provador SAL distribuído e de suporte para as chaves
-Carrot. \\
+Multi-assinatura FCMP++ ou Carrot & Primitivas experimentais, sem integração &
+O ramo FCMP++ de \texttt{monero-oxide} contém algoritmos SAL com FROST; a
+carteira Monero examinada continua a assinar CLSAG e não oferece um fluxo
+FCMP++ multi-assinatura. \\
 \hline
 \end{tabular}
 \end{center}
@@ -108,8 +108,10 @@ a cooperação dos participantes disponíveis.
 
 Todos os membros aprendem a chave privada de vista comum. Conseguem, portanto,
 detectar as saídas recebidas pelo endereço, descodificar os respectivos
-montantes e observar o histórico da carteira. O limiar protege a autoridade de
-\emph{gasto}, não a privacidade interna entre os membros do grupo.
+montantes e observar as recepções da carteira. Depois de trocarem as imagens
+de chave parciais, conseguem também acompanhar quais dessas saídas foram
+gastas. O limiar protege a autoridade de \emph{gasto}, não a privacidade
+interna entre os membros do grupo.
 
 \section{Comunicação entre co-signatários}
 \label{sec:communicating}
@@ -342,7 +344,7 @@ sob a forma
  \label{eq:multisig-output-secret}
 \end{align}
 onde \(d\) reúne a derivação comum obtida com a chave de vista e, quando
-aplicável, o termo do subendereço; os \(x_j\) são as parcelas distintas da
+aplicável, o termo do sub-endereço; os \(x_j\) são as parcelas distintas da
 chave de gasto. A imagem de chave é
 \begin{align*}
  I=x\mathcal H_p(P)
@@ -370,7 +372,7 @@ derivado da chave de vista comum e ligado à conta e ao signatário. Ao importar
 dados de pelo menos \(M\) fontes contando a própria carteira, as imagens de
 chave podem ser reconstruídas e o estado de gasto actualizado.
 
-Uma resposta de um nó remoto não confiável acerca do estado de gasto pode ser
+Uma resposta de um nó remoto não fiável acerca do estado de gasto pode ser
 falsa. A criptografia valida a imagem de chave; não transforma o nó que
 responde numa testemunha honesta da lista de blocos.
 
@@ -479,7 +481,7 @@ Na versão distribuída, o primeiro signatário da tentativa inclui na sua
 resposta:
 \begin{itemize}
  \item as parcelas locais da chave de gasto ainda não usadas;
- \item o termo comum derivado da chave de vista e o ajuste de subendereço;
+ \item o termo comum derivado da chave de vista e o ajuste de sub-endereço;
  \item o segredo do compromisso à diferença, ponderado por \(\mu_C\);
  \item a sua componente aleatória combinada da
  equação \eqref{eq:multisig-two-nonce}.
@@ -632,7 +634,7 @@ até uma tentativa conter as \(M\) contribuições necessárias. Cada chamada
 acrescenta as parcelas ainda ausentes à resposta CLSAG
 \[
  s=\sum_i\alpha_i-c\!
-   \left(\mu_P\sum_i x_i+\mu_Cz\right).
+   \left(\mu_P\left(d+\sum_i x_i\right)+\mu_Cz\right).
 \]
 Depois da última verificação, uma carteira difunde a transacção completa:
 \begin{verbatim}
@@ -698,11 +700,12 @@ disso está presente no código consultado.
 \section{Nota sobre multi-assinatura com FCMP++}
 \label{sec:multisig-fcmp-note}
 
-\textbf{Resposta curta: é possível em princípio, mas não está implementada
-na revisão estudada.} FCMP++ separa a prova de pertença à cadeia da prova SAL
-de autorização e ligação \cite{fcmp-plus-plus-paper}. Um coordenador pode
-construir o caminho de pertença sem conhecer a chave de gasto inteira. A
-cooperação \(M\)-de-\(N\) concentra-se na imagem de chave e na SAL.
+\textbf{Resposta curta: ainda não está disponível na carteira Monero, mas já
+existem primitivas experimentais no ramo de referência consultado.} FCMP++
+separa a prova de pertença à cadeia da prova SAL de autorização e ligação
+\cite{fcmp-plus-plus-paper}. Um coordenador pode construir o caminho de
+pertença sem conhecer a chave de gasto inteira. A cooperação \(M\)-de-\(N\)
+concentra-se na imagem de chave e na SAL.
 
 Para uma saída de uma carteira de hierarquia antiga, escrevamos
 \begin{align*}
@@ -728,22 +731,52 @@ Nenhum signatário pode enviar \(rx_j\) sem máscara, pois \(r\) revelaria
 aleatórios \(\alpha_j,\rho_j\), usados uma vez. Um protocolo completo tem
 ainda de construir conjuntamente \(P,A,B,R_O,R_P,R_L\), tratar a abertura em
 \(T\) e resistir a valores duplicados e abortos maliciosos. As somas acima são
-um esboço, não uma análise de segurança.
+um esboço algébrico, não o protocolo distribuído da implementação de referência
+nem uma análise de segurança.
+
+\subsection{As duas primitivas no ramo de referência}
+
+Na revisão \texttt{31c26d96eaadbba910ffe3613ad8b4cf9c598a93} do ramo
+\texttt{fcmp++} de \texttt{monero-oxide}, o módulo SAL expõe, sob a
+funcionalidade opcional \texttt{multisig}, dois algoritmos baseados em FROST
+\cite{monero-oxide-fcmp-source}:
+\begin{itemize}
+ \item \texttt{SalLegacyAlgorithm} recebe uma chave \(x\) repartida, como nas
+ carteiras históricas, e uma abertura \(y\) conhecida. Cada participante
+ acrescenta parcelas interpoladas da imagem de chave e de \(xU\); a resposta
+ FROST comum produz simultaneamente as relações em \(G\), \(U\) e
+ \(\widetilde I\).
+
+ \item \texttt{SalAlgorithm} destina-se à decomposição nova
+ \(O=xG+yT\). O escalar \(x\), necessário para gerar a imagem de chave, é
+ conhecido, enquanto \(y\), a componente em \(T\) que autoriza o gasto, é
+ repartido com FROST sobre a base \(T\). A resposta partilhada torna-se
+ \(s_y\); as restantes respostas SAL são construídas a partir dos dados comuns
+ e de valores aleatórios ligados ao traslado.
+\end{itemize}
+Os dois algoritmos têm testes unitários que agregam parcelas e verificam a SAL
+resultante. Isto é implementação de primitivas criptográficas, não integração
+na carteira Monero nem activação pelo consenso: o módulo está condicionado por
+uma opção de compilação e não define por si só criação de contas, transporte
+de mensagens, recuperação, selecção de entradas ou comandos de utilizador.
 
 Carrot acrescenta outra mudança. A hierarquia nova usa
 \begin{align*}
  K^s=k_{\rm gi}G+k_{\rm ps}T
 \end{align*}
 e especifica que o segredo mestre não existe numa carteira
-multi-assinatura \cite{carrot-specification}. Uma implementação nativa terá de
-repartir directamente as duas componentes. A vista das despesas pode, em
-contrapartida, actualizar o saldo sem activar tão frequentemente as parcelas
-privadas de gasto \cite{monero-fcmp-introduction}.
+multi-assinatura \cite{carrot-specification}. A primitiva nativa acima conserva
+\(k_{\rm gi}\), necessário à imagem de chave, como componente conhecida e
+reparte \(k_{\rm ps}\), a componente de autorização em \(T\). Assim, uma vista
+completa pode actualizar o estado gasto e o saldo sem reconstruir a parcela
+privada que autoriza o gasto.
 
 Na cadeia ver-se-iam apenas uma prova de pertença, uma SAL e \(L\), nunca
-\(M\), \(N\) ou os signatários. No código consultado, porém, o construtor
-multi-assinatura termina numa CLSAG: não há comandos, mensagens nem provador
-SAL distribuído. Logo, \emph{é possível, mas ainda não está disponível}.
+\(M\), \(N\) ou os signatários. No código Monero consultado, porém, o
+construtor multi-assinatura termina numa CLSAG: não há comandos nem mensagens
+que liguem a carteira às primitivas SAL distribuídas do ramo de referência.
+Logo, \emph{as primitivas existem, mas a funcionalidade ainda não está
+disponível na carteira}.
 
 \clearpage
 \section{Resumo}

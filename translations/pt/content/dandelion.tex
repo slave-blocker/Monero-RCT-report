@@ -214,7 +214,7 @@ minutos, para evitar que todos os nós alterem o mapa simultaneamente
 Monero conserva a estrutura, mas não copia cada detalhe. Na revisão
 consultada:
 \begin{itemize}
- \item há duas hastes de saída por época, escolhidas aleatoriamente apenas
+ \item há até duas hastes de saída por época, escolhidas aleatoriamente apenas
  entre ligações de saída cujo par não esteja mais de dois blocos atrasado em
  relação à altura de referência do nó;
  \item cada ligação de entrada é associada de modo persistente à haste menos
@@ -253,9 +253,10 @@ No começo de cada época, o nó torna-se difusor com probabilidade \(0{,}20\),
 ou retransmissor com probabilidade \(0{,}80\). Uma transacção recebida em haste
 é portanto enviada a uma só haste se o nó for retransmissor e passa à penugem
 se ele for difusor. Há uma excepção deliberada: uma transacção criada
-localmente faz sempre o primeiro salto de haste, mesmo durante uma época em
-que o nó difunde transacções alheias. Esta excepção realiza a primeira seta de
-\eqref{eq:dandelion-geometric}.
+localmente é sempre tratada primeiro como haste e tenta esse primeiro salto,
+mesmo durante uma época em que o nó difunde transacções alheias. Esta excepção
+procura realizar a primeira seta de \eqref{eq:dandelion-geometric}; a falha de
+ambas as tentativas conduz à promoção descrita a seguir.
 
 O envio por haste tenta obter e usar um destino válido. Se falhar, actualiza as
 ligações e tenta uma segunda vez. Se também falhar, promove a transacção a
@@ -337,13 +338,13 @@ sincronização pode atravessar um \emph{proxy} para endereços públicos, mas o
 serviços ocultos não fornecem o protocolo completo de sincronização
 \cite{monero-source-v16}.
 
-Por omissão, a zona Tor/I2P usa ruído. Escolhe dois canais de saída por épocas
-de
+Por omissão, a zona Tor/I2P usa ruído. Escolhe até dois canais de saída por
+épocas de
 \begin{align}
  T_{\rm ru\acute ido}=300\ {\rm s}+U[0,30\ {\rm s}]
  \label{eq:dandelion-noise-epoch}
 \end{align}
-e, em cada canal, envia exactamente um fragmento de 3 KiB --- real ou
+e, em cada canal ligado, tenta enviar um fragmento de 3 KiB --- real ou
 fictício --- após
 \begin{align}
  D_{\rm ru\acute ido}=10\ {\rm s}+U[0,5\ {\rm s}].
@@ -354,8 +355,9 @@ Como o tamanho e a periodicidade dos fragmentos já fornecem cobertura, o
 enchimento público de 1024 bytes não intervém.
 
 O modo de ruído tem precedência sobre Dandelion++: não há haste Dandelion++
-através desses canais. Uma transacção é posta nas duas filas cobertas e sai ao
-ritmo de \eqref{eq:dandelion-noise-delay}; na ausência de mensagem, sai ruído.
+através desses canais. Uma transacção é posta nas filas cobertas dos canais
+ligados, até duas, e sai ao ritmo de \eqref{eq:dandelion-noise-delay}; na
+ausência de mensagem, sai ruído.
 Isto procura esconder a ocasião do envio a um observador do acesso à Internet,
 enquanto Tor ou I2P escondem a origem da ligação ao par remoto. Se o ruído for
 explicitamente desactivado, a zona usa a rotina de penugem apenas para
@@ -483,20 +485,24 @@ essa decomposição depois da validação.
 Sejam \(S_{\rm indispensable}\) os dados que todos os nós podados conservam,
 \(S_{\rm old,prunable}\) a parte podável dos blocos antigos e
 \(S_{\rm recent-tip}\) a parte podável da ponta recente, que também se
-conserva inteira. Para um nó podado, a conta central é
+conserva inteira. Para uma faixa \(s\) escolhida uniformemente, a conta central
+é uma esperança:
 \begin{align}
- S_{\rm pruned}
+ \mathbb E_s[S_{\rm pruned}]
    &=S_{\rm indispensable}
      +\frac18 S_{\rm old,prunable}
      +S_{\rm recent-tip},
  \label{eq:pruned-database-size}\\
- S_{\rm discarded}
+ \mathbb E_s[S_{\rm discarded}]
    &=\frac78 S_{\rm old,prunable}.
  \label{eq:pruned-database-discarded}
 \end{align}
 
-O oitavo refere-se apenas à \emph{parte antiga podável}, não ao conjunto da
-blockchain. Cabeçalhos, prefixos, dados necessários ao estado, índices e a
+Um nó concreto conserva uma faixa inteira, não exactamente um oitavo dos
+bytes: o código distribui troços de alturas pelas oito faixas, e os troços têm
+tamanhos variáveis. O oitavo esperado refere-se apenas à \emph{parte antiga
+podável}, não ao conjunto da blockchain. Cabeçalhos, prefixos, dados
+necessários ao estado, índices e a
 ponta recente não são multiplicados por \(1/8\). Por isso uma base podada não
 tem um oitavo do tamanho da base completa. A documentação oficial resume a
 poupança como cerca de dois terços \cite{monero-pruning-doc}; os valores
@@ -693,8 +699,9 @@ cobertura pode atrasar ou impedir aquele nó de acompanhar a reorganização.
 \label{sec:dandelion-summary}
 
 Dandelion++ encaminha a transacção por um subgrafo temporário antes da difusão
-pública. As duas hastes, o mapa persistente por entrada, o papel de difusor e o
-embargo reduzem a fiabilidade de estimativas baseadas no primeiro nó observado.
+pública. As hastes disponíveis, no máximo duas, o mapa persistente por entrada,
+o papel de difusor e o embargo reduzem a fiabilidade de estimativas baseadas no
+primeiro nó observado.
 A implementação Monero acrescenta filtros de altura, equilíbrio das hastes,
 difusão com atrasos, detecção de ciclos e uma transição de segurança concreta.
 Tor/I2P, quando configurados, usam canais e ruído próprios; hastes de entrada e
@@ -705,9 +712,9 @@ global, garante propagação contra todos os nós maliciosos ou altera consenso.
 É uma defesa probabilística de metadados, com hipóteses e falhas observáveis.
 
 A poda reduz o armazenamento local. Conserva os dados indispensáveis ao estado
-corrente, um oitavo da parte antiga podável e a ponta recente inteira. As oito
-faixas aumentam a probabilidade de a rede reter cópias, mas nenhuma regra de
-consenso garante a disponibilidade contínua dos nós que as armazenam.
+corrente, em média um oitavo da parte antiga podável e a ponta recente inteira.
+As oito faixas aumentam a probabilidade de a rede reter cópias, mas nenhuma
+regra de consenso garante a disponibilidade contínua dos nós que as armazenam.
 Sincronizar dados completos e eliminá-los depois não é equivalente a aceitar
 uma história já podada, porque apenas o primeiro procedimento verifica
 localmente todas as provas históricas.

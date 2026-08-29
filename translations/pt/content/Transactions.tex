@@ -92,11 +92,11 @@ Um remetente recebeu \(m\) saídas com montantes
 Ele conhece as chaves privadas de gasto \(p_j\) tais que
 \(P_{\pi_j,j}=p_jG\), os montantes \(a_j\) e as máscaras \(x_j\).
 
-Pretende criar \(p\) saídas com montantes \(b_1,\ldots,b_p\) e pagar uma
+Pretende criar \(p\) saídas com montantes \(b_0,\ldots,b_{p-1}\) e pagar uma
 taxa \(f\), todos em unidades atómicas, de modo que
 \begin{align}
  \sum_{j=1}^{m}a_j
-   =\sum_{t=1}^{p}b_t+f.
+   =\sum_{t=0}^{p-1}b_t+f.
  \label{eq:transaction-amount-balance}
 \end{align}
 A taxa \(f\) é pública e serializada como um inteiro de comprimento
@@ -124,13 +124,13 @@ Para cada entrada cria também um pseudo-compromisso
 As primeiras \(m-1\) pseudo-máscaras \(x'_j\) são escolhidas ao acaso. A
 última é determinada pela condição de balanço:
 \begin{align*}
- x'_m=\sum_{t=1}^{p}y_t-\sum_{j=1}^{m-1}x'_j\pmod l.
+ x'_m=\sum_{t=0}^{p-1}y_t-\sum_{j=1}^{m-1}x'_j\pmod l.
 \end{align*}
 Por homomorfismo dos compromissos, a equação
 \begin{align}
  \sum_{j=1}^{m}\widetilde C^a_j
  \stackrel{?}{=}
- \sum_{t=1}^{p}C^b_t+fH
+ \sum_{t=0}^{p-1}C^b_t+fH
  \label{eq:transaction-commitment-balance}
 \end{align}
 verifica ao mesmo tempo o equilíbrio dos montantes e o das máscaras, sem
@@ -165,7 +165,7 @@ fazer o trabalho mais caro; não é uma prova de propriedade.
 
 O montante cifrado contém apenas oito bytes:
 \begin{align*}
- b_t\oplus_8
+ \operatorname{LE8}(b_t)\mathbin\oplus
  \mathcal H(``\texttt{amount}''\,\|\,h_t)[0\ldots7].
 \end{align*}
 A máscara não é transmitida cifrada ao lado do montante. O destinatário volta a
@@ -187,10 +187,10 @@ destinatário pretendido.
 
 \subsection{Uma prova Bulletproofs+ para todas as saídas}
 
-Os compromissos \(C^b_1,\ldots,C^b_p\) entram numa única prova
+Os compromissos \(C^b_0,\ldots,C^b_{p-1}\) entram numa única prova
 Bulletproofs+ que mostra
 \begin{align*}
- b_t\in[0,2^{64}-1]\qquad\text{para todo }t.
+ b_t\in[0,2^{64}-1]\qquad\text{para }0\leq t<p.
 \end{align*}
 Na transacção ordinária v16, \(2\leq p\leq16\). A prova é preenchida
 internamente até
@@ -470,7 +470,7 @@ relação durante a escolha dos parâmetros. Daqui em diante, toda a aritmética
 escalar desta secção é módulo \(l\).
 
 Suponha-se, contudo, que o Óscar conhece \(\gamma\). Compra ou recebe
-\(0{,}1\) xmr numa saída já gastável que possui. Conhece a chave de gasto, o
+\(0{,}1\) XMR numa saída já gastável que possui. Conhece a chave de gasto, o
 montante
 \(b\), a máscara \(y\) e o compromisso histórico
 \begin{align*}
@@ -478,7 +478,7 @@ montante
 \end{align*}
 Não precisa de publicar um novo ponto \(C^a_{\mathrm{mau}}\). Escolhe um
 montante alternativo de 64 bits, por exemplo
-\(b_{\mathrm{mau}}=100\) xmr, e calcula uma segunda abertura do mesmo ponto:
+\(b_{\mathrm{mau}}=100\) XMR, e calcula uma segunda abertura do mesmo ponto:
 \begin{align}
  y_{\mathrm{mau}}
    =y+(b-b_{\mathrm{mau}})\gamma\pmod l.
@@ -738,7 +738,7 @@ a utilização pelos destinatários dependem das condições seguintes:
  \item a Bulletproof+ prove que os dois montantes pertencem ao intervalo de
  64 bits;
  \item a taxa \(f\) seja pública e se verifique
- \(\widetilde C^a=C^b_1+C^b_2+fH\); e
+ \(\widetilde C^a=C^b_0+C^b_1+fH\); e
  \item a mensagem CLSAG vincule o prefixo, a base RingCT e a prova, enquanto a
  transcrição CLSAG vincula também o pseudo-compromisso.
 \end{itemize}

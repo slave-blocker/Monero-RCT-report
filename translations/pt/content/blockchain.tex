@@ -34,18 +34,17 @@ por organizações poderosas \cite{Nakamoto_bitcoin}.
 
 %In the current, by far most pervasive, model, electronic transactions are handled by third-party financial institutions. These institutions are given custody of money and trusted to transfer it upon request. Such institutions must mediate disputes, their payments are reversible, and they can be censored or controlled by powerful organizations. \cite{Nakamoto_bitcoin}
 
-Para aliviar estas inconveniências, surgiram moedas digitais descentralizadas.
+Para aliviar estas inconveniências, surgiram moedas digitais
+descentralizadas.\footnote{Este capítulo inclui mais detalhes de implementação
+do que os anteriores, pois a natureza da lista de blocos depende muito da sua
+estrutura específica.}
  
 %To alleviate these drawbacks decentralized digital currencies have been engineered.
-
-\footnote{Este capítulo inclui mais detalhes de implementação do que os
-anteriores, pois a natureza da lista de blocos depende muito da sua estrutura
-específica.}
 
 \section{Moedas digitais}
 \label{sec:digital-currency}
 
-Considere-se três modelos de moeda digital: pessoal, centralizada e
+Considerem-se três modelos de moeda digital: pessoal, centralizada e
 distribuída. Uma moeda digital é uma colecção de
 mensagens; os ``montantes'' guardados nelas são interpretados como quantidades
 monetárias.
@@ -78,11 +77,10 @@ a aceita se ela seguir regras predefinidas.
 
 Os utilizadores só beneficiam das moedas se outros as aceitarem em troca. Para
 maximizar a sua utilidade, existe uma tendência natural para adoptar um
-conjunto de regras comuns sem autoridade central.
+conjunto de regras comuns sem autoridade central.\footnote{Na ciência política
+diz-se a isto um contracto social.}
 
 %Users only benefit from coins when other users accept them in exchange, and users only accept coins they feel are legitimate. To maximize the utility of their coins, users are naturally inclined to settle on one commonly accepted rule-set, without the presence of a central authority.
-
-\footnote{Na ciência política diz-se a isto um contrato social.}
 
 \begin{itemize}
     \item[] \textbf{Regra n.\textsuperscript{o} 1}: Dinheiro só pode ser criado em cenários bem definidos.
@@ -176,14 +174,14 @@ e independente do argumento de entrada. Isto significa que, perante entradas
 novas, cada resultado possível parece igualmente provável. Além disso, cada
 tentativa exige algum tempo de cálculo.
 %The output of a cryptographic hash function is uniformly distributed and apparently independent of the input. This means, given a potential input, its hash is equally likely to be every single possible output. Furthermore, it takes a certain amount of time to compute a single hash.
-Considere-se uma função hash $\mathcal{H}_i(x)$ cujo resultado é um número de 1 a 100:
+Considere-se uma função hash $\mathcal{H}_i(x)$ cujo resultado é um número de
+1 a 100:\footnote{Usa-se $\in^D_R$ para dizer que o resultado se comporta como
+uma escolha uniforme no conjunto indicado.}
 \begin{align*}
 \mathcal{H}_i(x) \in^D_R \{1,\ldots,100\}
 \end{align*}
 
 %Let's imagine a hash function $\mathcal{H}_i(x)$ which outputs a number from 1 to 100: $\mathcal{H}_i(x) \in^D_R \{1,...,100\}$.
-\footnote{Usa-se $\in^D_R$ para dizer que o resultado se comporta como uma
-escolha uniforme no conjunto indicado.}
 
 Para um dado $x$, $\mathcal{H}_i(x)$ devolve sempre o mesmo número
 pseudo-aleatório de $\{1,\ldots,100\}$. Suponha-se que demora um minuto a
@@ -470,12 +468,11 @@ v13 tornou a igualdade obrigatória.
 Para além de distribuir dinheiro, a recompensa incentiva a mineração. Sem
 recompensas nem taxas, a participação dependeria de incentivos externos ao
 protocolo. Com pouca potência honesta, torna-se mais barato reunir uma maioria
-e tentar reescrever blocos recentes.
+e tentar reescrever blocos recentes.\footnote{Num modelo simplificado de
+potências constantes, se o atacante tem $v>v_h$, um histórico com $x$ dias
+demora aproximadamente $y=xv_h/(v-v_h)$ dias a ultrapassar.}
 
 %Besides distributing money, block rewards incentivize mining. If there were no block rewards (and no other mechanism), why would anyone mine new blocks? Perhaps altruism or curiosity. However, few miners makes it easy for a malicious actor to assemble $>$50\% of the network's hash rate and easily rewrite recent chain history.
-\footnote{Num modelo simplificado de potências constantes, se o atacante tem
-$v>v_h$, um histórico com $x$ dias demora aproximadamente
-$y=xv_h/(v-v_h)$ dias a ultrapassar.}
 %As an attacker gets higher shares of the hash rate (beyond 50\%), it takes less time to rewrite older and older blocks. Given a block $x$ days old, owned hash speed $v$, and honest hash speed $v_h$ ($v > v_h$), it will take $y = x*(v_h/(v-v_h))$ days to rewrite.} 
 É também por isso que a recompensa base de Monero não chega a zero. A
 competição leva os mineiros a acrescentar potência até o custo marginal
@@ -662,17 +659,16 @@ P=B_0\left(\frac{W}{M_N}-1\right)^2.
 \end{align*}
 
 A regra de consenso faz as multiplicações com precisão alargada e as divisões
-inteiras. A recompensa de bloco é portanto:
+inteiras. A recompensa de bloco é portanto:\footnote{Antes da activação das
+transacções confidenciais em v4, os montantes eram comunicados em texto claro e
+decompostos, por exemplo $1244\rightarrow1000+200+40+4$. Em v2--v3, o
+construtor da transacção de mineiro arredondava ainda a recompensa para baixo,
+retirando os algarismos menos significativos segundo
+{\tt BASE\_REWARD\_CLAMP\_THRESHOLD}. O resto não desaparecia: ficava
+disponível para recompensas posteriores.}
 \marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp {\tt get\_block\_ reward()}}
 
 %The actual block reward\marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp {\tt get\_block\_ reward()}} is therefore
-
-\footnote{Antes da activação das transacções confidenciais em v4, os montantes
-eram comunicados em texto claro e decompostos, por exemplo
-$1244\rightarrow1000+200+40+4$. Em v2--v3, o construtor da transacção de
-mineiro arredondava ainda a recompensa para baixo, retirando os algarismos
-menos significativos segundo {\tt BASE\_REWARD\_CLAMP\_THRESHOLD}. O resto
-não desaparecia: ficava disponível para recompensas posteriores.}
 
 %Before confidential transactions (RingCT) were implemented (v4), all amounts were communicated in clear text and in some early protocol versions split into chunks (e.g. 1244 $\rightarrow$ 1000 + 200 + 40 + 4). To reduce miner tx size, the core implementation chopped off the lowest significant digits of block rewards (anything less than 0.0001 Moneroj; see {\tt BASE\_REWARD\_CLAMP\_THRESHOLD}) in v2-v3. The extra little bit was not lost, just made available for future block rewards. More generally, since v2\marginnote{src/crypto- note\_core/ block- chain.cpp {\tt validate\_ miner\_trans- action()}} the block reward calculation here is just an upper limit on the real block reward that can be dispersed in a miner tx's outputs. Also of note, very early transactions' outputs with cleartext amounts {\em not} split into chunks can't be used in ring signatures in the current implementation, so to spend them they are migrated into chunked, `mixable', outputs, which can then be spent in normal RingCT transactions by creating rings out of other chunks with the same amount. Exact modern protocol rules around these ancient pre-RingCT outputs are not clear.}\vspace{.3cm}
 \begin{align*}
@@ -717,7 +713,9 @@ algoritmo sem uma bifurcação da rede.
 \marginnote{src/crypto- note\_core/ tx\_pool.cpp {\tt add\_tx()}}
 %This minimum is enforced by the node consensus protocol, not the blockchain protocol. Most nodes won't relay a transaction to other nodes if it has a fee below the minimum\marginnote{src/crypto- note\_core/ tx\_pool.cpp {\tt add\_tx()}} (at least in part so only transactions likely to be mined by someone are passed along \cite{articmine-36c3-dynamics}), but they {\em will} accept a new block containing that transaction. In particular, this means there is no need to maintain backward compatibility with fee algorithms.}
 Historicamente, a taxa era 0,01 XMR/KiB em v1 e 0,002 XMR/KiB em v3
-\cite{fee-old-stackexchange}. V4 introduziu uma taxa dinâmica por KiB; v8
+\cite{fee-old-stackexchange}.\footnote{A unidade KiB (kibibyte, 1 KiB = 1024
+bytes) é diferente de kB (kilobyte, 1 kB = 1000 bytes).} V4 introduziu uma
+taxa dinâmica por KiB; v8
 passou a cobrar por byte; v15 activou no software a escala de taxas de 2021.
 O objectivo mantém-se: relacionar o preço do espaço com a recompensa e com a
 capacidade que a rede consegue oferecer
@@ -728,7 +726,6 @@ e de taxa dinâmicos \cite{articmine-fee-video,articmine-36c3-dynamics,
 articmine-defcon27-video}.}
 
 %Originally this was 0.01 XMR/KiB (added early during protocol v1) \cite{fee-old-stackexchange}, then it became 0.002 XMR/KiB in September 2016 (v3).
-\footnote{A unidade KiB (kibibyte, 1 KiB = 1024 bytes) é diferente de kB (kilobyte, 1 kB = 1000 bytes).}
 
 %In January 2017 (v4), a dynamic fee per KiB algorithm \cite{articmine-fee-video, articmine-36c3-dynamics, articmine-defcon27-video, jollymore-old-analysis} was added,\footnote{The base fee was changed from 0.002 XMR/KiB to 0.0004 XMR/KiB in April 2017 (v5 of the protocol) \cite{monero-v5}. The first edition of this report described the original dynamic fee algorithm \cite{ztm-1}.} and then along with transaction weight reductions due to Bulletproofs (v8) it changed from per KiB to per byte. The most important feature of the algorithm is that it prevents minimum possible total fees from exceeding the block reward (even with small block rewards and large block weights), which is thought to cause instability \cite{fee-reward-instability, no-reward-instability, selfish-miner}.\footnote{Credit for the concepts in this section largely belongs to Francisco Caba$\tilde{\textrm{n}}$as (a.k.a. `ArticMine'), the architect of Monero's dynamic block and fee system. See \cite{articmine-fee-video, articmine-36c3-dynamics, articmine-defcon27-video}.}%, by scaling with both the base block reward and the median.%\cite{dynamic-per-kb-fee}
 
@@ -803,7 +800,10 @@ Acontece que usar $M_N$ directamente para a taxa permitiria um ataque de
 {\em spam}: elevar $M_S$ reduziria o preço precisamente quando a rede estivesse
 mais ocupada. Por isso o nó usa a menor entre a mediana de penalização e a
 mediana efectiva de longo termo. Em v16, como $M_N\geq M_L$, a mediana de taxa
-é simplesmente $M_L$.
+é simplesmente $M_L$.\footnote{A fórmula anterior desta secção, proporcional a
+$B_0/M\cdot0{,}002$, e os exemplos com recompensa de 2 XMR descreviam a
+política anterior a v15. A regra activa depende de $B_0/M_L^2$ e a cauda fixa
+$B_0$ em pelo menos 0,6 XMR.}
 %It turns out using the cumulative median for fees enables a spam attack. By raising the short term median to its highest value (50 x long term median), an attacker can use minimum fees to maintain high block weights (relative to organic transaction volume) with very low cost.
 Se $B_0$ é a recompensa base sem penalização e $w$ o peso da transacção, o
 preço local por unidade de peso é calculado, com aritmética inteira, em torno de
@@ -819,12 +819,6 @@ de $10\,000$ unidades atómicas (oito casas decimais de XMR). Para absorver
 diferenças de arredondamento, a txpool aceita até 2\% abaixo desse total.
 
 %To avoid this we limit fees for transactions to go in the next block with the smallest median available, which favors higher fees in all cases.
-\footnote{A fórmula anterior desta secção, proporcional a
-$B_0/M\cdot0{,}002$, e os exemplos com recompensa de 2 XMR descreviam a
-política anterior a v15. A regra activa depende de $B_0/M_L^2$ e a cauda fixa
-$B_0$ em pelo menos 0,6 XMR.}
-
-
 %An attacker can spend just enough in fees for the short term median to hit 50*long-term-median. With current (as of this writing) block rewards at 2 XMR, an optimized attacker can increase the short term median by 17\% every 50 blocks, and reach the upper bound after about 1300 blocks (about 43 hours), spending 0.39*2 XMR per block, for a total setup cost of about 1000 XMR (or around 65k USD at current valuations), and then go back to the minimum fee. When the fee median equals the penalty-free zone, then the minimum total fee to fill the penalty-free zone is 0.004 XMR (about 0.26 USD at current valuations). If the fee median equals the long term median, it would in the spam scenario be 1/50th the penalty-free zone. Therefore it would just be 50x the short-median case, for 0.2 XMR per block (13 USD per block). This comes out to 2.88 XMR per day vs 144 XMR per day (for 69 days, until the long term median rises by 40\%) to maintain every block with 50*long-term-median block weight. The 1000 XMR setup cost would be worthwhile in the former case, but not the latter. This will reduce to 300 XMR setup, and 43 XMR maintenance, at the emission tail.}\vspace{.1cm}
 \[M_{\rm taxa}=\min\{M_N,M_L\}=M_L.\]
 
@@ -958,16 +952,24 @@ são muito específicas:
 \item tem versão 2 e exactamente uma entrada {\tt txin\_gen}, cuja altura é a
       altura do bloco;
 \item usa {\tt RCTTypeNull}: não contém CLSAG, Bulletproof+ nem pseudo-saídas;
-\item o tempo de desbloqueio é exactamente $h+60$;
+\item o tempo de desbloqueio é exactamente $h+60$;\footnote{Se esta
+      transacção aparece no bloco 10, a altura de desbloqueio é 70 e a saída
+      pode ser usada numa transacção incluída no bloco 70 ou posterior. Esta
+      maturidade de 60 blocos \cite{transaction-lock} é distinta da idade
+      mínima normal de 10 blocos para uma saída ser usada como membro real de
+      uma entrada, activa desde v12 \cite{monero-source-v16}.}
 \item em v16 todas as saídas são {\tt txout\_to\_tagged\_key}, com etiqueta de
       vista, chave pública válida e montante claro;
-\item a soma dos montantes é exactamente $B(W)+\sum\mathit{taxas}$.
+\item a soma dos montantes é exactamente $B(W)+\sum\mathit{taxas}$.\footnote{V12
+      tornou histórica a possibilidade de usar uma transacção de mineiro v1
+      ou de incluir assinaturas RingCT: passou a exigir versão 2 e
+      {\tt RCTTypeNull} \cite{miner-tx-checks}. V13 tornou exacta a soma
+      reclamada.}
 \end{itemize}
+\marginnote{src/crypto- note\_core/ block- chain.cpp
+{\tt is\_tx\_ spendtime\_ unlocked()}}[-1.2cm]
 
 %A block's miner has the right to claim ownership of the fees provided in its transactions, and to mint new money in the form of a block reward. The mechanism is a miner transaction\marginnote{src/crypto- note\_core/ cryptonote\_ tx\_utils.cpp {\tt construct\_ miner\_tx()}} (a.k.a. coinbase transaction), which is similar to a normal transaction.
-\footnote{V12 tornou histórica a possibilidade de usar uma transacção de
-mineiro v1 ou de incluir assinaturas RingCT: passou a exigir versão 2 e
-{\tt RCTTypeNull} \cite{miner-tx-checks}. V13 tornou exacta a soma reclamada.}
 
 O construtor do nó cria normalmente uma única saída para o endereço do
 mineiro, inclui a chave pública da transacção no campo {\tt extra} e pode
@@ -980,13 +982,7 @@ condições acima e o peso máximo do bloco sejam satisfeitos.
 %\footnote{The miner transaction output can theoretically be sent to a subaddress and/or use multisig and/or an encoded payment ID. We don't know if any implementations have any of those features.} 
 
 %with a corresponding transaction public key stored in the extra field. The funds are locked, unspendable, until the 60\nth block after it is published \cite{transaction-lock}.
-\footnote{Se esta transacção aparece no bloco 10, a altura de desbloqueio é 70
-e a saída pode ser usada numa transacção incluída no bloco 70 ou posterior.
-Esta maturidade de 60 blocos é distinta da idade mínima normal de 10 blocos
-para uma saída ser usada como membro real de uma entrada, activa desde v12
-\cite{transaction-lock}.
 %The miner tx can't be locked for more or less than 60 blocks. If it is published in the 10\nth block, its unlock height is 70, and it may be spent in the 70\nth block or later.
-\marginnote{src/crypto- note\_core/ block- chain.cpp {\tt is\_tx\_ spendtime\_ unlocked()}}[.5cm]}.%justification? Blockchain::prevalidate_miner_transaction()
 
 Desde que RingCT foi implementado em Janeiro de 2017 (v4)
 \cite{ringct-dates}, o nó que guarda uma saída de mineiro v2 fabrica também o
@@ -1027,21 +1023,22 @@ Para calcular o ID, não se aplica a função hash à serialização completa do
 bloco. Primeiro constrói-se o \emph{objecto de hash}: a serialização binária do
 cabeçalho, seguida pela raiz de Merkle dos IDs de transacção e pelo número
 total de transacções, incluindo a de mineiro. Depois aplica-se a função hash
-rápida de CryptoNote (Keccak):
+rápida de CryptoNote (Keccak):\footnote{Há uma excepção histórica de consenso
+para o bloco 202612, cujo ID é tratado especialmente. Não altera a construção
+dos blocos v16.}
 %A block ID is simply a hash of
-\marginnote{src/crypto- note\_basic/ cryptonote\_ format\_ utils.cpp {\tt get\_block\_ hashing\_ blob()}}
+\marginnote{src/crypto- note\_basic/ cryptonote\_ format\_ utils.cpp;
+{\tt get\_block\_ hashing\_ blob(); calculate\_ block\_ hash(); calculate\_
+transa- ction\_ hash()}}[3.5cm]
 %[1.2cm] the block's header (a list of information about a block), a so-called `Merkle root' that attaches all the block's transaction IDs (which are hashes of each transaction), and the number of transactions (including the miner transaction).
-\marginnote{src/crypto- note\_basic/ cryptonote\_ format\_ utils.cpp
-{\tt calculate\_ block\_ hash()}}[4.5cm]\vspace{.175cm}
+\vspace{.175cm}
 %calculate_block_hash, which ultimately uses cn_fast_hash(get_block_hashing_blob)
 
 \begin{align*}
-\mathit{ID}_{B}=\mathcal{H}_n\bigl(
+\mathit{ID}_{B}=\mathcal{H}\bigl(
  \operatorname{serializar}(\text{cabeçalho})\,\|\,R_{\rm Merkle}\,\|\,
  \operatorname{varint}(1+\#\text{txs normais})\bigr).
 \end{align*}
-\footnote{Há uma excepção histórica de consenso para o bloco 202612, cujo ID
-é tratado especialmente. Não altera a construção dos blocos v16.}
 
 \vspace{.05cm}
 
@@ -1049,7 +1046,7 @@ Para produzir um novo bloco, o mineiro altera o {\em nonce} de 4 bytes e,
 quando precisa de mais domínio, altera também a reserva no {\tt extra} da
 transacção de mineiro. O mesmo objecto de hash alimenta a prova de trabalho,
 mas não a mesma função: em blocos v16 usa-se RandomX para obter
-$h_{\rm PoW}$; para o ID usa-se $\mathcal H_n$.
+$h_{\rm PoW}$; para o ID usa-se $\mathcal H$.
 %To produce a new block, one must do proof of work hashes by changing a nonce value stored in the block header until the difficulty target condition is met.
 %In Monero a typical miner (from \url{https://monerobenchmarks.info/} as of this writing) can do less than 50,000 hashes per second, so less than 6 million hashes per block. This means the nonce variable doesn't need to be that big. Monero's nonce is 4 bytes (max 4.3 billion), and it would be strange for any miner to require all the bits.} 
 Interpretando $h_{\rm PoW}$ como inteiro de 256 bits em ordem
@@ -1086,10 +1083,8 @@ Calculam-se três hashes de 32 bytes:
 \end{itemize}
 
 Finalmente,
-\marginnote{src/crypto- note\_basic/ cryptonote\_ format\_ utils.cpp
-{\tt calculate\_ transa- ction\_ hash()}}
 \begin{align*}
-\mathit{ID}_{\rm tx}=\mathcal H_n(h_p\|h_b\|h_r).
+\mathit{ID}_{\rm tx}=\mathcal H(h_p\|h_b\|h_r).
 \end{align*}
 
 Neste diagrama de árvore a seta preta indica uma hash de entradas. 

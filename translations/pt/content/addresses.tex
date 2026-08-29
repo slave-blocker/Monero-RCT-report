@@ -132,7 +132,7 @@ construção de cada uma pode ser estudada separadamente. Alice conhece
 \marginnote{src/crypto/ crypto.cpp
 {\tt generate\_ key\_ deri- vation()},
 {\tt deri- vation\_ to\_ scalar()} e
-{\tt derive\_ pu- blic\_ key()}}
+{\tt derive\_ pu- blic\_ key()}}[-6cm]
 
 Ao percorrer a lista de blocos, Bob lê \(R\) e calcula
 \[
@@ -261,7 +261,7 @@ destinada a \((K_t^s,K_t^v)\), definimos
 \end{align*}
 \marginnote{src/crypto- note\_core/
 cryptonote\_ tx\_utils.cpp
-{\tt construct\_ tx\_ with\_ tx\_ key()}}
+{\tt construct\_ tx\_ with\_ tx\_ key()}}[-6cm]
 
 Mesmo que Alice pague duas vezes ao mesmo endereço na mesma transacção, os
 índices diferentes entram no hash e produzem chaves de saída distintas,
@@ -324,7 +324,7 @@ O sub-endereço é o par
 device\_ default.cpp
 {\tt get\_ sub- address\_
 secret\_ key()} e
-{\tt get\_ sub- address()}}
+{\tt get\_ sub- address()}}[-6cm]
 
 Não se introduz aqui uma nova chave privada
 \(k_B^{v,\iota}\) com o papel da chave de vista principal. Uma carteira
@@ -401,7 +401,7 @@ crypto.cpp
 {\tt derive\_ sub- address\_
 public\_ key()};
 src/crypto- note\_ core/
-crypto- note\_ tx\_ utils.cpp}
+crypto- note\_ tx\_ utils.cpp}[-6cm]
 
 \subsubsection*{Chave principal e chaves adicionais}
 
@@ -422,8 +422,9 @@ troco} e escolhe as chaves públicas de transacção assim:
  \item Se misturar endereços principais e sub-endereços, ou se houver mais
  de um sub-endereço distinto, mantém uma chave principal \(R=rG\) e cria um
  segredo fresco \(r_t\in_R\mathbb{Z}_l^*\) para cada posição. A chave adicional
- alinhada com uma saída de endereço principal é \(R_t=r_tG\); para uma saída
- de sub-endereço, é \(R_t=r_tK_t^{s,\iota}\).
+ alinhada com uma saída de endereço principal é \(R_t=r_tG\), embora essa saída
+ continue a usar \(R\) na derivação. Para uma saída de sub-endereço que não seja
+ troco, é \(R_t=r_tK_t^{s,\iota}\), e a derivação usa \(R_t\).
 \end{itemize}
 
 As chaves adicionais aparecem em \texttt{extra} num vector cuja posição
@@ -432,10 +433,10 @@ pode não ser usada para a sua derivação: como o remetente conhece a própria
 chave de vista, a implementação deriva o troco da chave principal. Esse
 pormenor não autoriza deslocar as restantes posições.
 
-Numa saída que use \(R_t\), o segredo partilhado é
-\(8r_tK_t^v=8k_t^vR_t\) para um endereço principal, ou
-\(8r_tK_t^{v,\iota}=8k_t^vR_t\) para um sub-endereço. É essa derivação, e não
-a da chave principal, que entra em \(h_t\) e na etiqueta de vista da saída.
+Numa saída de endereço principal, o segredo partilhado continua a ser
+\(8rK_t^v=8k_t^vR\). Numa saída de sub-endereço que use \(R_t\), é
+\(8r_tK_t^{v,\iota}=8k_t^vR_t\). É a derivação correspondente que entra em
+\(h_t\) e na etiqueta de vista da saída.
 
 Ao varrer, a carteira tenta primeiro a derivação da chave principal e, quando
 existe, a chave adicional da mesma posição \(t\). Uma chave malformada não

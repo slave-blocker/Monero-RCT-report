@@ -79,8 +79,8 @@ Aqui \(H\) é o objecto de hash do bloco, incluindo o nonce, e \(K\) deriva de
 um bloco anterior. Para cada tentativa, os bytes derivados de \(H\) escolhem
 os programas; de época para época, \(K\) muda a grande tabela de memória que
 esses programas consultam. Todos conseguem reconstruir ambas as coisas. O que
-um dispositivo não pode conservar uma única sequência curta de operações
-durante todas as épocas.
+um dispositivo não pode fazer é conservar uma única sequência curta de
+operações durante todas as épocas.
 
 
 \section{Estrutura completa de uma avaliação}
@@ -238,7 +238,7 @@ O índice \(i\) entra no estado inicial de forma injectiva dentro do domínio do
 Dataset. Depois, cada ronda pode ser vista como
 \begin{align*}
  X_0&=\operatorname{enc}(i),\\
- X_{j+1}&=\operatorname{Super}_j(X_j\mathbin{\mathsf{xor}}C_K[a_j]),
+ X_{j+1}&=\operatorname{Super}_j(X_j)\mathbin{\mathsf{xor}}C_K[a_j],
        &&j=0,\ldots,7,\\
  D_K[i]&=X_8,
 \end{align*}

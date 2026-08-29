@@ -8,9 +8,11 @@ Para impedir que a mesma moeda seja gasta duas vezes ou que novas moedas sejam
 criadas arbitrariamente, as transacções são registadas numa lista de blocos
 (\emph{blockchain}): um registo público e distribuído que terceiros
 podem verificar \cite{Nakamoto_bitcoin}. A verificabilidade pública não exige
-que remetentes, destinatários e montantes fiquem expostos: Monero oculta esses
-dados e permite que a rede confirme a validade das transacções
-\cite{cryptoNoteWhitePaper}.
+que remetentes, destinatários e montantes fiquem expostos: Monero oculta
+remetentes e destinatários segundo o protocolo CryptoNote
+\cite{cryptoNoteWhitePaper}, e os montantes mediante RingCT
+\cite{MRL-0005-ringct}, permitindo ainda que a rede confirme a validade das
+transacções.
 
 Para os leitores experientes: a rede principal usa criptografia sobre a curva
 Edwards25519 \cite{Bernstein2008}, endereços de utilização única, assinaturas

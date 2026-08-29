@@ -131,7 +131,9 @@ e formatos futuros não podem atribuir poderes diferentes a \(x\) e \(y\), e
 uma prova SAL de «conheço \(x,y\)» deixa de provar a abertura pretendida.
 
 Há uma consequência concreta para o próprio dono. Numa saída histórica
-\(O=xG\), a árvore conserva também \(I=\mathcal H_p(O)\), e a SAL publica
+\(O=xG\), a árvore conserva também
+\(I=\mathcal H_p(O_{\rm original})\), onde \(O_{\rm original}\) é a chave
+publicada antes da eventual limpeza de torsão, e a SAL publica
 \(L=xI\). Com \(\tau\), o dono escolhe aberturas alternativas \(x'\) do mesmo
 \(O\) e obtém marcadores \(L'=x'I\) diferentes. A autorização não passou para
 um estranho; a detecção do segundo gasto deixou de reconhecer o primeiro.
@@ -155,11 +157,11 @@ até \(G\), a inflação passa a ser a exploração directa anterior.
 
 \subsection*{A base que muda com a saída}
 
-\(\mathcal H_p(O)\) não é um sexto parâmetro estático. Se, para uma saída
-histórica, alguém descobre
+\(\mathcal H_p(O_{\rm original})\) não é um sexto parâmetro estático. Se,
+para uma saída histórica, alguém descobre
 \[
- \mathcal H_p(O)=\eta_OG,\qquad O=xG,\qquad
- L=x\mathcal H_p(O),
+ \mathcal H_p(O_{\rm original})=\eta_OG,\qquad O=xG,\qquad
+ L=x\mathcal H_p(O_{\rm original}),
 \]
 então
 \[
@@ -178,14 +180,15 @@ saída gasta; sem roubo, quebra da autorização ou inflação demonstrada.
 \scriptsize
 
 O código corrente não se limita a \(\widetilde I\) e \(R_{\rm fcmp}\). Para
-uma abertura \(O=xG+yT\), escreve, com \(z=xr_i\),
+uma abertura \(\widetilde O=xG+yT\), escreve, com \(z=xr_i\),
 \begin{align*}
  \widetilde I&=I+r_iU,&
  R_{\rm fcmp}&=r_iV+r_jT,\\
  P&=xG+r_iV+zU+r_pT,& z&=xr_i,\\
- P-\widetilde O-R_{\rm fcmp}&=zU+r_p''T,&
+ P-\widetilde O-R_{\rm fcmp}&=zU+r_p'T,&
  L&=x\widetilde I-zU.
 \end{align*}
+Aqui \(r_p'=r_p-y-r_j\).
 A prova de produto vincula \(z=xr_i\) a \(P\); três provas de
 representação vinculam \(x\) a \(\widetilde O\), \(z\) à terceira linha e
 \((x,z)\) a \(L\). A pertença FCMP vincula o mesmo \(r_i\) a
@@ -198,7 +201,7 @@ Para quaisquer \(a,b,\Delta\),
 \[
  aU+bT=(a+\Delta)U+(b-q\Delta)T.
 \]
-Assim, \(zU+r_p''T\) aceita um \(z_{\rm lig}\) diferente do
+Assim, \(zU+r_p'T\) aceita um \(z_{\rm lig}\) diferente do
 \(z_{\rm prod}=xr_i\) provado dentro de \(P\), ajustando a máscara em \(T\).
 A última equação publica então
 \[
@@ -535,7 +538,7 @@ pode ficar no nível «solidez assumida, exploração não demonstrada».
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
 \(G,T,U,V\) & \(aG+bT+cU+dV=0\) & compromisso multibase & condi\-cional & não demonstrado & condi\-cional & não & condi\-cional & condi\-cional
 & suporte deve vencer equações externas & média: vinculação certa; efeito depende do suporte\\ \hline
-\(\mathcal H_p(O)\) & \(\mathcal H_p(O)=\eta_OG\) & bases da DLEQ tornam-se relacionadas & sim & não & não & não & não & não
+\(I\) & \(I=\eta_OG\) & bases da DLEQ tornam-se relacionadas & sim & não & não & não & não & não
 & relação para a saída observada & alta: \(L=\eta_OO\)\\ \hline
 BP/BP+ & relação em \(H,\boldsymbol G,\boldsymbol H\) & compromisso vectorial & não & não & não & condicional & não & condicional
 & direcção altera testemunho; balanço & média: abertura explícita; falsificação depende da relação\\ \hline

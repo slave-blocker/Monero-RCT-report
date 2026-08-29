@@ -6,7 +6,7 @@ multi-assinatura. Qualquer par pode autorizar um gasto; nenhum participante
 pode fazê-lo sozinho. Esta propriedade permite liquidar uma compra por acordo
 directo ou por uma decisão apoiada pelo moderador.
 
-A garantia não é um contrato executado pelo consenso do Monero. O consenso
+A garantia não é um contracto executado pelo consenso do Monero. O consenso
 verifica uma transacção RingCT e a respectiva assinatura. Não conhece a ordem
 de compra, a entrega, o prazo, as provas apresentadas numa disputa nem a
 identidade do moderador. Esses elementos pertencem ao software do mercado e
@@ -68,9 +68,9 @@ Os participantes partilham a chave privada de vista comum; o moderador pode
 observar a carteira desde a configuração. \\
 \hline
 Multi-assinatura com FCMP++ &
-Não implementada na revisão consultada &
-A construção actual termina em CLSAG distribuída; a adaptação a FCMP++ exige
-uma SAL distribuída, como indicado na secção
+Primitivas de referência, sem integração na carteira &
+O ramo FCMP++ de \texttt{monero-oxide} contém algoritmos SAL com FROST; a
+construção da carteira Monero termina em CLSAG distribuída, como indicado na secção
 \ref{sec:multisig-fcmp-note}. \\
 \hline
 \end{tabular}
@@ -164,7 +164,7 @@ No nível RingCT, sejam \(C_j^{\rm in}\) os pseudo-compromissos das entradas e
  \label{eq:escrow-ringct-balance}
 \end{align}
 A equação prova o equilíbrio dos compromissos; não prova que
-\(\mathbf v\) corresponde ao contrato comercial.
+\(\mathbf v\) corresponde ao contracto comercial.
 
 \subsection{Identidade de uma ordem}
 
@@ -239,9 +239,10 @@ Cada participante deve:
 \end{enumerate}
 
 As três carteiras conhecem a chave privada de vista comum. Portanto, todos os
-participantes podem detectar as saídas recebidas e observar a actividade da
-carteira. A confidencialidade dos montantes perante observadores externos não
-implica confidencialidade entre \(B\), \(V\) e \(M\).
+participantes podem detectar as saídas recebidas e descodificar os montantes.
+Depois de trocarem as imagens de chave parciais, podem também acompanhar quais
+dessas saídas foram gastas. A confidencialidade dos montantes perante
+observadores externos não implica confidencialidade entre \(B\), \(V\) e \(M\).
 
 \section{Financiamento}
 \label{sec:escrow-funding}
@@ -509,8 +510,10 @@ diferença está na prova produzida para cada entrada:
 A lista de blocos continuaria sem publicar \(B,V,M\) ou o limiar. Contudo, a
 implementação precisa de construir conjuntamente o marcador de ligação, o
 produto \(z=xr_i\), os compromissos e as respostas SAL sem reconstruir a chave
-privada completa. Essa integração não existe na revisão consultada. A
-secção \ref{sec:multisig-fcmp-note} descreve as relações necessárias.
+privada completa. O ramo de referência contém primitivas distribuídas para
+essa prova, mas a sua integração no fluxo da carteira Monero não existe na
+revisão consultada. A secção \ref{sec:multisig-fcmp-note} distingue esses dois
+níveis.
 
 \section{Requisitos mínimos de uma aplicação}
 \label{sec:escrow-application-requirements}
@@ -546,7 +549,7 @@ autorizar.
 Uma garantia Monero 2-de-3 usa a política
 \[
  \mathcal A
- =\{\{B,V\},\{B,M\},\{V,M\}\}.
+ =\{\{B,V\},\{B,M\},\{V,M\},\{B,V,M\}\}.
 \]
 A carteira multi-assinatura implementa o limiar e produz uma transacção RingCT
 comum. O mercado tem de implementar a ordem, a autenticação, o registo de

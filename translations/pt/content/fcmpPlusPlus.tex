@@ -136,8 +136,8 @@ operações:
 Uma árvore de Merkle resolve as duas primeiras operações. A raiz
 resume as folhas e um caminho de hashes autentica uma folha. Mas um caminho de
 Merkle normal revela a folha, o índice e os irmãos. Colocá-lo dentro de um
-circuito de conhecimento zero é possível, mas as hashes adequadas a bytes não
-são necessariamente económicas na aritmética de curvas que já estamos a
+circuito de conhecimento zero é possível, mas as funções hash adequadas a bytes
+não são necessariamente económicas na aritmética de curvas que já estamos a
 usar.
 
 Em Curve Trees, cada nó é um compromisso de Pedersen
@@ -165,7 +165,7 @@ Um compromisso vectorial oferece uma base por coordenada. Para o vector
  \label{eq:fcmp-vector-commitment}
 \end{align}
 O escalar \(r\) esconde a abertura. A família
-\((H,G_0,\ldots,G_{n-1})\) é pública e deve não ter relações de logaritmo
+\((H,G_0,\ldots,G_{n-1})\) é pública e não deve ter relações de logaritmo
 discreto conhecidas. Se alguém soubesse coeficientes não todos nulos cuja
 combinação desse a identidade, poderia calcular aberturas alternativas para o mesmo compromisso. Esta é a
 generalização multibase da relação
@@ -428,7 +428,7 @@ A composição é então:
  \underbrace{\Pi_{\rm root}}_{\substack{\widehat{\mathcal R}
       -\mathcal R_{\rm tree}\\=\rho H\text{ e conheço }\rho}}
  \quad\Longrightarrow\quad
- \text{há um caminho até a raiz pública.}
+ \text{há um caminho até à raiz pública.}
 \end{align*}
 
 Se eliminarmos \(\Pi_{\rm root}\), a prova pode terminar numa raiz interna que
@@ -620,7 +620,7 @@ Então
 \begin{align*}
  Q=kJ=\sum_{i=0}^{n-1}b_iJ_i
 \end{align*}
-equivale a a soma
+equivale à soma
 \begin{align*}
  \sum_i b_iJ_i-Q=\mathcal O.
 \end{align*}
@@ -785,15 +785,21 @@ prova falsa; é o provador, com probabilidade desprezável, escolher máscaras
 para as quais a forma normalizada não existe e não conseguir produzir a
 prova.
 
-A regra de implementação é portanto:
+Uma implementação robusta deve portanto:
 \begin{align*}
  \text{amostrar os cegamentos}
  &\longrightarrow
  \text{construir e verificar que o divisor utilizável existe}\\
  &\longrightarrow \text{provar}.
 \end{align*}
-Se falhar, reamostra-se. Não se fornece ao verificador uma inversão de zero e não se confunde uma falha rara de completude com uma falha de
-solidez.
+Se falhar, rejeitam-se esses cegamentos e reamostra-se. Na revisão corrente de
+\texttt{monero-oxide}, porém, \texttt{ScalarMulAndDivisor::new} chama
+directamente \texttt{normalize\_x\_coefficient}, que calcula
+\texttt{invert().unwrap()}; não há ali verificação nem reamostragem
+\cite{monero-oxide-fcmp-source}. O coeficiente zero excepcional provoca um
+\texttt{panic} no provador. Não se fornece ao verificador uma inversão de zero e
+não se confunde uma falha rara de completude com uma falha de solidez, mas o
+tratamento robusto dessa falha do provador ainda falta nessa revisão.
 
 \subsection{Interface abstracta do argumento}
 
@@ -825,17 +831,21 @@ Os três pontos têm funções diferentes:
  \item[\(C\)] é o compromisso de montante associado à saída.
 \end{description}
 
-Para uma saída histórica,
+Para uma saída histórica, escreva-se \(O_{\rm original}\) para a chave
+publicada e \(O\) para o ponto, eventualmente limpo de torsão, inserido na
+árvore. Então
 \begin{align*}
- O=xG,\qquad I=\mathcal H_p(O),\qquad C=aG+bH,
+ O=xG,\qquad I=\mathcal H_p(O_{\rm original}),\qquad C=aG+bH,
 \end{align*}
 onde \(x\) é a chave privada de utilização única, \(a\) a máscara e \(b\) o
 montante. A imagem de chave que aparecerá ao gastar é
 \begin{align*}
- L=xI=x\mathcal H_p(O).
+ L=xI=x\mathcal H_p(O_{\rm original}).
 \end{align*}
 Usamos a letra \(L\) neste capítulo para não confundir o ponto armazenado
-\(I\) com a imagem de chave final.
+\(I\) com a imagem de chave final. Sem componente de torsão,
+\(O_{\rm original}=O\); a nota final explicita por que a implementação conserva
+a distinção para saídas legadas.
 
 \subsection{Compatibilidade com formatos de chave futuros}
 
@@ -1289,7 +1299,8 @@ As interfaces são:
 \(\widetilde C\) entra na transcrição SAL embora as equações
 \eqref{eq:fcmp-sal-verify-bp}--\eqref{eq:fcmp-sal-verify-l} não o abram:
 FCMP liga-o ao compromisso histórico e as regras RingCT ligam os
-pseudo-compromissos ao equilíbrio da transacção. A hash comum impede reutilizar a SAL numa transacção diferente.
+pseudo-compromissos ao equilíbrio da transacção. O hash comum impede reutilizar
+a SAL numa transacção diferente.
 
 \subsection{Ordem de verificação}
 
@@ -1398,7 +1409,7 @@ No compromisso de montante, havia uma relação desconhecida famosa:
 \end{align*}
 FCMP++ usa uma família maior. No grupo da saída aparecem
 \begin{align*}
- G,\ H,\ T,\ U,\ V,\ \mathcal H_p(O).
+ G,\ H,\ T,\ U,\ V,\ I.
 \end{align*}
 Nas curvas Selene e Helios aparecem ainda
 \begin{align*}
@@ -1433,8 +1444,9 @@ emprego diferente:
 \end{tabular}
 \end{center}
 
-Precisão: \(\mathcal H_p(O)\) muda com a saída. As bases dos Bulletproofs são
-uma família estática e indexada, não um único ponto nomeado. Portanto, no
+Precisão: \(I=\mathcal H_p(O_{\rm original})\) muda com a saída. As bases dos
+Bulletproofs são uma família estática e indexada, não um único ponto nomeado.
+Portanto, no
 sentido estrito de uma base global como \(H=\gamma G\), sim: \(H\) era a
 base histórica; FCMP++ acrescenta \(T,U,V\).
 
@@ -1458,7 +1470,7 @@ Há três situações que convém não misturar:
  \item \(T=\tau G\), com \(\tau\) desconhecido por todos: bases de um
  compromisso;
  \item \(O=xG\), com \(x\) conhecido pelo provador: uma chave pública;
- \item \(O=xG\) e \(L=x\mathcal H_p(O)\): o mesmo testemunho conhecido em duas
+ \item \(O=xG\) e \(L=xI\): o mesmo testemunho conhecido em duas
  bases cuja relação é desconhecida.
 \end{enumerate}
 
@@ -1496,8 +1508,9 @@ relações lineares, em vez de afirmar apenas «assumimos o PLD».
 \section{Actualização incremental da Curve Tree}
 \label{sec:fcmp-tree-growth}
 
-A cadeia é uma lista que só cresce; a Curve Tree também. Enquanto um ramo
-ainda tem lugares vazios, o acumulador pode representá-los por escalares zero.
+Enquanto se acrescentam saídas a uma dada versão da cadeia, a Curve Tree cresce
+incrementalmente. Enquanto um ramo ainda tem lugares vazios, o acumulador pode
+representá-los por escalares zero.
 Se o lugar \(j\) tinha o valor \(v_j\) e recebe \(v_j'\), o compromisso muda
 por
 \begin{align}

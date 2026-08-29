@@ -52,7 +52,8 @@ O participante \(u\) recebe o \emph{offset}
 \[
  \delta_u=\sum_{v\ne u}s_{u,v}
 \]
-e adiciona \(\delta_uG\) à máscara de um dos seus pseudo-compromissos. Então
+e adiciona \(\delta_u\) à máscara de um dos seus pseudo-compromissos; isto é,
+adiciona \(\delta_uG\) ao próprio pseudo-compromisso. Então
 \begin{align}
  \sum_{u=1}^{N}\delta_u
  &=\sum_{\{u,v\}}(s_{u,v}+s_{v,u})=0.           \label{eq:txtangle-offset-zero}
@@ -231,19 +232,23 @@ O serviço executaria quatro tarefas:
  Pedidos fictícios podem reduzir a correlação entre consultas e inscrições,
  mas aumentam custo e não constituem uma prova de anonimato.
 
- \item \emph{Impedir a interposição.} Se o anfitrião entregar a Alice uma
- lista em que todas as outras identidades são suas, aprende a partição de
- Alice. A defesa proposta vincula as chaves públicas de transacção ao conjunto
- canónico \(\mathbb S_{\rm id}\):
+ \item \emph{Vincular a vista da sessão.} Um anfitrião pode entregar listas
+ diferentes a participantes diferentes. A defesa histórica vincula cada chave
+ pública de transacção ao conjunto canónico de identidades
+ \(\mathbb S_{\rm id}\) e à lista canónica das chaves originais
+ \(\mathbb S_R^{(0)}\), com uma separação de domínio própria \(T_{\rm TT}\):
  \[
   R_t=
-  \mathcal H_n(T_{\rm agg},\mathbb S_{\rm id},R_t^{(0)})\,R_t^{(0)},
+  \mathcal H_n(T_{\rm TT},\mathbb S_{\rm id},\mathbb S_R^{(0)},R_t^{(0)})
+  \,R_t^{(0)},
   \qquad R_t^{(0)}=r_tG.
  \]
  Participantes que receberam listas diferentes obtêm chaves diferentes e não
- conseguem concluir a mesma transacção. Numa implementação moderna, a
- vinculação teria de abranger a versão, a sessão, todas as mensagens e a ordem
- canónica, e não apenas esta chave.
+ conseguem concluir a mesma transacção. Isto detecta a equivocação entre
+ participantes honestos; não impede o anfitrião de preencher todas as outras
+ identidades de uma sala e executar um ataque de poluição. Numa implementação
+ moderna, a vinculação teria de abranger ainda a versão, a sessão, todas as
+ mensagens e a ordem canónica, e não apenas estas chaves.
 \end{enumerate}
 
 \subsection{Operação como serviço}
@@ -259,11 +264,12 @@ cancele a máscara da sua saída. A proposta reparte essa máscara por escalares
 destinados aos participantes. Se \(h\) é a máscara da saída do anfitrião, as
 contribuições \(\eta_u\) têm de satisfazer
 \[
- \sum_u\eta_u=-h,
+ \sum_u\eta_u=h,
 \]
 e cada participante incorpora a sua parcela num pseudo-compromisso. O sinal
-depende da convenção adoptada na Equação~\eqref{eq:txtangle-global-balance}; o
-invariante indispensável é que a soma final das máscaras seja zero.
+é positivo com a convenção da Equação~\eqref{eq:txtangle-global-balance}; se se
+inverter essa convenção, invertem-se ambos os lados. O invariante indispensável
+é que a soma final das máscaras seja zero.
 
 O anfitrião pode abortar perante mensagens inválidas ou falta de pagamento e,
 na ronda final, difundir a transacção e o seu identificador. Esta faculdade é

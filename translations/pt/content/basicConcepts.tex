@@ -408,11 +408,11 @@ Qualquer ponto gera, por definição, um subgrupo cíclico. Se a ordem desse
 subgrupo for prima, todos os seus pontos não nulos são também geradores. No
 exemplo de ordem \(5\), os múltiplos de \(2P\) percorrem
 \[
-2P,4P,6P,8P,10P=2P,4P,P,3P,0.
+(2P,4P,6P,8P,10P)=(2P,4P,P,3P,0).
 \]
 Isto muda quando a ordem é composta. Num subgrupo de ordem \(6\),
 \[
-2P,4P,6P,8P,10P,12P=2P,4P,0,2P,4P,0;
+(2P,4P,6P,8P,10P,12P)=(2P,4P,0,2P,4P,0);
 \]
 logo \(2P\) gera apenas um subgrupo de ordem \(3\).
 %Here $2P$ has order 3. Since 6 is not prime, not all of its member points recreate the original subgroup.
@@ -597,9 +597,10 @@ de ser autenticadas, por exemplo com assinaturas.
 \subsection{Assinaturas tipo Schnorr e a transformada Fiat-Shamir} 
 \label{sec:schnorr-fiat-shamir}
 
-Em 1989, Claus-Peter Schnorr publicou um protocolo interactivo de identificação
-que se tornou fundamental \cite{schnorr-signatures}; Maurer generalizou esta
-família de provas em 2009 \cite{simple-zk-proof-maurer}. O protocolo permite a
+Na CRYPTO '89, Claus-Peter Schnorr apresentou um protocolo interactivo de
+identificação que se tornou fundamental \cite{schnorr-signatures}; Maurer
+generalizou esta família de provas em 2009 \cite{simple-zk-proof-maurer}. O
+protocolo permite a
 um provador demonstrar que conhece o escalar \(k\) correspondente à chave
 pública \(K=kG\), sem acrescentar ao verificador informação utilizável sobre
 \(k\) \cite{Signatures2015BorromeanRS}.
@@ -912,13 +913,15 @@ excepções que essas funções necessariamente admitem.}
 %Without giving further details, birational equivalence can be thought of as an isomorphism expressible using rational terms.} 
 %of the Montgomery curve {\em Curve25519}.
 As construções Curve25519, Edwards25519 e Ed25519 foram publicadas por
-Bernstein e colaboradores \cite{Bernstein2008, Bernstein2012, Bernstein2007}.
+Bernstein e colaboradores
+\cite{curve25519,Bernstein2008,Bernstein2012,Bernstein2007}.
 Convém não confundir os nomes: Edwards25519 é a curva; Ed25519 é uma instância
 do esquema de assinatura EdDSA sobre essa curva, que estudaremos mais abaixo.
 %Both Curve25519 and Ed25519 were released by Bernstein {\em et al.} \cite{Bernstein2008, Bernstein2012, Bernstein2007}.
 \footnote{Bernstein desenvolveu também a cifra ChaCha
-\cite{Bernstein_chacha,chacha-irtf}, usada pela implementação Monero para
-cifrar\marginnote{src/wallet/ ringdb.cpp} certos dados sensíveis da carteira.}
+\cite{Bernstein_chacha,chacha-irtf}, usada pela implementação Monero
+\cite{monero-source-v16} para cifrar\marginnote{src/wallet/ ringdb.cpp} certos
+dados sensíveis da carteira.}
 
 %also developed an encryption scheme known as ChaCha \cite{Bernstein_chacha,chacha-irtf}, which the primary Monero implementation uses to encrypt\marginnote{src/wallet/ ringdb.cpp} certain sensitive information related to users' wallets.}
 

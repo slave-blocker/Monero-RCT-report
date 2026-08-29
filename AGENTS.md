@@ -10,6 +10,13 @@ and commit it without asking for routine confirmation.
 Do not push, open a pull request, or perform any other remote Git operation
 unless the user explicitly requests it.
 
+## CPU usage
+
+For CPU-bound local commands, limit parallelism to at most one fewer than the
+number of available logical processors, with a minimum of one worker. Always
+leave at least one logical processor free, and do not run multiple CPU-heavy
+local commands concurrently when that could saturate the machine.
+
 ## Monero source reference
 
 The read-only Monero source checkout used to audit protocol and implementation

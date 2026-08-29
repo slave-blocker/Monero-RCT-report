@@ -644,9 +644,11 @@ desde que as restantes restrições garantam uma representação válida de
    minimum width=4.4cm,minimum height=1.2cm,text centered,text width=4.2cm]
  \node (sum) [receipt,fill=blue!12]
    {\(\sum_i b_i(2^iJ)-Q=\mathcal O\)};
- \node (div) [receipt,right of=sum,xshift=4.1cm,fill=green!15]
+ \node (div) [receipt,right of=sum,xshift=6cm,fill=green!15]
    {\(D_k=\operatorname{div}(f)\)\\para alguma função \(f\)};
- \draw[<->,thick] (sum) -- node[above]{lei de grupo da curva} (div);
+ \draw[<->,thick] (sum) --
+   node[midway,above=2pt,font=\small,fill=white,inner sep=1pt]
+   {lei de grupo da curva} (div);
 \end{tikzpicture}
 \end{center}
 

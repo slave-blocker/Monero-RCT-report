@@ -263,11 +263,22 @@
 
 % -------- Last page -------------------------
 
-\newgeometry{margin=0.25in}
-\thispagestyle{empty}
-\noindent\makebox[\textwidth][c]{%
-  \includegraphics[width=\textwidth,height=0.98\textheight,keepaspectratio]{front/figures/monerochan-autumn-porto-v10-clock-161800-v10.png}%
-}
+\begingroup
+\setlength{\paperwidth}{6in}% 720 px at 120 dpi
+\setlength{\paperheight}{10in}% 1200 px at 120 dpi
+\setlength{\pdfpagewidth}{\paperwidth}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfhorigin}{0pt}
+\setlength{\pdfvorigin}{0pt}
+\shipout\vbox to \paperheight{%
+  \offinterlineskip
+  \hbox to \paperwidth{%
+    \includegraphics[width=\paperwidth,height=\paperheight]{front/figures/monerochan-autumn-porto-v10-clock-161800-v10.png}%
+    \hss
+  }%
+  \vss
+}%
+\endgroup
 
 
 \end{document}

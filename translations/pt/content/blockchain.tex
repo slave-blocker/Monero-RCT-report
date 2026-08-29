@@ -206,19 +206,19 @@ calculando uma única vez $\mathcal H_i(\mathfrak m,n)$.
 
 Seja uma função hash usada para provas de trabalho:
 \begin{align*}
-\mathcal{H}_{PoW} \in^D_R \{0,\ldots,l\} .
+\mathcal{H}_{PoW} \in^D_R \{0,\ldots,m\} .
 \end{align*}
-Aqui, $l$ é o resultado máximo. Dada uma mensagem $\mathfrak m$, um argumento
+Aqui, $m$ é o resultado máximo. Dada uma mensagem $\mathfrak m$, um argumento
 $n$ e um alvo $t$, podemos aproximar o número esperado de tentativas por
 \begin{align*}
-d = l/t .
+d = m/t .
 \end{align*}
 Chamamos \emph{dificuldade} a $d$.
 
 %Now say we have a hash function for generating proofs of work, $\mathcal{H}_{PoW} \in^D_R \{0,...,m\}$, where $m$ is its maximum possible output. Given a message $\mathfrak{m}$ (a block of information), a nonce $n$ to mine, and a target $t$, we can define the expected average number of hashes, the {\em difficulty} $d$, like this: $d = m/t$. 
 
 Se\marginnote{\scriptsize src/crypto- note\_basic/ difficulty.cpp {\tt check\_hash()}}
-$\mathcal H_{PoW}(\mathfrak m,n)d\leq l$, então
+$\mathcal H_{PoW}(\mathfrak m,n)d\leq m$, então
 $\mathcal H_{PoW}(\mathfrak m,n)\leq t$ e $n$ é aceitável.\footnote{Monero
 guarda e calcula a dificuldade; testa directamente o produto, sem precisar de
 materializar $t$.} Alvos menores aumentam a dificuldade e o número esperado de

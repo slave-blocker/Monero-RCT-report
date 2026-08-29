@@ -1840,11 +1840,13 @@ Continuam públicos, entre outros, a altura e o momento aproximado, o número de
 entradas e saídas, as taxas, os marcadores \(L\) e a própria existência da
 transacção.
 
-O conjunto também não é «todos os pontos de 32 bytes desde o Génesis». É o
-conjunto que as regras de consenso admitem na árvore: saídas desbloqueadas,
-representações válidas e conversões históricas tratadas segundo regras
-determinísticas. Uma raiz só é canónica porque todos os nós honestos aplicam
-as mesmas regras de inserção e reorganização.
+O conjunto também não é «todos os pontos de 32 bytes desde o Génesis». Na
+revisão consultada, a integração ainda não definia um caminho de consenso
+activo que construísse a árvore; o conjunto será aquele que as futuras regras
+de consenso determinarem. A elegibilidade temporal para gastar uma saída,
+incluindo o seu desbloqueio, deve distinguir-se da regra de inserção no
+acumulador. Quando essa regra existir, uma raiz só será canónica porque todos
+os nós honestos aplicarão as mesmas regras de inserção e reorganização.
 
 Curve Trees e FCMP++ ocultam a posição e tornam canónico o conjunto completo;
 não ocultam tempos de difusão, endereços de rede nem conhecimento externo.

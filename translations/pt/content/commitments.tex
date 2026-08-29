@@ -553,9 +553,25 @@ $IP \leftarrow \{\underline{G}, \underline{H'}, U, \underline{l}(x), \underline{
 
 O símbolo \(\bot\) é o traslado: a memória sequencial da conversa. O operador
 \(\bot_U(\cdot)\) absorve uma mensagem e renova o estado; \(\bot_C()\) extrai
-desse estado um desafio escalar. O \(j\) em \(\ce{^{j}_{\ }\bot}\) marca o
-instante do traslado, para que provador e verificador voltem a colher o mesmo
-desafio sem o terem combinado fora da prova.
+desse estado um desafio escalar e substitui o estado por esse desafio. Assim,
+duas chamadas consecutivas fazem avançar o traslado em vez de devolverem o
+mesmo escalar. O \(j\) em \(\ce{^{j}_{\ }\bot}\) marca o instante do traslado,
+para que provador e verificador voltem a colher o mesmo desafio sem o terem
+combinado fora da prova.
+
+O diagrama mostra a ordem pedagógica das dependências, não os limites exactos
+das concatenações na implementação histórica de Monero. Escrevendo
+\(\mathcal H_n\) para Keccak--256 seguido de redução módulo \(l\), essa
+implementação calcula
+\begin{align*}
+ h_0&=\mathcal H_n(V_0\mathbin\|\cdots\mathbin\|V_{p-1}),\\
+ y&=\mathcal H_n(h_0\mathbin\|A\mathbin\|S),&
+ z&=\mathcal H_n(y),\\
+ x&=\mathcal H_n(z\mathbin\|z\mathbin\|T_1\mathbin\|T_2),\\
+ x_{ip}&=\mathcal H_n(x\mathbin\|x\mathbin\|\tau_x\mathbin\|\mu
+                     \mathbin\|t),\\
+ w_j&=\mathcal H_n(w_{j-1}\mathbin\|L_j\mathbin\|R_j),&w_0&=x_{ip}.
+\end{align*}
 
 Vectores são sublinhados: \(\underline a\) contém escalares e
 \(\underline G\) pontos da curva elíptica. Um ponto sobre uma letra, como em

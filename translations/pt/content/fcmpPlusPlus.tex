@@ -236,9 +236,9 @@ instanciação do Monero, a notação separa imediatamente as duas formas:
  \text{folha:}&\quad L_i=(O_i,I_i,C_i),&
  \text{pai:}&\quad P_j=\operatorname{Com}(L_{4j},\ldots,L_{4j+3}).
 \end{align*}
-Cada \(P_j\) compromete as seis coordenadas das quatro folhas
-\(L_{4j},\ldots,L_{4j+3}\). A raiz compromete as coordenadas dos quatro
-\(P_j\):
+Cada \(P_j\) compromete os três pontos \((O,I,C)\) de cada uma das quatro
+folhas \(L_{4j},\ldots,L_{4j+3}\): duas coordenadas por ponto. A raiz
+compromete as coordenadas dos quatro \(P_j\):
 
 \begin{center}
 \begin{forest}
@@ -280,30 +280,56 @@ gratuita: cada nível exige restrições e a lista de filhos de um nó tem
 \subsubsection*{A raiz não é recalculada do zero}
 
 Acrescentar uma folha não manda o nó percorrer todas as anteriores. Se \(L_4\)
-já ocupa o primeiro lugar do ramo activo, a chegada de \(L_5\) percorre apenas
+já ocupa o primeiro lugar do ramo activo, a chegada de \(L_5\) muda uma só
+coluna:
 \begin{align*}
- \mathcal B_0:\quad
- (L_4,\boxed{\mathbf 0_6\mapsto L_5},\mathbf 0_6,\mathbf 0_6)
- &\Longrightarrow P_1\mapsto P_1',\\
- \mathcal B_1:\quad
- (P_0,\boxed{P_1\mapsto P_1'},0,0)
- &\Longrightarrow
- \mathcal R_{\rm tree}\mapsto\mathcal R'_{\rm tree}.
+\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
+ \text{posição global da folha}&4&\boxed{5}&6&7&\text{resumo}\\
+ \mathcal B_0\text{ antes}&L_4&\square&\square&\square&\Longrightarrow P_1\\
+ \mathcal B_0\text{ depois}&L_4&L_5&\square&\square&\Longrightarrow P_1'
+\end{array}
 \end{align*}
-Aqui \(\mathbf 0_6\) é um lugar vazio para as seis coordenadas de uma folha;
-os zeros da segunda linha são lugares vazios para rótulos escalares. \(P_1\)
-muda de valor na mesma posição \(1\). \(P_0\) e todo o seu ramo ficam em
-memória, sem serem revisitados.
+Os três lugares vazios correspondem, da esquerda para a direita, às posições
+globais \(5,6,7\). Na linha ``antes'', \(L_5,L_6,L_7\) ainda não existem; na
+linha ``depois'', apenas \(L_5\) passou a existir. Os \(\square\) não são
+saídas fictícias usadas numa transacção: são apenas enchimento zero do
+compromisso, contribuem \(0\mathbin{\cdot}G_j=\mathcal O\) e não podem ser
+seleccionados nem gastos. A saída real substitui \(\square\) pela folha inteira
+\(L_5=(O_5,I_5,C_5)\), não apenas por \(O_5\). O símbolo \(\square\) diz
+``ainda vazio''; a codificação interna desse vazio depende da camada.
+
+O novo resumo \(P_1'\) sobe, ainda sem deslocar ou baralhar nada:
+\begin{align*}
+\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
+ \text{posição dentro da raiz}&0&\boxed{1}&2&3&\text{raiz}\\
+ \mathcal B_1\text{ antes}&P_0&P_1&\square&\square
+   &\Longrightarrow\mathcal R_{\rm tree}\\
+ \mathcal B_1\text{ depois}&P_0&P_1'&\square&\square
+   &\Longrightarrow\mathcal R'_{\rm tree}
+\end{array}
+\end{align*}
+Assim, o caminho recalculado lê-se directamente nas duas colunas em caixa:
+\begin{align*}
+ \boxed{\text{posição }5:\ \square\mapsto L_5}
+ \quad\Longrightarrow\quad
+ \boxed{\text{posição }1:\ P_1\mapsto P_1'}
+ \quad\Longrightarrow\quad
+ \boxed{\mathcal R_{\rm tree}\mapsto\mathcal R'_{\rm tree}}.
+\end{align*}
+\(P_0\) e todo o seu ramo continuam guardados e são reutilizados, sem serem
+recalculados.
 
 Pela linearidade, o compromisso guardado recebe apenas a diferença da posição
-alterada. Na instanciação actual, uma saída nova fornece seis termos na camada
-das folhas e um rótulo do hash em cada camada superior. Sem aumento de altura,
+alterada. Na instanciação actual, uma saída nova fornece duas coordenadas para
+cada um dos três pontos \(O,I,C\), e um rótulo do hash em cada camada superior.
+Sem aumento de altura,
 \begin{align*}
- \underbrace{6}_{(O,I,C)}
+ \underbrace{2+2+2}_{O,\ I,\ C}
  +\underbrace{(d-1)}_{\text{um rótulo por camada superior}}
  &=d+5\quad\text{novos termos escalar--ponto},\\
- \boxed{\text{actualização criptográfica da raiz}}
- &=O(d)=O(\log N),\qquad\text{não }O(N).
+ \boxed{\text{trabalho criptográfico incremental}}
+ &=\Theta(d)=\Theta(\log_m N),
+   \qquad\text{em vez de reconstruir }\Theta(N).
 \end{align*}
 Cada subida acrescenta ainda uma adição de grupo e uma extracção de coordenada.
 Se o ramo de topo transbordar, cria-se uma nova raiz e mais uma subida; o custo

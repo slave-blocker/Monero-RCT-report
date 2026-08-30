@@ -195,10 +195,10 @@ cegamento da prova, como
  \label{eq:curve-tree-parent}
 \end{align}
 As somas percorrem os filhos do nível \(\ell\); o ponto que sai delas pertence
-ao nível seguinte. Se o caminho continuar, esse mesmo ponto passa a ocupar
-uma posição no pai de cima:
+ao nível seguinte. Se o caminho continuar, esse mesmo ponto passa a ocupar a
+posição \(i_{\ell+1}\) no pai de cima:
 \begin{align}
- P^{(\ell+1)}={}_{\ell+1}X_{i_{\ell+1}}.
+ P^{(\ell+1)}={}_{\ell+1}X_i.
  \label{eq:curve-tree-parent-becomes-child}
 \end{align}
 
@@ -257,9 +257,9 @@ No exemplo, o índice à esquerda de \(X\) sobe pela árvore; o da direita
 percorre as posições de cada pai:
 \begin{align*}
  \mathcal B_0=({}_{0}X_0,{}_{0}X_1,{}_{0}X_2,{}_{0}X_3)
-   &=(L_4,L_5,L_6,L_7),& i_0&=2,\\
+   &=(L_4,L_5,L_6,L_7),& i&=2,\\
  \mathcal B_1=({}_{1}X_0,{}_{1}X_1,{}_{1}X_2,{}_{1}X_3)
-   &=(P_0,P_1,P_2,P_3),& i_1&=1.
+   &=(P_0,P_1,P_2,P_3),& i&=1.
 \end{align*}
 \begin{align*}
  \boxed{j\in\{0,\ldots,m-1\}}
@@ -269,11 +269,12 @@ percorre as posições de cada pai:
 
 Congelemos agora um nível \(\ell\). O pai compromete
 \(({}_{\ell}X_0,\ldots,{}_{\ell}X_{m-1})\). O provador conhece a posição
-secreta \(i_\ell\) e apresenta uma versão fresca do filho escolhido. Quando
+secreta \(i_\ell\); dentro desta linha, o \(\ell\) à esquerda de \(X\) já
+fixa o nível, e escrevemos apenas \(i\). Quando
 \(\ell\geq1\), esse filho é um ponto e re-randomiza-se como
 \begin{align}
- {}_{\ell}\widehat X_{i_\ell}
-   ={}_{\ell}X_{i_\ell}+\delta_\ell H_\ell.
+ {}_{\ell}\widehat X_i
+   ={}_{\ell}X_i+\delta_\ell H_\ell.
  \label{eq:curve-tree-rerandomized-child}
 \end{align}
 
@@ -285,15 +286,15 @@ nível. Para \(\ell\geq1\), a declaração tem duas metades:
      +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y}_{P^{(\ell+1)}}
      +\delta_{\ell+1}H_{\ell+1},
  \label{eq:curve-tree-open-parent}\\
- {}_{\ell}\widehat X_{i_\ell}
-   &=({}_{\ell}x_{i_\ell},{}_{\ell}y_{i_\ell})
+ {}_{\ell}\widehat X_i
+   &=({}_{\ell}x_i,{}_{\ell}y_i)
      +\delta_\ell H_\ell.
  \label{eq:curve-tree-select-child}
 \end{align}
 Na primeira linha, os \(m\) filhos do nível \(\ell\) produzem
 \(P^{(\ell+1)}\), e só depois se acrescenta a máscara da prova. Pela
 equação \eqref{eq:curve-tree-parent-becomes-child}, esse \(P^{(\ell+1)}\)
-é precisamente o \({}_{\ell+1}X_{i_{\ell+1}}\) seleccionado na camada de
+é precisamente o \({}_{\ell+1}X_i\) seleccionado na camada de
 cima.
 
 No exemplo, o mesmo gesto repete-se sem trocar os nomes dos objectos:
@@ -348,11 +349,11 @@ Para \(\ell\geq1\), as testemunhas são as coordenadas dos filhos, a posição
 \(i_\ell\) e os cegamentos. O circuito
 verifica a abertura do pai, que a posição escolhida existe, que as coordenadas
 escolhidas formam um ponto válido e que a versão pública
-\({}_{\ell}\widehat X_{i_\ell}\) é uma re-randomização desse ponto.
+\({}_{\ell}\widehat X_i\) é uma re-randomização desse ponto.
 
-O compromisso vectorial demonstra que \({}_{\ell}X_{i_\ell}\) ocupa uma
+O compromisso vectorial demonstra que \({}_{\ell}X_i\) ocupa uma
 posição do nó comprometido. O cegamento impede a comparação directa de
-\({}_{\ell}\widehat X_{i_\ell}\) com os filhos públicos. A propriedade de
+\({}_{\ell}\widehat X_i\) com os filhos públicos. A propriedade de
 conhecimento zero impede que o verificador aprenda \(i_\ell\), \(\delta_\ell\)
 ou a abertura completa do pai.
 
@@ -363,11 +364,11 @@ No exemplo de ramificação quatro, as duas passagens são
 \begin{align*}
  \mathcal B_0
    &=({}_{0}X_0,{}_{0}X_1,\boxed{{}_{0}X_2=L_6},{}_{0}X_3),
- &i_0&=2,
+ &i&=2,
  &\mathcal B_0&\xrightarrow{\operatorname{Com}_{0\to1}}P^{(1)}=P_1,\\
  \mathcal B_1
    &=({}_{1}X_0,\boxed{{}_{1}X_1=P_1},{}_{1}X_2,{}_{1}X_3),
- &i_1&=1,
+ &i&=1,
  &\mathcal B_1&\xrightarrow{\operatorname{Com}_{1\to2}}
      P^{(2)}=\mathcal R_{\rm tree}.
 \end{align*}
@@ -421,9 +422,9 @@ As máscaras ficam nas setas horizontais; o caminho fica na coluna esquerda:
    {representação fresca na prova};
 
  \draw[->,very thick,blue!65!black] (l6) --
-   node[left,align=right]{\(\mathcal B_0\)\\\(i_0=2\)} (p1);
+   node[left,align=right]{\(\mathcal B_0\)\\\(i=2\)} (p1);
  \draw[->,very thick,blue!65!black] (p1) --
-   node[left,align=right]{\(\mathcal B_1\)\\\(i_1=1\)} (root);
+   node[left,align=right]{\(\mathcal B_1\)\\\(i=1\)} (root);
 
  \draw[<->,thick,orange!80!black] (l6) -- (ltilde);
  \draw[<->,thick,orange!80!black] (p1) -- (phat);
@@ -641,13 +642,13 @@ Um ponto interno de uma árvore pública pode ser calculado por qualquer nó. Se
 o provador colocasse esse ponto sem cegamento na prova, a posição seria reconhecida
 por comparação. Cada re-randomização
 \begin{align*}
- {}_{\ell}\widehat X_{i_\ell}
-   ={}_{\ell}X_{i_\ell}+\delta_\ell H_\ell,
+ {}_{\ell}\widehat X_i
+   ={}_{\ell}X_i+\delta_\ell H_\ell,
  \qquad \ell\geq1,
 \end{align*}
 faz o mesmo valor comprometido adquirir uma distribuição independente da sua
 representação pública. Como \(\delta_\ell\) é uniforme,
-\({}_{\ell}\widehat X_{i_\ell}\) não permite testar eficientemente qual
+\({}_{\ell}\widehat X_i\) não permite testar eficientemente qual
 \({}_{\ell}X_j\) foi escolhido sem quebrar o logaritmo discreto ou a
 propriedade de ocultação do compromisso.
 

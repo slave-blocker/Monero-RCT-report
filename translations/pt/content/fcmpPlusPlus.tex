@@ -109,13 +109,13 @@ apenas o conhecimento do respectivo cegamento. Schnorr autentica a
 
 Uma assinatura em anel parte de uma lista explícita
 \begin{align*}
- \mathcal S=(P_0,P_1,\ldots,P_{N-1})
+ \mathcal S=(M_0,M_1,\ldots,M_{N-1})
 \end{align*}
 e prova uma disjunção:
 \begin{align*}
- \text{conheço a abertura de }P_0
+ \text{conheço a abertura de }M_0
  \quad\mathbf{OU}\quad\cdots\quad\mathbf{OU}\quad
- \text{conheço a abertura de }P_{N-1}.
+ \text{conheço a abertura de }M_{N-1}.
 \end{align*}
 O custo mais ingénuo cresce com \(N\). Técnicas melhores comprimem a prova,
 mas o verificador ainda precisa de saber qual é a lista que a declaração
@@ -179,7 +179,7 @@ Nas camadas superiores de Curve Trees, cada filho é um ponto. Chamaremos
 Um tal ponto ocupa duas coordenadas escalares. Um pai que guarda \(m\) filhos pode ser
 escrito, omitindo por instantes o cegamento, como
 \begin{align}
- C_{\rm pai}
+ P_{\rm pai}
    =\sum_{i=0}^{m-1}x_iG_i^x
     +\sum_{i=0}^{m-1}y_iG_i^y.
  \label{eq:curve-tree-parent}
@@ -190,35 +190,37 @@ todos os filhos.
 \subsection{Exemplo com ramificação quatro}
 
 Considere-se uma árvore com dezasseis folhas e quatro filhos por pai. Na
-instanciação do Monero, cada folha é a saída
-\(L_i=(O_i,I_i,C_i^{\rm amt})\); o sobrescrito distingue o compromisso de
-montante do nó de árvore \(C_j\). Cada \(C_j\) compromete as seis coordenadas
-dos quatro \(L_i\) que contém. A raiz compromete as coordenadas dos quatro
-\(C_j\):
+instanciação do Monero, a notação separa imediatamente as duas formas:
+\begin{align*}
+ \text{folha:}&\quad L_i=(O_i,I_i,C_i),&
+ \text{pai:}&\quad P_j=\operatorname{Com}(L_{4j},\ldots,L_{4j+3}).
+\end{align*}
+Cada \(P_j\) compromete as seis coordenadas dos quatro \(L_i\) que contém. A
+raiz compromete as coordenadas dos quatro \(P_j\):
 
 \begin{center}
 \begin{forest}
 for tree={draw,rounded corners,align=center,l sep=1.2cm,s sep=.15cm}
 [\(\mathcal R_{\rm tree}\)
-  [\(C_0\)
+  [\(P_0\)
     [\(L_0\)] [\(L_1\)] [\(L_2\)] [\(L_3\)]]
-  [\(C_1\)
+  [\(P_1\)
     [\(L_4\)] [\(L_5\)] [\(L_6\)] [\(L_7\)]]
-  [\(C_2\)
+  [\(P_2\)
     [\(L_8\)] [\(L_9\)] [\(L_{10}\)] [\(L_{11}\)]]
-  [\(C_3\)
+  [\(P_3\)
     [\(L_{12}\)] [\(L_{13}\)] [\(L_{14}\)] [\(L_{15}\)]]]
 \end{forest}
 \end{center}
 
 Se a folha secreta é \(L_6\), todo o caminho cabe numa linha:
 \begin{align*}
- \underbrace{L_6=(O_6,I_6,C_6^{\rm amt})}_{\text{posição secreta }2}
+ \underbrace{L_6=(O_6,I_6,C_6)}_{\text{posição secreta }2}
  \quad\in\quad
- \underbrace{C_1}_{\substack{\text{pai de }L_6\\
+ \underbrace{P_1}_{\substack{\text{pai de }L_6\\
                               \text{filho da raiz}}}
  \quad\in\quad
- \underbrace{\mathcal R_{\rm tree}}_{\substack{C_1\text{ na}\\
+ \underbrace{\mathcal R_{\rm tree}}_{\substack{P_1\text{ na}\\
                                                 \text{posição secreta }1}}.
 \end{align*}
 Uma prova não precisa de representar os restantes catorze caminhos. Precisa de
@@ -239,8 +241,8 @@ gratuita: cada nível exige restrições e a lista de filhos de um nó tem
 Congelemos um único nível. \(X_j\) significa apenas «o filho na posição
 \(j\) deste pai»:
 \begin{align*}
- \text{primeiro nível:}&\quad X_j=L_j=(O_j,I_j,C_j^{\rm amt}),\\
- \text{níveis seguintes:}&\quad X_j=C_j.
+ \text{primeiro nível:}&\quad X_j=L_j=(O_j,I_j,C_j),\\
+ \text{níveis seguintes:}&\quad X_j=P_j.
 \end{align*}
 
 O pai compromete \((X_0,\ldots,X_{m-1})\). O provador conhece um índice
@@ -254,7 +256,7 @@ secreto \(i\) e apresenta uma versão fresca do filho escolhido. Quando
 Aqui \(H_{\rm outro}\) é a base de cegamento na curva onde vivem os filhos. A
 declaração de um nível tem então duas metades:
 \begin{align}
- C_{\rm pai}
+ P_{\rm pai}
    &=\sum_{j=0}^{m-1}x_jG_j^x
      +\sum_{j=0}^{m-1}y_jG_j^y+rH_{\rm pai},
  \label{eq:curve-tree-open-parent}\\
@@ -274,19 +276,19 @@ No exemplo, o mesmo gesto repete-se sem trocar os nomes dos objectos:
    fill=yellow!20},
  every node/.style={font=\small}]
  \node[treebox,fill=blue!12] (root)
-   {\(\mathcal R_{\rm tree}=\operatorname{Com}(C_0,C_1,C_2,C_3)\)};
+   {\(\mathcal R_{\rm tree}=\operatorname{Com}(P_0,P_1,P_2,P_3)\)};
  \node[treebox,below=of root,fill=green!18] (c1)
-   {\(C_1=\operatorname{Com}(L_4,L_5,L_6,L_7)\)\\
+   {\(P_1=\operatorname{Com}(L_4,L_5,L_6,L_7)\)\\
     \scriptsize pai em baixo; o mesmo filho em cima};
  \node[treebox,below=of c1,fill=green!18] (l6)
-   {\(L_6=(O_6,I_6,C_6^{\rm amt})\)};
+   {\(L_6=(O_6,I_6,C_6)\)};
  \node[maskbox,right=of root] (rhat)
    {\(\widehat{\mathcal R}=\mathcal R_{\rm tree}+\rho H\)};
  \node[maskbox,right=of c1] (chat)
-   {\(\widehat C_1=C_1+\delta_1H\)};
+   {\(\widehat P_1=P_1+\delta_1H\)};
  \node[maskbox,right=of l6] (ltilde)
    {\(\widetilde L_6=\operatorname{Rerand}_{\mathbf r}
-      (O_6,I_6,C_6^{\rm amt})\)};
+      (O_6,I_6,C_6)\)};
  \node[above=.2cm of root,font=\small\bfseries]
    {os mesmos objectos da árvore};
  \node[above=.2cm of rhat,font=\small\bfseries]
@@ -302,7 +304,7 @@ No exemplo, o mesmo gesto repete-se sem trocar os nomes dos objectos:
 \end{center}
 
 Na linha da folha, \(\operatorname{Rerand}_{\mathbf r}\) abrevia
-as re-randomizações separadas de \(O_6,I_6,C_6^{\rm amt}\) e o compromisso
+as re-randomizações separadas de \(O_6,I_6,C_6\) e o compromisso
 auxiliar \(R_{\rm fcmp}\), detalhados na secção
 \ref{sec:fcmp-output-rerandomization}; não se soma uma única máscara à tupla
 inteira.
@@ -344,7 +346,7 @@ pertença usada em cada ramo.
 \label{sec:fcmp-curve-cycle}
 
 Agora aparece a invenção que dá nome a Curve Trees. O pai
-\(C_{\rm pai}\) é um ponto numa curva, mas as suas coordenadas são elementos do
+\(P_{\rm pai}\) é um ponto numa curva, mas as suas coordenadas são elementos do
 \emph{campo base} dessa curva. Para colocar essas coordenadas dentro de um
 compromisso de Pedersen, queremos tratá-las como escalares de outra curva.
 
@@ -419,12 +421,12 @@ quebra do argumento subjacente.
 \label{sec:fcmp-whole-curve-tree-path}
 
 No exemplo anterior, o provador quer demonstrar a pertença de \(L_6\). Não
-publica \(L_6\), nem \(C_1\), nem os índices \(2\) e \(1\). Em vez disso,
+publica \(L_6\), nem \(P_1\), nem os índices \(2\) e \(1\). Em vez disso,
 produz versões cegadas
 \begin{align*}
  \widetilde L_6
-   &:=\operatorname{Rerand}_{\mathbf r}(O_6,I_6,C_6^{\rm amt}),\\
- \widehat C_1&=C_1+\delta_1H_1,\\
+   &:=\operatorname{Rerand}_{\mathbf r}(O_6,I_6,C_6),\\
+ \widehat P_1&=P_1+\delta_1H_1,\\
  \widehat{\mathcal R}
    &=\mathcal R_{\rm tree}+\rho H_2.
 \end{align*}
@@ -432,10 +434,10 @@ O circuito conserva a coluna não cegada da escada:
 \begin{align*}
  \widetilde L_6
    &\longleftrightarrow
-     L_6=(O_6,I_6,C_6^{\rm amt})\in\boxed{C_1},\\
- \widehat C_1
+     L_6=(O_6,I_6,C_6)\in\boxed{P_1},\\
+ \widehat P_1
    &\longleftrightarrow
-     \boxed{C_1}\in\mathcal R_{\rm tree},\\
+     \boxed{P_1}\in\mathcal R_{\rm tree},\\
  \widehat{\mathcal R}
    &\longleftrightarrow
      \mathcal R_{\rm tree}.
@@ -458,11 +460,11 @@ seguinte. Essa igualdade estabelece a consistência do caminho.
  \node (leaf) [pathbox,fill=green!18]
    {entrada cegada \(\widetilde L_6\)};
  \node (one) [pathbox,below of=leaf,yshift=-.15cm,fill=blue!12]
-   {abre para \(L_6=(O_6,I_6,C_6^{\rm amt})\in C_1\)};
+   {abre para \(L_6=(O_6,I_6,C_6)\in P_1\)};
  \node (mid) [pathbox,below of=one,yshift=-.15cm,fill=green!18]
-   {\(\widehat C_1\): o mesmo \(C_1\), agora cego};
+   {\(\widehat P_1\): o mesmo \(P_1\), agora cego};
  \node (two) [pathbox,below of=mid,yshift=-.15cm,fill=blue!12]
-   {abre para \(C_1\in\mathcal R_{\rm tree}\)};
+   {abre para \(P_1\in\mathcal R_{\rm tree}\)};
  \node (root) [pathbox,below of=two,yshift=-.15cm,fill=yellow!22]
    {\(\widehat{\mathcal R}\leftrightarrow\mathcal R_{\rm tree}\)};
  \draw[->,thick] (leaf) -- (one);
@@ -571,7 +573,7 @@ Cada curva tem os seus geradores de Generalized Bulletproofs,
 São derivados por hash com separação de domínio. Cada curva tem também um
 ponto que inicializa o hash de cada nó. Assim, um ramo actual tem a forma
 \begin{align}
- C_{\rm ramo}
+ P_{\rm ramo}
   =J_{\rm init}+\sum_jv_jJ_j.
  \label{eq:fcmp-current-branch-hash}
 \end{align}
@@ -1577,7 +1579,7 @@ representá-los por escalares zero.
 Se o lugar \(j\) tinha o valor \(v_j\) e recebe \(v_j'\), o compromisso muda
 por
 \begin{align}
- C_{\rm novo}=C_{\rm antigo}+(v_j'-v_j)G_j.
+ P_{\rm novo}=P_{\rm antigo}+(v_j'-v_j)G_j.
  \label{eq:fcmp-hash-grow}
 \end{align}
 Não é preciso recomputar as restantes multiplicações. Quando o ramo enche,
@@ -1621,7 +1623,7 @@ Uma folha precisa de \(O,I,C\) completos porque essas identidades serão
 abertas e usadas no gasto. Um nó superior só precisa de um rótulo vinculante
 para o hash do ramo inferior. A construção toma
 \begin{align*}
- h_j=x(C_j)
+ h_j=x(P_j)
 \end{align*}
 e compromete os \(h_j\) no pai. Assim, cada filho ocupa uma posição escalar,
 em vez de duas coordenadas.

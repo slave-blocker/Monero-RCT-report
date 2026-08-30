@@ -277,6 +277,46 @@ folhas, mas o caminho tem apenas \(d=\log_mN\) níveis. A prova não se torna
 gratuita: cada nível exige restrições e a lista de filhos de um nó tem
 \(m\) posições. Contudo, já não cresce como a cadeia completa.
 
+\subsubsection*{A raiz não é recalculada do zero}
+
+Acrescentar uma folha não manda o nó percorrer todas as anteriores. Se \(L_4\)
+já ocupa o primeiro lugar do ramo activo, a chegada de \(L_5\) percorre apenas
+\begin{align*}
+ \mathcal B_0:\quad
+ (L_4,\boxed{\mathbf 0_6\mapsto L_5},\mathbf 0_6,\mathbf 0_6)
+ &\Longrightarrow P_1\mapsto P_1',\\
+ \mathcal B_1:\quad
+ (P_0,\boxed{P_1\mapsto P_1'},0,0)
+ &\Longrightarrow
+ \mathcal R_{\rm tree}\mapsto\mathcal R'_{\rm tree}.
+\end{align*}
+Aqui \(\mathbf 0_6\) é um lugar vazio para as seis coordenadas de uma folha;
+os zeros da segunda linha são lugares vazios para rótulos escalares. \(P_1\)
+muda de valor na mesma posição \(1\). \(P_0\) e todo o seu ramo ficam em
+memória, sem serem revisitados.
+
+Pela linearidade, o compromisso guardado recebe apenas a diferença da posição
+alterada. Na instanciação actual, uma saída nova fornece seis termos na camada
+das folhas e um rótulo do hash em cada camada superior. Sem aumento de altura,
+\begin{align*}
+ \underbrace{6}_{(O,I,C)}
+ +\underbrace{(d-1)}_{\text{um rótulo por camada superior}}
+ &=d+5\quad\text{novos termos escalar--ponto},\\
+ \boxed{\text{actualização criptográfica da raiz}}
+ &=O(d)=O(\log N),\qquad\text{não }O(N).
+\end{align*}
+Cada subida acrescenta ainda uma adição de grupo e uma extracção de coordenada.
+Se o ramo de topo transbordar, cria-se uma nova raiz e mais uma subida; o custo
+continua linear em \(d\).
+
+Os pontos geradores fixos são preparados uma vez, e tabelas de base fixa são
+uma optimização possível. O que se pré-calcula de facto é o estado conhecido:
+resumos dos ramos e fronteira activa; os contributos de folhas ainda
+desconhecidas não podem ser pré-calculados. Conservar os ramos necessários às
+testemunhas acrescenta armazenamento e E/S, separados da aritmética acima. Ao
+verificar um gasto, o nó verifica a prova contra a raiz guardada; não reconstrói
+a árvore. A Secção~\ref{sec:fcmp-tree-growth} formaliza esta actualização.
+
 \section{Selecção privada e re-randomização}
 \label{sec:fcmp-select-rerandomize}
 
@@ -1759,9 +1799,11 @@ por
  P_{\rm novo}=P_{\rm antigo}+(v_j'-v_j)G_j.
  \label{eq:fcmp-hash-grow}
 \end{align}
-Não é preciso recomputar as restantes multiplicações. Quando o ramo enche,
-o seu hash torna-se um filho do nível seguinte. Se esse pai encher, a
-propagação continua para cima, como uma actualização do nível superior.
+Não é preciso recomputar as restantes multiplicações. O hash de um ramo
+parcial já ocupa uma posição no pai e muda enquanto chegam filhos. Quando o
+ramo enche, esse hash congela na posição; a folha seguinte abre um ramo irmão.
+Se o pai já não tiver lugar, o transporte continua para cima, como numa soma
+posicional.
 
 \begin{center}
 \begin{tikzpicture}[node distance=1.6cm]

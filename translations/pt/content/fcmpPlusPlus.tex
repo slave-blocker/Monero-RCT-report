@@ -64,15 +64,25 @@ capítulo usamos índices distintos:
 A raiz é estado público e persiste enquanto aquele estado da árvore for
 referido. O nonce é gerado para uma prova e não deve ser reutilizado. O terceiro
 ponto acompanha a entrada re-randomizada e permite provar, mais tarde, que o
-mesmo \(r_i\) foi usado para esconder uma imagem de chave. São três objectos,
-três ciclos de vida e três razões de segurança.
+mesmo \(r_i\) foi usado para ofuscar a base \(I\) da imagem de chave. São três
+objectos, três ciclos de vida e três razões de segurança.
 
-\subsection{Prova de conhecimento do cegamento da raiz}
+\subsection{Prova de conhecimento do factor de ofuscação da raiz}
+
+Usaremos três nomes para três tipos diferentes:
+\begin{align*}
+ \underbrace{\rho}_{\text{factor de ofuscação: escalar}}
+ \xrightarrow{\ \cdot H\ }
+ \underbrace{\rho H}_{\text{termo de ofuscação: ponto}}
+ \xrightarrow{\ +\mathcal R_{\rm tree}\ }
+ \underbrace{\widehat{\mathcal R}}_
+             {\text{representação ofuscada: ponto}}.
+\end{align*}
 
 Suponhamos que dois pontos públicos diferem por um múltiplo conhecido de uma
 base \(H\):
 \begin{align}
- X=\widehat{\mathcal R}_{\rm tree}-\mathcal R_{\rm tree}
+ X=\widehat{\mathcal R}-\mathcal R_{\rm tree}
    =\rho H.
  \label{eq:fcmp-root-difference}
 \end{align}
@@ -101,7 +111,7 @@ A prova demonstra o conhecimento de \(\rho\) tal que a raiz interna difere da
 raiz pública por \(\rho H\). Não demonstra a pertença de uma saída à árvore.
 Essa segunda propriedade é verificada pelo circuito de Curve Trees. Sem o
 circuito, o provador poderia escolher uma raiz interna arbitrária e provar
-apenas o conhecimento do respectivo cegamento. Schnorr autentica a
+apenas o conhecimento do respectivo factor de ofuscação. Schnorr autentica a
 \emph{diferença entre raízes}; o circuito demonstra o caminho de pertença.
 
 \section{Do anel explícito ao acumulador Curve Trees}
@@ -145,7 +155,7 @@ Em Curve Trees, cada nó é um compromisso de Pedersen
 directamente no circuito dos Bulletproofs. Cada nível verifica a afirmação:
 
 \begin{center}
-\(\text{«este ponto, depois de cegado, é um dos pontos comprometidos
+\(\text{«este ponto, depois de ofuscado, é um dos pontos comprometidos
 naquele pai.»}\)
 \end{center}
 
@@ -171,382 +181,510 @@ combinação desse a identidade, poderia calcular aberturas alternativas para o 
 generalização multibase da relação
 \(\gamma=\log_GH\) da secção \ref{gamma}.
 
-Nas camadas superiores de Curve Trees, cada filho é um ponto. O índice à
-esquerda marca o nível; o índice à direita, a posição dentro do pai:
+Nas camadas superiores há dois objectos que não devem receber o mesmo nome. O
+caminho transporta um ponto completo; o ramo do pai guarda apenas o seu
+rótulo escalar \(x\):
 \begin{align*}
- {}_{\ell}X_j=({}_{\ell}x_j,{}_{\ell}y_j),
+ \underbrace{{}_{\ell}X_j=({}_{\ell}x_j,{}_{\ell}y_j)}_
+             {\text{ponto que sobe e pode ser ofuscado}},
+ \qquad
+ \underbrace{\xi_{\ell,j}:=x({}_{\ell}X_j)={}_{\ell}x_j}_
+             {\text{escalar guardado no pai}},
  \qquad \ell\geq1.
 \end{align*}
-Um tal ponto ocupa duas coordenadas escalares. A direcção de uma camada fica
-visível escrevendo
+O índice à esquerda marca o nível; o índice à direita marca a posição local
+dentro de um pai. Na construção actual, um ramo superior é portanto
 \begin{align*}
  \underbrace{\mathcal B_\ell=
-   ({}_{\ell}X_0,\ldots,{}_{\ell}X_{m-1})}
-   _{\substack{\text{um ramo: }m\text{ irmãos}\\
-               \text{no mesmo nível }\ell}}
+   (\xi_{\ell,0},\ldots,\xi_{\ell,m-1})}_
+   {\substack{\text{um ramo: }m\text{ rótulos}\\
+              \text{dos irmãos no nível }\ell}}
  \quad\xrightarrow{\ \operatorname{Com}_{\ell\to\ell+1}\ }\quad
- \underbrace{P^{(\ell+1)}}_{\text{um pai no nível }\ell+1}.
+ \underbrace{P^{(\ell+1)}}_{\text{um ponto no nível }\ell+1}.
 \end{align*}
-Na terminologia da implementação, um ramo \(\mathcal B_\ell\) é a lista
-ordenada dos filhos de \emph{um} pai; não é o nível inteiro nem o trajecto da
-folha à raiz. Usaremos colchetes para escolher uma posição dessa lista:
+Na primeira camada há a única excepção tipográfica: as entradas de
+\(\mathcal B_0\) são folhas completas \(L_j=(O_j,I_j,C_j)\), não rótulos
+\(\xi\).
+
+Um ramo \(\mathcal B_\ell\) é a lista ordenada das entradas associadas aos
+filhos de \emph{um} pai; não é o nível inteiro nem o trajecto da folha à raiz.
+Para \(\ell\geq1\), essas entradas são rótulos escalares, e os colchetes
+escolhem o rótulo de uma posição:
 \begin{align}
- \boxed{\mathcal B_\ell[i]:={}_{\ell}X_i}.
+ \boxed{\mathcal B_\ell[i]=\xi_{\ell,i}=x({}_{\ell}X_i)}.
  \label{eq:fcmp-branch-slot}
 \end{align}
-Um caminho atravessa níveis: escolhe uma posição num ramo, leva o pai
-resultante para o ramo seguinte e repete.
-Para \(\ell\geq1\), esse pai pode ser escrito, omitindo por instantes o
-cegamento da prova, como
+O circuito conserva também o ponto completo \({}_{\ell}X_i\): precisa dele
+para verificar que está na curva e para produzir a sua representação
+ofuscada. O pai canónico, omitindo apenas notação de curvas, é
 \begin{align}
  P^{(\ell+1)}
-   =\sum_{j=0}^{m-1}{}_{\ell}x_jG_j^x
-    +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y.
+   =\operatorname{Com}_{\ell\to\ell+1}(\mathcal B_\ell)
+   =J^{(\ell+1)}_{\rm init}
+    +\sum_{j=0}^{m-1}\xi_{\ell,j}G^{(\ell+1)}_j.
  \label{eq:curve-tree-parent}
 \end{align}
-Aqui a comutatividade não apaga as posições. Já numa única coordenada se vê a
-diferença:
+
+Aqui a comutatividade não apaga as posições:
 \begin{align*}
  \text{reordenar as parcelas:}\quad
- {}_{\ell}x_0G_0^x+{}_{\ell}x_1G_1^x
- &= {}_{\ell}x_1G_1^x+{}_{\ell}x_0G_0^x,\\
+ \xi_{\ell,0}G_0+\xi_{\ell,1}G_1
+ &=\xi_{\ell,1}G_1+\xi_{\ell,0}G_0,\\
  \text{permutar os filhos:}\quad
- {}_{\ell}x_0G_0^x+{}_{\ell}x_1G_1^x
+ \xi_{\ell,0}G_0+\xi_{\ell,1}G_1
  &\underset{\text{em geral}}{\ne}
- {}_{\ell}x_1G_0^x+{}_{\ell}x_0G_1^x.
+ \xi_{\ell,1}G_0+\xi_{\ell,0}G_1.
 \end{align*}
 Na primeira linha, cada escalar continua emparelhado com o seu gerador; na
-segunda, os filhos trocaram de posição. O mesmo vale para as coordenadas
-\(y_j\). Portanto, \(\mathcal B_\ell\) é uma lista ordenada: depois de fixada a
-raiz, não se baralha o ramo. A prova esconde \(i_\ell\), não reordena
-\(\mathcal B_\ell\).
-As somas percorrem os filhos do nível \(\ell\); o ponto que sai delas pertence
-ao nível seguinte. Se o caminho continuar, esse mesmo ponto passa a ocupar a
-posição \(i_{\ell+1}\) no pai de cima:
+segunda, os rótulos trocaram de posição. Depois de fixada a raiz, não se
+baralha \(\mathcal B_\ell\): a prova esconde \(i_\ell\), não reordena o ramo.
+
+Um caminho atravessa níveis. O compromisso de um ramo produz o ponto que sobe;
+o ramo seguinte guarda o seu rótulo \(x\) numa posição possivelmente
+diferente:
 \begin{align}
- P^{(\ell+1)}={}_{\ell+1}X_i.
+ \boxed{
+ P^{(\ell+1)}={}_{\ell+1}X_{i_{\ell+1}}
+ \quad\Longrightarrow\quad
+ \mathcal B_{\ell+1}[i_{\ell+1}]=x(P^{(\ell+1)})}.
  \label{eq:curve-tree-parent-becomes-child}
 \end{align}
 
-\subsection{Exemplo com ramificação quatro}
+\subsection{Um único exemplo: árvore ternária de profundidade três}
+\label{sec:fcmp-running-example}
 
-Considere-se uma árvore com dezasseis folhas e quatro filhos por pai. Na
-instanciação do Monero, a notação separa imediatamente as duas formas:
+Usaremos o mesmo exemplo até ao fim da explicação do caminho. A ramificação
+\(m=3\) é deliberadamente pequena para tornar os índices visíveis; a
+implementação usa larguras 38 e 18, mas repete exactamente o mesmo padrão:
+ponto \(\to\) rótulo \(x(P)\) \(\to\) ramo.
+Com profundidade \(d=3\), a árvore comporta
 \begin{align*}
- \text{folha:}&\quad L_i=(O_i,I_i,C_i),&
- \text{pai:}&\quad P_j=\operatorname{Com}(L_{4j},\ldots,L_{4j+3}).
+ 27=3^3
 \end{align*}
-Cada \(P_j\) compromete os três pontos \((O,I,C)\) de cada uma das quatro
-folhas \(L_{4j},\ldots,L_{4j+3}\): duas coordenadas por ponto. A raiz
-compromete as coordenadas dos quatro \(P_j\):
+folhas sem precisar de desenhar vinte e sete caixas.
+
+Reservemos maiúsculas para os pontos que sobem e minúsculas para os rótulos
+\(x\) guardados no ramo seguinte:
+\begin{align*}
+ L_r&=(O_r,I_r,C_r),\qquad 0\leq r<27,\\
+ P_j&=\operatorname{Com}_{0\to1}(L_{3j},L_{3j+1},L_{3j+2}),
+ &p_j&:=x(P_j),&0&\leq j<9,\\
+ Q_k&=\operatorname{Com}_{1\to2}(p_{3k},p_{3k+1},p_{3k+2}),
+ &q_k&:=x(Q_k),&0&\leq k<3,\\
+ \mathcal R_{\rm tree}
+ &=\operatorname{Com}_{2\to3}(q_0,q_1,q_2).
+\end{align*}
+Cada folha fornece três pontos \((O,I,C)\), duas coordenadas por ponto. As
+setas \(P_j\mapsto p_j\) e \(Q_k\mapsto q_k\) são extracções de \(x\), não
+mudanças de nome:
+\begin{align*}
+ \boxed{P_j\text{ é um ponto}}
+ &\xrightarrow{\ x\ }
+ \boxed{p_j=x(P_j)\text{ é um escalar}},\\
+ \boxed{Q_k\text{ é um ponto}}
+ &\xrightarrow{\ x\ }
+ \boxed{q_k=x(Q_k)\text{ é um escalar}}.
+\end{align*}
+
+No desenho, mostramos o caminho e, em cada altura, os irmãos locais; só o nó
+escolhido é expandido. As caixas cinzentas com \(\vdots\) condensam subárvores
+fora do caminho:
 
 \begin{center}
 \begin{forest}
-for tree={draw,rounded corners,align=center,l sep=1.2cm,s sep=.15cm}
-[\(\mathcal R_{\rm tree}\)
-  [\(P_0\)
-    [\(L_0\)] [\(L_1\)] [\(L_2\)] [\(L_3\)]]
-  [\(P_1\)
-    [\(L_4\)] [\(L_5\)] [\(L_6\)] [\(L_7\)]]
-  [\(P_2\)
-    [\(L_8\)] [\(L_9\)] [\(L_{10}\)] [\(L_{11}\)]]
-  [\(P_3\)
-    [\(L_{12}\)] [\(L_{13}\)] [\(L_{14}\)] [\(L_{15}\)]]]
+for tree={draw,rounded corners,align=center,l sep=1.05cm,s sep=.18cm,
+  font=\small}
+[\(\mathcal R_{\rm tree}\),fill=blue!12
+  [{\(Q_0\)\\\(\vdots\)\\{\scriptsize\(L_0,\ldots,L_8\)}},fill=black!10,
+    draw=black!55,dashed,edge={draw=black!40,dashed}]
+  [{\(Q_1\)\\\(\vdots\)\\{\scriptsize\(L_9,\ldots,L_{17}\)}},fill=black!10,
+    draw=black!55,dashed,edge={draw=black!40,dashed}]
+  [\(Q_2\),fill=green!18,edge={very thick,blue!65!black}
+    [{\(P_6\)\\\(\vdots\)\\{\scriptsize\(L_{18},\ldots,L_{20}\)}},fill=black!10,
+      draw=black!55,dashed,edge={draw=black!40,dashed}]
+    [\(P_7\),fill=green!18,edge={very thick,blue!65!black}
+      [\(L_{21}\),fill=yellow!25,edge={very thick,blue!65!black}]
+      [\(L_{22}\)]
+      [\(L_{23}\)]]
+    [{\(P_8\)\\\(\vdots\)\\{\scriptsize\(L_{24},\ldots,L_{26}\)}},fill=black!10,
+      draw=black!55,dashed,edge={draw=black!40,dashed}]]]
 \end{forest}
 \end{center}
 
-Se a folha secreta é \(L_6\), todo o caminho cabe em três igualdades:
-\begin{align*}
- \mathcal B_0[2]
-   &={}_{0}X_2=L_6=(O_6,I_6,C_6),\\
- \operatorname{Com}_{0\to1}(\mathcal B_0)
-   &=\boxed{P_1}={}_{1}X_1=\mathcal B_1[1],\\
- \operatorname{Com}_{1\to2}(\mathcal B_1)
-   &=\mathcal R_{\rm tree}.
-\end{align*}
-Cada linha usa um ramo local; o caminho é o encaixe vertical das três igualdades.
-Uma prova não precisa de representar os restantes quinze caminhos. Precisa de
-esconder as duas posições e conservar a caixa central nos dois níveis.
+Cada grupo de irmãos determina um ramo local; acima do nível \(0\), esse ramo
+guarda os seus rótulos \(x\), não os pontos completos. A cadeia de arestas
+azuis, atravessando níveis, é o caminho da folha à raiz.
 
-A vantagem cresce exponencialmente. Com ramificação \(m\) e profundidade
-\(d\), cabem aproximadamente
+O número da folha já contém o caminho. Como
 \begin{align*}
- N=m^d
+ 21=(210)_3,
+ \qquad
+ \underbrace{2\longrightarrow1\longrightarrow0}_{\text{da raiz à folha}},
+ \qquad
+ \underbrace{0\longrightarrow1\longrightarrow2}_{\text{da folha à raiz}},
 \end{align*}
-folhas, mas o caminho tem apenas \(d=\log_mN\) níveis. A prova não se torna
-gratuita: cada nível exige restrições e a lista de filhos de um nó tem
-\(m\) posições. Contudo, já não cresce como a cadeia completa.
+\(L_{21}\) ocupa a posição \(0\) no seu ramo, o ponto \(P_7\) fornece o
+rótulo da posição \(1\) no ramo seguinte e \(Q_2\) fornece o rótulo da posição
+\(2\) junto à raiz. As quatro linhas são
+\begin{align*}
+ \mathcal B_0&=(L_{21},L_{22},L_{23}),
+ &\mathcal B_0[0]&=L_{21}=(O_{21},I_{21},C_{21}),\\
+ \operatorname{Com}_{0\to1}(\mathcal B_0)&=P_7,
+ &\mathcal B_1&=(p_6,\boxed{p_7=x(P_7)},p_8),\\
+ \operatorname{Com}_{1\to2}(\mathcal B_1)&=Q_2,
+ &\mathcal B_2&=(q_0,q_1,\boxed{q_2=x(Q_2)}),\\
+ \operatorname{Com}_{2\to3}(\mathcal B_2)&=\mathcal R_{\rm tree}.&&
+\end{align*}
+Esta é a distinção que importa: \(P_7\ne\mathcal B_1[1]\), porque o lado
+esquerdo é um ponto e o ramo guarda o escalar
+\(p_7=x(P_7)=\mathcal B_1[1]\). Do mesmo modo,
+\(q_2=x(Q_2)=\mathcal B_2[2]\). A prova esconde as três posições
+\((0,1,2)\) e a folha, sem representar os outros vinte e seis caminhos.
+
+Em geral, uma árvore \(m\)-ária completa de profundidade \(d\) tem capacidade
+\begin{align*}
+ N=m^d,
+ \qquad d=\log_mN.
+\end{align*}
+Cada nível ainda exige restrições sobre um ramo com \(m\) posições, mas o
+caminho cresce com \(d\), não com a cadeia completa.
 
 \subsubsection*{A raiz não é recalculada do zero}
 
-Acrescentar uma folha não manda o nó percorrer todas as anteriores. Se \(L_4\)
-já ocupa o primeiro lugar do ramo activo, a chegada de \(L_5\) muda uma só
-coluna:
+Voltemos agora a um instantâneo anterior da mesma árvore. As folhas até
+\(L_{21}\) já existem e chega a saída real \(L_{22}\). Apenas uma posição do
+ramo activo muda:
 \begin{align*}
-\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
- \text{posição global da folha}&4&\boxed{5}&6&7&\text{resumo}\\
- \mathcal B_0\text{ antes}&L_4&\square&\square&\square&\Longrightarrow P_1\\
- \mathcal B_0\text{ depois}&L_4&L_5&\square&\square&\Longrightarrow P_1'
+\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
+ \text{posição global da folha}&21&\boxed{22}&23&\text{resumo}\\
+ \mathcal B_0\text{ antes}&L_{21}&\square&\square&\Longrightarrow P_7\\
+ \mathcal B_0\text{ depois}&L_{21}&L_{22}&\square&\Longrightarrow P_7'
 \end{array}
 \end{align*}
-Os três lugares vazios correspondem, da esquerda para a direita, às posições
-globais \(5,6,7\). Na linha ``antes'', \(L_5,L_6,L_7\) ainda não existem; na
-linha ``depois'', apenas \(L_5\) passou a existir. Os \(\square\) não são
-saídas fictícias usadas numa transacção: são apenas enchimento zero do
-compromisso, contribuem \(0\mathbin{\cdot}G_j=\mathcal O\) e não podem ser
-seleccionados nem gastos. A saída real substitui \(\square\) pela folha inteira
-\(L_5=(O_5,I_5,C_5)\), não apenas por \(O_5\). O símbolo \(\square\) diz
-``ainda vazio''; a codificação interna desse vazio depende da camada.
+Na linha ``antes'', \(L_{22}\) e \(L_{23}\) ainda não existem; na linha
+``depois'', apenas \(L_{22}\) passou a existir. Os \(\square\) não são saídas
+fictícias usadas numa transacção: são enchimento zero, contribuem
+\(0\mathbin{\cdot}G_j=\mathcal O\) e não podem ser seleccionados nem gastos.
+A saída real substitui \(\square\) pela folha completa
+\(L_{22}=(O_{22},I_{22},C_{22})\).
 
-O novo resumo \(P_1'\) sobe, ainda sem deslocar ou baralhar nada:
+O novo índice confirma quais colunas mudam:
 \begin{align*}
-\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
- \text{posição dentro da raiz}&0&\boxed{1}&2&3&\text{raiz}\\
- \mathcal B_1\text{ antes}&P_0&P_1&\square&\square
-   &\Longrightarrow\mathcal R_{\rm tree}\\
- \mathcal B_1\text{ depois}&P_0&P_1'&\square&\square
+ 22=(211)_3,
+ \qquad
+ \underbrace{1\longrightarrow1\longrightarrow2}_
+             {\text{posições actualizadas, da folha à raiz}}.
+\end{align*}
+Este não é o caminho secreto anterior \((0,1,2)\) de \(L_{21}\). A nova
+folha escolhe a posição \(1\) dentro de \(\mathcal B_0\), mas partilha com
+\(L_{21}\) as posições superiores \(1\) e \(2\); por isso actualiza os mesmos
+antepassados \(P_7\) e \(Q_2\).
+
+O ponto mudou, logo muda o seu rótulo
+\(p_7=x(P_7)\mapsto p_7'=x(P_7')\). Esse único escalar ocupa a mesma posição
+\(1\) no ramo seguinte:
+\begin{align*}
+\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
+ \text{posição dentro de }Q_2&0&\boxed{1}&2&\text{resumo}\\
+ \mathcal B_1\text{ antes}&p_6&p_7&\square&\Longrightarrow Q_2\\
+ \mathcal B_1\text{ depois}&p_6&p_7'&\square&\Longrightarrow Q_2'
+\end{array}
+\end{align*}
+Finalmente, \(q_2=x(Q_2)\mapsto q_2'=x(Q_2')\) altera a posição \(2\) do
+ramo da raiz:
+\begin{align*}
+\begin{array}{r@{\qquad}c@{\qquad}c@{\qquad}c@{\qquad}l}
+ \text{posição dentro da raiz}&0&1&\boxed{2}&\text{raiz}\\
+ \mathcal B_2\text{ antes}&q_0&q_1&q_2&\Longrightarrow\mathcal R_{\rm tree}\\
+ \mathcal B_2\text{ depois}&q_0&q_1&q_2'
    &\Longrightarrow\mathcal R'_{\rm tree}
 \end{array}
 \end{align*}
-Assim, o caminho recalculado lê-se directamente nas duas colunas em caixa:
+Nada se desloca e nada se baralha. O caminho actualizado lê-se nas três
+colunas em caixa:
 \begin{align*}
- \boxed{\text{posição }5:\ \square\mapsto L_5}
- \quad\Longrightarrow\quad
- \boxed{\text{posição }1:\ P_1\mapsto P_1'}
- \quad\Longrightarrow\quad
- \boxed{\mathcal R_{\rm tree}\mapsto\mathcal R'_{\rm tree}}.
+ \square&\mapsto L_{22}
+ \Longrightarrow P_7\mapsto P_7'
+ \xrightarrow{\ x\ }p_7\mapsto p_7'\\
+ &\Longrightarrow Q_2\mapsto Q_2'
+ \xrightarrow{\ x\ }q_2\mapsto q_2'
+ \Longrightarrow\mathcal R_{\rm tree}\mapsto\mathcal R'_{\rm tree}.
 \end{align*}
-\(P_0\) e todo o seu ramo continuam guardados e são reutilizados, sem serem
-recalculados.
+Todos os ramos fora desta linha ficam guardados e são reutilizados.
 
 Pela linearidade, o compromisso guardado recebe apenas a diferença da posição
-alterada. Na instanciação actual, uma saída nova fornece duas coordenadas para
-cada um dos três pontos \(O,I,C\), e um rótulo do hash em cada camada superior.
-Sem aumento de altura,
+alterada. Neste exemplo de profundidade três, a chegada de \(L_{22}\) custa
+\begin{align*}
+ \underbrace{2+2+2}_{O_{22},\ I_{22},\ C_{22}}
+ +\underbrace{1}_{p_7'\text{ em }\mathcal B_1}
+ +\underbrace{1}_{q_2'\text{ em }\mathcal B_2}
+ &=8\quad\text{termos escalar--ponto}.
+\end{align*}
+Em profundidade \(d\), o mesmo padrão é
 \begin{align*}
  \underbrace{2+2+2}_{O,\ I,\ C}
  +\underbrace{(d-1)}_{\text{um rótulo por camada superior}}
- &=d+5\quad\text{novos termos escalar--ponto},\\
+ &=d+5,\\
  \boxed{\text{trabalho criptográfico incremental}}
- &=\Theta(d)=\Theta(\log_m N),
+ &=\Theta(d)=\Theta(\log_mN),
    \qquad\text{em vez de reconstruir }\Theta(N).
 \end{align*}
-Cada subida acrescenta ainda uma adição de grupo e uma extracção de coordenada.
-Se o ramo de topo transbordar, cria-se uma nova raiz e mais uma subida; o custo
-continua linear em \(d\).
+Aqui são três actualizações de hash/adições de grupo e duas extracções de
+coordenada \(x\). Ainda não há transporte: \(L_{23}\) completa \(P_7\),
+\(L_{24}\) abre o irmão \(P_8\), e só \(L_{27}\) excede esta árvore de
+profundidade três e força uma nova camada.
+
+As folhas não sobem. Dentro de cada instantâneo ficam todas na camada de base;
+o que se propaga para cima são apenas os pontos-resumo e, depois, os seus
+rótulos \(x\). Ao esgotar a capacidade do topo, acrescenta-se uma nova raiz
+acima da árvore anterior. A profundidade é portanto fixa para um instantâneo,
+mas não para toda a vida da cadeia.
 
 Os pontos geradores fixos são preparados uma vez, e tabelas de base fixa são
-uma optimização possível. O que se pré-calcula de facto é o estado conhecido:
-resumos dos ramos e fronteira activa; os contributos de folhas ainda
-desconhecidas não podem ser pré-calculados. Conservar os ramos necessários às
-testemunhas acrescenta armazenamento e E/S, separados da aritmética acima. Ao
-verificar um gasto, o nó verifica a prova contra a raiz guardada; não reconstrói
-a árvore. A Secção~\ref{sec:fcmp-tree-growth} formaliza esta actualização.
+uma optimização possível. O que se pré-calcula é o estado conhecido: resumos
+dos ramos e fronteira activa. Folhas ainda desconhecidas não podem ser
+pré-calculadas. Conservar os ramos necessários às testemunhas acrescenta
+armazenamento e E/S, separados da aritmética acima. Ao verificar um gasto, o
+nó verifica a prova contra a raiz guardada; não reconstrói a árvore. A
+Secção~\ref{sec:fcmp-tree-growth} formaliza esta actualização.
 
 \section{Selecção privada e re-randomização}
 \label{sec:fcmp-select-rerandomize}
 
-No exemplo, o índice à esquerda de \(X\) sobe pela árvore; o da direita
-percorre as posições de cada pai:
+No exemplo ternário, os três ramos do caminho são
 \begin{align*}
- \mathcal B_0=({}_{0}X_0,{}_{0}X_1,{}_{0}X_2,{}_{0}X_3)
-   &=(L_4,L_5,L_6,L_7),& i&=2,\\
- \mathcal B_1=({}_{1}X_0,{}_{1}X_1,{}_{1}X_2,{}_{1}X_3)
-   &=(P_0,P_1,P_2,P_3),& i&=1.
+ \mathcal B_0&=(L_{21},L_{22},L_{23}),&i&=0,\\
+ \mathcal B_1&=(p_6,p_7,p_8),&i&=1,\\
+ \mathcal B_2&=(q_0,q_1,q_2),&i&=2.
 \end{align*}
+O índice \(\ell\) identifica o nível; \(i_\ell\) escolhe uma das posições
+locais. Em geral e neste exemplo,
 \begin{align*}
  \boxed{j\in\{0,\ldots,m-1\}}
- \qquad\xrightarrow{\ m=4\text{ neste exemplo}\ }\qquad
- \boxed{j\in\{0,1,2,3\}}.
+ \qquad\xrightarrow{\ m=3\ }\qquad
+ \boxed{j\in\{0,1,2\}}.
 \end{align*}
 
-Congelemos agora um nível \(\ell\). O pai compromete
-\(({}_{\ell}X_0,\ldots,{}_{\ell}X_{m-1})\). O provador conhece a posição
-secreta \(i_\ell\); dentro desta linha, o \(\ell\) à esquerda de \(X\) já
-fixa o nível, e escrevemos apenas \(i\). Quando
-\(\ell\geq1\), esse filho é um ponto e re-randomiza-se como
+Congelemos um nível superior \(\ell\geq1\). O ramo compromete os rótulos
+\((\xi_{\ell,0},\ldots,\xi_{\ell,m-1})\). O provador conhece a posição
+secreta \(i\), o ponto completo \({}_{\ell}X_i\) e a igualdade
+\(\mathcal B_\ell[i]=\xi_{\ell,i}=x({}_{\ell}X_i)\). Publica uma versão
+re-randomizada do ponto:
 \begin{align}
  {}_{\ell}\widehat X_i
    ={}_{\ell}X_i+\delta_\ell H_\ell.
  \label{eq:curve-tree-rerandomized-child}
 \end{align}
 
-Aqui \(H_\ell\) é a base de cegamento na curva onde vivem os filhos desse
-nível. Para \(\ell\geq1\), a declaração tem duas metades:
+Aqui \(H_\ell\) é a base de ofuscação na curva onde vive esse ponto. A
+declaração de um nível tem duas metades:
 \begin{align}
  \widehat P^{(\ell+1)}
-   &=\underbrace{\sum_{j=0}^{m-1}{}_{\ell}x_jG_j^x
-     +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y}_{P^{(\ell+1)}}
+   &=\underbrace{J^{(\ell+1)}_{\rm init}
+     +\sum_{j=0}^{m-1}\xi_{\ell,j}G^{(\ell+1)}_j}_{P^{(\ell+1)}}
      +\delta_{\ell+1}H_{\ell+1},
  \label{eq:curve-tree-open-parent}\\
  {}_{\ell}\widehat X_i
    &=({}_{\ell}x_i,{}_{\ell}y_i)
-     +\delta_\ell H_\ell.
+     +\delta_\ell H_\ell,
+ &\mathcal B_\ell[i]&={}_{\ell}x_i.
  \label{eq:curve-tree-select-child}
 \end{align}
-Na primeira linha, os \(m\) filhos do nível \(\ell\) produzem
-\(P^{(\ell+1)}\), e só depois se acrescenta a máscara da prova. Pela
-equação \eqref{eq:curve-tree-parent-becomes-child}, esse \(P^{(\ell+1)}\)
-é precisamente o \({}_{\ell+1}X_i\) seleccionado na camada de
-cima.
+Na primeira linha, os \(m\) rótulos produzem o ponto pai; só depois se
+acrescenta o termo de ofuscação da prova. Na segunda, o circuito recupera o
+ponto seleccionado e liga a sua coordenada \(x\) à posição escolhida. Pela
+equação \eqref{eq:curve-tree-parent-becomes-child}, o ponto pai sobe; o seu
+\(x\) entra no ramo seguinte.
 
 No exemplo, o mesmo gesto repete-se sem trocar os nomes dos objectos:
 
 \begin{center}
 \begin{tikzpicture}[
- node distance=1.35cm and 1.45cm,
+ node distance=1.12cm and 1.25cm,
  treebox/.style={rectangle,rounded corners,draw=black,thick,
-   minimum width=5.5cm,minimum height=1.15cm,text centered,align=center},
+   minimum width=5.75cm,minimum height=1.05cm,text width=5.45cm,
+   text centered,align=center},
  maskbox/.style={rectangle,rounded corners,draw=black,
-   minimum width=6.2cm,minimum height=1.15cm,text centered,align=center,
+   minimum width=6.1cm,minimum height=1.05cm,text width=5.8cm,
+   text centered,align=center,
    fill=yellow!20},
  every node/.style={font=\small}]
  \node[treebox,fill=blue!12] (root)
-   {\(\mathcal R_{\rm tree}
-      =\operatorname{Com}({}_{1}X_0,\ldots,{}_{1}X_3)\)};
- \node[treebox,below=of root,fill=green!18] (p1)
-   {\(P_1={}_{1}X_1\)\\
-    \(=\operatorname{Com}({}_{0}X_0,\ldots,{}_{0}X_3)\)};
- \node[treebox,below=of p1,fill=green!18] (l6)
-   {\(L_6={}_{0}X_2=(O_6,I_6,C_6)\)};
+   {\(\mathcal R_{\rm tree}=\operatorname{Com}_{2\to3}(\mathcal B_2)\)};
+ \node[treebox,below=of root,fill=green!18] (q2)
+   {\(Q_2={}_{2}X_2=\operatorname{Com}_{1\to2}(\mathcal B_1)\)\\[-1mm]
+    \(\mathcal B_2[2]=q_2=x(Q_2)\)};
+ \node[treebox,below=of q2,fill=green!18] (p7)
+   {\(P_7={}_{1}X_1=\operatorname{Com}_{0\to1}(\mathcal B_0)\)\\[-1mm]
+    \(\mathcal B_1[1]=p_7=x(P_7)\)};
+ \node[treebox,below=of p7,fill=green!18] (l21)
+   {\(\mathcal B_0[0]=L_{21}=(O_{21},I_{21},C_{21})\)};
  \node[maskbox,right=of root] (rhat)
-   {\(\widehat{\mathcal R}=\mathcal R_{\rm tree}+\rho H_2\)};
- \node[maskbox,right=of p1] (phat)
-   {\({}_{1}\widehat X_1=\widehat P_1\)\\
-    \(=P_1+\delta_1H_1\)};
- \node[maskbox,right=of l6] (ltilde)
-   {\({}_{0}\widetilde X_2=\widetilde L_6\)\\
-    \(=\operatorname{Rerand}_{\mathbf r}(O_6,I_6,C_6)\)};
+   {\(\widehat{\mathcal R}=\mathcal R_{\rm tree}+\rho H_3\)};
+ \node[maskbox,right=of q2] (qhat)
+   {\({}_{2}\widehat X_2=\widehat Q_2=Q_2+\delta_2H_2\)};
+ \node[maskbox,right=of p7] (phat)
+   {\({}_{1}\widehat X_1=\widehat P_7=P_7+\delta_1H_1\)};
+ \node[maskbox,right=of l21] (ltilde)
+   {\({}_{0}\widetilde X_0=\widetilde L_{21}\)\\[-1mm]
+    \(=\operatorname{Rerand}_{\mathbf r}(O_{21},I_{21},C_{21})\)};
  \node[above=.2cm of root,font=\small\bfseries]
    {os mesmos objectos da árvore};
  \node[above=.2cm of rhat,font=\small\bfseries]
-   {representações cegadas};
- \draw[->,very thick,blue!65!black] (l6) --
-   node[left,align=right]{nível \(0\)\\posição \(2\)} (p1);
- \draw[->,very thick,blue!65!black] (p1) --
-   node[left,align=right]{nível \(1\)\\posição \(1\)} (root);
- \draw[->,thick,orange!80!black] (l6) -- (ltilde);
- \draw[->,thick,orange!80!black] (p1) -- (phat);
+   {representações ofuscadas};
+ \draw[->,very thick,blue!65!black] (l21) --
+   node[left,align=right]{nível \(0\)\\posição \(0\)} (p7);
+ \draw[->,very thick,blue!65!black] (p7) --
+   node[left,align=right]{nível \(1\)\\posição \(1\)} (q2);
+ \draw[->,very thick,blue!65!black] (q2) --
+   node[left,align=right]{nível \(2\)\\posição \(2\)} (root);
+ \draw[->,thick,orange!80!black] (l21) -- (ltilde);
+ \draw[->,thick,orange!80!black] (p7) -- (phat);
+ \draw[->,thick,orange!80!black] (q2) -- (qhat);
  \draw[->,thick,orange!80!black] (root) -- (rhat);
 \end{tikzpicture}
 \end{center}
 
+\subsubsection*{Ofuscar a folha não prova que ela é minha}
+
+A pergunta certa não é ``a folha ofuscada ainda se parece com \(L_{21}\)?''.
+Não se deve parecer: isso revelaria a posição. O vínculo vem de duas provas
+sobre a \emph{mesma} tupla pública:
+\begin{align*}
+ &\underbrace{\mathcal B_0[0]
+      =L_{21}=(O_{21},I_{21},C_{21})}_{\text{folha escondida na árvore}}
+ \xleftarrow[\quad\Pi_{\rm FCMP}\quad]
+   {\ r_o,r_i,r_j,r_c,\ldots\ }
+ \underbrace{(\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C)}_
+             {\text{a tupla pública comum}},\\[.7em]
+ &\underbrace{(\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C)}_
+             {\text{a mesma tupla pública}}
+ \xrightarrow[\quad\Pi_{\rm SAL}\quad]
+   {\ x,\widetilde y,r_i,r_j;\ z=xr_i,\ldots\ }
+ \underbrace{L=xI_{21}}_{\text{autorização e marcador}}.
+\end{align*}
+À esquerda, FCMP recupera \(O_{21},I_{21},C_{21}\) com
+\(r_o,r_i,r_c\), abre separadamente
+\(R_{\rm fcmp}=r_iV+r_jT\) e demonstra que a tupla recuperada ocupa uma folha
+escondida da árvore. O escalar \(r_j\) não se subtrai a um componente da folha:
+oculta \(r_i\) dentro de \(R_{\rm fcmp}\). À direita, SAL demonstra
+conhecimento da chave \(x\) usando a mesma tupla pública. Não há uma segunda
+cópia que possa ser ligada a outra folha.
+
+O mapa de funções é curto:
+\begin{align*}
+ \boxed{\text{re-randomização}}
+   &:\quad \text{muda a aparência e esconde qual é a folha},\\
+ \boxed{\text{FCMP}}
+   &:\quad \text{vincula essa aparência a uma folha real da árvore},\\
+ \boxed{\text{SAL}}
+   &:\quad \text{prova conhecimento da chave \(x\) compatível com a mesma tupla}.
+\end{align*}
+Qualquer pessoa pode somar múltiplos aleatórios a pontos públicos. Essa pessoa
+conseguiria produzir uma nova aparência, mas não completar a SAL sem \(x\).
+Aqui, \(x(P_7)\) e \(x(Q_2)\) denotam coordenadas de pontos; \(x\) sem
+argumento é a chave privada de utilização única. É esta chave que fica
+invariável. Para o ver, usemos a forma geral da chave de saída:
+\begin{align*}
+ O_{21}=xG+yT
+ \quad\longmapsto\quad
+ \widetilde O=O_{21}+r_oT=xG+(y+r_o)T,
+ \qquad\boxed{x\text{ não mudou}}.
+\end{align*}
+Mais tarde, a SAL exige esse mesmo \(x\). Também exige \(z=xr_i\), de modo que
+o termo que ofuscou \(I_{21}\) desaparece apenas na equação autorizada:
+\begin{align*}
+ \underbrace{L}_{\substack{\text{marcador de gasto}\\
+                            \text{não a folha }L_{21}}}
+ =x\widetilde I-zU
+ =x(I_{21}+r_iU)-xr_iU
+ =xI_{21}.
+\end{align*}
+O compromisso \(R_{\rm fcmp}\) impede usar um \(r_i\) na abertura FCMP e outro
+na multiplicação \(z=xr_i\). Portanto, FCMP responde ``uma folha real da
+árvore, sem dizer qual''; SAL responde ``e conheço a chave da mesma folha''.
+A re-randomização responde apenas ``não deixarei a aparência denunciar
+qual''. A Secção~\ref{sec:fcmp-sal} constrói a segunda metade.
+
 Na linha \(\ell=0\),
-\({}_{0}\widetilde X_2=\widetilde L_6\) abrevia
-as re-randomizações separadas de \(O_6,I_6,C_6\) e o compromisso
+\({}_{0}\widetilde X_0=\widetilde L_{21}\) abrevia
+as re-randomizações separadas de \(O_{21},I_{21},C_{21}\) e o compromisso
 auxiliar \(R_{\rm fcmp}\), detalhados na secção
-\ref{sec:fcmp-output-rerandomization}; não se soma uma única máscara à tupla
-inteira.
+\ref{sec:fcmp-output-rerandomization}; não se soma um único termo de
+ofuscação à tupla inteira.
 
 Para \(\ell\geq1\), as testemunhas são as coordenadas dos filhos, a posição
-\(i_\ell\) e os cegamentos. O circuito
-verifica a abertura do pai, que a posição escolhida existe, que as coordenadas
-escolhidas formam um ponto válido e que a versão pública
-\({}_{\ell}\widehat X_i\) é uma re-randomização desse ponto.
-
-O compromisso vectorial demonstra que \({}_{\ell}X_i\) ocupa uma
-posição do nó comprometido. O cegamento impede a comparação directa de
-\({}_{\ell}\widehat X_i\) com os filhos públicos. A propriedade de
-conhecimento zero impede que o verificador aprenda \(i_\ell\), \(\delta_\ell\)
-ou a abertura completa do pai.
+\(i_\ell\) e os escalares de ofuscação. O circuito verifica a abertura do
+pai, que a posição escolhida existe, que o ponto está na curva e que o seu
+\(x\) é exactamente o rótulo dessa posição. A ofuscação impede a comparação
+directa de \({}_{\ell}\widehat X_i\) com os pontos públicos. A propriedade de
+conhecimento zero impede que o verificador aprenda \(i_\ell\),
+\(\delta_\ell\) ou a abertura completa do pai.
 
 \subsection{A saída de um nível é a entrada do seguinte}
 \label{sec:fcmp-level-output-is-next-input}
 
-No exemplo de ramificação quatro, as duas passagens são
+No exemplo ternário, as três passagens são
 \begin{align*}
- \mathcal B_0
-   &=({}_{0}X_0,{}_{0}X_1,\boxed{{}_{0}X_2=L_6},{}_{0}X_3),
- &i&=2,
- &\mathcal B_0&\xrightarrow{\operatorname{Com}_{0\to1}}P_1,\\
- \mathcal B_1
-   &=({}_{1}X_0,\boxed{{}_{1}X_1=P_1},{}_{1}X_2,{}_{1}X_3),
+ \mathcal B_0&=(\boxed{L_{21}},L_{22},L_{23}),
+ &i&=0,
+ &\mathcal B_0&\xrightarrow{\operatorname{Com}_{0\to1}}P_7,\\
+ \mathcal B_1&=(p_6,\boxed{p_7=x(P_7)},p_8),
  &i&=1,
- &\mathcal B_1&\xrightarrow{\operatorname{Com}_{1\to2}}
+ &\mathcal B_1&\xrightarrow{\operatorname{Com}_{1\to2}}Q_2,\\
+ \mathcal B_2&=(q_0,q_1,\boxed{q_2=x(Q_2)}),
+ &i&=2,
+ &\mathcal B_2&\xrightarrow{\operatorname{Com}_{2\to3}}
      \mathcal R_{\rm tree}.
 \end{align*}
-O encaixe entre as duas linhas é
+Há dois encaixes entre as três linhas:
 \begin{align*}
  \underbrace{\operatorname{Com}_{0\to1}(\mathcal B_0)}_
              {\text{saída do nível }0}
-   =\boxed{P_1}=
- \underbrace{{}_{1}X_1=\mathcal B_1[1]}_
-             {\text{entrada do nível }1}.
+   &=\boxed{P_7}
+   \xrightarrow{\ x\ }
+ \underbrace{p_7=\mathcal B_1[1]}_
+             {\text{entrada do nível }1},\\
+ \underbrace{\operatorname{Com}_{1\to2}(\mathcal B_1)}_
+             {\text{saída do nível }1}
+   &=\boxed{Q_2}
+   \xrightarrow{\ x\ }
+ \underbrace{q_2=\mathcal B_2[2]}_
+             {\text{entrada do nível }2}.
 \end{align*}
-Em particular, a segunda seta é a especialização explícita de
-\eqref{eq:curve-tree-parent}:
+Não há igualdade mal tipada \(P_7=\mathcal B_1[1]\): o ponto produz o escalar
+que ocupa a posição. No topo, a especialização de
+\eqref{eq:curve-tree-parent} é
 \begin{align*}
  \mathcal R_{\rm tree}
-   =\sum_{j=0}^{3}{}_{1}x_jG_j^x
-    +\sum_{j=0}^{3}{}_{1}y_jG_j^y,
- \qquad {}_{1}X_1=P_1.
+   =J^{(3)}_{\rm init}+q_0G^{(3)}_0+q_1G^{(3)}_1+q_2G^{(3)}_2,
+ \qquad \mathcal B_2[2]=q_2=x(Q_2).
 \end{align*}
 
-As máscaras ficam nas setas horizontais; o caminho fica na coluna esquerda:
-
-\begin{center}
-\begin{tikzpicture}[
- node distance=1.55cm and 1.55cm,
- witness/.style={rectangle,rounded corners,draw=black,thick,
-   minimum width=5.75cm,minimum height=1.25cm,text width=5.45cm,
-   text centered,align=center},
- masked/.style={rectangle,rounded corners,draw=black,
-   minimum width=6.05cm,minimum height=1.25cm,text width=5.75cm,
-   text centered,align=center,fill=yellow!20},
- every node/.style={font=\small}]
- \node[witness,fill=blue!12] (root)
-   {\(\mathcal R_{\rm tree}
-      =\operatorname{Com}_{1\to2}(\mathcal B_1)\)};
- \node[witness,below=of root,fill=green!24,very thick] (p1)
-   {\(\boxed{P_1={}_{1}X_1=\mathcal B_1[1]}\)\\[-1mm]
-    \scriptsize\bfseries saída do nível 0 = entrada do nível 1};
- \node[witness,below=of p1,fill=green!18] (l6)
-   {\(\mathcal B_0[2]={}_{0}X_2=L_6=(O_6,I_6,C_6)\)};
-
- \node[masked,right=of root] (rhat)
-   {\(\widehat{\mathcal R}=\mathcal R_{\rm tree}+\rho H_2\)};
- \node[masked,right=of p1] (phat)
-   {\({}_{1}\widehat X_1=\widehat P_1
-      =P_1+\delta_1H_1\)};
- \node[masked,right=of l6] (ltilde)
-   {\({}_{0}\widetilde X_2=\widetilde L_6\)\\[-1mm]
-    \scriptsize re-randomização separada de \(O_6,I_6,C_6\)};
-
- \node[above=.18cm of root,font=\small\bfseries]
-   {testemunha que o circuito recupera};
- \node[above=.18cm of rhat,font=\small\bfseries]
-   {representação fresca na prova};
-
- \draw[->,very thick,blue!65!black] (l6) --
-   node[left,align=right]{posição \(2\)\\em \(\mathcal B_0\)} (p1);
- \draw[->,very thick,blue!65!black] (p1) --
-   node[left,align=right]{posição \(1\)\\em \(\mathcal B_1\)} (root);
-
- \draw[<->,thick,orange!80!black] (l6) -- (ltilde);
- \draw[<->,thick,orange!80!black] (p1) -- (phat);
- \draw[<->,thick,orange!80!black] (root) -- (rhat);
-\end{tikzpicture}
-\end{center}
-
-O vínculo entre as duas verificações é a igualdade central
-\(\operatorname{Com}_{0\to1}(\mathcal B_0)=P_1=\mathcal B_1[1]\), não uma
-igualdade entre as máscaras. O circuito usa exactamente
+O diagrama anterior já desenha a escada completa; não precisamos de a repetir.
+Os termos de ofuscação ficam nas setas horizontais, enquanto os dois encaixes
+\(x(P_7)=p_7\) e \(x(Q_2)=q_2\) mantêm o caminho na coluna esquerda. O
+circuito usa exactamente
 \begin{align*}
- \mathcal B_0[2]&={}_{0}X_2=L_6
+ \mathcal B_0[0]&=L_{21}
  &\longleftrightarrow\quad
- {}_{0}\widetilde X_2&=\widetilde L_6,\\
+ {}_{0}\widetilde X_0&=\widetilde L_{21},\\
  \operatorname{Com}_{0\to1}(\mathcal B_0)
-   &=P_1=\mathcal B_1[1]={}_{1}X_1
+   &=P_7,\qquad x(P_7)=p_7=\mathcal B_1[1]
  &\longleftrightarrow\quad
- {}_{1}\widehat X_1&=P_1+\delta_1H_1,\\
+ {}_{1}\widehat X_1&=P_7+\delta_1H_1,\\
  \operatorname{Com}_{1\to2}(\mathcal B_1)
+   &=Q_2,\qquad x(Q_2)=q_2=\mathcal B_2[2]
+ &\longleftrightarrow\quad
+ {}_{2}\widehat X_2&=Q_2+\delta_2H_2,\\
+ \operatorname{Com}_{2\to3}(\mathcal B_2)
    &=\mathcal R_{\rm tree}
  &\longleftrightarrow\quad
- \widehat{\mathcal R}&=\mathcal R_{\rm tree}+\rho H_2.
+ \widehat{\mathcal R}&=\mathcal R_{\rm tree}+\rho H_3.
 \end{align*}
-Assim, cada linha pode receber aleatoriedade nova sem quebrar a única igualdade
-que precisa de subir: a saída \(P_1\) do primeiro nível é a entrada
-\({}_{1}X_1=\mathcal B_1[1]\) do segundo.
+Assim, cada linha recebe aleatoriedade nova sem quebrar as duas ligações que
+precisam de subir. Os factores de ofuscação são independentes; o que se repete
+entre níveis é o ponto canónico e o seu rótulo \(x\), não esses factores.
 
 \subsection{Disjunção representada por um produto}
 
@@ -649,78 +787,60 @@ quebra do argumento subjacente.
 \section{Consistência do caminho completo}
 \label{sec:fcmp-whole-curve-tree-path}
 
-No exemplo anterior, o provador quer demonstrar que \(L_6\) ocupa a posição
-\(2\) do ramo \(\mathcal B_0\) e que os pais resultantes chegam à raiz. Não
-publica \(L_6\), nem \(P_1\), nem os índices \(2\) e \(1\). Em vez disso,
-produz versões cegadas
+No exemplo anterior, o provador quer demonstrar o caminho
+\(L_{21}\to P_7\to Q_2\to\mathcal R_{\rm tree}\). Não publica a folha, os
+dois pontos internos nem os índices \((0,1,2)\). Em vez disso, produz quatro
+representações ofuscadas:
 \begin{align*}
- {}_{0}\widetilde X_2=\widetilde L_6
-   &:=\operatorname{Rerand}_{\mathbf r}(O_6,I_6,C_6),\\
- {}_{1}\widehat X_1=\widehat P_1
-   &:=P_1+\delta_1H_1,\\
+ {}_{0}\widetilde X_0=\widetilde L_{21}
+   &:=\operatorname{Rerand}_{\mathbf r}(O_{21},I_{21},C_{21}),\\
+ {}_{1}\widehat X_1=\widehat P_7
+   &:=P_7+\delta_1H_1,\\
+ {}_{2}\widehat X_2=\widehat Q_2
+   &:=Q_2+\delta_2H_2,\\
  \widehat{\mathcal R}
-   &=\mathcal R_{\rm tree}+\rho H_2.
+   &:=\mathcal R_{\rm tree}+\rho H_3.
 \end{align*}
-O circuito conserva a coluna não cegada da escada:
+Por baixo delas, o circuito conserva a escada canónica sem ofuscação:
 \begin{align*}
- {}_{0}\widetilde X_2
+ {}_{0}\widetilde X_0
    &\longleftrightarrow
-     \mathcal B_0[2]={}_{0}X_2=L_6=(O_6,I_6,C_6),\\
+     \mathcal B_0[0]=L_{21}=(O_{21},I_{21},C_{21}),\\
  {}_{1}\widehat X_1
    &\longleftrightarrow
-     \operatorname{Com}_{0\to1}(\mathcal B_0)
-       =\boxed{P_1=\mathcal B_1[1]={}_{1}X_1},\\
+     \operatorname{Com}_{0\to1}(\mathcal B_0)=P_7,
+     \quad\boxed{x(P_7)=p_7=\mathcal B_1[1]},\\
+ {}_{2}\widehat X_2
+   &\longleftrightarrow
+     \operatorname{Com}_{1\to2}(\mathcal B_1)=Q_2,
+     \quad\boxed{x(Q_2)=q_2=\mathcal B_2[2]},\\
  \widehat{\mathcal R}
    &\longleftrightarrow
-     \operatorname{Com}_{1\to2}(\mathcal B_1)
+     \operatorname{Com}_{2\to3}(\mathcal B_2)
        =\mathcal R_{\rm tree}.
 \end{align*}
 
 Não basta provar separadamente:
 \begin{align*}
- \text{«conheço alguma folha de algum nó»}
- \qquad\text{e}\qquad
- \text{«conheço algum filho da raiz».}
+ &\text{«seleccionei uma folha em }\mathcal B_0\text{»},\\
+ &\text{«seleccionei um rótulo em }\mathcal B_1\text{»},\\
+ &\text{«seleccionei um rótulo em }\mathcal B_2\text{».}
 \end{align*}
-As duas afirmações existenciais poderiam não formar o mesmo caminho. As
-variáveis comprometidas que saem de um nível são reutilizadas no nível
-seguinte. Essa igualdade estabelece a consistência do caminho.
-
-\begin{center}
-\begin{tikzpicture}[node distance=1.60cm]
- \tikzstyle{pathbox}=[rectangle,rounded corners,draw=black,
-   minimum width=5.2cm,minimum height=1.05cm,text centered,text width=5.0cm]
- \node (leaf) [pathbox,fill=green!18]
-   {entrada cegada\\
-    \({}_{0}\widetilde X_2=\widetilde L_6\)};
- \node (one) [pathbox,below of=leaf,yshift=-.05cm,fill=blue!12]
-   {\(\mathcal B_0[2]={}_{0}X_2=L_6=(O_6,I_6,C_6)\)\\
-    \(P_1=\operatorname{Com}_{0\to1}(\mathcal B_0)\)};
- \node (mid) [pathbox,below of=one,yshift=-.05cm,fill=green!18]
-   {\({}_{1}\widehat X_1=\widehat P_1\)\\
-    o mesmo \(P_1\), agora cego};
- \node (two) [pathbox,below of=mid,yshift=-.05cm,fill=blue!12]
-   {\(\mathcal B_1[1]={}_{1}X_1=P_1\)\\
-    \(\mathcal R_{\rm tree}
-       =\operatorname{Com}_{1\to2}(\mathcal B_1)\)};
- \node (root) [pathbox,below of=two,yshift=-.05cm,fill=yellow!22]
-   {\(\widehat{\mathcal R}\leftrightarrow\mathcal R_{\rm tree}\)};
- \draw[->,thick] (leaf) -- (one);
- \draw[->,thick] (one) -- (mid);
- \draw[->,thick] (mid) -- (two);
- \draw[->,thick] (two) -- (root);
-\end{tikzpicture}
-\end{center}
+Essas afirmações poderiam escolher três ramos sem relação entre si. Os dois
+encaixes em caixa impedem isso: o ponto que sai de uma linha fornece
+exactamente o rótulo \(x\) escolhido na linha seguinte. O único diagrama da
+Secção~\ref{sec:fcmp-select-rerandomize} já mostra esta coluna; aqui as quatro
+igualdades bastam.
 
 No topo sobra uma aparente inconveniência. O circuito usa uma raiz
 \(\widehat{\mathcal R}\) que pertence a um compromisso vectorial da prova; o
 verificador conhece a raiz canónica \(\mathcal R_{\rm tree}\). Não queremos
-forçar o compromisso interno a ter cegamento zero, porque isso trataria a raiz
-de maneira especial e poderia interferir com a propriedade de conhecimento
-zero. Deixamo-lo cego e juntamos a pequena prova de Schnorr:
+forçar o compromisso interno a usar um factor de ofuscação nulo, porque isso
+trataria a raiz de maneira especial e poderia interferir com a propriedade de
+conhecimento zero. Mantemo-lo ofuscado e juntamos a pequena prova de Schnorr:
 \begin{align*}
- X&=\widehat{\mathcal R}-\mathcal R_{\rm tree}=\rho H,\\
- R_{\rm sig}+cX&=sH.
+ X&=\widehat{\mathcal R}-\mathcal R_{\rm tree}=\rho H_3,\\
+ R_{\rm sig}+cX&=sH_3.
 \end{align*}
 
 A composição é então:
@@ -729,7 +849,7 @@ A composição é então:
       \text{até }\widehat{\mathcal R}}}
  \quad+\quad
  \underbrace{\Pi_{\rm root}}_{\substack{\widehat{\mathcal R}
-      -\mathcal R_{\rm tree}\\=\rho H\text{ e conheço }\rho}}
+      -\mathcal R_{\rm tree}\\=\rho H_3\text{ e conheço }\rho}}
  \quad\Longrightarrow\quad
  \text{há um caminho até à raiz pública.}
 \end{align*}
@@ -742,23 +862,26 @@ necessárias.
 \subsection{Por que re-randomizar todos os níveis}
 
 Um ponto interno de uma árvore pública pode ser calculado por qualquer nó. Se
-o provador colocasse esse ponto sem cegamento na prova, a posição seria reconhecida
-por comparação. Cada re-randomização
+o provador colocasse esse ponto sem o termo de ofuscação na prova, a posição
+seria reconhecida por comparação. Cada re-randomização
 \begin{align*}
  {}_{\ell}\widehat X_i
    ={}_{\ell}X_i+\delta_\ell H_\ell,
  \qquad \ell\geq1,
 \end{align*}
 faz o mesmo valor comprometido adquirir uma distribuição independente da sua
-representação pública. Como \(\delta_\ell\) é uniforme,
-\({}_{\ell}\widehat X_i\) não permite testar eficientemente qual
-\({}_{\ell}X_j\) foi escolhido sem quebrar o logaritmo discreto ou a
-propriedade de ocultação do compromisso.
+representação pública. Como \(\delta_\ell\) é uniforme em \(\mathbb Z_q\) e
+\(H_\ell\) gera o grupo de ordem prima,
+\({}_{\ell}X_i+\delta_\ell H_\ell\) tem a mesma distribuição para
+qualquer candidato \({}_{\ell}X_i\). O ponto ofuscado, sozinho, não oferece um
+teste para \(i\); a propriedade de conhecimento zero garante que a prova que o
+acompanha também não revela \(i\) nem \(\delta_\ell\).
 
-Mas cegamentos \(\delta_\ell\) independentes também poderiam partir o caminho. Por isso o
-circuito não recebe apenas uma colecção de pontos cegados; recebe as aberturas
-que demonstram como cada um foi obtido e reaproveita as coordenadas certas no
-nível seguinte. As aberturas mantêm a consistência entre os níveis.
+Pontos ofuscados com factores independentes, sozinhos, também não demonstram
+que formam um único caminho. O circuito abre cada representação no testemunho
+e impõe os encaixes canónicos \(x(P_7)=p_7\) e \(x(Q_2)=q_2\). Os factores
+continuam deliberadamente independentes; são essas igualdades, não uma
+correlação entre factores, que mantêm a consistência entre níveis.
 
 \section{Generalizar Bulletproofs sem perder a referência}
 \label{sec:fcmp-generalized-bulletproofs}
@@ -1089,25 +1212,30 @@ Fixar um coeficiente de \(f\) a \(1\) é uma forma de impedir a solução
 inteiramente nula. Contudo, há divisores legítimos para os quais precisamente
 esse coeficiente é zero. Uma revisão da zkSecurity chamou a atenção para esta
 incompletude \cite{zksecurity-divisor-notes}. A consequência não é aceitar uma
-prova falsa; é o provador, com probabilidade desprezável, escolher máscaras
-para as quais a forma normalizada não existe e não conseguir produzir a
-prova.
+prova falsa; é o provador, com probabilidade desprezável, escolher escalares de
+ofuscação para os quais a forma normalizada não existe e não conseguir produzir
+a prova.
 
 Uma implementação robusta deve portanto:
 \begin{align*}
- \text{amostrar os cegamentos}
+ \text{amostrar os escalares de ofuscação}
  &\longrightarrow
  \text{construir e verificar que o divisor utilizável existe}\\
  &\longrightarrow \text{provar}.
 \end{align*}
-Se falhar, rejeitam-se esses cegamentos e reamostra-se. Na revisão corrente de
-\texttt{monero-oxide}, porém, \texttt{ScalarMulAndDivisor::new} chama
-directamente \texttt{normalize\_x\_coefficient}, que calcula
-\texttt{invert().unwrap()}; não há ali verificação nem reamostragem
-\cite{monero-oxide-fcmp-source}. O coeficiente zero excepcional provoca um
-\texttt{panic} no provador. Não se fornece ao verificador uma inversão de zero e
-não se confunde uma falha rara de completude com uma falha de solidez, mas o
-tratamento robusto dessa falha do provador ainda falta nessa revisão.
+Se falhar, rejeitam-se esses escalares de ofuscação e reamostra-se. Na revisão
+corrente de \texttt{monero-oxide}, porém, o fluxo é directamente
+\begin{align*}
+ \texttt{ScalarMulAndDivisor::new}
+ &\longrightarrow \texttt{normalize\_x\_coefficient},\\
+ \texttt{normalize\_x\_coefficient}
+ &\longrightarrow \texttt{invert().unwrap()}.
+\end{align*}
+Não há ali verificação nem reamostragem \cite{monero-oxide-fcmp-source}. O
+coeficiente zero excepcional provoca um \texttt{panic} no provador. Não se
+fornece ao verificador uma inversão de zero e não se confunde uma falha rara de
+completude com uma falha de solidez, mas o tratamento robusto dessa falha do
+provador ainda falta nessa revisão.
 
 \subsection{Interface abstracta do argumento}
 
@@ -1139,14 +1267,23 @@ Os três pontos têm funções diferentes:
  \item[\(C\)] é o compromisso de montante associado à saída.
 \end{description}
 
+Nenhum destes pontos, isoladamente, é uma folha. A folha é sempre a tupla
+ordenada \(L_i=(O_i,I_i,C_i)\).
+
+Os endereços de utilização única não desapareceram: em cada folha, \(O_i\) é
+precisamente a chave pública de saída de utilização única e \(x_i\) é a chave
+privada que a carteira recupera para a gastar. FCMP++ não substitui a derivação
+desses endereços; substitui a lista explícita usada para provar pertença.
+
 Para uma saída histórica, escreva-se \(O_{\rm original}\) para a chave
 publicada e \(O\) para o ponto, eventualmente limpo de torsão, inserido na
 árvore. Então
 \begin{align*}
  O=xG,\qquad I=\mathcal H_p(O_{\rm original}),\qquad C=aG+bH,
 \end{align*}
-onde \(x\) é a chave privada de utilização única, \(a\) a máscara e \(b\) o
-montante. A imagem de chave que aparecerá ao gastar é
+onde \(x\) é a chave privada de utilização única, \(a\) a máscara do
+compromisso de montante e \(b\) o montante. A imagem de chave que aparecerá ao
+gastar é
 \begin{align*}
  L=xI=x\mathcal H_p(O_{\rm original}).
 \end{align*}
@@ -1179,8 +1316,8 @@ das novas relações com o mesmo papel de segurança de \(\gamma=\log_GH\).
 \label{sec:fcmp-output-rerandomization}
 
 Não podemos revelar \((O,I,C)\) ao verificador da prova: ele procuraria a
-tupla na árvore e descobriria imediatamente a folha. O provador escolhe cegamentos
-novos
+tupla na árvore e descobriria imediatamente a folha. O provador escolhe novos
+escalares de ofuscação
 \begin{align*}
  r_o,\ r_i,\ r_j,\ r_c\in_R\mathbb Z_l
 \end{align*}
@@ -1231,15 +1368,15 @@ Cada base foi escolhida por uma razão:
  \item somar \(r_iU\) esconde a base \(I\) da imagem de chave;
  \item \(R_{\rm fcmp}\) compromete-se com o \emph{mesmo} \(r_i\) noutra base
  \(V\), enquanto \(r_jT\) o oculta;
- \item somar \(r_cG\) muda apenas a máscara do compromisso
+ \item somar \(r_cG\) muda apenas a máscara \(a\) do compromisso de montante
  \(C=aG+bH\), conservando o montante \(b\).
 \end{itemize}
 
 Se usássemos apenas \(\widetilde I=I+r_iU\), a prova de autorização precisaria
 de retirar \(xr_iU\) para recuperar \(xI\), mas não teria um compromisso público que
-vinculasse \(r_i\) ao restante testemunho. \(R_{\rm fcmp}\) fornece esse compromisso. Ele
-não revela \(r_i\), porque está cegado por \(r_jT\), e não é o nonce da prova
-de Schnorr da raiz.
+vinculasse \(r_i\) ao restante testemunho. \(R_{\rm fcmp}\) fornece esse
+compromisso. Ele não revela \(r_i\), porque está ofuscado pelo termo aleatório
+\(r_jT\), e não é o nonce da prova de Schnorr da raiz.
 
 \subsection{O que o primeiro circuito verifica}
 
@@ -1270,7 +1407,7 @@ folha tem seis escalares embora a vejamos como três pontos.
 
 Nas camadas superiores, um nó já é o hash/compromisso de um ramo anterior. A
 construção actual acumula a coordenada \(x\) desse ponto no ramo seguinte e
-usa o dispositivo por divisores para provar que a versão cegada abre para o
+usa o dispositivo por divisores para provar que a versão ofuscada abre para o
 ponto válido correspondente. Assim, a primeira camada é especial:
 \begin{align*}
  \text{folha}&:\quad 3\text{ pontos}=6\text{ coordenadas},\\
@@ -1367,8 +1504,8 @@ Substituindo \(\widetilde I=I+r_iU\),
 \end{tikzpicture}
 \end{center}
 
-O cegamento \(r_iU\) desaparece, mas só desaparece correctamente se o mesmo
-\(r_i\) usado na prova de pertença entrar em \(z=xr_i\). É agora que
+O termo de ofuscação \(r_iU\) desaparece, mas só desaparece correctamente se o
+mesmo \(r_i\) usado na prova de pertença entrar em \(z=xr_i\). É agora que
 \(R_{\rm fcmp}\) passa a ser usado na ligação entre as duas provas.
 
 \subsection{Um compromisso que contém o produto}
@@ -1379,7 +1516,7 @@ SAL publica ainda
  \qquad z=xr_i,
  \label{eq:fcmp-sal-p}
 \end{align}
-com um cegamento novo \(r_p\). \(P\) é um compromisso a
+com um novo escalar de ofuscação \(r_p\). \(P\) é um compromisso a
 \((x,r_i,z)\) nas bases \((G,V,U)\), escondido com \(T\). Uma prova de estilo
 Bulletproofs+ demonstra que a terceira coordenada é o produto das duas
 primeiras:
@@ -1420,7 +1557,7 @@ Os termos em \(G\) e \(V\) cancelam. Portanto, o \(r_i\) comprometido em
 \section{As quatro equações do verificador SAL}
 \label{sec:fcmp-sal-verifier}
 
-Escrevemos agora as equações completas. O provador escolhe máscaras
+Escrevemos agora as equações completas. O provador escolhe nonces aleatórios da prova
 \begin{align*}
  \alpha,\beta,\delta,\mu,r_y,r_z,r_p^{\prime\prime}
    \in_R\mathbb Z_l
@@ -1531,7 +1668,7 @@ Aqui a resposta partilhada é \(s_z\). O produto \(z=xr_i\) da primeira linha
 é o mesmo que sobrevive depois de subtrair \(\widetilde O\) e
 \(R_{\rm fcmp}\) a \(P\).
 
-\subsection{Quarta linha: derivação do marcador sem cegamento}
+\subsection{Quarta linha: marcador determinístico}
 
 Finalmente, usando \(L=x\widetilde I-zU\),
 \begin{align*}
@@ -1552,14 +1689,15 @@ privada \(x\) fixa. Qualquer gasto honesto produz
 \begin{align*}
  L=xI,
 \end{align*}
-independentemente dos cegamentos novos
+independentemente dos novos escalares de ofuscação
 \(r_o,r_i,r_j,r_c,r_p\). Duas tentativas de gastar a mesma saída publicam o
 mesmo \(L\) e os nós rejeitam a repetição. Duas saídas diferentes deverão
 produzir marcadores não relacionados.
 
 O verificador nunca vê \(I\). Vê \(\widetilde I\), que muda a cada
-re-randomização, e vê \(L\), que é determinístico. A SAL prova que a máscara
-foi retirada de \(L\) de modo consistente sem revelar o ponto de que partiu.
+re-randomização, e vê \(L\), que é determinístico. A SAL prova que, ao derivar
+\(L\), o termo de ofuscação foi cancelado de modo consistente sem revelar o
+ponto de que partiu.
 Esta é a mesma propriedade fornecida pela imagem de chave CLSAG, mas a lista explícita do anel
 foi substituída por uma prova de pertença separada.
 
@@ -1622,8 +1760,9 @@ Se preferir verificar de trás para a frente:
  \(L=xI\) para o \(I\) escondido.
  \item A FCMP prova que esses mesmos pontos re-randomizados abrem para uma
  tupla \((O,I,C)\) numa folha.
- \item O caminho Curve Trees termina numa raiz interna cuja diferença para
- \(\mathcal R_{\rm tree}\) é um cegamento de Pedersen conhecido.
+ \item O caminho Curve Trees termina numa raiz interna que satisfaz
+ \(\widehat{\mathcal R}-\mathcal R_{\rm tree}=\rho H\), para um factor de
+ ofuscação \(\rho\) conhecido pelo provador.
  \item A raiz pública compromete o conjunto de saídas admissíveis naquele
  estado da cadeia.
 \end{enumerate}
@@ -1683,8 +1822,8 @@ Em paralelo, o provador calcula
  z=xr_i,\qquad
  L=x\widetilde I-zU=xI_2
 \end{align*}
-e produz a SAL. Se tentar gastar a mesma folha amanhã com máscaras totalmente
-novas, FCMP e SAL terão outra aparência, mas
+e produz a SAL. Se tentar gastar a mesma folha amanhã com escalares de
+ofuscação totalmente novos, FCMP e SAL terão outra aparência, mas
 \begin{align*}
  L'=xI_2=L.
 \end{align*}
@@ -1698,14 +1837,14 @@ Entre dois gastos distintos, o observador vê:
  &\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C,
  P,A,B,R_O,R_P,R_L,\text{ respostas},L.
 \end{align*}
-Todos os pontos excepto \(L\) incorporam nonces ou cegamentos novos, directa
-ou indirectamente. A transcrição liga-os à transacção. Para a mesma saída,
+Todos os pontos excepto \(L\) incorporam nonces ou novos termos de ofuscação,
+directa ou indirectamente. A transcrição liga-os à transacção. Para a mesma saída,
 \(L\) repete-se e o segundo gasto é inválido. Para saídas diferentes, não há
 um teste público que compare as respectivas folhas na árvore.
 
 Uma prova de conhecimento zero formal precisa demonstrar esta
 indistinguibilidade por simuladores e jogos, não apenas pela contagem de
-máscaras. A contagem identifica quais pontos devem ser re-randomizados e qual marcador
+termos aleatórios. A contagem identifica quais pontos devem ser re-randomizados e qual marcador
 deve permanecer determinístico.
 
 \section{Famílias de logaritmos desconhecidos}
@@ -1744,7 +1883,7 @@ emprego diferente:
  \hline
  \(T\) & \(O=xG+yT\), segunda coordenada & \(\log_GT\)\\
  \hline
- \(U\) & \(\widetilde I-I=r_iU\), cegamento de \(I\) & \(\log_GU\)\\
+ \(U\) & \(\widetilde I-I=r_iU\), termo de ofuscação de \(I\) & \(\log_GU\)\\
  \hline
  \(V\) & \(R_{\rm fcmp}=r_iV+r_jT\), compromisso a \(r_i\) &
  \(\log_GV\) e \(\log_TV\)\\
@@ -1837,19 +1976,18 @@ posicional.
    minimum height=.75cm,text centered]
  \node (a0) [slot] {\(v_0\)};
  \node (a1) [slot,right of=a0,xshift=.25cm] {\(v_1\)};
- \node (a2) [slot,right of=a1,xshift=.25cm,fill=yellow!20] {\(0\)};
- \node (a3) [slot,right of=a2,xshift=.25cm] {\(0\)};
+ \node (a2) [slot,right of=a1,xshift=.25cm,fill=yellow!20] {\(\square\)};
  \node (b0) [slot,below of=a0,yshift=-.55cm] {\(v_0\)};
  \node (b1) [slot,right of=b0,xshift=.25cm] {\(v_1\)};
  \node (b2) [slot,right of=b1,xshift=.25cm,fill=green!18] {\(v_2\)};
- \node (b3) [slot,right of=b2,xshift=.25cm] {\(0\)};
  \draw[->,thick] (a2) -- node[right]{entra uma folha} (b2);
 \end{tikzpicture}
 \end{center}
 
-Os zeros de enchimento não são membros gastáveis. Na primeira camada, um
-membro válido tem seis coordenadas de três pontos não identidade e o circuito
-verifica que os pontos estão na curva. Nas camadas seguintes, a declaração
+O \(\square\) é codificado internamente por zeros de enchimento; não é um
+membro gastável. Na primeira camada, um membro válido tem duas coordenadas
+para cada um dos três pontos não identidade \((O,I,C)\), e o circuito verifica
+que esses pontos estão na curva. Nas camadas seguintes, a declaração
 define quais posições pertencem ao ramo real. Preencher o vector da prova até
 ao tamanho esperado é aritmética de compromisso, não cria membros gastáveis adicionais.
 
@@ -1866,17 +2004,18 @@ actualidade.
 
 Uma folha precisa de \(O,I,C\) completos porque essas identidades serão
 abertas e usadas no gasto. Um nó superior só precisa de um rótulo vinculante
-para o hash do ramo inferior. A construção toma
+para o hash do ramo inferior. A construção chama genericamente
 \begin{align*}
- h_j=x(P_j)
+ h_j:=x(P_j)
 \end{align*}
-e compromete os \(h_j\) no pai. Assim, cada filho ocupa uma posição escalar,
-em vez de duas coordenadas.
+ao rótulo e compromete os \(h_j\) no pai. No exemplo ternário, esses mesmos
+rótulos receberam nomes concretos \(p_j=x(P_j)\) e \(q_k=x(Q_k)\). Assim,
+cada filho ocupa uma posição escalar, em vez de duas coordenadas.
 
 Um mesmo \(x\) pode corresponder a \(P\) e \(-P\). A árvore superior é
 deliberadamente definida sobre o rótulo \(x(P)\), não sobre uma codificação
 afim injectiva. O circuito não recebe, contudo, um sinal à escolha sem
-consequências: demonstra que o ponto cegado abre para um ponto válido e que
+consequências: demonstra que o ponto ofuscado abre para um ponto válido e que
 esse ponto é o compromisso/hash construído pelo ramo anterior. A pertença no
 pai verifica somente se o seu \(x\) está na lista, que é a relação
 especificada. A especificação deve, por isso, tratar explicitamente esta identificação
@@ -1973,7 +2112,7 @@ distribuição própria.
 Podemos testar as fronteiras tentando fazer batota:
 
 \begin{enumerate}
- \item \textbf{Inventar uma folha e conhecer bem o cegamento da raiz.}
+ \item \textbf{Inventar uma folha e conhecer o factor de ofuscação da raiz.}
  A prova Schnorr passa apenas se a raiz interna diferir da pública por
  \(\rho H\); o circuito de pertença continua a ter de abrir um caminho válido.
  \item \textbf{Provar pertença de uma saída alheia.}
@@ -1985,7 +2124,7 @@ Podemos testar as fronteiras tentando fazer batota:
  \(s_\beta,s_z\) através das relações. A vinculação rejeita os dois números.
  \item \textbf{Mudar \(L\) num segundo gasto.}
  A equação \(L=x\widetilde I-zU=xI\) e o produto \(z=xr_i\) eliminam todos os
- cegamentos novos. Com a mesma saída e chave, o marcador repete-se.
+ novos termos de ofuscação. Com a mesma saída e chave, o marcador repete-se.
 \end{enumerate}
 
 Não existe uma única equação FCMP++. A relação
@@ -1998,7 +2137,7 @@ produto e ligação. Cada componente estabelece uma propriedade distinta.
 
 \begin{align*}
  \boxed{\text{saída}}&\quad (O,I,C),\\
- \boxed{\text{cegamento}}&\quad
+ \boxed{\text{tupla ofuscada}}&\quad
  (\widetilde O,\widetilde I,R_{\rm fcmp},\widetilde C),\\
  \boxed{\text{folha}}&\quad
  (O_x,O_y,I_x,I_y,C_x,C_y),\\
@@ -2043,7 +2182,8 @@ mas não conhece \(j\) nem \(x\).
  \(x,\widetilde y,z,r_p\) e nonces\\
  \hline
  transacção & mensagem/hash assinada, equilíbrio RingCT &
- segredos de gasto e máscaras ainda não publicados\\
+ segredos de gasto e máscaras dos compromissos de montante ainda não
+ revelados\\
  \hline
 \end{tabular}
 \end{center}
@@ -2090,8 +2230,8 @@ A verificação divide-se em quatro componentes:
  posição do primeiro ramo.
  \item[Caminho:] o hash de cada ramo ocupa uma posição do pai, até uma raiz
  interna.
- \item[Raiz:] o provador conhece o cegamento entre a raiz interna e
- \(\mathcal R_{\rm tree}\).
+ \item[Raiz:] o provador conhece o factor de ofuscação que relaciona a raiz
+ interna com \(\mathcal R_{\rm tree}\).
  \item[SAL:] o provador conhece a chave da saída e \(L\) é o marcador
  determinístico correspondente.
 \end{description}
@@ -2185,7 +2325,7 @@ tensão:
  \widetilde I=I+r_iU,\qquad
  L=x\widetilde I-zU=xI.
 \end{align*}
-O cegamento muda; o marcador de gasto duplo permanece determinístico.
+A representação ofuscada muda; o marcador de gasto duplo permanece determinístico.
 
 \clearpage
 \section{Nota final I: das equações ao código}
@@ -2242,8 +2382,8 @@ dependem, pelo menos, da dificuldade do logaritmo discreto e de relações
 lineares multibase; da ocultação e vinculação dos compromissos; da solidez e
 conhecimento zero dos Generalized Bulletproofs; do modelo de oráculo aleatório
 usado por Fiat--Shamir; da correcção do dispositivo de divisores; da
-validação de pontos, subgrupos e casos excepcionais; de nonces e máscaras
-imprevisíveis; e de transcrições com separação de domínio que prendam raiz,
+validação de pontos, subgrupos e casos excepcionais; de nonces e escalares de
+ofuscação imprevisíveis; e de transcrições com separação de domínio que prendam raiz,
 entrada e mensagem.
 
 O trabalho recebeu revisões com âmbitos diferentes. A Cypher Stack analisou

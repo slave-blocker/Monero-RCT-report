@@ -177,16 +177,30 @@ esquerda marca o nível; o índice à direita, a posição dentro do pai:
  {}_{\ell}X_j=({}_{\ell}x_j,{}_{\ell}y_j),
  \qquad \ell\geq1.
 \end{align*}
-Um tal ponto ocupa duas coordenadas escalares. Um pai que guarda \(m\) filhos pode ser
-escrito, omitindo por instantes o cegamento, como
+Um tal ponto ocupa duas coordenadas escalares. A direcção de uma camada fica
+visível escrevendo
+\begin{align*}
+ \underbrace{\mathcal B_\ell=
+   ({}_{\ell}X_0,\ldots,{}_{\ell}X_{m-1})}
+   _{m\text{ filhos no nível }\ell}
+ \quad\xrightarrow{\ \operatorname{Com}_{\ell\to\ell+1}\ }\quad
+ \underbrace{P^{(\ell+1)}}_{\text{um pai no nível }\ell+1}.
+\end{align*}
+Para \(\ell\geq1\), esse pai pode ser escrito, omitindo por instantes o
+cegamento da prova, como
 \begin{align}
- P_{\rm pai}
+ P^{(\ell+1)}
    =\sum_{j=0}^{m-1}{}_{\ell}x_jG_j^x
     +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y.
  \label{eq:curve-tree-parent}
 \end{align}
-O pai é um único ponto obtido por uma combinação linear das coordenadas de
-todos os filhos.
+As somas percorrem os filhos do nível \(\ell\); o ponto que sai delas pertence
+ao nível seguinte. Se o caminho continuar, esse mesmo ponto passa a ocupar
+uma posição no pai de cima:
+\begin{align}
+ P^{(\ell+1)}={}_{\ell+1}X_{i_{\ell+1}}.
+ \label{eq:curve-tree-parent-becomes-child}
+\end{align}
 
 \subsection{Exemplo com ramificação quatro}
 
@@ -242,10 +256,15 @@ gratuita: cada nível exige restrições e a lista de filhos de um nó tem
 No exemplo, o índice à esquerda de \(X\) sobe pela árvore; o da direita
 percorre as posições de cada pai:
 \begin{align*}
- ({}_{0}X_0,{}_{0}X_1,{}_{0}X_2,{}_{0}X_3)
+ \mathcal B_0=({}_{0}X_0,{}_{0}X_1,{}_{0}X_2,{}_{0}X_3)
    &=(L_4,L_5,L_6,L_7),& i_0&=2,\\
- ({}_{1}X_0,{}_{1}X_1,{}_{1}X_2,{}_{1}X_3)
+ \mathcal B_1=({}_{1}X_0,{}_{1}X_1,{}_{1}X_2,{}_{1}X_3)
    &=(P_0,P_1,P_2,P_3),& i_1&=1.
+\end{align*}
+\begin{align*}
+ \boxed{j\in\{0,\ldots,m-1\}}
+ \qquad\xrightarrow{\ m=4\text{ neste exemplo}\ }\qquad
+ \boxed{j\in\{0,1,2,3\}}.
 \end{align*}
 
 Congelemos agora um nível \(\ell\). O pai compromete
@@ -259,18 +278,23 @@ secreta \(i_\ell\) e apresenta uma versão fresca do filho escolhido. Quando
 \end{align}
 
 Aqui \(H_\ell\) é a base de cegamento na curva onde vivem os filhos desse
-nível. A
-declaração de um nível tem então duas metades:
+nível. Para \(\ell\geq1\), a declaração tem duas metades:
 \begin{align}
- P_{\rm pai}
-   &=\sum_{j=0}^{m-1}{}_{\ell}x_jG_j^x
-     +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y+r_\ell H_{\rm pai},
+ \widehat P^{(\ell+1)}
+   &=\underbrace{\sum_{j=0}^{m-1}{}_{\ell}x_jG_j^x
+     +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y}_{P^{(\ell+1)}}
+     +\delta_{\ell+1}H_{\ell+1},
  \label{eq:curve-tree-open-parent}\\
  {}_{\ell}\widehat X_{i_\ell}
    &=({}_{\ell}x_{i_\ell},{}_{\ell}y_{i_\ell})
      +\delta_\ell H_\ell.
  \label{eq:curve-tree-select-child}
 \end{align}
+Na primeira linha, os \(m\) filhos do nível \(\ell\) produzem
+\(P^{(\ell+1)}\), e só depois se acrescenta a máscara da prova. Pela
+equação \eqref{eq:curve-tree-parent-becomes-child}, esse \(P^{(\ell+1)}\)
+é precisamente o \({}_{\ell+1}X_{i_{\ell+1}}\) seleccionado na camada de
+cima.
 
 No exemplo, o mesmo gesto repete-se sem trocar os nomes dos objectos:
 
@@ -320,8 +344,8 @@ auxiliar \(R_{\rm fcmp}\), detalhados na secção
 \ref{sec:fcmp-output-rerandomization}; não se soma uma única máscara à tupla
 inteira.
 
-Para \(\ell\geq1\), as testemunhas são as coordenadas dos filhos, a abertura
-\(r_\ell\), a posição \(i_\ell\) e o cegamento \(\delta_\ell\). O circuito
+Para \(\ell\geq1\), as testemunhas são as coordenadas dos filhos, a posição
+\(i_\ell\) e os cegamentos. O circuito
 verifica a abertura do pai, que a posição escolhida existe, que as coordenadas
 escolhidas formam um ponto válido e que a versão pública
 \({}_{\ell}\widehat X_{i_\ell}\) é uma re-randomização desse ponto.
@@ -331,6 +355,97 @@ posição do nó comprometido. O cegamento impede a comparação directa de
 \({}_{\ell}\widehat X_{i_\ell}\) com os filhos públicos. A propriedade de
 conhecimento zero impede que o verificador aprenda \(i_\ell\), \(\delta_\ell\)
 ou a abertura completa do pai.
+
+\subsection{A saída de um nível é a entrada do seguinte}
+\label{sec:fcmp-level-output-is-next-input}
+
+No exemplo de ramificação quatro, as duas passagens são
+\begin{align*}
+ \mathcal B_0
+   &=({}_{0}X_0,{}_{0}X_1,\boxed{{}_{0}X_2=L_6},{}_{0}X_3),
+ &i_0&=2,
+ &\mathcal B_0&\xrightarrow{\operatorname{Com}_{0\to1}}P^{(1)}=P_1,\\
+ \mathcal B_1
+   &=({}_{1}X_0,\boxed{{}_{1}X_1=P_1},{}_{1}X_2,{}_{1}X_3),
+ &i_1&=1,
+ &\mathcal B_1&\xrightarrow{\operatorname{Com}_{1\to2}}
+     P^{(2)}=\mathcal R_{\rm tree}.
+\end{align*}
+O encaixe entre as duas linhas é
+\begin{align*}
+ \underbrace{P^{(1)}}_{\text{saída do nível }0}
+   =\boxed{P_1}=
+ \underbrace{{}_{1}X_1}_{\text{entrada do nível }1}.
+\end{align*}
+Em particular, a segunda seta é a especialização explícita de
+\eqref{eq:curve-tree-parent}:
+\begin{align*}
+ \mathcal R_{\rm tree}=P^{(2)}
+   =\sum_{j=0}^{3}{}_{1}x_jG_j^x
+    +\sum_{j=0}^{3}{}_{1}y_jG_j^y,
+ \qquad {}_{1}X_1=P_1.
+\end{align*}
+
+As máscaras ficam nas setas horizontais; o caminho fica na coluna esquerda:
+
+\begin{center}
+\begin{tikzpicture}[
+ node distance=1.55cm and 1.55cm,
+ witness/.style={rectangle,rounded corners,draw=black,thick,
+   minimum width=5.75cm,minimum height=1.25cm,text width=5.45cm,
+   text centered,align=center},
+ masked/.style={rectangle,rounded corners,draw=black,
+   minimum width=6.05cm,minimum height=1.25cm,text width=5.75cm,
+   text centered,align=center,fill=yellow!20},
+ every node/.style={font=\small}]
+ \node[witness,fill=blue!12] (root)
+   {\(P^{(2)}=\mathcal R_{\rm tree}\)};
+ \node[witness,below=of root,fill=green!24,very thick] (p1)
+   {\(\boxed{P^{(1)}=P_1={}_{1}X_1}\)\\[-1mm]
+    \scriptsize\bfseries saída do nível 0 = entrada do nível 1};
+ \node[witness,below=of p1,fill=green!18] (l6)
+   {\({}_{0}X_2=L_6=(O_6,I_6,C_6)\)};
+
+ \node[masked,right=of root] (rhat)
+   {\(\widehat{\mathcal R}=P^{(2)}+\rho H_2\)};
+ \node[masked,right=of p1] (phat)
+   {\({}_{1}\widehat X_1=\widehat P_1
+      =P^{(1)}+\delta_1H_1\)};
+ \node[masked,right=of l6] (ltilde)
+   {\({}_{0}\widetilde X_2=\widetilde L_6\)\\[-1mm]
+    \scriptsize re-randomização separada de \(O_6,I_6,C_6\)};
+
+ \node[above=.18cm of root,font=\small\bfseries]
+   {testemunha que o circuito recupera};
+ \node[above=.18cm of rhat,font=\small\bfseries]
+   {representação fresca na prova};
+
+ \draw[->,very thick,blue!65!black] (l6) --
+   node[left,align=right]{\(\mathcal B_0\)\\\(i_0=2\)} (p1);
+ \draw[->,very thick,blue!65!black] (p1) --
+   node[left,align=right]{\(\mathcal B_1\)\\\(i_1=1\)} (root);
+
+ \draw[<->,thick,orange!80!black] (l6) -- (ltilde);
+ \draw[<->,thick,orange!80!black] (p1) -- (phat);
+ \draw[<->,thick,orange!80!black] (root) -- (rhat);
+\end{tikzpicture}
+\end{center}
+
+O vínculo entre as duas verificações é a caixa \(P_1\), não uma igualdade
+entre as máscaras. O circuito usa exactamente
+\begin{align*}
+ {}_{0}\widetilde X_2
+ &\longleftrightarrow {}_{0}X_2=L_6
+   \in\boxed{P^{(1)}=P_1={}_{1}X_1},\\
+ {}_{1}\widehat X_1-\delta_1H_1
+ &=\boxed{P^{(1)}=P_1={}_{1}X_1}
+   \in P^{(2)}=\mathcal R_{\rm tree},\\
+ \widehat{\mathcal R}-\rho H_2
+ &=P^{(2)}=\mathcal R_{\rm tree}.
+\end{align*}
+Assim, cada linha pode receber aleatoriedade nova sem quebrar a única igualdade
+que precisa de subir: a saída \(P^{(1)}\) do primeiro nível é a entrada
+\({}_{1}X_1\) do segundo.
 
 \subsection{Disjunção representada por um produto}
 
@@ -359,7 +474,7 @@ pertença usada em cada ramo.
 \label{sec:fcmp-curve-cycle}
 
 Agora aparece a invenção que dá nome a Curve Trees. O pai
-\(P_{\rm pai}\) é um ponto numa curva, mas as suas coordenadas são elementos do
+\(P^{(\ell+1)}\) é um ponto numa curva, mas as suas coordenadas são elementos do
 \emph{campo base} dessa curva. Para colocar essas coordenadas dentro de um
 compromisso de Pedersen, queremos tratá-las como escalares de outra curva.
 

@@ -171,11 +171,12 @@ combinação desse a identidade, poderia calcular aberturas alternativas para o 
 generalização multibase da relação
 \(\gamma=\log_GH\) da secção \ref{gamma}.
 
-Em Curve Trees, os filhos são pontos. Um ponto de curva afim
+Nas camadas superiores de Curve Trees, cada filho é um ponto. Chamaremos
+\(X_i\) ao filho genérico que ocupa a posição \(i\) de um pai:
 \begin{align*}
- P_i=(x_i,y_i)
+ X_i=(x_i,y_i)
 \end{align*}
-ocupa duas coordenadas escalares. Um pai que guarda \(m\) filhos pode ser
+Um tal ponto ocupa duas coordenadas escalares. Um pai que guarda \(m\) filhos pode ser
 escrito, omitindo por instantes o cegamento, como
 \begin{align}
  C_{\rm pai}
@@ -188,9 +189,12 @@ todos os filhos.
 
 \subsection{Exemplo com ramificação quatro}
 
-Considere-se uma árvore com dezasseis folhas e quatro filhos por pai. As folhas
-\(L_i\) são os objectos acumulados. Cada nó \(C_j\) compromete as coordenadas
-de quatro filhos. A raiz compromete as coordenadas dos quatro \(C_j\):
+Considere-se uma árvore com dezasseis folhas e quatro filhos por pai. Na
+instanciação do Monero, cada folha é a saída
+\(L_i=(O_i,I_i,C_i^{\rm amt})\); o sobrescrito distingue o compromisso de
+montante do nó de árvore \(C_j\). Cada \(C_j\) compromete as seis coordenadas
+dos quatro \(L_i\) que contém. A raiz compromete as coordenadas dos quatro
+\(C_j\):
 
 \begin{center}
 \begin{forest}
@@ -207,15 +211,18 @@ for tree={draw,rounded corners,align=center,l sep=1.2cm,s sep=.15cm}
 \end{forest}
 \end{center}
 
-Se a folha secreta é \(L_6\), o caminho conceptual é
+Se a folha secreta é \(L_6\), todo o caminho cabe numa linha:
 \begin{align*}
- L_6\in C_1
- \qquad\text{e}\qquad
- C_1\in\mathcal R_{\rm tree}.
+ \underbrace{L_6=(O_6,I_6,C_6^{\rm amt})}_{\text{posição secreta }2}
+ \quad\in\quad
+ \underbrace{C_1}_{\substack{\text{pai de }L_6\\
+                              \text{filho da raiz}}}
+ \quad\in\quad
+ \underbrace{\mathcal R_{\rm tree}}_{\substack{C_1\text{ na}\\
+                                                \text{posição secreta }1}}.
 \end{align*}
 Uma prova não precisa de representar os restantes catorze caminhos. Precisa de
-demonstrar duas escolhas escondidas, uma por nível, e que o filho escolhido no
-primeiro nível é o mesmo ponto usado no segundo.
+esconder as duas posições e conservar a caixa central nos dois níveis.
 
 A vantagem cresce exponencialmente. Com ramificação \(m\) e profundidade
 \(d\), cabem aproximadamente
@@ -229,15 +236,18 @@ gratuita: cada nível exige restrições e a lista de filhos de um nó tem
 \section{Selecção privada e re-randomização}
 \label{sec:fcmp-select-rerandomize}
 
-Congelemos um único nível. O pai compromete
-\[
- (P_0,\ldots,P_{m-1}),\qquad P_i=(x_i,y_i).
-\]
-O provador conhece um índice secreto \(i\) e quer apresentar o filho \(P_i\) sem
-permitir que o ponto apresentado denuncie imediatamente a posição. Para isso,
-re-randomiza-o:
+Congelemos um único nível. \(X_j\) significa apenas «o filho na posição
+\(j\) deste pai»:
+\begin{align*}
+ \text{primeiro nível:}&\quad X_j=L_j=(O_j,I_j,C_j^{\rm amt}),\\
+ \text{níveis seguintes:}&\quad X_j=C_j.
+\end{align*}
+
+O pai compromete \((X_0,\ldots,X_{m-1})\). O provador conhece um índice
+secreto \(i\) e apresenta uma versão fresca do filho escolhido. Quando
+\(X_i=(x_i,y_i)\) é um ponto de uma camada superior, re-randomiza-o como
 \begin{align}
- \widehat P=P_i+\delta H_{\rm outro}.
+ \widehat X_i=X_i+\delta H_{\rm outro}.
  \label{eq:curve-tree-rerandomized-child}
 \end{align}
 
@@ -248,16 +258,62 @@ declaração de um nível tem então duas metades:
    &=\sum_{j=0}^{m-1}x_jG_j^x
      +\sum_{j=0}^{m-1}y_jG_j^y+rH_{\rm pai},
  \label{eq:curve-tree-open-parent}\\
- \widehat P&=(x_i,y_i)+\delta H_{\rm outro}.
+ \widehat X_i&=(x_i,y_i)+\delta H_{\rm outro}.
  \label{eq:curve-tree-select-child}
 \end{align}
+
+No exemplo, o mesmo gesto repete-se sem trocar os nomes dos objectos:
+
+\begin{center}
+\begin{tikzpicture}[
+ node distance=1.25cm and 1.45cm,
+ treebox/.style={rectangle,rounded corners,draw=black,thick,
+   minimum width=5.5cm,minimum height=1.0cm,text centered,align=center},
+ maskbox/.style={rectangle,rounded corners,draw=black,
+   minimum width=6.2cm,minimum height=1.0cm,text centered,align=center,
+   fill=yellow!20},
+ every node/.style={font=\small}]
+ \node[treebox,fill=blue!12] (root)
+   {\(\mathcal R_{\rm tree}=\operatorname{Com}(C_0,C_1,C_2,C_3)\)};
+ \node[treebox,below=of root,fill=green!18] (c1)
+   {\(C_1=\operatorname{Com}(L_4,L_5,L_6,L_7)\)\\
+    \scriptsize pai em baixo; o mesmo filho em cima};
+ \node[treebox,below=of c1,fill=green!18] (l6)
+   {\(L_6=(O_6,I_6,C_6^{\rm amt})\)};
+ \node[maskbox,right=of root] (rhat)
+   {\(\widehat{\mathcal R}=\mathcal R_{\rm tree}+\rho H\)};
+ \node[maskbox,right=of c1] (chat)
+   {\(\widehat C_1=C_1+\delta_1H\)};
+ \node[maskbox,right=of l6] (ltilde)
+   {\(\widetilde L_6=\operatorname{Rerand}_{\mathbf r}
+      (O_6,I_6,C_6^{\rm amt})\)};
+ \node[above=.2cm of root,font=\small\bfseries]
+   {os mesmos objectos da árvore};
+ \node[above=.2cm of rhat,font=\small\bfseries]
+   {representações cegadas};
+ \draw[->,very thick,blue!65!black] (l6) --
+   node[left,align=right]{posição \(2\)\\escondida} (c1);
+ \draw[->,very thick,blue!65!black] (c1) --
+   node[left,align=right]{posição \(1\)\\escondida} (root);
+ \draw[->,thick,orange!80!black] (l6) -- (ltilde);
+ \draw[->,thick,orange!80!black] (c1) -- (chat);
+ \draw[->,thick,orange!80!black] (root) -- (rhat);
+\end{tikzpicture}
+\end{center}
+
+Na linha da folha, \(\operatorname{Rerand}_{\mathbf r}\) abrevia
+as re-randomizações separadas de \(O_6,I_6,C_6^{\rm amt}\) e o compromisso
+auxiliar \(R_{\rm fcmp}\), detalhados na secção
+\ref{sec:fcmp-output-rerandomization}; não se soma uma única máscara à tupla
+inteira.
+
 As testemunhas são as coordenadas dos filhos, a abertura \(r\), o índice
 \(i\) e o cegamento \(\delta\). O circuito verifica a abertura do pai, que a
 posição escolhida existe, que as coordenadas escolhidas formam um ponto válido
-e que a versão pública \(\widehat P\) é uma re-randomização desse ponto.
+e que a versão pública \(\widehat X_i\) é uma re-randomização desse ponto.
 
-O compromisso vectorial demonstra que \(P_i\) ocupa uma posição do nó
-comprometido. O cegamento impede a comparação directa de \(\widehat P\) com
+O compromisso vectorial demonstra que \(X_i\) ocupa uma posição do nó
+comprometido. O cegamento impede a comparação directa de \(\widehat X_i\) com
 os filhos públicos. A propriedade de conhecimento zero impede que o
 verificador aprenda \(i\), \(\delta\) ou a abertura completa do pai.
 
@@ -366,16 +422,23 @@ No exemplo anterior, o provador quer demonstrar a pertença de \(L_6\). Não
 publica \(L_6\), nem \(C_1\), nem os índices \(2\) e \(1\). Em vez disso,
 produz versões cegadas
 \begin{align*}
- \widehat L&=L_6+\delta_0H_0,\\
- \widehat C&=C_1+\delta_1H_1,\\
+ \widetilde L_6
+   &:=\operatorname{Rerand}_{\mathbf r}(O_6,I_6,C_6^{\rm amt}),\\
+ \widehat C_1&=C_1+\delta_1H_1,\\
  \widehat{\mathcal R}
    &=\mathcal R_{\rm tree}+\rho H_2.
 \end{align*}
-O circuito liga as três relações:
+O circuito conserva a coluna não cegada da escada:
 \begin{align*}
- \widehat L&\text{ abre para um filho de }C_1,\\
- \widehat C&\text{ abre para a re-randomização desse }C_1,\\
- \widehat{\mathcal R}&\text{ abre para um pai que contém esse }\widehat C.
+ \widetilde L_6
+   &\longleftrightarrow
+     L_6=(O_6,I_6,C_6^{\rm amt})\in\boxed{C_1},\\
+ \widehat C_1
+   &\longleftrightarrow
+     \boxed{C_1}\in\mathcal R_{\rm tree},\\
+ \widehat{\mathcal R}
+   &\longleftrightarrow
+     \mathcal R_{\rm tree}.
 \end{align*}
 
 Não basta provar separadamente:
@@ -393,15 +456,15 @@ seguinte. Essa igualdade estabelece a consistência do caminho.
  \tikzstyle{pathbox}=[rectangle,rounded corners,draw=black,
    minimum width=4.3cm,minimum height=1.05cm,text centered,text width=4.1cm]
  \node (leaf) [pathbox,fill=green!18]
-   {folha escondida \(\widehat L\)};
+   {entrada cegada \(\widetilde L_6\)};
  \node (one) [pathbox,below of=leaf,yshift=-.15cm,fill=blue!12]
-   {seleccionar em \(C_1\)};
+   {abre para \(L_6=(O_6,I_6,C_6^{\rm amt})\in C_1\)};
  \node (mid) [pathbox,below of=one,yshift=-.15cm,fill=green!18]
-   {filho escondido \(\widehat C\)};
+   {\(\widehat C_1\): o mesmo \(C_1\), agora cego};
  \node (two) [pathbox,below of=mid,yshift=-.15cm,fill=blue!12]
-   {seleccionar em \(\mathcal R_{\rm tree}\)};
+   {abre para \(C_1\in\mathcal R_{\rm tree}\)};
  \node (root) [pathbox,below of=two,yshift=-.15cm,fill=yellow!22]
-   {raiz interna \(\widehat{\mathcal R}\)};
+   {\(\widehat{\mathcal R}\leftrightarrow\mathcal R_{\rm tree}\)};
  \draw[->,thick] (leaf) -- (one);
  \draw[->,thick] (one) -- (mid);
  \draw[->,thick] (mid) -- (two);
@@ -442,11 +505,11 @@ Um ponto interno de uma árvore pública pode ser calculado por qualquer nó. Se
 o provador colocasse esse ponto sem cegamento na prova, a posição seria reconhecida
 por comparação. Cada re-randomização
 \begin{align*}
- \widehat P=P+\delta H
+ \widehat X=X+\delta H
 \end{align*}
 faz o mesmo valor comprometido adquirir uma distribuição independente da sua
 representação pública. Como \(\delta\)
-é uniforme, \(\widehat P\) não permite testar eficientemente qual \(P\) foi
+é uniforme, \(\widehat X\) não permite testar eficientemente qual \(X\) foi
 usado sem quebrar o logaritmo discreto ou a propriedade de ocultação do
 compromisso.
 

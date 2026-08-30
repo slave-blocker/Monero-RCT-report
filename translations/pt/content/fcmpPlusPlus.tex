@@ -182,10 +182,20 @@ visível escrevendo
 \begin{align*}
  \underbrace{\mathcal B_\ell=
    ({}_{\ell}X_0,\ldots,{}_{\ell}X_{m-1})}
-   _{m\text{ filhos no nível }\ell}
+   _{\substack{\text{um ramo: }m\text{ irmãos}\\
+               \text{no mesmo nível }\ell}}
  \quad\xrightarrow{\ \operatorname{Com}_{\ell\to\ell+1}\ }\quad
  \underbrace{P^{(\ell+1)}}_{\text{um pai no nível }\ell+1}.
 \end{align*}
+Na terminologia da implementação, um ramo \(\mathcal B_\ell\) é a lista
+ordenada dos filhos de \emph{um} pai; não é o nível inteiro nem o trajecto da
+folha à raiz. Usaremos colchetes para escolher uma posição dessa lista:
+\begin{align}
+ \boxed{\mathcal B_\ell[i]:={}_{\ell}X_i}.
+ \label{eq:fcmp-branch-slot}
+\end{align}
+Um caminho atravessa níveis: escolhe uma posição num ramo, leva o pai
+resultante para o ramo seguinte e repete.
 Para \(\ell\geq1\), esse pai pode ser escrito, omitindo por instantes o
 cegamento da prova, como
 \begin{align}
@@ -194,6 +204,22 @@ cegamento da prova, como
     +\sum_{j=0}^{m-1}{}_{\ell}y_jG_j^y.
  \label{eq:curve-tree-parent}
 \end{align}
+Aqui a comutatividade não apaga as posições. Já numa única coordenada se vê a
+diferença:
+\begin{align*}
+ \text{reordenar as parcelas:}\quad
+ {}_{\ell}x_0G_0^x+{}_{\ell}x_1G_1^x
+ &= {}_{\ell}x_1G_1^x+{}_{\ell}x_0G_0^x,\\
+ \text{permutar os filhos:}\quad
+ {}_{\ell}x_0G_0^x+{}_{\ell}x_1G_1^x
+ &\underset{\text{em geral}}{\ne}
+ {}_{\ell}x_1G_0^x+{}_{\ell}x_0G_1^x.
+\end{align*}
+Na primeira linha, cada escalar continua emparelhado com o seu gerador; na
+segunda, os filhos trocaram de posição. O mesmo vale para as coordenadas
+\(y_j\). Portanto, \(\mathcal B_\ell\) é uma lista ordenada: depois de fixada a
+raiz, não se baralha o ramo. A prova esconde \(i_\ell\), não reordena
+\(\mathcal B_\ell\).
 As somas percorrem os filhos do nível \(\ell\); o ponto que sai delas pertence
 ao nível seguinte. Se o caminho continuar, esse mesmo ponto passa a ocupar a
 posição \(i_{\ell+1}\) no pai de cima:
@@ -210,8 +236,9 @@ instanciação do Monero, a notação separa imediatamente as duas formas:
  \text{folha:}&\quad L_i=(O_i,I_i,C_i),&
  \text{pai:}&\quad P_j=\operatorname{Com}(L_{4j},\ldots,L_{4j+3}).
 \end{align*}
-Cada \(P_j\) compromete as seis coordenadas dos quatro \(L_i\) que contém. A
-raiz compromete as coordenadas dos quatro \(P_j\):
+Cada \(P_j\) compromete as seis coordenadas das quatro folhas
+\(L_{4j},\ldots,L_{4j+3}\). A raiz compromete as coordenadas dos quatro
+\(P_j\):
 
 \begin{center}
 \begin{forest}
@@ -228,17 +255,17 @@ for tree={draw,rounded corners,align=center,l sep=1.2cm,s sep=.15cm}
 \end{forest}
 \end{center}
 
-Se a folha secreta é \(L_6\), todo o caminho cabe numa linha:
+Se a folha secreta é \(L_6\), todo o caminho cabe em três igualdades:
 \begin{align*}
- \underbrace{{}_{0}X_2=L_6=(O_6,I_6,C_6)}
-             _{\substack{\text{nível }0\\\text{posição secreta }2}}
- \quad\in\quad
- \underbrace{P_1={}_{1}X_1}_{\substack{\text{pai no nível }0\\
-                                       \text{filho no nível }1}}
- \quad\in\quad
- \underbrace{\mathcal R_{\rm tree}}_{\text{raiz pública}}.
+ \mathcal B_0[2]
+   &={}_{0}X_2=L_6=(O_6,I_6,C_6),\\
+ \operatorname{Com}_{0\to1}(\mathcal B_0)
+   &=\boxed{P_1}={}_{1}X_1=\mathcal B_1[1],\\
+ \operatorname{Com}_{1\to2}(\mathcal B_1)
+   &=\mathcal R_{\rm tree}.
 \end{align*}
-Uma prova não precisa de representar os restantes catorze caminhos. Precisa de
+Cada linha usa um ramo local; o caminho é o encaixe vertical das três igualdades.
+Uma prova não precisa de representar os restantes quinze caminhos. Precisa de
 esconder as duas posições e conservar a caixa central nos dois níveis.
 
 A vantagem cresce exponencialmente. Com ramificação \(m\) e profundidade
@@ -365,23 +392,25 @@ No exemplo de ramificação quatro, as duas passagens são
  \mathcal B_0
    &=({}_{0}X_0,{}_{0}X_1,\boxed{{}_{0}X_2=L_6},{}_{0}X_3),
  &i&=2,
- &\mathcal B_0&\xrightarrow{\operatorname{Com}_{0\to1}}P^{(1)}=P_1,\\
+ &\mathcal B_0&\xrightarrow{\operatorname{Com}_{0\to1}}P_1,\\
  \mathcal B_1
    &=({}_{1}X_0,\boxed{{}_{1}X_1=P_1},{}_{1}X_2,{}_{1}X_3),
  &i&=1,
  &\mathcal B_1&\xrightarrow{\operatorname{Com}_{1\to2}}
-     P^{(2)}=\mathcal R_{\rm tree}.
+     \mathcal R_{\rm tree}.
 \end{align*}
 O encaixe entre as duas linhas é
 \begin{align*}
- \underbrace{P^{(1)}}_{\text{saída do nível }0}
+ \underbrace{\operatorname{Com}_{0\to1}(\mathcal B_0)}_
+             {\text{saída do nível }0}
    =\boxed{P_1}=
- \underbrace{{}_{1}X_1}_{\text{entrada do nível }1}.
+ \underbrace{{}_{1}X_1=\mathcal B_1[1]}_
+             {\text{entrada do nível }1}.
 \end{align*}
 Em particular, a segunda seta é a especialização explícita de
 \eqref{eq:curve-tree-parent}:
 \begin{align*}
- \mathcal R_{\rm tree}=P^{(2)}
+ \mathcal R_{\rm tree}
    =\sum_{j=0}^{3}{}_{1}x_jG_j^x
     +\sum_{j=0}^{3}{}_{1}y_jG_j^y,
  \qquad {}_{1}X_1=P_1.
@@ -400,18 +429,19 @@ As máscaras ficam nas setas horizontais; o caminho fica na coluna esquerda:
    text centered,align=center,fill=yellow!20},
  every node/.style={font=\small}]
  \node[witness,fill=blue!12] (root)
-   {\(P^{(2)}=\mathcal R_{\rm tree}\)};
+   {\(\mathcal R_{\rm tree}
+      =\operatorname{Com}_{1\to2}(\mathcal B_1)\)};
  \node[witness,below=of root,fill=green!24,very thick] (p1)
-   {\(\boxed{P^{(1)}=P_1={}_{1}X_1}\)\\[-1mm]
+   {\(\boxed{P_1={}_{1}X_1=\mathcal B_1[1]}\)\\[-1mm]
     \scriptsize\bfseries saída do nível 0 = entrada do nível 1};
  \node[witness,below=of p1,fill=green!18] (l6)
-   {\({}_{0}X_2=L_6=(O_6,I_6,C_6)\)};
+   {\(\mathcal B_0[2]={}_{0}X_2=L_6=(O_6,I_6,C_6)\)};
 
  \node[masked,right=of root] (rhat)
-   {\(\widehat{\mathcal R}=P^{(2)}+\rho H_2\)};
+   {\(\widehat{\mathcal R}=\mathcal R_{\rm tree}+\rho H_2\)};
  \node[masked,right=of p1] (phat)
    {\({}_{1}\widehat X_1=\widehat P_1
-      =P^{(1)}+\delta_1H_1\)};
+      =P_1+\delta_1H_1\)};
  \node[masked,right=of l6] (ltilde)
    {\({}_{0}\widetilde X_2=\widetilde L_6\)\\[-1mm]
     \scriptsize re-randomização separada de \(O_6,I_6,C_6\)};
@@ -422,9 +452,9 @@ As máscaras ficam nas setas horizontais; o caminho fica na coluna esquerda:
    {representação fresca na prova};
 
  \draw[->,very thick,blue!65!black] (l6) --
-   node[left,align=right]{\(\mathcal B_0\)\\\(i=2\)} (p1);
+   node[left,align=right]{posição \(2\)\\em \(\mathcal B_0\)} (p1);
  \draw[->,very thick,blue!65!black] (p1) --
-   node[left,align=right]{\(\mathcal B_1\)\\\(i=1\)} (root);
+   node[left,align=right]{posição \(1\)\\em \(\mathcal B_1\)} (root);
 
  \draw[<->,thick,orange!80!black] (l6) -- (ltilde);
  \draw[<->,thick,orange!80!black] (p1) -- (phat);
@@ -432,21 +462,25 @@ As máscaras ficam nas setas horizontais; o caminho fica na coluna esquerda:
 \end{tikzpicture}
 \end{center}
 
-O vínculo entre as duas verificações é a caixa \(P_1\), não uma igualdade
-entre as máscaras. O circuito usa exactamente
+O vínculo entre as duas verificações é a igualdade central
+\(\operatorname{Com}_{0\to1}(\mathcal B_0)=P_1=\mathcal B_1[1]\), não uma
+igualdade entre as máscaras. O circuito usa exactamente
 \begin{align*}
- {}_{0}\widetilde X_2
- &\longleftrightarrow {}_{0}X_2=L_6
-   \in\boxed{P^{(1)}=P_1={}_{1}X_1},\\
- {}_{1}\widehat X_1-\delta_1H_1
- &=\boxed{P^{(1)}=P_1={}_{1}X_1}
-   \in P^{(2)}=\mathcal R_{\rm tree},\\
- \widehat{\mathcal R}-\rho H_2
- &=P^{(2)}=\mathcal R_{\rm tree}.
+ \mathcal B_0[2]&={}_{0}X_2=L_6
+ &\longleftrightarrow\quad
+ {}_{0}\widetilde X_2&=\widetilde L_6,\\
+ \operatorname{Com}_{0\to1}(\mathcal B_0)
+   &=P_1=\mathcal B_1[1]={}_{1}X_1
+ &\longleftrightarrow\quad
+ {}_{1}\widehat X_1&=P_1+\delta_1H_1,\\
+ \operatorname{Com}_{1\to2}(\mathcal B_1)
+   &=\mathcal R_{\rm tree}
+ &\longleftrightarrow\quad
+ \widehat{\mathcal R}&=\mathcal R_{\rm tree}+\rho H_2.
 \end{align*}
 Assim, cada linha pode receber aleatoriedade nova sem quebrar a única igualdade
-que precisa de subir: a saída \(P^{(1)}\) do primeiro nível é a entrada
-\({}_{1}X_1\) do segundo.
+que precisa de subir: a saída \(P_1\) do primeiro nível é a entrada
+\({}_{1}X_1=\mathcal B_1[1]\) do segundo.
 
 \subsection{Disjunção representada por um produto}
 
@@ -468,8 +502,8 @@ só sobrevive à compressão com probabilidade desprezável.
 
 O código actual primeiro agrega as coordenadas de cada tupla com desafios da
 transcrição, depois multiplica sucessivamente as diferenças e, por fim, exige
-que o acumulador final seja zero. Este teste implementa a disjunção de
-pertença usada em cada ramo.
+que o acumulador final seja zero. Este é o teste de selecção usado em cada
+ramo.
 
 \section{Por que uma árvore precisa de duas curvas}
 \label{sec:fcmp-curve-cycle}
@@ -549,7 +583,8 @@ quebra do argumento subjacente.
 \section{Consistência do caminho completo}
 \label{sec:fcmp-whole-curve-tree-path}
 
-No exemplo anterior, o provador quer demonstrar a pertença de \(L_6\). Não
+No exemplo anterior, o provador quer demonstrar que \(L_6\) ocupa a posição
+\(2\) do ramo \(\mathcal B_0\) e que os pais resultantes chegam à raiz. Não
 publica \(L_6\), nem \(P_1\), nem os índices \(2\) e \(1\). Em vez disso,
 produz versões cegadas
 \begin{align*}
@@ -564,14 +599,15 @@ O circuito conserva a coluna não cegada da escada:
 \begin{align*}
  {}_{0}\widetilde X_2
    &\longleftrightarrow
-     {}_{0}X_2=L_6=(O_6,I_6,C_6)
-       \in\boxed{P_1={}_{1}X_1},\\
+     \mathcal B_0[2]={}_{0}X_2=L_6=(O_6,I_6,C_6),\\
  {}_{1}\widehat X_1
    &\longleftrightarrow
-     \boxed{{}_{1}X_1=P_1}\in\mathcal R_{\rm tree},\\
+     \operatorname{Com}_{0\to1}(\mathcal B_0)
+       =\boxed{P_1=\mathcal B_1[1]={}_{1}X_1},\\
  \widehat{\mathcal R}
    &\longleftrightarrow
-     \mathcal R_{\rm tree}.
+     \operatorname{Com}_{1\to2}(\mathcal B_1)
+       =\mathcal R_{\rm tree}.
 \end{align*}
 
 Não basta provar separadamente:
@@ -580,7 +616,7 @@ Não basta provar separadamente:
  \qquad\text{e}\qquad
  \text{«conheço algum filho da raiz».}
 \end{align*}
-As duas afirmações existenciais poderiam referir-se a ramos diferentes. As
+As duas afirmações existenciais poderiam não formar o mesmo caminho. As
 variáveis comprometidas que saem de um nível são reutilizadas no nível
 seguinte. Essa igualdade estabelece a consistência do caminho.
 
@@ -592,14 +628,15 @@ seguinte. Essa igualdade estabelece a consistência do caminho.
    {entrada cegada\\
     \({}_{0}\widetilde X_2=\widetilde L_6\)};
  \node (one) [pathbox,below of=leaf,yshift=-.05cm,fill=blue!12]
-   {abre para \({}_{0}X_2=L_6=(O_6,I_6,C_6)\)\\
-    \(\in P_1={}_{1}X_1\)};
+   {\(\mathcal B_0[2]={}_{0}X_2=L_6=(O_6,I_6,C_6)\)\\
+    \(P_1=\operatorname{Com}_{0\to1}(\mathcal B_0)\)};
  \node (mid) [pathbox,below of=one,yshift=-.05cm,fill=green!18]
    {\({}_{1}\widehat X_1=\widehat P_1\)\\
     o mesmo \(P_1\), agora cego};
  \node (two) [pathbox,below of=mid,yshift=-.05cm,fill=blue!12]
-   {abre para
-    \({}_{1}X_1=P_1\in\mathcal R_{\rm tree}\)};
+   {\(\mathcal B_1[1]={}_{1}X_1=P_1\)\\
+    \(\mathcal R_{\rm tree}
+       =\operatorname{Com}_{1\to2}(\mathcal B_1)\)};
  \node (root) [pathbox,below of=two,yshift=-.05cm,fill=yellow!22]
    {\(\widehat{\mathcal R}\leftrightarrow\mathcal R_{\rm tree}\)};
  \draw[->,thick] (leaf) -- (one);
@@ -662,9 +699,10 @@ nível seguinte. As aberturas mantêm a consistência entre os níveis.
 
 Um circuito aritmético comum compromete primeiro todas as suas variáveis e
 depois prova que satisfaz restrições de adição e multiplicação. Curve Trees
-tem, porém, muitos compromissos vectoriais já significativos: cada um é um nó
-ou um ramo. Copiar todas as coordenadas para um único compromisso monolítico
-e provar novamente que a cópia coincide desperdiçaria a estrutura.
+tem, porém, muitos compromissos vectoriais já significativos: cada um
+representa um nó-pai e compromete um ramo. Copiar todas as coordenadas para um
+único compromisso monolítico e provar novamente que a cópia coincide
+desperdiçaria a estrutura.
 
 Generalized Bulletproofs permite que o circuito se refira directamente a
 coordenadas de vários compromissos vectoriais externos. Se
@@ -680,8 +718,9 @@ sem publicar as três coordenadas e sem criar uma prova independente para cada
 compromisso. A prova global vincula as referências aos compromissos que
 aparecem na declaração.
 
-Na construção actual, os ramos são compromissos vectoriais. Cada variável do
-circuito conserva a referência ao compromisso e à posição de origem. O
+Na construção actual, cada ramo é a lista aberta por um compromisso
+vectorial. Cada variável do circuito conserva a referência ao compromisso e à
+posição de origem. O
 dispositivo de pertença rejeita variáveis que não estejam vinculadas a esses
 compromissos. Esta condição é simultaneamente uma restrição de tipo no código
 e uma restrição de segurança na matemática.
@@ -708,7 +747,8 @@ Cada curva tem os seus geradores de Generalized Bulletproofs,
  \mathbf h=(h_0,h_1,\ldots).
 \end{align*}
 São derivados por hash com separação de domínio. Cada curva tem também um
-ponto que inicializa o hash de cada nó. Assim, um ramo actual tem a forma
+ponto que inicializa o hash de cada nó. Assim, o compromisso/hash de um ramo
+actual tem a forma
 \begin{align}
  P_{\rm ramo}
   =J_{\rm init}+\sum_jv_jJ_j.
@@ -1199,8 +1239,8 @@ O verificador aprende apenas que existe uma testemunha que satisfaz:
 \begin{enumerate}
  \item as quatro relações
  \eqref{eq:fcmp-rerand-o}--\eqref{eq:fcmp-rerand-c};
- \item a pertença de \((O,I,C)\) ao primeiro ramo;
- \item a pertença consistente de cada nó ao ramo seguinte;
+ \item que \((O,I,C)\) ocupa uma posição no primeiro ramo;
+ \item que o hash de cada nó ocupa a posição vinculada no ramo seguinte;
  \item a ligação da raiz interna à raiz pública pela prova
  \eqref{eq:fcmp-root-pok-check}.
 \end{enumerate}

@@ -98,6 +98,18 @@ as a clearly separated section or subsection whenever that preserves the
 original pedagogical journey. Never treat technical modernization by itself as
 authorization to erase the author's voice or presentation.
 
+## Portuguese edition scope
+
+The Portuguese book under `translations/pt/` is an independently maintained
+edition and is the only edition that agents may modify. For all report work,
+treat the root source edition and every other directory under `translations/`
+as read-only reference material. Do not assume that the Portuguese book must
+mirror another edition, propagate Portuguese corrections into other editions,
+synchronize wording across editions, or perform opportunistic formatting,
+renaming, cleanup, or generated-file updates outside `translations/pt/`. Keep
+Portuguese edits local and narrowly scoped so that a future merge does not
+acquire avoidable cross-edition conflicts.
+
 ## Portuguese final page
 
 Leave the final page of the Portuguese edition exactly as it is. Do not modify,

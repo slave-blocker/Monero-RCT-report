@@ -10,7 +10,7 @@ Browsers with built-in PDF readers (e.g. recent versions of Firefox) can display
 
 - English: [PDF link](https://raw.githubusercontent.com/UkoeHB/Monero-RCT-report/master/Zero-to-Monero-2-0-0.pdf)
 - Russian: [PDF link](https://raw.githubusercontent.com/UkoeHB/Monero-RCT-report/master/Zero-to-Monero-2-0-0-ru.pdf)
-- Portuguese: [PDF link](https://raw.githubusercontent.com/UkoeHB/Monero-RCT-report/master/Zero-to-Monero-2-0-0-pt.pdf)
+- Portuguese: [PDF link](Zero-to-Monero-2-0-0-pt.pdf)
 
 
 

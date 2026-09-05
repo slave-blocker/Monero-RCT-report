@@ -1,0 +1,1422 @@
+\chapter{Provas de pertença à cadeia completa (FCMP++)}
+\label{chapter:fcmp-plus-plus}
+\label{page:fcmp-start}
+
+O nó não precisa de ouvir «a minha saída está algures naquela árvore». Precisa
+de ficar convencido de uma frase muito mais apertada:
+
+\begin{center}
+\fbox{\begin{minipage}{.88\textwidth}
+Existe uma folha escondida sob a raiz pública, essa folha contém uma chave de
+saída \(O\), a base \(H_p(O)\) e um compromisso de montante \(C\); o provador
+conhece a chave privada de utilização única \(p_k\) que controla \(O\); e a
+imagem de chave publicada é precisamente \(I=p_kH_p(O)\).
+\end{minipage}}
+\end{center}
+
+É esta a declaração que construiremos. A árvore responderá «a folha está
+aqui», sem dizer onde. Uma prova de autorização responderá «conheço
+\(p_k\)», sem o publicar. Entre as duas ficará uma só entrada pública,
+re-randomizada, que impedirá as respostas de falarem de saídas diferentes.
+Começaremos pela costura inteira; as duas curvas, os divisores e as
+optimizações terão a gentileza de esperar pela sua vez.
+
+Curve Trees, de Matteo Campanelli, Mathias Hall-Andersen e Simon Holmgaard
+Kamp, fornece o acumulador e o caminho oculto \cite{curve-trees}. Liam Eagen
+fornece a maquinaria por divisores usada nas multiplicações de pontos dentro
+do circuito \cite{eagen-divisors}. Luke Parker adapta e compõe estas peças para
+as saídas do Monero e para a prova SAL \cite{fcmp-plus-plus-paper}. FCMP++ é,
+portanto, uma composição, não uma alcunha para uma única equação.
+
+\section{A declaração, antes da maquinaria}
+\label{sec:fcmp-ownership-first}
+
+Comecemos pelo caso histórico que já conhecemos. Ao criar uma saída, a
+transacção publica uma chave de utilização única
+\begin{align}
+ O=p_kG.
+ \label{eq:fcmp-historical-output}
+\end{align}
+O ponto \(O\) não é «assinado quando nasce». É simplesmente criado como parte
+da saída. Mais tarde, o conhecimento do escalar \(p_k\) autoriza o seu gasto.
+\(p_k\) não é a chave de gasto permanente da carteira; é a chave privada de
+utilização única que controla aquela saída.
+
+Da chave pública deriva-se uma base de imagem de chave, que escreveremos por
+agora como \(H_p(O)\). A imagem de chave efectiva só aparece no gasto:
+\begin{align}
+ I=p_kH_p(O).
+ \label{eq:fcmp-key-image-goal}
+\end{align}
+A mesma saída e a mesma chave \(p_k\) produzem o mesmo \(I\), mesmo quando a
+prova recebe aleatoriedade inteiramente nova. É esse ponto público que permite
+ao nó reconhecer um segundo gasto.
+
+O terceiro ponto da saída é o compromisso de montante
+\begin{align}
+ C=aG+vH,
+ \label{eq:fcmp-amount-commitment}
+\end{align}
+onde \(a\) é a máscara e \(v\) o montante. Os geradores \(G\) e \(H\) têm uma
+relação de logaritmo discreto que ninguém deve conhecer.
+
+Assim, a folha conceptual do acumulador é a tupla ordenada
+\begin{align}
+ (O,H_p(O),C).
+ \label{eq:fcmp-conceptual-leaf}
+\end{align}
+Os três termos são pontos, mas têm empregos diferentes:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.22}
+\begin{tabular}{|c|p{4.2cm}|p{5.6cm}|}
+ \hline
+ \textbf{ponto} & \textbf{quando se torna público} & \textbf{papel}\\
+ \hline
+ \(O\) & quando a saída é criada & chave pública de utilização única; conhecer
+ \(p_k\) autoriza o gasto\\
+ \hline
+ \(H_p(O)\) & pode ser calculado a partir da saída & base que torna determinística a
+ imagem de chave\\
+ \hline
+ \(C\) & quando a saída é criada & compromisso de montante \(v\) com máscara
+ \(a\)\\
+ \hline
+ \(I\) & quando a saída é gasta & imagem de chave efectiva
+ \(p_kH_p(O)\)\\
+ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\fbox{\begin{minipage}{.86\textwidth}
+\textbf{Tradução da notação da fonte.}
+Na revisão fixada de \texttt{monero-oxide}, o campo \texttt{I} de
+\texttt{Output} é a \emph{base} da imagem de chave e a imagem efectiva
+chama-se \texttt{L}. Neste capítulo, para que a letra diga sempre a mesma
+coisa, escrevemos \(H_p(O)\) para a base e \(I\) para a imagem efectiva. O
+campo fonte \texttt{I\_tilde} é, portanto, o nosso
+\(\widetilde H_O\), não uma imagem de chave re-randomizada
+\cite{monero-oxide-fcmp-source}.
+\end{minipage}}
+\end{center}
+
+Vale a pena ler as três primeiras igualdades como o verificador as lerá.
+
+\textbf{Público.} A raiz do acumulador, a imagem de chave \(I\), os geradores
+e a transacção a autorizar. A cadeia também contém todos os pontos de saída,
+mas a prova não revela qual deles escolheu.
+
+\textbf{Segredo conhecido pelo provador.} \(p_k\), a folha escolhida, o seu
+caminho e as máscaras que introduziremos. A carteira conhece ainda o montante
+e a máscara de \(C\), embora a relação FCMP não precise de os abrir
+numericamente.
+
+\textbf{Igualdade demonstrada.} A composição convencerá o verificador de que
+existe uma folha \eqref{eq:fcmp-conceptual-leaf} sob a raiz, que o mesmo
+\(p_k\) abre a sua componente \(O\) e que
+\eqref{eq:fcmp-key-image-goal} determina a imagem de chave publicada.
+
+\textbf{Ligação à igualdade anterior.} Não virá de uma equação «o compromisso
+do ramo implica conhecer \(p_k\)»: essa equação não existe. Virá de duas
+provas sobre a mesma entrada pública. Construiremos primeiro a metade da
+árvore, depois essa entrada, e por fim a metade da autorização.
+
+\section{Um compromisso não é uma prova de conhecimento}
+\label{sec:fcmp-commitment-is-not-pok}
+
+Suponhamos que um ramo contém escalares \(b_0,\ldots,b_{w-1}\). Um compromisso
+vectorial da prova pode ter a forma
+\begin{align}
+ K=r_KH_K+\sum_{j=0}^{w-1}b_jG_j.
+ \label{eq:fcmp-vector-commitment}
+\end{align}
+As bases são públicas e a máscara \(r_K\) oculta o vector. Sob a hipótese de
+relações de logaritmo discreto desconhecidas entre as bases, a propriedade de
+\emph{vinculação} diz que é computacionalmente inviável abrir o mesmo \(K\)
+como dois vectores diferentes.
+
+Isso ainda não diz que alguém conhece sequer uma abertura. Um ponto pode ser
+copiado, recebido ou calculado sem que venha acompanhado de uma testemunha.
+A prova precisa de acrescentar quatro ingredientes distintos:
+
+\begin{enumerate}
+ \item um argumento de conhecimento demonstra que o provador conhece os
+ coeficientes e a máscara que abrem \(K\);
+ \item as restrições do circuito impõem igualdades entre esses coeficientes;
+ \item quando duas restrições recebem a mesma variável comprometida, não há
+ duas testemunhas apenas baptizadas com o mesmo nome: há uma única posição do
+ compromisso reutilizada;
+ \item quando duas provas recebem o mesmo ponto público, a composição refere-se
+ àquela entrada comum, desde que cada prova seja sólida e os compromissos sejam
+ vinculantes.
+\end{enumerate}
+
+\textbf{Público.} Em \eqref{eq:fcmp-vector-commitment}, \(K\) e as bases.
+
+\textbf{Segredo conhecido pelo provador.} O vector
+\((b_0,\ldots,b_{w-1})\) e \(r_K\).
+
+\textbf{Igualdade demonstrada.} O argumento de conhecimento prova a existência
+de uma abertura que satisfaz simultaneamente
+\eqref{eq:fcmp-vector-commitment} e as restrições do circuito.
+
+\textbf{Ligação à igualdade anterior.} A vinculação fixa o vector dentro de
+\(K\); a reutilização das variáveis fixa qual coeficiente desse vector entra
+na restrição seguinte. Nem a vinculação substitui o argumento de conhecimento,
+nem o argumento de conhecimento escolhe sozinho um caminho na árvore.
+
+\section{A metade da árvore: conhecer uma folha e um caminho}
+\label{sec:fcmp-membership-path}
+
+Reservaremos \(x\) e \(y\) exclusivamente às coordenadas de pontos. O nível da
+árvore fica no canto superior esquerdo e a posição local no canto inferior
+direito:
+\begin{align}
+ {}^{n}\!P_j
+   =({}^{n}\!x_j,{}^{n}\!y_j).
+ \label{eq:fcmp-point-notation}
+\end{align}
+Para extrair a posição \(j\) do ramo usado no nível \(n\), escreveremos sempre
+\begin{align*}
+ {}^{n}\!B[j].
+\end{align*}
+Isto extrai um \emph{slot}, não promete que o slot seja sempre um único
+escalar. No nível das folhas, \({}^{0}\!B[j]\) designa a tupla conceptual
+naquela posição; nas camadas superiores, designa o escalar que guarda a
+coordenada \(x\) de um ponto filho.
+
+Para escrever uma só equação bem tipada, cada nível tem uma função pública de
+codificação em escalares
+\begin{align}
+ \operatorname{enc}_n\!\left({}^{n}\!B[j]\right)
+ &=\bigl({}^{n}\!b_{j,0},\ldots,
+         {}^{n}\!b_{j,s_n-1}\bigr)
+ \label{eq:fcmp-slot-encoding}
+\end{align}
+e um bloco igualmente comprido de pontos públicos
+\({}^{n}\!\mathbf G_j=
+({}^{n}\!G_{j,0},\ldots,{}^{n}\!G_{j,s_n-1})\). Definamos o emparelhamento
+do slot com esse bloco por
+\begin{align}
+ \left\langle{}^{n}\!B[j],{}^{n}\!\mathbf G_j\right\rangle_n
+ &:=
+ \sum_{k=0}^{s_n-1}{}^{n}\!b_{j,k}\,{}^{n}\!G_{j,k}.
+ \label{eq:fcmp-slot-pairing}
+\end{align}
+Nas camadas superiores, \(s_n=1\), e esta expressão reduz-se à multiplicação
+escalar habitual. Na camada de folhas, a codificação transforma os três
+pontos do slot em escalares; só depois de fecharmos a ligação à chave veremos
+quais e quantos.
+
+Um ramo determinístico transforma os seus slots num ponto:
+\begin{align}
+ {}^{n+1}\!P_{j_{n+1}}
+   =D_n+\sum_{j=0}^{w_n-1}
+      \left\langle{}^{n}\!B[j],{}^{n}\!\mathbf G_j\right\rangle_n.
+ \label{eq:fcmp-branch-point}
+\end{align}
+\(D_n\) é um ponto inicializador fixo e
+os blocos \({}^{n}\!\mathbf G_j\) contêm as bases públicas. O índice inferior
+\(j_{n+1}\) diz em que posição do ramo seguinte este ponto aparecerá; não é
+uma coordenada. O emparelhamento
+\eqref{eq:fcmp-slot-pairing} impede precisamente que uma tupla de pontos seja
+tratada como se fosse um escalar.
+
+O ramo seguinte guarda apenas a coordenada \(x\) do ponto completo:
+\begin{align}
+ {}^{n+1}\!B[j_{n+1}]
+   ={}^{n+1}\!x_{j_{n+1}},
+ \qquad
+ {}^{n+1}\!P_{j_{n+1}}
+   =({}^{n+1}\!x_{j_{n+1}},{}^{n+1}\!y_{j_{n+1}}).
+ \label{eq:fcmp-child-to-parent-slot}
+\end{align}
+A coordenada \(y\) não desaparece da testemunha: o circuito usa ambas para
+verificar que o ponto está na curva. Só o rótulo transportado ao pai é mais
+curto.
+
+Durante a prova, o ramo não aparece em claro. Os seus coeficientes entram num
+compromisso vectorial
+\begin{align}
+ K_n=r_nH_n+\sum_{j=0}^{w_n-1}
+       \left\langle{}^{n}\!B[j],{}^{n}\!\mathbf G_j\right\rangle_n.
+ \label{eq:fcmp-hidden-branch}
+\end{align}
+O argumento aritmético prova conhecimento da abertura de \(K_n\). Um
+dispositivo de logaritmo discreto prova ainda que, ao retirar \(r_nH_n\) e
+somar o inicializador \(D_n\), se obtém o ponto completo da
+Equação~\eqref{eq:fcmp-branch-point}.
+
+\textbf{Público.} \(K_n\), os geradores, o inicializador e os compromissos que
+formam a prova.
+
+\textbf{Segredo conhecido pelo provador.} O ramo
+\({}^{n}\!B[0],\ldots,{}^{n}\!B[w_n-1]\), a máscara \(r_n\) e qual posição
+continua o caminho.
+
+\textbf{Igualdade demonstrada.} A prova demonstra que o provador conhece uma
+abertura de \(K_n\) para o ramo; pela vinculação, \(K_n\) fixa esses
+coeficientes; o ramo produz o ponto \eqref{eq:fcmp-branch-point}; e a coordenada
+\({}^{n+1}\!x_{j_{n+1}}\) desse mesmo ponto ocupa uma posição no ramo pai.
+
+\textbf{Ligação à igualdade anterior.} As variáveis que abrem \(K_n\) são as
+mesmas que entram na soma do ramo. As variáveis do ponto resultante são as
+mesmas que entram na equação de curva e no teste de pertença do nível
+seguinte. Esta continuidade de variáveis, e não a mera presença de \(K_n\),
+constrói o caminho.
+
+\subsection{Uma folha dentro de um ramo}
+\label{sec:fcmp-leaf-membership}
+
+Tomemos um único ramo pequeno com quatro folhas, apenas para ver a engrenagem.
+Escrevamos
+\begin{align*}
+ {}^{0}\!B[0],\quad{}^{0}\!B[1],\quad
+ {}^{0}\!B[2],\quad{}^{0}\!B[3].
+\end{align*}
+Se a folha procurada ocupa a terceira posição, a leitura pedagógica é
+\begin{align}
+ {}^{0}\!B[2]=(O,H_p(O),C).
+ \label{eq:fcmp-pedagogical-extractor}
+\end{align}
+O índice \(2\) ajuda-nos a acompanhar o raciocínio, mas não entra na
+declaração pública. Para uma posição secreta \(j_0\), o argumento impõe
+\begin{align}
+ {}^{0}\!B[j_0]=(O,H_p(O),C),
+ \qquad j_0\in\{0,1,2,3\}.
+ \label{eq:fcmp-conceptual-leaf-membership}
+\end{align}
+Só depois de a ligação à chave estar completa veremos como a implementação
+substitui este extractor pedagógico por uma igualdade comprimida, sem publicar
+\(j_0\).
+
+\textbf{Público.} O compromisso vectorial do ramo e a descrição da relação de
+pertença. A árvore inteira pode ser reconstruída publicamente; o que a prova
+oculta é qual ramo e qual folha estão a ser abertos.
+
+\textbf{Segredo conhecido pelo provador.} A abertura do compromisso do ramo,
+a posição conceptual \(j_0\) e a tupla da folha.
+
+\textbf{Igualdade demonstrada.} A tupla
+\((O,H_p(O),C)\) coincide com uma posição do ramo comprometido, como em
+\eqref{eq:fcmp-conceptual-leaf-membership}, sem que essa posição seja revelada.
+
+\textbf{Ligação à igualdade anterior.} A posição
+\({}^{0}\!B[j_0]\) pertence à mesma abertura que entra na soma do ramo
+\eqref{eq:fcmp-branch-point}. A tupla não é uma segunda folha livre: será
+ligada, componente a componente, à entrada pública que definiremos adiante.
+
+\subsection{Do ramo ao pai, e do pai à raiz}
+\label{sec:fcmp-whole-curve-tree-path}
+
+Nas camadas superiores, o membro procurado é a coordenada \(x\) do ponto
+produzido pelo ramo anterior. Com o extractor pedagógico, a restrição é
+\begin{align}
+ {}^{n}\!B[j_n]={}^{n}\!x_{j_n},
+ \qquad 0\leq j_n<w_n.
+ \label{eq:fcmp-upper-extractor}
+\end{align}
+O circuito verifica ao mesmo tempo que
+\({}^{n}\!P_{j_n}=({}^{n}\!x_{j_n},{}^{n}\!y_{j_n})\) satisfaz a equação da
+curva e que, ao retirar a parcela de máscara do compromisso do ramo anterior
+e somar o inicializador, se obtém esse mesmo ponto. Portanto, a saída de um
+nível é a entrada do seguinte:
+\begin{align}
+ {}^{n-1}\!B[0],\ldots,{}^{n-1}\!B[w_{n-1}-1]
+ &\longrightarrow{}^{n}\!P_{j_n}
+   =({}^{n}\!x_{j_n},{}^{n}\!y_{j_n})
+ \nonumber\\
+ &\longrightarrow{}^{n}\!B[j_n]
+   ={}^{n}\!x_{j_n}.
+ \label{eq:fcmp-level-stitch}
+\end{align}
+
+No topo, a prova contém um compromisso do ramo da raiz, ofuscado por uma
+máscara. Chamemos
+\(\widehat{\mathcal R}\) ao ponto que esse compromisso produz depois de somar
+o inicializador, e \(\mathcal R_{\rm tree}\) à raiz pública canónica. Uma
+pequena prova de Schnorr demonstra conhecimento da diferença de máscara:
+\begin{align}
+ N_{\rm raiz}
+ +c_{\rm raiz}
+   (\widehat{\mathcal R}-\mathcal R_{\rm tree})
+ =s_{\rm raiz}H_{\rm raiz}.
+ \label{eq:fcmp-root-pok}
+\end{align}
+O desafio \(c_{\rm raiz}\) é derivado depois de a raiz, a entrada,
+\(N_{\rm raiz}\) e os dois conjuntos de compromissos vectoriais da prova
+entrarem na transcrição.
+
+\textbf{Público.} A raiz \(\mathcal R_{\rm tree}\), o compromisso que determina
+\(\widehat{\mathcal R}\), \(N_{\rm raiz}\), o desafio e a resposta.
+
+\textbf{Segredo conhecido pelo provador.} Todos os ramos e aberturas do
+caminho, incluindo a máscara que separa
+\(\widehat{\mathcal R}\) da raiz canónica.
+
+\textbf{Igualdade demonstrada.} As igualdades de pertença coincidem; cada
+ponto intermédio é válido e é produzido pelos coeficientes de uma abertura
+conhecida do compromisso anterior; e
+\eqref{eq:fcmp-root-pok} demonstra que o último ramo termina na raiz pública,
+salvo a máscara conhecida.
+
+\textbf{Ligação à igualdade anterior.} A coordenada que entra em
+\eqref{eq:fcmp-upper-extractor} pertence ao mesmo ponto que sai de
+\eqref{eq:fcmp-level-stitch}. No topo, a transcrição inclui a raiz pública e o
+mesmo compromisso de ramo que o circuito utilizou. É esta cadeia de
+igualdades que faz um caminho; os compromissos isolados apenas fixariam
+vectores escondidos.
+
+Chegámos à garantia da primeira metade: o argumento FCMP prova conhecimento de
+uma folha, dos ramos, das máscaras e de aberturas que satisfazem um caminho até
+\(\mathcal R_{\rm tree}\). Ainda não apareceu \(p_k\). Isso é deliberado.
+
+\section{A ponte pública \texorpdfstring{\(Q\)}{Q}}
+\label{sec:fcmp-output-rerandomization}
+
+Revelar a folha permitiria procurá-la na árvore. A carteira escolhe quatro
+escalares novos
+\begin{align*}
+ r_O,\quad r_I,\quad r_R,\quad r_C
+\end{align*}
+e publica exactamente uma tupla de quatro pontos:
+\begin{align}
+ Q=(\widetilde O,\widetilde H_O,R,\widetilde C),
+ \label{eq:fcmp-public-q}
+\end{align}
+com
+\begin{align}
+ \widetilde O&=O+r_OT,
+ \label{eq:fcmp-rerand-o}\\
+ \widetilde H_O&=H_p(O)+r_IU,
+ \label{eq:fcmp-rerand-h}\\
+ R&=r_IV+r_RT,
+ \label{eq:fcmp-rerand-r}\\
+ \widetilde C&=C+r_CG.
+ \label{eq:fcmp-rerand-c}
+\end{align}
+\(T,U,V\) são pontos fixos com relações de logaritmo discreto desconhecidas.
+O ponto \(R\) não é a raiz e não é um nonce de Schnorr: é o compromisso que
+transportará \(r_I\) entre as duas metades da prova.
+
+O argumento FCMP recebe \(Q\) e prova que o provador conhece valores que
+recuperam a folha:
+\begin{align}
+ O&=\widetilde O-r_OT,
+ &H_p(O)&=\widetilde H_O-r_IU,
+ \nonumber\\
+ C&=\widetilde C-r_CG,
+ &R&=r_IV+r_RT.
+ \label{eq:fcmp-open-q}
+\end{align}
+Na segunda e na quarta igualdade, a relação reutiliza a mesma testemunha
+comprometida \(r_I\). Não se trata de dois escalares independentes
+acompanhados da mesma legenda.
+
+\textbf{Público.} \(Q\), \(\mathcal R_{\rm tree}\), os geradores e a prova.
+
+\textbf{Segredo conhecido pelo provador.} A folha
+\((O,H_p(O),C)\), \(r_O,r_I,r_R,r_C\), os compromissos de ramo, as respectivas
+aberturas e o caminho.
+
+\textbf{Igualdade demonstrada.} FCMP demonstra que as quatro relações
+\eqref{eq:fcmp-rerand-o}--\eqref{eq:fcmp-rerand-c} se verificam e que a tupla
+recuperada ocupa uma folha sob a raiz pública.
+
+\textbf{Ligação à igualdade anterior.} Os pontos recuperados em
+\eqref{eq:fcmp-open-q} são os mesmos pontos que satisfazem as restrições de
+pertença da folha. O mesmo \(r_I\) abre
+\(\widetilde H_O-H_p(O)\) na base \(U\) e o coeficiente em \(V\) do ponto
+\(R\). Assim FCMP liga a folha escondida a uma única apresentação pública
+\(Q\).
+
+Agora podemos dizer exactamente o que FCMP ainda \emph{não} provou. Não provou
+que alguém conhece uma abertura de \(O\) nas bases \(G,T\), não provou a
+Equação~\eqref{eq:fcmp-key-image-goal} e não provou o valor numérico de \(v\).
+Provou pertença, conhecimento do caminho e consistência entre a folha e \(Q\).
+
+\section{A metade SAL: a chave que autoriza o gasto}
+\label{sec:fcmp-sal}
+
+No caso histórico \(O=p_kG\), a primeira componente de \(Q\) torna-se
+\begin{align}
+ \widetilde O=p_kG+r_OT.
+ \label{eq:fcmp-historical-rerand-opening}
+\end{align}
+Na geração honesta, SAL usa \(p_k\) para abrir directamente o ponto público
+\(\widetilde O\) nas bases \(G,T\), sem revelar \(O\).
+
+Para abranger a abertura geral suportada pela composição, introduzimos agora o
+segundo coeficiente:
+\begin{align}
+ O=p_kG+p_aT,
+ \qquad
+ \widetilde O=p_kG+(p_a+r_O)T.
+ \label{eq:fcmp-general-output-opening}
+\end{align}
+Nas saídas históricas, \(p_a=0\). \(p_a\) é um escalar de abertura; não é uma
+coordenada de \(O\). Chamemos
+\begin{align*}
+ \widetilde p_a=p_a+r_O.
+\end{align*}
+O provador honesto usa \(p_k\) e \(\widetilde p_a\) nesta abertura. A análise
+de conhecimento exigirá um pouco mais de cuidado: a relação SAL isolada
+extrai um candidato que abre \(\widetilde O\), mas só a composição provará
+que ele coincide com o coeficiente de \(G\) usado noutro ponto da SAL.
+
+Para retirar da base de imagem o termo que a esconde, o provador calcula o
+produto secreto
+\begin{align}
+ z=p_kr_I.
+ \label{eq:fcmp-sal-product}
+\end{align}
+Então a imagem de chave pública pode ser calculada a partir da componente
+re-randomizada:
+\begin{align}
+ I
+ &=p_k\widetilde H_O-zU
+ \label{eq:fcmp-key-image-from-q}\\
+ &=p_k\bigl(H_p(O)+r_IU\bigr)-(p_kr_I)U
+ \nonumber\\
+ &=p_kH_p(O).
+ \label{eq:fcmp-key-image-cancellation}
+\end{align}
+Esta é a conta do provador honesto. A segunda linha substitui
+\(\widetilde H_O=H_p(O)+r_IU\) e \(z=p_kr_I\); na terceira, os termos
+\(p_kr_IU\) cancelam. Ainda precisamos de demonstrar que a relação SAL não
+aceita um candidato \(z\) diferente do produto escondido noutro ponto. É esse
+o emprego exacto de \(R\).
+
+\subsection{Como \texorpdfstring{\(R\)}{R} identifica os candidatos extraídos}
+\label{sec:fcmp-r-binding}
+
+Na geração honesta, SAL introduz o ponto auxiliar
+\begin{align}
+ P=p_kG+r_IV+zU+r_PT,
+ \qquad z=p_kr_I,
+ \label{eq:fcmp-sal-product-commitment}
+\end{align}
+onde \(r_P\) é uma máscara nova. Na construção honesta, estes valores
+satisfazem
+\begin{align}
+ \widetilde O&=p_kG+\widetilde p_aT,
+ \label{eq:fcmp-sal-open-output}\\
+ P-\widetilde O-R
+ &=zU+(r_P-\widetilde p_a-r_R)T.
+ \label{eq:fcmp-sal-r-stitch}
+\end{align}
+Para testemunhas honestas, a última linha expande-se sem mistério:
+\begin{align*}
+ P-\widetilde O-R
+ &=(p_kG+r_IV+zU+r_PT)\\
+ &\quad-(p_kG+\widetilde p_aT)-(r_IV+r_RT)\\
+ &=zU+(r_P-\widetilde p_a-r_R)T.
+\end{align*}
+
+Não devemos, porém, usar nomes iguais para concluir que um extractor
+encontrará logo valores iguais. Da relação SAL isolada podem ser extraídos
+candidatos distintos que satisfazem
+\begin{align}
+ P&=p_{k,P}G+r_{I,P}V+
+      (p_{k,P}r_{I,P})U+r_PT,
+ \label{eq:fcmp-sal-extracted-p}\\
+ \widetilde O&=p_{k,O}G+\widetilde p_aT,
+ \label{eq:fcmp-sal-extracted-o}\\
+ P-\widetilde O-R&=z_QU+r_{\rm dif}T,
+ \label{eq:fcmp-sal-extracted-difference}\\
+ I&=p_{k,O}\widetilde H_O-z_QU.
+ \label{eq:fcmp-sal-extracted-image}
+\end{align}
+O primeiro extractor conhece uma abertura multiplicativa de \(P\); o segundo
+conhece uma abertura de \(\widetilde O\); \(z_Q\) é o coeficiente que aparece
+na diferença e na imagem. SAL, sozinha, não afirma ainda
+\(p_{k,P}=p_{k,O}\), nem \(z_Q=p_{k,P}r_{I,P}\), nem extrai uma abertura
+autónoma de \(R\). O valor \(r_{\rm dif}\) é apenas o coeficiente combinado
+em \(T\) da terceira linha.
+
+FCMP fornece a peça que faltava. Da abertura de \(Q\) para a folha, a sua
+extracção dá
+\begin{align}
+ \widetilde O&=O+r_O^{\rm F}T,
+ \label{eq:fcmp-fcmp-extracted-o}\\
+ \widetilde H_O&=H_p(O)+r_I^{\rm F}U,
+ &
+ R&=r_I^{\rm F}V+r_R^{\rm F}T.
+ \label{eq:fcmp-fcmp-extracted-r}
+\end{align}
+Substituamos
+\eqref{eq:fcmp-sal-extracted-p}--\eqref{eq:fcmp-sal-extracted-difference} e
+\eqref{eq:fcmp-fcmp-extracted-r} na mesma igualdade pública. Depois de passar
+o lado direito para a esquerda, fica
+\begin{align}
+ \mathbf 0
+ &=(p_{k,P}-p_{k,O})G
+ +(r_{I,P}-r_I^{\rm F})V
+ \nonumber\\
+ &\quad +(p_{k,P}r_{I,P}-z_Q)U
+ +(r_P-\widetilde p_a-r_R^{\rm F}-r_{\rm dif})T.
+ \label{eq:fcmp-composed-multibase-zero}
+\end{align}
+Se algum dos quatro coeficientes fosse não nulo, esta equação forneceria uma
+relação não trivial entre \(G,V,U,T\). Sob a hipótese de logaritmos discretos
+multibase desconhecidos, a vinculação computacional força todos a zero. Os
+três primeiros impõem
+\begin{align}
+ p_{k,P}&=p_{k,O}=:p_k,
+ &
+ r_{I,P}&=r_I^{\rm F}=:r_I,
+ &
+ z_Q&=p_{k,P}r_{I,P}=p_kr_I.
+ \label{eq:fcmp-composed-witness-identities}
+\end{align}
+O coeficiente de \(T\) fixa apenas a combinação
+\(r_P-\widetilde p_a-r_R^{\rm F}-r_{\rm dif}=0\); SAL não extrai
+\(r_R^{\rm F}\) de forma independente.
+
+As duas aberturas extraídas de \(\widetilde O\), juntamente com
+\(p_{k,O}=p_k\), fecham também a propriedade de controlo da própria saída:
+\begin{align}
+ O
+ &=\widetilde O-r_O^{\rm F}T\nonumber\\
+ &=p_{k,O}G+(\widetilde p_a-r_O^{\rm F})T\nonumber\\
+ &=p_kG+p_aT,\qquad p_a:=\widetilde p_a-r_O^{\rm F}.
+ \label{eq:fcmp-composed-output-control}
+\end{align}
+Agora, e só agora, podemos substituir
+\eqref{eq:fcmp-composed-witness-identities} e
+\eqref{eq:fcmp-fcmp-extracted-r} em
+\eqref{eq:fcmp-sal-extracted-image}:
+\begin{align*}
+ I
+ &=p_k\widetilde H_O-(p_kr_I)U\\
+ &=p_k\bigl(H_p(O)+r_IU\bigr)-(p_kr_I)U\\
+ &=p_kH_p(O).
+\end{align*}
+Esta derivação transforma a conta honesta
+\eqref{eq:fcmp-key-image-from-q}--\eqref{eq:fcmp-key-image-cancellation}
+numa conclusão de conhecimento da composição.
+
+\textbf{Público.} \(Q\), \(I\), \(P\), as duas provas, a raiz, a mensagem da
+transacção e os geradores.
+
+\textbf{Segredo conhecido pelo provador honesto.}
+\(p_k,p_a,\widetilde p_a,r_O,r_I,r_C,r_R,z,r_P\), as restantes aberturas
+FCMP e os nonces.
+
+\textbf{Igualdade demonstrada.} SAL fornece as relações extraíveis
+\eqref{eq:fcmp-sal-extracted-p}--\eqref{eq:fcmp-sal-extracted-image}; FCMP
+fornece \eqref{eq:fcmp-fcmp-extracted-o} e
+\eqref{eq:fcmp-fcmp-extracted-r}; a vinculação aplicada a
+\eqref{eq:fcmp-composed-multibase-zero} identifica os candidatos e demonstra
+\(O=p_kG+p_aT\), \(z=p_kr_I\) e \(I=p_kH_p(O)\).
+
+\textbf{Ligação à igualdade anterior.} FCMP reutiliza literalmente uma variável
+para \(r_I^{\rm F}\) nas bases \(U,V\). Entre protocolos não há uma variável
+privada partilhada: o mesmo \(R\), dentro do mesmo \(Q\), produz a equação
+multibase que obriga as extracções a concordar.
+
+Esta é também a resposta à pergunta «porque é que não se pode provar a
+pertença de uma saída e a autorização de outra?». FCMP e SAL recebem, byte por
+byte, o mesmo
+\(Q=(\widetilde O,\widetilde H_O,R,\widetilde C)\). FCMP vincula esse \(Q\) a
+uma folha sob a raiz. A relação SAL, composta com a abertura FCMP de \(R\),
+vincula \(p_k\), \(r_I\) e \(I\) a esse \(Q\). Sob a solidez das provas e a
+vinculação dos compromissos, não sobra uma segunda entrada pública onde trocar
+a identidade da saída.
+
+\section{O compromisso de montante atravessa a ponte}
+\label{sec:fcmp-amount-through-q}
+
+Retomemos
+\begin{align*}
+ C=aG+vH.
+\end{align*}
+A quarta componente de \(Q\) é
+\begin{align}
+ \widetilde C
+   =C+r_CG
+   =(a+r_C)G+vH.
+ \label{eq:fcmp-amount-rerandomization}
+\end{align}
+Somar \(r_CG\) muda a máscara e conserva o coeficiente \(v\) de \(H\). No
+formato da transacção, \(\widetilde C\) desempenha o papel de pseudo-saída da
+entrada.
+
+FCMP prova uma igualdade precisa: o provador conhece \(r_C\) e um ponto \(C\)
+da folha escondida tais que
+\begin{align}
+ C=\widetilde C-r_CG,
+ \label{eq:fcmp-amount-fcmp-equality}
+\end{align}
+e esse mesmo \(C\) entra na tupla seleccionada pelo produto de folhas. A prova
+não abre \(C\) como \(aG+vH\), não demonstra conhecimento do número \(v\) e
+não transforma o compromisso do ramo numa prova do montante.
+
+As obrigações monetárias continuam em RingCT. Com a convenção deste livro, o
+verificador impõe para as entradas \(i\), as novas saídas \(o\) e a taxa
+\(v_{\rm taxa}\) uma igualdade da forma
+\begin{align}
+ \sum_i\widetilde C_i
+   =\sum_o C_o^{\rm novo}+v_{\rm taxa}H,
+ \label{eq:fcmp-ringct-balance}
+\end{align}
+e verifica as provas de intervalo dos montantes das novas saídas. O compromisso
+histórico \(C\) foi sujeito às regras vigentes quando a saída foi criada.
+Dada essa abertura válida, a igualdade FCMP
+\(\widetilde C=C+r_CG\) preserva o coeficiente em \(H\); FCMP não o extrai
+numericamente. SAL não
+usa \(r_C\) na sua álgebra, embora a sua transcrição inclua todo o \(Q\), também
+\(\widetilde C\).
+
+\textbf{Público.} \(\widetilde C\), os compromissos das novas saídas,
+\(v_{\rm taxa}\) e as provas RingCT.
+
+\textbf{Segredo conhecido pelo provador.} Para a relação FCMP, \(C\) e
+\(r_C\). A carteira conhece normalmente \(a\) e \(v\), mas esses valores não
+são testemunhas exigidas pela igualdade
+\eqref{eq:fcmp-amount-fcmp-equality}.
+
+\textbf{Igualdade demonstrada.} FCMP demonstra
+\eqref{eq:fcmp-amount-fcmp-equality} e a pertença de \(C\); RingCT demonstra
+\eqref{eq:fcmp-ringct-balance} e as obrigações de intervalo aplicáveis.
+
+\textbf{Ligação à igualdade anterior.} A mesma componente pública
+\(\widetilde C\) pertence a \(Q\). Por isso a entrada cuja autorização SAL
+transcreve é também a entrada cujo montante FCMP liga ao acumulador e cuja
+pseudo-saída RingCT usa no equilíbrio.
+
+\section{A composição completa}
+\label{sec:fcmp-full-composition}
+
+Podemos agora seguir uma única linha desde a raiz até à imagem de chave:
+
+\begin{center}
+\begin{tikzpicture}[
+ node distance=.95cm and .65cm,
+ box/.style={rectangle,rounded corners,draw=black,align=center,
+ minimum height=.9cm,text width=4.25cm,font=\small}]
+ \node[box,fill=blue!12] (root)
+   {raiz pública \(\mathcal R_{\rm tree}\)};
+ \node[box,fill=green!17,below=of root] (path)
+   {FCMP: conheço folha, ramos, aberturas e um caminho válido};
+ \node[box,fill=yellow!24,below=of path] (q)
+   {\(Q=(\widetilde O,\widetilde H_O,R,\widetilde C)\)\\entrada pública comum};
+ \node[box,fill=green!17,below left=of q,xshift=-.65cm] (sal)
+   {SAL + abertura FCMP de \(R\):\\
+    \(p_k,r_I,z=p_kr_I\) ficam ligados};
+ \node[box,fill=green!17,below right=of q,xshift=.65cm] (ringct)
+   {RingCT: equilíbrio das pseudo-saídas e provas de intervalo};
+ \node[box,fill=blue!12,below=2.55cm of q] (accept)
+   {\(I=p_kH_p(O)\) e transacção monetariamente válida};
+ \draw[->,thick] (root) -- (path);
+ \draw[->,thick] (path) -- (q);
+ \draw[->,thick] (q) -- (sal);
+ \draw[->,thick] (q) -- (ringct);
+ \draw[->,thick] (sal) -- (accept);
+ \draw[->,thick] (ringct) -- (accept);
+\end{tikzpicture}
+\end{center}
+
+A conclusão conceptual tem cinco passos, todos agora com uma igualdade atrás:
+
+\begin{enumerate}
+ \item os compromissos de ramo vinculam os coeficientes escondidos;
+ \item o argumento FCMP prova conhecimento de aberturas que satisfazem as
+ restrições de pertença e formam um caminho até à raiz pública;
+ \item FCMP liga a folha escondida à apresentação pública \(Q\);
+ \item a relação SAL, comparada com a abertura FCMP de \(R\), identifica
+ \(p_k,r_I,z\) e liga a imagem de chave \(I\) a esse exacto \(Q\);
+ \item a composição estabelece conhecimento da chave de gasto de uma saída
+ escondida sob a raiz, enquanto RingCT conserva as obrigações monetárias.
+\end{enumerate}
+
+Não há, entre o primeiro e o quarto passo, uma seta secreta chamada «o ramo
+conhece \(p_k\)». Há compromissos vinculantes, um argumento de conhecimento do
+caminho, restrições que reutilizam testemunhos, uma entrada pública comum e um
+segundo argumento de conhecimento da chave. A costura inteira é precisamente
+essa sequência.
+
+\textbf{Público.} \(\mathcal R_{\rm tree}\), \(Q\), \(I\), a transacção e as
+duas provas.
+
+\textbf{Segredo conhecido pelo provador.} Uma só folha, o seu caminho, as
+aberturas de todos os compromissos, \(p_k,p_a\) e as máscaras de
+re-randomização.
+
+\textbf{Igualdade demonstrada.} A extracção conjunta produz uma testemunha
+FCMP que liga \(Q\) a uma folha sob a raiz e valores principais
+\(p_k,p_a,r_I,z\) que, por
+\eqref{eq:fcmp-composed-witness-identities}, satisfazem
+\eqref{eq:fcmp-general-output-opening},
+\eqref{eq:fcmp-sal-product} e
+\eqref{eq:fcmp-key-image-from-q} para o mesmo \(Q\).
+
+\textbf{Ligação à igualdade anterior.} O verificador da implementação entrega
+a SAL uma referência à estrutura pública \texttt{Input}; depois constrói a
+entrada FCMP directamente dos mesmos quatro campos. A composição acontece por
+identidade dos pontos públicos, reforçada pela equação multibase de \(R\), e
+não por uma semelhança informal entre duas transcrições.
+
+\section{Só agora: porque é que a árvore alterna duas curvas}
+\label{sec:fcmp-curve-cycle}
+
+Até aqui tratámos cada ramo como uma caixa que recebe escalares e devolve um
+ponto. Podemos agora abrir essa caixa. As coordenadas de um ponto pertencem ao
+campo base da sua curva; os coeficientes de um compromisso pertencem ao campo
+escalar da curva onde o compromisso vive. Curve Trees escolhe duas curvas para
+que um campo encaixe no outro:
+\begin{align}
+ \mathbb E_{\rm S}/\mathbb F_{q_{\rm S}}
+ &:\quad \#\mathbb E_{\rm S}=q_{\rm H},
+ &
+ \mathbb E_{\rm H}/\mathbb F_{q_{\rm H}}
+ &:\quad \#\mathbb E_{\rm H}=q_{\rm S}.
+ \label{eq:fcmp-curve-cycle}
+\end{align}
+Na instanciação usada por FCMP++, \(\mathbb E_{\rm S}\) chama-se Selene e
+\(\mathbb E_{\rm H}\), Helios. Uma coordenada de Selene é um escalar nativo
+de Helios; uma coordenada de Helios é um escalar nativo de Selene. Por isso o
+caminho pode continuar sem simular, dentro de um campo, a aritmética
+dispendiosa de outro:
+\begin{align}
+ \text{Ed25519}
+ \longrightarrow \mathbb E_{\rm S}
+ \longrightarrow \mathbb E_{\rm H}
+ \longrightarrow \mathbb E_{\rm S}
+ \longrightarrow\cdots .
+ \label{eq:fcmp-curve-tower}
+\end{align}
+Os três pontos da folha vivem no grupo Ed25519. As suas seis coordenadas afins,
+já na representação Wei25519 usada pelo circuito, alimentam o primeiro nível,
+que produz um ponto de Selene. A coordenada \(x\) desse ponto cabe como
+escalar no circuito de Helios; no nível seguinte, uma coordenada de Helios
+volta a caber como escalar de Selene.
+
+Quando for preciso marcar a curva, o rótulo fica no canto inferior esquerdo,
+sem deslocar o nível nem a posição:
+\begin{align}
+ {}_{\rm S}^{n}\!P_j
+ &=({}_{\rm S}^{n}\!x_j,{}_{\rm S}^{n}\!y_j),
+ &
+ {}_{\rm H}^{n+1}\!P_j
+ &=({}_{\rm H}^{n+1}\!x_j,{}_{\rm H}^{n+1}\!y_j).
+ \label{eq:fcmp-lower-left-curve-labels}
+\end{align}
+A notação de ramo não muda: \({}^{n}\!B[j]\) continua a extrair
+conceptualmente a posição \(j\) do ramo do nível \(n\). O rótulo inferior
+esquerdo pertence ao ponto, não ao índice.
+
+\textbf{Público.} As equações das duas curvas, os seus campos, os geradores
+determinísticos e os compromissos de cada nível.
+
+\textbf{Segredo conhecido pelo provador.} As coordenadas dos pontos do
+caminho e as aberturas dos compromissos que as transportam.
+
+\textbf{Igualdade demonstrada.} Cada
+\({}_{\rm S}^{n}\!P_j\) ou \({}_{\rm H}^{n}\!P_j\) satisfaz a equação da
+curva indicada; a sua coordenada \(x\) é a variável que entra no produto de
+pertença da curva seguinte.
+
+\textbf{Ligação à igualdade anterior.} O ciclo não acrescenta uma nova
+declaração sobre a saída. Torna nativa a mesma igualdade de encaixe
+\eqref{eq:fcmp-level-stitch} que já ligava um ramo ao seguinte.
+
+\section{Generalized Bulletproofs conserva as referências}
+\label{sec:fcmp-generalized-bulletproofs}
+
+Um circuito aritmético poderia copiar todos os ramos para um só vector
+gigante. Essa cópia apagaria a estrutura útil: cada posição já pertence a um
+compromisso vectorial com identidade própria. Generalized Bulletproofs permite
+que uma restrição se refira directamente à posição comprometida. Se
+\begin{align}
+ K^{(a)}&=r_aH_a+\sum_j b^{(a)}_jG^{(a)}_j,
+ &
+ K^{(b)}&=r_bH_b+\sum_j b^{(b)}_jG^{(b)}_j,
+ \label{eq:fcmp-gbp-external-vcs}
+\end{align}
+o circuito pode reutilizar, por exemplo, \(b^{(a)}_7\) numa equação de curva
+e \(b^{(b)}_3\) num produto, sem publicar nenhum deles. A referência contém o
+compromisso e a posição; não é uma cópia solta do valor.
+
+Os níveis que vivem sobre Selene agregam-se num argumento, e os que vivem
+sobre Helios noutro:
+\begin{align}
+ \mathsf{Prova}_{\rm S}&:\quad n=0,2,4,\ldots,
+ &
+ \mathsf{Prova}_{\rm H}&:\quad n=1,3,5,\ldots .
+ \label{eq:fcmp-two-gbp-arguments}
+\end{align}
+Cada argumento prova que o provador conhece as aberturas e que todas as
+restrições que as reutilizam são satisfeitas simultaneamente. É aqui, e não
+no compromisso isolado, que entram a propriedade de conhecimento e a
+correcção do circuito.
+
+Os parâmetros são transparentes: inicializadores, bases de máscara e vectores
+de geradores são obtidos por derivações públicas com separação de domínio.
+«Transparente» significa que qualquer pessoa os pode reproduzir; não significa
+que alguém conheça relações lineares entre eles. A vinculação continua a
+depender de tais relações serem computacionalmente desconhecidas.
+
+\textbf{Público.} \(K^{(a)},K^{(b)}\), as bases derivadas, as duas provas
+agregadas e a descrição das restrições.
+
+\textbf{Segredo conhecido pelo provador.} Os vectores comprometidos, as
+máscaras e as variáveis auxiliares do circuito.
+
+\textbf{Igualdade demonstrada.} As aberturas dos compromissos satisfazem,
+numa só conjunção, os produtos de pertença, as equações de curva, as relações
+de multiplicação de pontos e os encaixes entre níveis.
+
+\textbf{Ligação à igualdade anterior.} As referências garantem que a
+coordenada usada em \eqref{eq:fcmp-upper-extractor} vem do compromisso que
+também produz o ponto do nível anterior. Os dois argumentos agregados
+preservam essa identidade ao longo da alternância
+\eqref{eq:fcmp-curve-tower}.
+
+\subsection{Do extractor pedagógico ao produto comprimido}
+\label{sec:fcmp-transcript-compression}
+
+Podemos agora traduzir \({}^{n}\!B[j]\) para o circuito fixado. O código não
+compromete um índice secreto \(j\) nem um vector de selecção. Na primeira
+camada, a codificação prometida em \eqref{eq:fcmp-slot-encoding} é
+\begin{align}
+ \operatorname{enc}_0\!\left({}^{0}\!B[j]\right)
+   =(b_{j,0},\ldots,b_{j,5}),
+ \label{eq:fcmp-leaf-slot-encoding}
+\end{align}
+as seis coordenadas dos três pontos da folha. Chamemos
+\(q_0,\ldots,q_5\) às coordenadas da folha escondida. Depois de os compromissos
+entrarem na transcrição, seis desafios
+\(c_0,\ldots,c_5\) comprimem cada tupla:
+\begin{align}
+ t_\star&=\sum_{k=0}^{5}c_kq_k,
+ &
+ t_j&=\sum_{k=0}^{5}c_kb_{j,k}.
+ \label{eq:fcmp-tuple-compression}
+\end{align}
+No ramo pequeno de quatro folhas, a leitura
+\({}^{0}\!B[2]=(O,H_p(O),C)\) torna-se
+\begin{align}
+ (t_0-t_\star)(t_1-t_\star)(t_2-t_\star)(t_3-t_\star)=0.
+ \label{eq:fcmp-four-leaf-product}
+\end{align}
+Como \(t_2=t_\star\), o terceiro factor anula-se. O verificador aprende que algum
+factor se anulou, não qual deles. Salvo uma colisão da combinação aleatória,
+igualdade comprimida significa igualdade das seis coordenadas.
+
+Na instanciação corrente, o ramo inicial tem 38 folhas:
+\begin{align}
+ \prod_{j=0}^{37}(t_j-t_\star)=0.
+ \label{eq:fcmp-real-leaf-product}
+\end{align}
+O compromisso achatado contém, portanto, seis escalares por slot:
+\begin{align}
+ K_0
+ =r_0H_0+
+   \sum_{j=0}^{37}\sum_{k=0}^{5}
+       b_{j,k}\,{}^{0}\!G_{j,k}.
+ \label{eq:fcmp-flattened-leaf-commitment}
+\end{align}
+São 38 slots e 228 escalares, sem mudar o significado conceptual de
+\({}^{0}\!B[j]\). Na indexação linear do código, o par \((j,k)\) ocupa a
+posição \(6j+k\) do vector comprometido. Nas camadas superiores há um só
+escalar por posição, e
+\eqref{eq:fcmp-upper-extractor} torna-se
+\begin{align}
+ \prod_{j=0}^{w_n-1}
+ \left({}^{n}\!B[j]-{}^{n}\!x_{j_n}\right)=0.
+ \label{eq:fcmp-upper-product}
+\end{align}
+
+\textbf{Público.} Os compromissos vectoriais e os desafios \(c_k\), derivados
+depois desses compromissos.
+
+\textbf{Segredo conhecido pelo provador.} As aberturas dos ramos, as seis
+coordenadas \(q_k\) da folha ligada a \(Q\), e a posição conceptual em que a
+igualdade ocorre.
+
+\textbf{Igualdade demonstrada.} O produto
+\eqref{eq:fcmp-real-leaf-product}, ou
+\eqref{eq:fcmp-upper-product} numa camada superior, é zero para variáveis
+referidas aos compromissos da prova.
+
+\textbf{Ligação à igualdade anterior.} Os \(q_k\) vêm das mesmas variáveis
+\(O,H_p(O),C\) que FCMP recupera de \(Q\); os coeficientes dos factores vêm
+dos mesmos compromissos que produzem os pontos de ramo. A compressão muda o
+custo da igualdade conceptual, não os objectos que ela liga.
+
+\section{Divisores: certificar uma multiplicação de pontos}
+\label{sec:fcmp-divisors}
+
+Falta explicar uma operação escondida na expressão «o ramo produz um ponto».
+O circuito precisa, repetidas vezes, de certificar uma relação
+\begin{align}
+ W=s_A\,A
+ \label{eq:fcmp-hidden-scalar-multiplication}
+\end{align}
+quando o escalar \(s_A\), o ponto \(W\), ou ambos, pertencem à testemunha.
+Repetir dentro do circuito todas as duplicações e adições usuais seria caro.
+O dispositivo de Eagen substitui essa escada por um certificado de
+divisor \cite{eagen-divisors}.
+
+O dispositivo escreve a curva, sobre o campo base \(\mathbb F\), na forma
+curta de Weierstrass
+\begin{align}
+ \mathbb E:\qquad
+ y_P^2=x_P^3+a_{\mathbb E}x_P+b_{\mathbb E},
+ \qquad P=(x_P,y_P),
+ \label{eq:fcmp-short-weierstrass}
+\end{align}
+onde \(a_{\mathbb E}\) e \(b_{\mathbb E}\) são coeficientes públicos da curva,
+não a máscara \(a\) de \eqref{eq:fcmp-amount-commitment}.
+
+Um divisor é uma soma formal de suporte finito:
+\begin{align}
+ D=\sum_{P\in S}m_P[P],
+ \qquad S\subseteq\mathbb E,\quad |S|<\infty,\quad m_P\in\mathbb Z.
+ \label{eq:fcmp-formal-divisor}
+\end{align}
+Os \(m_P\) são multiplicidades formais; o sinal, por si só, ainda não declara
+um zero ou um pólo. Quando \(D=\operatorname{div}(f)\) para uma função
+racional não nula, \(m_P=\operatorname{ord}_P(f)\): os valores positivos são
+ordens de zeros e os negativos, ordens de pólos. Os parênteses rectos declaram
+uma entrada formal, não uma multiplicação do ponto. O grau é
+\(\deg D=\sum_Pm_P\). Numa curva elíptica, um divisor de grau zero é principal,
+isto é, é o divisor de alguma função racional não nula, precisamente quando a
+soma ponderada dos seus pontos é a identidade:
+\begin{align}
+ D\text{ principal}
+ \quad\Longleftrightarrow\quad
+ \deg D=0
+ \ \text{ e }\
+ \sum_Pm_PP=\mathcal O_\infty .
+ \label{eq:fcmp-principal-divisor-criterion}
+\end{align}
+
+Para ver a ponte até \eqref{eq:fcmp-hidden-scalar-multiplication}, escrevamos
+\begin{align}
+ s_A=\sum_{i=0}^{\ell_A-1}e_i2^i,
+ \qquad e_i\in\{0,1\},
+ \qquad A_i=2^iA .
+ \label{eq:fcmp-scalar-decomposition}
+\end{align}
+Então \(W=s_A\,A\) equivale a
+\(\sum_ie_iA_i-W=\mathcal O_\infty\). O divisor
+\begin{align}
+ D_{s_A}=
+ \sum_{i=0}^{\ell_A-1}e_i[A_i]+[-W]
+ -\left(1+\sum_{i=0}^{\ell_A-1}e_i\right)[\mathcal O_\infty]
+ \label{eq:fcmp-dlog-divisor}
+\end{align}
+tem grau zero e é principal exactamente quando aquela soma no grupo se anula.
+Os coeficientes de uma função polinomial \(f\) no corpo de funções, com
+\(\operatorname{div}(f)=D_{s_A}\), tornam-se a testemunha algébrica. A
+implementação admite uma representação escalar mais flexível que esta
+decomposição binária pedagógica, mas impõe a consistência da representação que
+reutiliza.
+
+Verificar \(f\) separadamente em toda a tabela \(A_i\) perderia a economia.
+Depois de comprometer a testemunha, a transcrição determina uma linha
+\begin{align}
+ \mathcal L(P)=y_P-c_{\rm declive}x_P-c_{\rm corte},
+ \label{eq:fcmp-random-line}
+\end{align}
+onde \(P=(x_P,y_P)\) é um ponto da curva e
+\(c_{\rm declive},c_{\rm corte}\) vêm dos desafios.
+
+A escrita curta
+\(f(\operatorname{div}\mathcal L)
+=\mathcal L(\operatorname{div}f)\) só admite avaliações ordinárias quando os
+suportes são disjuntos. Aqui \(f\) e \(\mathcal L\) são polinómios na curva e
+ambos têm um pólo em \(\mathcal O_\infty\); usar aquela escrita sem
+regularização produziria zero ou infinito.
+
+A construção usa a forma polinomial regularizada, o resultante elíptico.
+Para uma função polinomial \(g\), escolhemos primeiro o representante reduzido
+canónico
+\begin{align}
+ g(x,y)=g_0(x)+y\,g_1(x)
+ \quad\text{em}\quad
+ \mathbb F[\mathbb E]
+ =\mathbb F[x,y]/(y^2-x^3-a_{\mathbb E}x-b_{\mathbb E}).
+ \label{eq:fcmp-reduced-function-representative}
+\end{align}
+Isto reduz todas as potências \(y^2\) pela equação da curva e torna o
+representante único. Seja
+\(\deg_\infty(g):=-\operatorname{ord}_{\mathcal O_\infty}(g)\) a ordem do seu
+pólo no infinito e \(\operatorname{lc}(g)\) o coeficiente do termo de maior
+peso nesse representante (peso \(2\) para a coordenada \(x\) e \(3\) para
+\(y\)). Se os suportes finitos forem disjuntos, a identidade exacta é
+\begin{align}
+ \operatorname{Res}_{\mathbb E}(f,\mathcal L)
+ &=\operatorname{lc}(\mathcal L)^{\deg_\infty(f)}
+   \prod_{\substack{\mathcal L(P)=0\\P\ne\mathcal O_\infty}}
+      f(P)^{\operatorname{ord}_P(\mathcal L)}
+ \nonumber\\
+ &=(-1)^{\deg_\infty(f)\,\deg_\infty(\mathcal L)}
+   \operatorname{lc}(f)^{\deg_\infty(\mathcal L)}
+   \prod_{\substack{f(P)=0\\P\ne\mathcal O_\infty}}
+      \mathcal L(P)^{\operatorname{ord}_P(f)}.
+ \label{eq:fcmp-weil-reciprocity}
+\end{align}
+O sinal e os coeficientes líderes são exactamente a contribuição do ponto
+comum \(\mathcal O_\infty\). A forma geral desta regularização torna a ideia
+explícita. Se \(t_P\) é um parâmetro local,
+\(m_f:=\operatorname{ord}_P(f)\), \(m_g:=\operatorname{ord}_P(g)\),
+\(f=t_P^{m_f}u_f\) e \(g=t_P^{m_g}u_g\), com \(u_f\) e \(u_g\) unidades em
+\(P\), o símbolo local é
+\begin{align}
+ \{f,g\}_P
+ &:={(-1)}^{m_f\,m_g}\frac{u_f(P)^{m_g}}{u_g(P)^{m_f}}
+  ={(-1)}^{\operatorname{ord}_P(f)\operatorname{ord}_P(g)}
+    \left.
+    \frac{f^{\operatorname{ord}_P(g)}}
+         {g^{\operatorname{ord}_P(f)}}
+    \right|_P,
+ \nonumber\\
+ \prod_P\{f,g\}_P&=1.
+ \label{eq:fcmp-local-symbol}
+\end{align}
+Na última avaliação cancelam-se primeiro as potências de \(t_P\); o resultado
+permanece finito e não nulo mesmo quando os suportes coincidem. O resultante
+em \eqref{eq:fcmp-weil-reciprocity} é a especialização em que o único suporte
+comum é \(\mathcal O_\infty\) \cite{eagen-divisors}. O
+\(\operatorname{lc}(f)\) dessa equação é o coeficiente líder para o peso
+elíptico no infinito; não é o coeficiente de \(x\) que a implementação fixa em
+\(1\) apenas para excluir a função nula.
+
+A linha corta a curva em três pontos, contando multiplicidades. Escrevamos
+\(Z(P)=y_P-c_{\rm declive}x_P\) e chamemos \(A_r(c_{\rm corte})\) aos três
+pontos com \(\mathcal L(A_r(c_{\rm corte}))=0\). A derivada logarítmica do
+resultante dá
+\begin{align}
+ \sum_{r=0}^{2}\frac{\mathrm d}{\mathrm d c_{\rm corte}}
+       \log f\bigl(A_r(c_{\rm corte})\bigr)
+ =\sum_{P\ne\mathcal O_\infty}
+       \frac{\operatorname{ord}_P(f)}{c_{\rm corte}-Z(P)}.
+ \label{eq:fcmp-log-derivative}
+\end{align}
+Aqui \(\frac{\mathrm d}{\mathrm d c}\log h\) é apenas a abreviatura formal
+\((\mathrm d h/\mathrm d c)/h\), definida quando \(h\ne0\); não se toma um
+logaritmo analítico no corpo finito.
+Assim, a função dispendiosa é avaliada apenas nos três pontos da linha. A
+derivada elimina o sinal e os coeficientes líderes, constantes em
+\(c_{\rm corte}\), e
+converte os produtos em somas de razões. A igualdade só está definida fora dos
+zeros dos denominadores; a probabilidade desprezável de uma escolha degenerada
+é uma condição do argumento de solidez, não uma divisão por zero.
+
+A revisão fixada trata esses denominadores de três maneiras. Os valores
+públicos \(2y_{A_r}\) e \(c_{\rm corte}-Z(A_i)\), para os pontos tabelados
+\(A_i\), são testados e invertidos fora do circuito; um zero interrompe a
+execução. Para o termo \([-W]\), ponha-se
+\(d_W:=c_{\rm corte}-Z(-W)
+=c_{\rm corte}+y_W+c_{\rm declive}x_W\). Este denominador usa um
+dispositivo de inversão que impõe, dentro do circuito,
+\begin{align}
+ d_W\,d_W^{-1}=1.
+ \label{eq:fcmp-output-denominator-inverse}
+\end{align}
+Cada razão do lado da função usa antes a restrição cruzada. Com
+\(f_x:=\partial f/\partial x\) e \(f_y:=\partial f/\partial y\), o numerador e
+o denominador são
+\begin{align}
+ p_{\rm den}^{(r)}o_r&=p_{\rm num}^{(r)},
+ \nonumber\\
+ p_{\rm num}^{(r)}
+   &=2y_{A_r}f_x(A_r)
+     +\bigl(3x_{A_r}^{\,2}+a_{\mathbb E}\bigr)f_y(A_r),
+ \nonumber\\
+ p_{\rm den}^{(r)}
+   &=f(A_r)
+     \bigl(3x_{A_r}^{\,2}+a_{\mathbb E}
+           -2c_{\rm declive}y_{A_r}\bigr).
+ \label{eq:fcmp-divisor-cross-multiplication}
+\end{align}
+O provador honesto calcula
+\(o_r=p_{\rm num}^{(r)}/p_{\rm den}^{(r)}\) e interrompe a execução se
+\(p_{\rm den}^{(r)}=0\). A restrição cruzada, porém, não prova por si só que
+\(p_{\rm den}^{(r)}\ne0\) quando também \(p_{\rm num}^{(r)}=0\). Sob os
+limites de grau do argumento de Eagen, esse evento degenerado tem
+probabilidade desprezável porque os desafios são amostrados depois dos compromissos
+\cite{eagen-divisors,monero-oxide-fcmp-source}.
+
+\textbf{Público.} A curva, as bases ou tabelas fixas aplicáveis, os
+compromissos das variáveis e da função, os desafios e as avaliações da prova.
+No dispositivo FCMP, \(W\) é normalmente um ponto comprometido, não um ponto
+revelado.
+
+\textbf{Segredo conhecido pelo provador.} \(s_A\), as coordenadas de \(W\) e
+de qualquer outro ponto comprometido, a representação escalar consistente e
+os coeficientes do representante polinomial cujo divisor é \(D_{s_A}\).
+
+\textbf{Igualdade demonstrada.} O argumento prova que o provador conhece uma
+função comprometida cujo divisor é principal e corresponde à soma ponderada
+que termina em \(W\). A identidade regularizada
+\eqref{eq:fcmp-weil-reciprocity}, seguida das verificações de derivadas e
+denominadores, liga essa função aos pontos declarados; por
+\eqref{eq:fcmp-principal-divisor-criterion}, a relação certifica
+\eqref{eq:fcmp-hidden-scalar-multiplication}.
+
+\textbf{Ligação à igualdade anterior.} Os pontos e escalares deste dispositivo
+são as mesmas variáveis referidas pelos compromissos de
+\eqref{eq:fcmp-gbp-external-vcs}. O certificado por divisores não produz um
+segundo ponto parecido com \(W\); prova a relação do ponto já usado na
+equação de curva e no caminho.
+
+\subsection{A rara falha de completude}
+
+Para excluir a função inteiramente nula, o dispositivo normaliza um dos seus
+coeficientes. Há divisores legítimos para os quais esse coeficiente se anula;
+nesse caso raro, uma testemunha verdadeira pode não admitir aquela forma
+normalizada \cite{zksecurity-divisor-notes}. É uma questão de
+\emph{completude}: um provador robusto deve reiniciar e reamostrar as máscaras
+antes de publicar a prova. Não é uma abertura para o verificador aceitar uma
+igualdade falsa.
+
+A revisão fixada ainda não trata essa excepção como uma falha recuperável:
+inverte o coeficiente e exige que a inversão exista, podendo abortar a geração
+da prova no caso raro em vez de reamostrar
+\cite{monero-oxide-fcmp-source}. A distinção é importante para disponibilidade
+e robustez do provador, não para a solidez da equação verificada.
+
+\section{As quatro equações exactas do verificador SAL}
+\label{sec:fcmp-sal-verifier}
+
+A derivação conceptual já mostrou porque é que SAL funciona. Podemos agora olhar
+para a forma que o verificador realmente acumula. Além de \(P\), a prova
+publica os compromissos \(A_{\rm SAL},B_{\rm SAL},N_O,N_P,N_I\) e respostas
+\(s_1,s_2,s_T,s_a,s_z,s_r\). Os índices \(1,2\) são deliberadamente
+neutros: uma resposta partilhada não nos autoriza a pressupor, antes da
+extracção composta, que há um único escalar \(p_k\) por trás de todas as suas
+ocorrências. Um único desafio \(c\) é obtido por
+Fiat--Shamir depois de entrarem na transcrição o hash da transacção, todo o
+\(Q\), a imagem de chave \(I\), \(P\) e aqueles compromissos. O verificador
+impõe
+\begin{align}
+ c^2P+cA_{\rm SAL}+B_{\rm SAL}
+ &=cs_1G+cs_2V+s_1s_2U+s_TT,
+ \label{eq:fcmp-sal-verify-product}\\
+ N_O+c\widetilde O
+ &=s_1G+s_aT,
+ \label{eq:fcmp-sal-verify-output}\\
+ N_P+c(P-\widetilde O-R)
+ &=s_zU+s_rT,
+ \label{eq:fcmp-sal-verify-stitch}\\
+ N_I+cI
+ &=s_1\widetilde H_O-s_zU.
+ \label{eq:fcmp-sal-verify-image}
+\end{align}
+
+A primeira linha é quadrática em \(c\): o produto
+\(s_1s_2\) recompõe os termos dos nonces e a abertura
+multiplicativa de \(P\), produzindo os candidatos \(p_{k,P},r_{I,P}\) da
+Equação~\eqref{eq:fcmp-sal-extracted-p}. A segunda linha fornece o candidato
+\(p_{k,O}\) que abre \(\widetilde O\). A terceira fornece \(z_Q\) na
+diferença \(P-\widetilde O-R\); a quarta reutiliza esse candidato e
+\(p_{k,O}\) na relação da imagem. Há uma transcrição e respostas partilhadas,
+mas a relação SAL isolada ainda permite que
+\(p_{k,P}\ne p_{k,O}\) ou
+\(p_{k,P}r_{I,P}\ne z_Q\). A Equação
+\eqref{eq:fcmp-composed-multibase-zero}, que inclui a abertura FCMP de \(R\),
+é o passo que exclui essas diferenças.
+
+\textbf{Público.} \(Q,I,P,A_{\rm SAL},B_{\rm SAL},N_O,N_P,N_I\), o desafio
+\(c\) e todas as respostas.
+
+\textbf{Segredo conhecido pelo provador honesto.}
+\(p_k,\widetilde p_a,r_I,z,r_P,r_R\),
+a combinação de máscara em \(T\) necessária para
+\eqref{eq:fcmp-sal-r-stitch}, e os nonces que formam os compromissos.
+
+\textbf{Igualdade demonstrada.} As quatro linhas SAL produzem as relações
+extraíveis \eqref{eq:fcmp-sal-extracted-p}--
+\eqref{eq:fcmp-sal-extracted-image}, com candidatos possivelmente distintos.
+A composição com FCMP produz depois
+\eqref{eq:fcmp-composed-witness-identities}, isto é,
+\(z=p_kr_I\) e \(I=p_k\widetilde H_O-zU\) para os valores identificados.
+
+\textbf{Ligação à igualdade anterior.} O campo \(\widetilde C\) não entra na
+álgebra das quatro linhas, mas entra na transcrição como parte de \(Q\).
+Sob a segurança de Fiat--Shamir e a vinculação multibase, a SAL fica presa à
+mesma tupla completa que FCMP abriu para a folha. A SAL não oferece,
+isoladamente, uma abertura independente de \(R\) em \(r_I,r_R\); a
+concordância de \(r_I\) resulta da relação composta, da extracção e da
+vinculação computacional.
+
+\section{Da exposição ao código fixado}
+\label{sec:fcmp-code-note}
+
+As equações criptográficas acima foram conferidas na revisão
+\texttt{31c26d96\allowbreak eaadbba9\allowbreak 10ffe361\allowbreak
+3ad8b4cf\allowbreak 9c598a93} do ramo
+\texttt{fcmp++} de \texttt{monero-oxide}, datada de 18 de Agosto de 2026
+\cite{monero-oxide-fcmp-source}. A preparação C++ das folhas foi conferida na
+revisão Monero
+\texttt{3646f648\allowbreak db57f60c\allowbreak ca86430e\allowbreak
+25a635d1\allowbreak 9fa9b92a}, de 14 de Agosto de 2026
+\cite{monero-source-v16}. São duas fotografias identificadas; os seus bytes de
+geradores não devem ser misturados.
+
+\subsection{A folha codificada, incluindo saídas históricas}
+
+A tupla \((O,H_p(O),C)\) é a história conceptual correcta quando os pontos
+estão no subgrupo esperado. A migração de saídas históricas acrescenta uma
+precisão importante. Se \(O_{\rm enc}\) e \(C_{\rm enc}\) forem as
+codificações originais, a preparação legada segue a ordem
+\begin{align}
+ H_O&=H_{\rm legado}(O_{\rm enc}),
+ &
+ O_{\rm folha}&=\operatorname{clr}(O_{\rm enc}),
+ &
+ C_{\rm folha}&=\operatorname{clr}(C_{\rm enc}).
+ \label{eq:fcmp-legacy-leaf-preparation}
+\end{align}
+A base é derivada da codificação pública original \emph{antes} da limpeza de
+torção. Isto conserva a mesma definição de imagem de chave para uma saída
+antiga que contenha uma componente de torção. A folha armazenada usa
+\((O_{\rm folha},H_O,C_{\rm folha})\) e rejeita identidades.
+
+Para saídas Carrot, os pontos já são validados sem torção pelo novo formato e
+a preparação paralela é
+\begin{align}
+ H_O&=H_{\rm Carrot}(O_{\rm enc}),
+ &
+ O_{\rm folha}&=\operatorname{dec}(O_{\rm enc}),
+ &
+ C_{\rm folha}&=\operatorname{dec}(C_{\rm enc}),
+ \label{eq:fcmp-carrot-leaf-preparation}
+\end{align}
+onde \(\operatorname{dec}\) é a descodificação validada, e
+\(H_{\rm Carrot}\) usa o mapeamento não enviesado correspondente
+\cite{carrot-specification}. Em nenhum dos casos o circuito FCMP recalcula
+uma função hash para ponto: recebe a base preparada como parte da folha e prova a sua
+pertença. Portanto, \(H_p(O)\) é a notação semântica deste capítulo, enquanto
+\eqref{eq:fcmp-legacy-leaf-preparation} fixa a compatibilidade exacta da
+codificação histórica.
+
+\textbf{Público.} As codificações da cadeia, as regras de classificação da
+saída e a raiz obtida das folhas preparadas.
+
+\textbf{Segredo conhecido pelo provador.} Nenhum segredo adicional é criado
+pela preparação; a carteira continua a usar \(p_k\) e as testemunhas já
+descritas.
+
+\textbf{Igualdade demonstrada.} A prova de pertença refere-se à tupla
+efectivamente inserida no acumulador; SAL refere-se à base cuja definição
+histórica determina a imagem \(I\).
+
+\textbf{Ligação à igualdade anterior.} A regra de preparação garante que o
+\(\widetilde H_O\) público aberto por FCMP e usado em
+\eqref{eq:fcmp-sal-verify-image} ofusca exactamente a base associada à saída
+original.
+
+\subsection{Achatamento, larguras e sinais}
+
+O primeiro ramo não guarda três símbolos abstractos por posição. Guarda, por
+folha, as seis coordenadas afins da representação Wei25519 dos três pontos do
+grupo Ed25519:
+\begin{align}
+ (x_O,y_O,x_{H_O},y_{H_O},x_C,y_C).
+ \label{eq:fcmp-leaf-flattening}
+\end{align}
+Há 38 posições, portanto 228 escalares comprometidos. Os seis desafios da
+compressão produzem um valor por posição e conduzem ao produto de 38 factores
+de \eqref{eq:fcmp-real-leaf-product}. As camadas superiores alternam ramos de
+18 e 38 escalares e verificam a coordenada \(x\) de um ponto completo. A
+infra-estrutura fixada reserva até 12 camadas e agrega até 128 entradas; são
+limites desta implementação, não do conceito Curve Trees.
+
+Na criação de \(Q\), os quatro termos usam os sinais positivos de
+\eqref{eq:fcmp-rerand-o}--\eqref{eq:fcmp-rerand-c}. Internamente, o construtor
+do circuito recebe \(-r_O,-r_I,r_R,-r_C\), com \(r_R\) positivo, porque
+recupera a folha somando essas máscaras à entrada. Esta convenção de API não
+altera qualquer igualdade pública.
+
+\subsection{Geradores e ordem de verificação}
+
+\(G,T,U,V\) são pontos distintos. \(T\) é o gerador de ofuscação definido
+para a integração; \(U\) e \(V\) são derivados deterministicamente, com
+separação de domínio e amostragem não enviesada, para transportar \(r_I\).
+As famílias de Generalized Bulletproofs e os inicializadores de Selene e
+Helios são igualmente derivados por domínios separados. O gerador \(H\) do
+montante pertence à camada RingCT e não é um quinto parâmetro SAL.
+
+O verificador da composição invoca SAL com uma referência à estrutura
+\texttt{Input}; depois lê dela os mesmos quatro campos e constrói uma
+\texttt{fcmps::Input} com
+\((\widetilde O,\widetilde H_O,R,\widetilde C)\) para verificar a pertença.
+As rotinas criptográficas colocam relações numa
+verificação em lote; a aceitação só fica completa quando o chamador verifica
+o lote. Dizer que uma função «devolve sucesso» antes desse passo omitiria uma
+obrigação da interface.
+
+\section{Hipóteses, auditorias e estado de integração}
+\label{sec:fcmp-security-status-note}
+
+A garantia composta depende da dificuldade de encontrar logaritmos discretos
+e relações lineares multibase; da ocultação e vinculação dos compromissos; da
+solidez, extracção e conhecimento zero dos argumentos; do modelo de oráculo
+aleatório de Fiat--Shamir; da correcção dos dispositivos por divisores; da
+validação de curvas, subgrupos e casos excepcionais; e de aleatoriedade e
+separação de domínio adequadas. A identidade pública de \(Q\) compõe
+declarações, mas não cura uma falha numa delas.
+
+Os âmbitos de revisão também são distintos. A Cypher Stack analisou
+Generalized Bulletproofs e a composição FCMP++/SAL
+\cite{generalized-bulletproofs-review,fcmp-composition-review}. A Veridise
+auditou os circuitos e aplicou Picus a dispositivos não interactivos
+\cite{veridise-fcmp-audit}. O trabalho SLVer Bullet forneceu evidência
+independente para as equações por divisores \cite{slver-bullet}; a revisão da
+zkSecurity documentou a questão rara de completude já descrita
+\cite{zksecurity-divisor-notes}. A Trail of Bits publicou em Agosto de 2026
+uma auditoria da implementação criptográfica incremental: seis achados
+informativos, nenhum classificado como de gravidade alta, média ou baixa;
+cinco resolvidos e um
+parcialmente resolvido, relativo à fragilidade da disposição de dados na fronteira
+Rust--C++ \cite{trailofbits-fcmp-audit}. Cada relatório constitui evidência
+para a revisão e o âmbito examinados, não uma activação de consenso.
+
+Em 31 de Agosto de 2026, o marco oficial de integração permanecia aberto, sem
+data limite, e mostrava 69\%, 27 itens fechados e 12 abertos
+\cite{monero-fcmp-milestone}. Essa percentagem conta itens do marco; não mede,
+por si, prontidão criptográfica ou operacional. O pedido de integração
+\#9436 continuava em rascunho/WIP, com 184 revisões incorporadas
+\cite{monero-fcmp-integration-pr}. A proposta pública de auditoria
+da integração mostrava zero de três marcos concluídos
+\cite{monero-fcmp-integration-audit}.
+
+Na mesma data, a tabela de bifurcações rígidas da rede principal continuava a
+terminar na versão 16 e os tipos RingCT activos continuavam a terminar em
+Bulletproofs+ \cite{monero-master-fcmp-status}. FCMP++ permanecia, portanto,
+em desenvolvimento e integração; não era uma regra de consenso activa da rede
+principal. Componentes criptográficos e de suporte já estavam no ramo
+principal, mas presença de código não equivale a activação do protocolo.
+
+A revisão Monero fixada neste capítulo antecede a correcção dos valores
+derivados de \(T,U,V\), integrada no ramo principal em 23 de Agosto de 2026
+\cite{monero-fcmp-generator-fix}. Por isso usamos a revisão
+\texttt{monero-}\allowbreak\texttt{oxide} fixada como autoridade para as
+relações e famílias
+criptográficas correntes, e a revisão Monero fixada como fotografia da
+integração C++; não transplantamos constantes entre as duas.
+
+\section{A frase inicial, agora demonstrada}
+
+Podemos enfim reler a declaração que abriu o capítulo. O produto de pertença
+e os encaixes de Curve Trees demonstram conhecimento de uma folha e de um
+caminho até à raiz. FCMP prova que o provador conhece uma abertura do mesmo
+\(Q\) para essa folha. A extracção conjunta FCMP+SAL usa esse \(Q\) e a
+equação multibase de \(R\) para
+identificar os candidatos \(p_k,r_I,z\) e obter
+\[
+ I=p_k\widetilde H_O-(p_kr_I)U=p_kH_p(O).
+\]
+RingCT usa \(\widetilde C\) como pseudo-saída e conserva, separadamente, o
+equilíbrio e os intervalos. A árvore diz «uma folha sob esta raiz»; FCMP diz
+«é esta folha escondida por \(Q\)»; SAL fornece a relação de autorização; a
+comparação em \(R\) diz «é a chave desta mesma folha». A imagem \(I\) deixa a
+marca determinística de um gasto.
+
+\label{page:fcmp-end}

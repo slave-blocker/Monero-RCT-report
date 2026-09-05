@@ -1,0 +1,241 @@
+% Capítulo extra, ainda não escrito no percurso principal.
+% Este ficheiro é deliberadamente independente e não é incluído por main.tex.
+% Descreve uma proposta de protocolo; não descreve o consenso actual de Monero.
+
+\chapter{O nó é a linhagem}
+\label{chapter:unwritten-node-identity}
+
+\begin{quote}
+\lq\lq Nunca digo a minha chave. De tempos a tempos, demonstro apenas que ainda a
+conheço.\rq\rq
+\end{quote}
+
+Uma máquina não atravessa a rede. A rede vê mensagens, tempos, blocos e provas.
+Se quisermos ligar essas observações a uma reputação, não precisamos de afirmar
+que vieram sempre da mesma caixa de plástico, da mesma placa ou sequer do mesmo
+continente. Podemos dar ao nó uma definição mais estreita e, por isso mesmo,
+mais útil: o nó é uma linhagem de chaves que o protocolo reconhece como uma só
+identidade.
+
+Esta distinção muda a pergunta. Já não tentamos provar que um sistema operativo
+particular está agora a correr numa máquina física particular. Perguntamos se o
+interlocutor conhece a chave corrente da linhagem e se cada mudança de chave foi
+autorizada pela anterior. Uma prova de Schnorr responde à primeira pergunta; uma
+cadeia de rotações assinadas responde à segunda.
+
+O resultado pode prender histórico de mineração, disponibilidade, recompensas e
+penalizações a um nó sem revelar a sua chave privada. Não é uma atestação remota
+do estado de execução. É uma identidade criptográfica com memória.
+
+\section{De uma imagem de disco a uma chave escondida}
+
+Seja \(B\) uma sequência canónica de bytes: por exemplo, todos os sectores de
+uma partição imutável, por uma ordem e com um comprimento precisamente
+definidos. Calculamos primeiro
+\[
+    d=\mathcal H_{\rm disk}(\mathsf{partition\mbox{-}v1},B).
+\]
+O rótulo de domínio impede que o mesmo resumo seja interpretado por acidente
+como um valor criado para outro protocolo. Para obter um escalar do grupo,
+podemos calcular
+\[
+    x=\mathcal H_n(\mathsf{node\mbox{-}key\mbox{-}v1},d,\rho),
+    \qquad X=xG,
+\]
+onde \(\rho\) é entropia privada e imprevisível própria daquele nó.
+
+O ponto \(X\) pode ser publicado; \(x\) e \(d\) não precisam de sair do nó. Sob
+a hipótese do logaritmo discreto, observar \(X=xG\) não permite recuperar
+\(x\). As provas de Schnorr posteriores também não o revelam.
+
+A entropia \(\rho\) não é um enfeite. Se duas máquinas usarem exactamente a
+mesma imagem pública e definirem simplesmente \(x=\mathcal H_n(d)\), ambas obtêm
+a mesma chave. Além disso, qualquer pessoa que possua uma imagem candidata pode
+calcular o seu \(d\), calcular \(\mathcal H_n(d)G\) e compará-lo com \(X\). O
+resumo não se torna secreto só porque nunca é enviado. A segurança da chave
+exige material privado com entropia suficiente; nesse sentido, \(\rho\) é já uma
+chave, ainda que a imagem participe na sua derivação.
+
+Há outra fronteira que convém traçar cedo. Um provador sem ambiente de execução
+fiável pode guardar \(x\), guardar uma cópia limpa de \(B\), ou calcular a prova
+enquanto executa outro programa. A construção demonstra conhecimento de um
+escalar derivado dos bytes; não demonstra que esses bytes são precisamente o
+código que o processador executa naquele instante.
+
+\section{Bater à porta com Schnorr}
+
+O nó regista \(X=xG\). Ao abrir uma ligação, o outro participante envia um
+\emph{nonce} fresco \(q\). O contexto autenticado deve conter mais do que esse
+nonce. Um exemplo é
+\[
+ m=(\mathsf{node\mbox{-}link\mbox{-}v1},\mathsf{chainID},q,
+       \mathsf{keys}_{\rm session},\mathsf{tip}),
+\]
+onde \(\mathsf{keys}_{\rm session}\) liga a prova à negociação criptográfica da
+ligação e \(\mathsf{tip}\) identifica o estado da cadeia que os participantes
+pensam estar a discutir.
+
+O nó escolhe \(\alpha\in_R\mathbb Z_l\), calcula
+\begin{align*}
+    A&=\alpha G,\\
+    c&=\mathcal H_n(\mathsf{node\mbox{-}schnorr\mbox{-}v1},m,X,A),\\
+    r&=(\alpha-cx)\bmod l
+\end{align*}
+e envia \((A,r)\). O interlocutor recalcula \(c\) e aceita quando
+\[
+    A=rG+cX.
+\]
+Como sempre, reutilizar \(\alpha\) com desafios diferentes revela \(x\). Uma
+implementação deve ainda validar as codificações e os pontos, separar domínios
+e prender ao desafio todos os campos cujo significado se quer autenticar.
+
+Duas sessões válidas em momentos diferentes, verificadas contra o mesmo \(X\),
+demonstram conhecimento do mesmo \(x\) em cada um desses momentos. Não
+demonstram que \(x\) permaneceu continuamente em memória entre as sessões, que
+nunca foi copiado ou que só uma máquina o conhece. Para a identidade do nó, a
+declaração necessária pode ser precisamente a mais pequena: quem controla a
+chave corrente fala em nome do nó.
+
+\section{A identidade sobrevive à chave}
+
+Uma chave que nunca muda acumula risco juntamente com reputação. Para permitir
+rotação, começamos por uma chave \(X_0=x_0G\) e damos à linhagem um nome estável
+\[
+    N=\mathcal H_{\rm node}(\mathsf{nodeID\mbox{-}v1},X_0).
+\]
+Na geração \(i\), o nó escolhe independentemente
+\(x_{i+1}\in_R\mathbb Z_l\), calcula \(X_{i+1}=x_{i+1}G\) e constrói a
+declaração
+\[
+ T_i=(\mathsf{rotate\mbox{-}v1},\mathsf{chainID},N,i,
+          X_i,X_{i+1},h_{\rm activation}).
+\]
+A chave corrente autoriza a sucessora:
+\[
+    \sigma_i=\operatorname{Sign}_{x_i}(T_i).
+\]
+A nova chave deve também assinar \(T_i\), ou um resumo canónico dele. Esta
+contra-assinatura demonstra que o autor da rotação não apontou a linhagem para
+uma chave inutilizável ou desconhecida.
+
+O estado reconhecido pelo protocolo toma então a forma
+\[
+ X_0\xrightarrow{\,T_0\,}X_1
+    \xrightarrow{\,T_1\,}X_2
+    \xrightarrow{\,T_2\,}\cdots .
+\]
+Uma regra completa de rotação precisa de decidir, pelo menos, o seguinte:
+\begin{itemize}
+    \item a geração seguinte é exactamente \(i+1\);
+    \item só a chave corrente pode autorizar a sucessora;
+    \item a chave nova prova que existe antes de a rotação ser aceite;
+    \item depois de \(h_{\rm activation}\), mensagens da chave antiga são
+          rejeitadas;
+    \item duas sucessoras assinadas para a mesma geração constituem um conflito
+          publicamente demonstrável;
+    \item a regra de consenso determina qual rotação se torna canónica e em
+          que momento fica final.
+\end{itemize}
+
+Uma rotação não deve ser apenas \(x_{i+1}=\mathcal H_n(x_i)\). Quem roubar
+\(x_i\) conseguiria calcular todas as chaves futuras dessa cadeia. Gerar a
+chave seguinte independentemente e entregar apenas a sua chave pública à
+anterior evita essa consequência simples, embora o roubo da chave corrente
+continue grave.
+
+\section{Reputação: a memória da rede}
+
+Guardemos a reputação sob \(N\), não sob cada \(X_i\):
+\[
+    \mathsf{Rep}[N]
+       =F(\mathsf{trabalho},\mathsf{disponibilidade},
+           \mathsf{antiguidade},\mathsf{faltas}).
+\]
+Uma chave nova e sem certificado começa uma linhagem nova, portanto começa sem
+o histórico de \(N\). Uma chave nova acompanhada pela rotação válida herda a
+mesma identidade e o protocolo continua a actualizar a mesma entrada de
+reputação.
+
+É aqui que a construção ganha força económica. Um actor pode criar milhares
+de pares de chaves, mas nenhum deles herda gratuitamente o trabalho ou a boa
+conduta atribuídos à linhagem antiga. Para falar com a reputação de \(N\), tem
+de conhecer a chave corrente de \(N\) ou apresentar uma transição que ela
+autorizou.
+
+Isto não obriga um atacante a executar o programa honesto. Obriga-o a obedecer
+à máquina de estados da identidade se quiser conservar aquela reputação. Pode
+abandoná-la e começar de novo; não pode transportar a reputação para uma chave
+arbitrária sem a autorização exigida.
+
+A identidade, por si só, também não resolve o problema de Sybil. Apenas dá à
+rede gavetas persistentes onde guardar memória. O custo de encher uma dessas
+gavetas com boa reputação tem de vir do mecanismo escolhido: trabalho válido,
+tempo, recursos escassos, garantias sujeitas a perda ou outro sinal que não
+possa ser fabricado em massa sem custo.
+
+\section{Prender o trabalho de mineração ao nó}
+
+Uma acção de mineração atribuída à linhagem deve incluir \(N\), a geração
+\(i\) e \(X_i\) no contexto autenticado. Esquematicamente,
+\[
+ M=(\mathsf{mining\mbox{-}v1},\mathsf{chainID},N,i,X_i,h,
+       \mathsf{previousBlock},\mathsf{workObject}).
+\]
+O nó apresenta o trabalho exigido pelo protocolo e uma assinatura válida de
+\(M\) sob \(X_i\). Incluir a identidade no próprio objecto sobre o qual o
+trabalho é calculado pode impedir que uma prova observada seja simplesmente
+reatribuída a outro \(N\). A assinatura Schnorr não cria trabalho e não
+substitui a regra de mineração; autentica apenas a atribuição daquele trabalho
+à linhagem.
+
+Nonces de ligação, alturas, identificadores da cadeia e o bloco anterior têm
+papéis diferentes. O nonce impede repetir uma autenticação de sessão; a altura
+e a geração escolhem a chave válida; \(\mathsf{chainID}\) impede levar uma
+assinatura para outra rede; o bloco anterior prende o trabalho à história em
+que foi produzido. O protocolo deve codificar todos eles sem ambiguidades.
+
+\section{O roubo da chave corrente}
+
+Se um atacante obtiver \(x_i\), passa a poder falar como \(N\), assinar trabalho
+e autorizar \(X_{i+1}\). A rotação limita a exposição de chaves antigas, mas
+não distingue duas pessoas que conhecem a mesma chave corrente. Sem hardware
+fiável, a rede não consegue provar que só existe uma cópia nem que \(x_i\) foi
+apagado depois da rotação.
+
+Uma defesa possível separa a identidade de reputação da chave operacional.
+Seja
+\[
+    Y=yG
+\]
+uma chave-raiz guardada fora do mineiro em linha. A reputação fica ancorada em
+\(Y\), enquanto \(Y\) certifica chaves \(X_i\) de curta duração. A rotação
+normal pode exigir a chave operacional antiga e a nova; uma recuperação ou uma
+mudança excepcional pode exigir \(y\), talvez com atraso público. Assim, roubar
+uma chave de mineração não entrega necessariamente toda a linhagem para sempre.
+
+Outras políticas podem usar múltiplas chaves de recuperação, atrasos de
+activação, períodos de contestação ou penalizações por rotações incompatíveis.
+São escolhas de disponibilidade e governação, não consequências automáticas de
+Schnorr. Uma raiz fora de linha também troca a elegante afirmação
+\lq\lq a imagem é a chave\rq\rq por uma arquitectura mais honesta: a imagem pode contribuir para a
+chave operacional, mas a continuidade de reputação repousa num segredo próprio.
+
+\section{O que ficou demonstrado}
+
+Podemos agora separar quatro afirmações que à primeira vista se confundem:
+\begin{enumerate}
+    \item Uma prova válida sob \(X_i\) demonstra conhecimento de \(x_i\) no
+          momento da prova.
+    \item Uma rotação válida demonstra que \(x_i\) autorizou \(X_{i+1}\) e
+          que alguém demonstrou possuir \(x_{i+1}\).
+    \item A cadeia de rotações permite ao protocolo tratar todas essas chaves
+          como uma identidade \(N\) e conservar a sua reputação.
+    \item Nada disto, sem uma raiz externa de confiança, demonstra qual código
+          está a correr, qual máquina o executa, quantas cópias da chave existem
+          ou se uma chave antiga foi realmente apagada.
+\end{enumerate}
+
+A quarta frase não desfaz as três primeiras. Define-lhes a fronteira. Para uma
+rede cuja unidade social e económica é o nó criptográfico, e não uma caixa
+física, essa fronteira pode ser exactamente a desejada. O nó não é a máquina.
+O nó é a história verificável de quem teve autoridade para falar a seguir.

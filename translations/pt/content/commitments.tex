@@ -1,404 +1,358 @@
 \chapter{Montantes ocultos}
 \label{chapter:pedersen-commitments}
 
-Em outras cripto-moedas, as saídas de transacções, são comunicadas de forma clara e transparente. Isto permite a observadores terçeiros verificar que as entradas das transacções são igauis ás saídas (menos a taxa aos mineiros). Monero utiliza {\em compromissos} para ocultar os montantes de quaisquer pessoas, excepto do remetente e destinatário. Enquanto que ao mesmo tempo, terceiros verificam que uma transacção não gasta nem mais nem menos, do que é verdade. 
+O capítulo anterior separou a chave de saída de utilização única do endereço
+público que lhe deu origem. Falta ocultar o número que essa saída representa.
+Uma transacção RingCT publica um \emph{compromisso} para cada montante: todos
+podem verificar relações entre compromissos, mas só quem possui a derivação
+partilhada apropriada recupera o montante e a máscara da saída.
 
-Como iremos ver, {\em compromissos a montantes} requerem também {\em provas de domínio}, o que garante que o montante oculto está dentro de um certo domínio.
+Um compromisso não basta, porém, para definir dinheiro válido. Os seus
+escalares vivem módulo~\(l\), pelo que um valor modular enorme poderia fazer de
+«montante negativo». Veremos por isso duas camadas distintas: compromissos de
+Pedersen ocultam os montantes e preservam somas; provas de intervalo obrigam
+cada montante de saída a pertencer a \([0,2^{64}-1]\).
+
+Salvo indicação em contrário, as referências à implementação neste capítulo
+dizem respeito à revisão do código Monero identificada no resumo inicial.
 
 \section{Compromissos}
 \label{sec:commitments}
 
-Um esquema de compromisso criptográfico, é em termos gerais, uma forma de comprometer a um certo valor sem ter de o revelar. 
+Um esquema de compromisso permite a Alice fixar uma mensagem sem a revelar de
+imediato. Mais tarde, Alice apresenta uma \emph{abertura}; Bob verifica que é
+a mensagem originalmente fixada. Queremos duas propriedades:
 
-Por exemplo, dois monerianos numa tirada de cara ou coroa apostam um xmr de forma oculta. A alice escolhe uma palavra secreta e junta esta á palavra "cara". Ela depois calcula a hash desse par :
+\begin{description}
+ \item[Ocultação.] Antes da abertura, o compromisso não deve revelar a
+ mensagem.
+ \item[Vinculação.] Depois de publicado o compromisso, Alice não deve
+ conseguir abri-lo como duas mensagens diferentes.
+\end{description}
 
-\begin{align*}
-h= \mathcal{H}(segredo, "cara").
-\end{align*}
+Para comprometer uma mensagem \(m\), Alice gera um sal aleatório longo \(s\) e
+publica
+\[
+ h=\mathcal H\bigl(s\mathbin\|m\bigr).
+\]
+Na abertura, revela \((s,m)\). Bob repete o hash e compara-o com \(h\). O sal
+impede a enumeração antecipada quando o domínio de mensagens é pequeno. Neste
+compromisso por hash, a ocultação depende do sal e a vinculação depende, em
+particular, de ser impraticável encontrar colisões. Esta construção não
+preserva a adição das mensagens comprometidas.
 
-E compromete-se a $h$ ao mundo, neste caso bob. O bob atira uma moeda ao ar. Depois de saír cara ou coroa, a alice revela a palavra secreta. O bob faz duas hashes $\mathcal{H}(segredo, "cara")$ e $\mathcal{H}(segredo, "coroa")$ e deduz o compromisso da alice.
-%Alice uses the so-called `salt', $blah$, so Bob can't just guess $\mathcal{H}(heads)$ and $\mathcal{H}(tails)$ before his coin flip, and figure out she committed to $heads$.\footnote{If the committed value is very difficult to guess and check, e.g. if it's an apparently random elliptic curve point, then salting the commitment isn't necessary.}
 \section{Compromissos de Pedersen}
 \label{pedersen_section}
 
-Um compromisso de Pedersen tem a propriedade de ser {\em additivamente homomórfico}. 
-Se \(C(a)\) e \(C(b)\) são os compromissos respectivos aos valores \(a\) e \(b\), então :
+Para somar montantes ocultos, empregamos um compromisso de Pedersen
+\cite{Pedersen1992}. Sejam \(G\) e \(H\) pontos não nulos do subgrupo de ordem
+prima \(l\). O grupo é cíclico, portanto existe matematicamente um escalar
+\(\gamma\) tal que
+\[
+ H=\gamma G.
+\]
+Aqui «geradores independentes» não quer dizer independência linear: quer dizer
+que ninguém conhece essa relação de logaritmo discreto. O valor fixo de \(H\)
+usado pelo Monero foi derivado historicamente pela interpretação de
+Keccak--256 da codificação de \(G\) como um ponto comprimido, seguida de
+multiplicação pelo cofactor~8. Essa construção específica não deve ser
+reutilizada como função hash-para-ponto genérica.
+\marginnote{src/ringct/
+rctTypes.h, {\tt H};
+tests/unit\_ tests/
+ringct.cpp, {\tt HPow2}}
 
-\begin{align*}
-C(a + b) = C(a) + C(b) . 
-\end{align*}
-\\
-Felizmente, compromissos de pedersen são fáceis de implementar com criptografia de curva elíptica. O seguinte é trivial : 
+Para uma máscara \(x\in\mathbb Z_l\) e um montante escalar
+\(b\in\mathbb Z_l\), definimos
+\begin{equation}
+ C(x,b)=xG+bH.
+ \label{eq:pedersen-commitment}
+\end{equation}
+O par \((x,b)\) é uma abertura do ponto \(C\). Os escalares canónicos usados
+pela implementação ocupam 32 bytes em ordem \emph{little-endian} e representam
+inteiros menores que \(l\). Um montante Monero é um inteiro sem sinal de
+64 bits, colocado nos oito bytes menos significativos de um escalar; os outros
+24 bytes são nulos. Os pontos têm a codificação comprimida de Edwards de
+32 bytes.
+\marginnote{src/ringct/
+rctTypes.cpp, {\tt d2h()};
+src/ringct/
+rctOps.cpp, {\tt genC()}}
 
-\begin{align*}
-(a + b) G = a G + b G 
-\end{align*}
+\textbf{Ocultação.} Se \(x\) for uniforme em \(\mathbb Z_l\), então, para
+qualquer \(b\), o ponto \(xG+bH\) é uniforme no subgrupo. O esquema abstracto
+tem assim ocultação perfeita: mesmo cálculo ilimitado não escolhe uma abertura
+preferida entre todas as possibilidades \cite{maxwell-ct,
+SCOZZAFAVA1993313}. Na carteira, as máscaras de saída são derivadas de um
+segredo Diffie--Hellman por um hash reduzido; para um observador, a sua
+pseudo-aleatoriedade é uma garantia computacional, não uma fonte literal de
+aleatoriedade perfeita.
 
-Ao definir compromissos tão simples como \(C(a) = a G\), era possível ter tabelas de valores comuns para $a$. Ou seja seria fácil de deduzir para que $a$, se tinha comprometido. 
+\textbf{Vinculação.} Se Alice encontrasse duas aberturas distintas
+\((x,b)\ne(x',b')\) para o mesmo ponto, obteria
+\[
+ (x-x')G=(b'-b)H.
+\]
+Salvo o caso trivial em que ambas as diferenças são nulas, isso revelaria a
+relação entre \(G\) e \(H\). A vinculação é portanto \emph{computacional}, sob
+a dificuldade do logaritmo discreto; não é «vinculação perfeita». Quem
+conhecesse \(\gamma\) poderia escolher qualquer \(b'\) e calcular
+\(x'=x+(b-b')\gamma\), quebrando-a.
 
-Para atingir privacidade ao nível da teoria da informação, é necessário adicionar um segredo, o {\em factor ofuscante} e um outro gerador \(H\) .
-
-O gerador \(H\) é escolhido, tal que é desconhecido para que valor de \(\gamma\) seja o seguinte :
-
-\begin{align*}
-H = \gamma G
-\end{align*}
-
-A dificuldade do problema do logaritmo discreto, garante que calcular $\gamma$ de $H$ não é fazível.
-\marginnote{src/ringct/ rctTypes.h}
-Em Monero :
-
-\begin{align*}
-H = 8*to\_point(\mathcal{H}_n(G)).
-\end{align*}
-
-Note-se que nenhum moneriano conhece $\gamma$, e se alguêm descobre $\gamma$, então é capaz de forjar xmr ($\gamma$ diz-se: "gama"). Ou seja sabendo $\gamma$ é possivel roubar xmr não existentes nas entradas de transacção.
-
-
-%such that it is unknown for which value of \(\gamma\) the following holds: \(H = \gamma G\). The hardness of the discrete logarithm problem ensures calculating $\gamma$ from $H$ is infeasible.\footnote{In the case of Monero\marginnote{src/ringct/ rctTypes.h}, $H = 8*to\_point(\mathcal{H}_n(G))$. This differs from the $\mathcal{H}_p$ hash function in that it directly interprets the output of $\mathcal{H}_n(G)$ as a compressed point coordinate instead of deriving a curve point mathematically (see \cite{hashtopoint-writeup}). The historical reasons for this discrepancy\marginnote{tests/unit\_ tests/ ringct.cpp {\tt TEST(ringct, HPow2)}} are unknown to us, and indeed this is the only place where $\mathcal{H}_p$ is not used (Bulletproofs also use $\mathcal{H}_p$). Note how there is a $*8$ operation, to ensure the resultant point is in our $l$ subgroup ($\mathcal{H}_p$ also does that).}
-
-%In the case of Monero\marginnote{src/ringct/ rctTypes.h}, $H = \mathcal{H}_p(G)$.\footnote{\label{hashtopoint_note}Monero's unique hash to point function\marginnote{src/ringct/ rctOps.cpp {\tt hash\_to\_p3()}} (see \cite{hashtopoint-writeup}) is used in practice to turn the normal hash of one curve point directly into another curve point. For commitments, $H = hash\_to\_point(\mathit{Keccak}(G))$. }%see rctTypes.h
-
-Define-se um compromisso a um montante $b$, de saída como :
-%In Monero, output amounts are stored in transactions as Pedersen commitments. We define a commitment to an output’s amount $b$ as:
-
-\vspace{.175cm}
-\[C(y,b) = y G + b H\marginnote{src/ringct/ rctOps.cpp {\tt addKeys2()}}\]
-\vspace{.175cm}
-\newline
-Em que $y$ é o {\em factor ofuscante}, que previne a observadores deduzirem $b$.
-
-%We can then define the commitment to a value \(a\) as \(C(x, a) = x G + a H\), where \(x\) is the blinding factor (a.k.a. `mask') that prevents observers from guessing $a$.
-
-O compromisso $C(x, b)$ é privado ao nível da teoria da informação porque existem muitas possíveis combinações de $x$ e $b$ que resultam no mesmo $C(x, b)$.\newline
-Existem muitos $x’$ e $b’$, tal que :
-
-\begin{align*}
-x’ + b’ \gamma = x + b \gamma
-\end{align*}
-
-Quem se compromete conhece uma combinação, mas um atacante é incapaz de saber qual. Se $x$ é verdadeiramente aleatório, um atacante não teria literalmente maneira de descobrir $b$ \cite{maxwell-ct, SCOZZAFAVA1993313}.  
-
-Quem se compromete é incapaz de encontrar uma outra combinação, sem resolver o PLD para $\gamma$, esta propriedade diz-se {\em vínculo perfeito}.  
-%\footnote{Basically, there are many $x’$ and $a’$ such that $x’+a’ \gamma = x+a \gamma$. A committer knows one combination, but an attacker has no way to know which one. This property is also known as `perfect hiding' \cite{adam-zero-to-bulletproofs}. Furthermore, even the committer can't find another combination without solving the DLP for $\gamma$, a property called `computational binding' \cite{adam-zero-to-bulletproofs}.} 
-%If $x$ is truly random, an attacker would have literally no way to figure out $a$ \cite{maxwell-ct, SCOZZAFAVA1993313}.%{https://people.xiph.org/~greg/confidential_values.txt}
+\textbf{Homomorfismo aditivo.} A aritmética dos escalares é módulo~\(l\), e
+\begin{align}
+ C(x,a)+C(y,b)&=C(x+y,a+b),\label{eq:commitment-addition}\\
+ C(x,a)-C(y,b)&=C(x-y,a-b).\label{eq:commitment-subtraction}
+\end{align}
+Isto deixa comparar somas ocultas. Não significa que a igualdade pública de
+dois compromissos revele a igualdade dos montantes: máscaras diferentes podem
+compensar montantes diferentes. Para provar uma relação entre montantes é
+preciso também ligar ou cancelar as máscaras de maneira verificável.
 
 \section{Montantes ocultos}
 \label{sec:pedersen_monero}
 
-Um montante numa saída controlada por um endereço em Monero, está presente de duas formas numa transacção. Primeiro existe como montante oculto, somente visível para o remetente e destinatário. Segundo existe como compromisso de Pedersen, para os mineiros.
+Consideremos a saída \(t\), de montante \(b_t\), enviada a Bob. A Secção
+\ref{sec:one-time-addresses} definiu a derivação partilhada \(\mathcal D_B\)
+e o escalar dependente do índice
+\[
+ h_t=\mathcal H_n\bigl(\mathcal D_B\mathbin\|
+              \operatorname{varint}(t)\bigr).
+\]
+Para um endereço principal ordinário, \(\mathcal D_B=8rK_B^v\) do lado de
+Alice e \(\mathcal D_B=8k_B^vR\) do lado de Bob. Sub-endereços, troco e chaves
+adicionais escolhem a chave pública de transacção apropriada como descrito no
+capítulo anterior; depois de obtido \(h_t\), o tratamento do montante é o
+mesmo.
 
-Antes de mais, os destinatários deviam ser capazes de saber quanto dinheiro está em cada saída que lhes pertence. Ou seja o montante $b$ e o factor ofuscante $y$ têm de ser comunicados ao recipiente.
+A carteira calcula a máscara de compromisso
+\begin{equation}
+ y_t=\mathcal H_n\bigl(
+       \texttt{commitment\_mask}\mathbin\|h_t\bigr)
+ \label{eq:commitment-mask}
+\end{equation}
+e publica o compromisso normal
+\begin{equation}
+ C_t^b=C(y_t,b_t)=y_tG+b_tH.
+ \label{eq:output-commitment}
+\end{equation}
+Aqui \(y_t\) é um escalar, não um ponto. A redução do hash produz a sua
+codificação módulo~\(l\); a construção não rejeita explicitamente a máscara
+nula, cuja ocorrência tem probabilidade desprezável no modelo do hash.
 
-A solução adoptada é um segredo comum tipo Diffie-Hellman $r K_B^v$ que usa a `chave pública de transacção'.
-Para cada transacção de Monero, cada saída $t \in \{0, ..., p-1\}$ tem um {\em factor ofuscante} $y_t$ que remetentes e destinatários podem calcular privadamente. E também um montante $b_t$. \newline
-Enquanto que $y_t$ é um ponto de curva elíptica que ocupa 32 bytes, $b_t$ ocupa somente 8 bytes.  
-\footnote{Esta solução (implementada em v10 do protocolo) substitui um método anterior que usava mais dados, o que fez com que o tipo de transacção mudasse de v3 ({\tt RCTTypeBulletproof}) a v4 ({\tt RCTTypeBulletproof2}). A primeira edição deste relatório discutiu o método v3 \cite{ztm-1}.}\marginnote{src/ringct/ rctOps.cpp {\tt ecdh- Encode()}}[.725cm]
-%This solution (implemented in v10 of the protocol) replaced a previous method that used more data, thereby causing the transaction type to change from v3 ({\tt RCTTypeBulletproof}) to v4 ({\tt RCTTypeBulletproof2}). The first edition of this report discussed the previous method \cite{ztm-1}.}\marginnote{src/ringct/ rctOps.cpp {\tt ecdh- Encode()}}[.725cm]
+O montante propriamente dito cabe em oito bytes. Seja
+\[
+ q_t=\operatorname{primeiros8}\!\left(
+   \mathcal H(\texttt{amount}\mathbin\|h_t)\right).
+\]
+Alice coloca no campo \texttt{ecdhInfo.amount}
+\begin{equation}
+ e_t=\operatorname{LE8}(b_t)\mathbin\oplus q_t,
+ \label{eq:encoded-amount}
+\end{equation}
+onde \(\oplus\) é o XOR da Secção \ref{sec:XOR_section}. Desde o formato
+\texttt{RCTTypeBulletproof2}, incluindo CLSAG e Bulletproof+, só estes oito
+bytes são serializados; a máscara não é transmitida porque ambos os lados a
+recompõem pela
+Equação~\eqref{eq:commitment-mask}. O formato anterior, mais volumoso, guardava
+32 bytes de montante e uma máscara codificada; a versão~10 introduziu a forma
+compacta sob o nome histórico \texttt{RCTTypeBulletproof2}
+\cite{monero-source-v16}.
+\marginnote{src/device/
+device\_ default.cpp,
+{\tt generate\_ output\_ ephemeral\_ keys()};
+src/ringct/
+rctOps.cpp,
+{\tt genCommit- mentMask()} e
+{\tt ecdh- Encode()}}[-6cm]
 
-%The solution adopted is a Diffie-Hellman shared secret $r K_B^v$ using the `transaction public key' (recall Section \ref{sec:multi_out_transactions}). For any given transaction in the blockchain, each of its outputs $t \in \{0, ..., p-1\}$ has a mask $y_t$ that senders and receivers can privately compute, and an {\em amount} stored in the transaction's data. While $y_t$ is an elliptic curve scalar and occupies 32 bytes, $b$ will be restricted to 8 bytes by the range proof so only an 8 byte value needs to be stored.
-%\footnote{As\marginnote{src/crypto- note\_core/ cryptonote\_ tx\_utils.cpp {\tt construct\_ tx\_with\_ tx\_key()} calls {\tt generate\_ output\_ ephemeral\_ keys()}} with the one-time address $K^o$ from Section \ref{sec:one-time-addresses}, the output index $t$ is appended to the shared secret before hashing. This ensures outputs directed to the same address do not have similar masks and {\em amounts}, except with negligible probability. Also like before, the term $r K^v_B$ is multiplied by 8, so it's really $8rK^v_B.$}
-
-\vspace{.175cm}%Under construct_tx_with_tx_key, key_amounts is created with the shared secret r K_B^v concatenated with the index by calling generate_output_ephemeral_keys() which then uses derivation_to_scalar(), then ecdhEncode builds the mask and amount when key_amounts is passed to it with the unmasked mask & amount. After update, ecdhHash and xor8 also play a role.
-\begin{align*}
-  y_t &= \mathcal{H}_n(``factor\ ofuscante",\mathcal{H}_n(r K_B^v, t)) \\
-  \mathit{montante}_t &= b_t \oplus_8 \mathcal{H}_n(``montante”, \mathcal{H}_n(r K_B^v, t))
-\end{align*}
-
-Em que $\oplus_8$ significa a operação XOR (Secção \ref{sec:XOR_section}) entre os primeiros 8 bytes de cada operando.\newline
-
-A remetente alice é capaz de calcular o {\em factor ofuscante} $y_t$ e o $montante_t$ usando a `chave privada de transacção' $r$ e a {\em chave de ver} pública $K_B^v$ do bob. 
-
-O destinatário bob é capaz de calcular o {\em factor ofuscante} $y_t$ usando a `chave pública de transacção' $r G$ e a sua {\em chave de ver} privada $k_B^v$. 
-
-A alice incluí o $\mathit{montante}_t$ oculto, nos dados de transacção, como tal o destinatário bob pode calcular $b_t$ ao executar a operação XOR invertida :
-
-\begin{align*}
-b_t = \mathit{montante}_t \oplus_8 \mathcal{H}_n(``montante”, \mathcal{H}_n(r K_B^v, t))
-\end{align*}
-
-Note-se que o $\mathit{montante}_t$ é o valor $b_t$ encriptado, e seguro em termos da teoria da informação.\newline Neste caso, trata-se de um valor entre 0 e $2^{64}-1$, e para quem não tenha a {\em chave de ver} privada $k_B^v$, não sabe qual desses valores é o verdadeiro. E ter um poder de computação infinito também não serve de algo.   
-
-%Ele pode também verificar que o compromisso $C(y_t, b_t)$, contido nos dados de transacção corresponde ao dado montante.
-
-%Here, $\oplus_8$ means to perform an XOR operation (Section \ref{sec:XOR_section}) between the first 8 bytes of each operand ($b_t$ which is already 8 bytes, and $\mathcal{H}_n(...)$ which is 32 bytes). Recipients can perform the same XOR operation on $\mathit{amount}_t$ to reveal $b_t$.
-
-%The receiver Bob will be able to calculate the blinding factor $y_t$ and the amount $b_t$ using the transaction public key $r G$ and his view key $k_B^v$. He can also check that the commitment $C(y_t, b_t)$ provided in the transaction data, henceforth denoted $C_t^b$, corresponds to the amount at hand.\\
-
-%In Monero, output amounts are stored in transactions as Pedersen commitments.
-%??? se os montantes nas saídas são   
-
-%More generally, any third party with access to Bob’s view key could decrypt his output amounts, and also make sure they agree with their associated commitments.
-
-
+Bob calcula o mesmo \(h_t\), recupera
+\[
+ \operatorname{LE8}(b_t)=e_t\mathbin\oplus q_t
+\]
+e recompõe \(y_t\). A carteira exige que as representações escalares obtidas
+sejam canónicas, que os 24 bytes superiores do montante sejam nulos e que
+\[
+ y_tG+b_tH=C_t^b.
+\]
+Uma chave de vista permite assim detectar a saída, descodificar o montante e
+confirmar a abertura; não permite gastá-la. O XOR não oferece segurança de
+teoria da informação nem autenticação autónoma: a confidencialidade depende
+computacionalmente do segredo partilhado e do hash, enquanto o compromisso
+público fornece a verificação de consistência da abertura.
+\marginnote{src/ringct/
+rctSigs.cpp,
+{\tt decode- Rct()};
+src/ringct/
+rctTypes.h,
+{\tt serialize\_ rctsig\_ base()}}
 
 \section{Introdução a RingCT}
 \label{sec:ringct-introduction}
 
-Primeiro uma transacção contêm como entradas, saídas de outras transacções anteriores. E segundo, as suas próprias saídas.\newline Uma saída de transacção contêm um endereço oculto e um compromisso de saída.
-O endereço oculto serve como propriedade. O compromisso de saída serve para esconder o montante. Quem verifica as transacções não sabe quanto dinheiro está contido nas entradas e nas saídas.\newline\newline
-%A transaction will contain references to other transactions' outputs (telling observers which old outputs are to be spent), and its own outputs. The content of an output includes a one-time address (assigning ownership of the output) and an output commitment hiding the amount (also the encoded output amount from Section \ref{sec:pedersen_monero}).
-{\em Para construír uma transacção é preciso primeiro provar que o montante em cada entrada é igual ao montante da saída anterior correspondente. }
-\newline\newline
-%Para alcançar este objectivo, é utilizada em Monero uma técnica chamada RingCT. 
-%While a transaction's verifiers don’t know how much money is contained in each input and output, they still need to be sure the sum of input amounts equals the sum of output amounts. Monero uses a technique called RingCT \cite{MRL-0005-ringct}, first implemented in January 2017 (v4 of the protocol), to accomplish this.
-%Since commitments are additive and we don't know $\gamma$, we could easily prove our inputs equal outputs to observers by making the sum of commitments to input and output amounts equal zero (i.e. by setting the sum of output blinding factors equal to the sum of old input blinding factors):
-%???
-%\footnote{Recall from Section \ref{elliptic_curves_section} we can subtract a point by inverting its coordinates then adding it. If $P = (x, y)$, $-P = (-x, y)$. Recall also that negations of field elements are calculated$\pmod q$, so $(–x \pmod q)$.}\vspace{.175cm}
-%\[\sum_{j}{C_{j, in}} - \sum_{t}{C_{t, out}} = 0\]
-Seja uma transacção composta por $m$ entradas com montantes \(a_1, ... a_m\), em que $j$ é o indíce de entrada $j\in\{1,... m\}$.
-Cada saída anterior tem como tal o seguinte compromisso ao montante $a$ :\vspace{.175cm}
-\[C^a_{j} = x_j G + a_j H \]
-  
+Uma saída reúne objectos com funções diferentes. A chave de saída de
+utilização única liga a saída à autorização de gasto; \(C_t^b\) oculta o
+montante; e \(e_t\) permite à carteira certa recuperar esse montante. Nenhum
+destes objectos, isoladamente, oferece anonimato completo nem prova que a
+transacção está autorizada.
 
-%To avoid sender identifiability we use a slightly different approach. The amounts being spent correspond to the outputs of previous transactions, which had commitments\vspace{.175cm}
-%\[C^a_{j} = x_j G + a_j H\]
+Suponhamos que a transacção gasta \(m\) saídas anteriores de montantes
+\(a_1,\ldots,a_m\), cria \(p\) saídas de montantes
+\(b_0,\ldots,b_{p-1}\) e declara a taxa pública \(f\). A conservação desejada
+é
+\begin{equation}
+ \sum_{j=1}^{m}a_j=\sum_{t=0}^{p-1}b_t+f.
+ \label{eq:amount-balance}
+\end{equation}
 
-O remetente cria um novo compromisso ao mesmo montante com um factor ofuscante diferente :   
-%The sender can create new commitments to the same amounts but using different blinding factors; that is,
-\[C'^a_{j} = x'_j G + a_j H\]
+O verdadeiro compromisso gasto pela entrada \(j\) tem a forma
+\[
+ C_j^a=x_jG+a_jH.
+\]
+Publicá-lo como a entrada verdadeira denunciaria o membro escolhido no anel.
+Por isso, o remetente cria um \emph{pseudo-compromisso de saída}
+\[
+ \widetilde C_j^a=x'_jG+a_jH.
+\]
+Para o membro verdadeiro,
+\begin{equation}
+ C_j^a-\widetilde C_j^a=(x_j-x'_j)G.
+ \label{eq:pseudo-output-difference}
+\end{equation}
+O Capítulo \ref{chapter:transactions} mostrará como a CLSAG prova, sem revelar
+o membro, conhecimento da chave de gasto e desta diferença de máscaras. Um
+pseudo-compromisso não é, só por ser publicado, uma prova de propriedade ou
+de igualdade de montantes.
 
-Seja $C'^a_j$ um {\em pseudo} compromisso de saída, estes estão incluídos nos dados de transacção. Existe um para cada entrada. 
+Os compromissos das novas saídas são os da
+Equação~\eqref{eq:output-commitment}. Para os primeiros \(m-1\)
+pseudo-compromissos, a implementação escolhe máscaras independentes e
+uniformes em \(\mathbb Z_l^*\). A última é determinada por
+\begin{equation}
+ x'_m=\sum_{t=0}^{p-1}y_t-
+       \sum_{j=1}^{m-1}x'_j\pmod l.
+ \label{eq:last-pseudo-mask}
+\end{equation}
+Logo, \(\sum_jx'_j=\sum_ty_t\), e o verificador testa a equação de pontos
+\begin{equation}
+ \boxed{\displaystyle
+ \sum_{j=1}^{m}\widetilde C_j^a
+   =\sum_{t=0}^{p-1}C_t^b+fH.}
+ \label{eq:commitment-balance}
+\end{equation}
+\marginnote{src/ringct/
+rctSigs.cpp,
+{\tt genRct- Simple()} e
+{\tt verRct- Semantics- Simple()}}[-6cm]
 
-O remetente sabe a chave privada da diferenca entre os dois compromissos :
-%Clearly, she would know the private key of the difference between the two commitments: \vspace{.175cm}
-\[C^a_{j} - C'^a_{j} = x_j G + a_j H - ( x'_j G + a_j H )\]
-\[C^a_{j} - C'^a_{j} = x_j G - x'_j G\]
-\[C^a_{j} - C'^a_{j} = (x_j - x'_j) G\]
+Ao expandi-la, o componente em \(G\) cancela por construção e sobra a
+Equação~\eqref{eq:amount-balance}, interpretada módulo~\(l\). O público vê os
+compromissos e \(f\), mas não as suas aberturas. Esta verificação prova o
+balanço dos compromissos; a CLSAG trata da autorização e da escolha anónima da
+entrada, e as provas de intervalo que se seguem excluem montantes de saída
+modulares ilegítimos.
 
-Esta chave : 
-\[(x_j - x'_j) = z_j\]
-é utilizada como um {\em compromisso a zero }.\newline
-
-Ou seja, para provar que não existe um componente $H$ na soma : 
-
-\[C^a_{j} - C'^a_{j} = z_j G + 0H ,\]
-
-o que implica que os montantes de ambos os compromissos são iguais, faz-se uma assinatura com $z_j$. Isto será feito em maior detalhe no capítulo \ref{chapter:transactions}. 
-
-%Hence, she would be able to use this value as a {\em commitment to zero}, since she can make a signature with the private key $(x_j - x'_j) = z_j$ and prove there is no $H$ component to the sum (assuming $\gamma$ is unknown). In other words prove that $C^a_{j} - C'^a_{j} = z_j G + 0H$, which we will actually do in Chapter \ref{chapter:transactions} when we discuss the structure of RingCT transactions.
-
-%\iffalse
-
-Seja que a mesma transacção tenha $p$ saídas com montantes \(b_1, ..., b_p\).
-O remetente cria então para a sua actual transacção um compromisso de saída, para cada montante $b_t$:
-  
-\[C^b_{t} = y_t G + b_t H \]
-
-É então de esperar que :
-
-\[\sum_{j=1}^{m} a_j - \sum_{t=1}^{p} b_t = 0\]
-
-%If we have a transaction with $m$ inputs containing amounts \(a_1, ..., a_m\), and $p$ outputs with amounts \(b_1, ..., b_{p}\), then an observer would justifiably expect that:\footnote{If the intended total output amount doesn't precisely equal any combination of owned outputs, then transaction authors can add a `change' output sending extra money back to themselves. By analogy to cash, with a 20\$ bill and 15\$ expense you will receive 5\$ back from the cashier.}\vspace{.175cm}
-
-Outra {\em prova necessária} na construção de uma transacção em Monero, é tal que a soma dos pseudo compromissos menos a soma dos compromissos das saídas tem de ser igual a zero. Isto é possível pois os compromissos são {\em additivamente homomórficos} e não se sabe $\gamma$. 
-
-\[\sum_{j=1}^{m}{C'^a_{j}} - \sum_{t=1}^{p}{C^b_{t}} = 0\]
-
-Note-se que os pseudo compromissos e os compromissos das saídas são visíveis ao público, ou seja aos mineiros. Se a equação anterior é igual a zero então os mineiros sabem que a dada transacção não gasta nem mais nem menos do que deve ser. 
-Na realidade, isto só é possível se a transacção não paga nenhuma taxa ao mineiro  (veja-se a secção \ref{sec:commitments-and-fees}).
-
-
-%\fi
-
-%Let us call $C'^a_j$ a {\em pseudo output commitment}. Pseudo output commitments are included in transaction data, and there is one for each input.
-
-Os factores ofuscantes para {\em compromissos de saída } (pseudo e normais), são seleccionados tal que :
-\[\sum_{j=1}^{m} x'_j  - \sum_{t=1}^{p} y_t = 0\]
-Isto permite provar que os montantes de entrada são iguais aos montantes de saída.
-
-%Before committing a transaction to the blockchain, the network will want to verify that its amounts balance. Blinding factors for pseudo and output commitments are selected such that\vspace{.175cm}
-%\[\sum_j x'_j  - \sum_t y_t = 0\]
-
-%This\marginnote{src/ringct/ rctSigs.cpp verRct- Semantics- Simple()} allows us to prove input amounts equal output amounts:\vspace{.175cm}
-%\[(\sum_j C'^a_{j} - \sum_t C^b_{t}) = 0\]
-
-Felizmente, escolher tais factores ofuscantes é fácil. Na versão actual de Monero, todos os factores ofuscantes são aleatórios.
-Excepto o {\em m-ésimo pseudo compromisso de saída}, em que :\marginnote{genRct- Simple()}
-\[x'_m = \sum_{t=1}^{p} y_t - \sum_{j=1}^{m-1} x'_j\]
-
-%Fortunately, choosing such blinding factors is easy. In the current version of Monero, all blinding factors are random except for the $m$\nth pseudo out commitment, where $x'_m$ is simply\marginnote{genRct- Simple()}
-%\[x'_m = \sum_t y_t - \sum_{j=1}^{m-1} x'_j\]
-
-\section{Provas de Domínio}
+\section{Provas de intervalo}
 \label{sec:range_proofs}
 
-Um problema com compromissos additivos é o de valores negativos. Sejam $C(a_1)$, $C(a_2)$, $C(b_1)$, $C(b_2)$ e pretende-se provar que :
-\[(a_1 + a_2) - (b_1 + b_2) = 0\]
-Uma solução é :
-\[a_1 = 6, a_2 = 5, b_1 = 21, and b_2 = -10\]
+A Equação~\eqref{eq:commitment-balance} é uma igualdade no subgrupo de
+ordem~\(l\). Sem outra condição, ela aceita escalares que não são montantes
+Monero. Por exemplo, tomemos entradas de 6 e 5 unidades e saídas formalmente
+iguais a 21 e \(-10\). No corpo escalar,
+\[
+ (6+5)-\bigl(21+(l-10)\bigr)=-l\equiv0\pmod l.
+\]
+Se as máscaras também se cancelassem, a equação de compromissos passaria,
+apesar de \(l-10\) não ser um montante admissível. O problema não é que a curva
+tenha inteiros negativos; é que a mesma classe modular admite representantes
+que dariam a aparência de criar valor.
 
-%One problem with additive commitments is that, if we have commitments $C(a_1)$, $C(a_2)$, $C(b_1)$, and $C(b_2)$ and we intend to use them to prove that $(a_1 + a_2) - (b_1 + b_2) = 0$, then those commitments would still apply if one value in the equation were `negative'.
+Uma prova de intervalo exclui esses representantes modulares. Para cada compromisso de saída
+\(C_t^b\), a afirmação exacta é
+\begin{equation}
+ \exists\,y_t\in\mathbb Z_l,\quad
+ \exists\,b_t\in\{0,\ldots,2^{64}-1\}:
+ \quad C_t^b=y_tG+b_tH.
+ \label{eq:range-statement}
+\end{equation}
+O montante \(b_t\) e a máscara \(y_t\) são as testemunhas privadas; o
+compromisso, os geradores e a prova são públicos. Os extremos são inclusivos:
+há exactamente \(2^{64}\) valores possíveis, todos representáveis nos oito
+bytes usados pela carteira.
 
-%For instance, we could have $a_1 = 6$, $a_2 = 5$, $b_1 = 21$, and $b_2 = -10$.\vspace{.175cm}
-\begin{flalign*}
-    && (6 + 5) - (&21 + -10) = 0&\\
-     \intertext{\quad \quad \quad \quad \quad em que} && 21G + -10G = 21G + (&l-10)G = (l + 11)G = 11G&
-\end{flalign*}
-
-Visto que $-10 = l-10$, efectivamente foram creados $l$ mais Moneroj do que existiam nas entradas (mais de 7.2x10$^{74}$ xmr).
-
-
-%Bulletproofs start here
-A solução para isto é provar que cada montante de saída está dentro de um certo domínio (de 0 a $2^{64}-1$). 
-O esquema de provas que é utilizado chama-se {\em Bulletproofs} (Benedikt B\"{u}nz {\em et al.}\cite{Bulletproofs_paper}).
+Esta prova não identifica o destinatário, não prova propriedade, não autoriza
+o gasto, não impede uma dupla despesa e não verifica por si só o balanço da
+transacção. Prova apenas a relação de intervalo para os compromissos que entram
+no seu traslado. A validação RingCT combina-a depois com a equação de balanço e
+com as assinaturas das entradas.
 
 \section{Assinaturas em anel Borromean}
 \label{sec:borromean}
 
-Seja o seguinte compromisso ao montante $b$ :\vspace{.175cm}
-\[C_{a} = x G + b H \]
-\vspace{.175cm}
+As primeiras transacções RingCT provaram a
+Equação~\eqref{eq:range-statement} com assinaturas em anel Borromean
+\cite{Signatures2015BorromeanRS,MRL-0005-ringct}. Esta construção permanece no
+código para validar a história da lista de blocos, mas deixou de ser permitida
+em novas transacções depois da versão~8 do protocolo. É portanto um formato
+histórico, não a prova usada pela versão~16.
+\marginnote{\scriptsize\raggedright
+src/crypto-\newline
+note\_core/\newline
+blockchain.cpp,\newline
+{\tt check\_tx\_}\newline
+{\tt outputs()};\newline
+src/ringct/\newline
+rctSigs.cpp,\newline
+{\tt proveRange()} e\newline
+{\tt verRange()}}
 
-Primeiro faz-se uma partição aleatória de x tal que :\vspace{.175cm}
-\[x = \sum_{i=0}^{k-1} x_i \]
-\vspace{.175cm}
+Vale a pena perceber a ideia, porque nela se vê directamente o intervalo.
+Escrevemos os 64 bits de \(b\) como
+\[
+ b=\sum_{i=0}^{63}b_i2^i,\qquad b_i\in\{0,1\}.
+\]
+O provador escolhe máscaras \(x_i\in\mathbb Z_l^*\), forma
+\begin{equation}
+ C_i=x_iG+b_i2^iH
+ \label{eq:borromean-bit-commitment}
+\end{equation}
+e obtém
+\begin{equation}
+ C(x,b)=\sum_{i=0}^{63}C_i,\qquad
+ x=\sum_{i=0}^{63}x_i\pmod l.
+ \label{eq:borromean-sum}
+\end{equation}
+Para cada índice, publica-se o anel de dois pontos
+\[
+ \bigl(C_i,\ C_i-2^iH\bigr).
+\]
+Se \(b_i=0\), o provador conhece \(x_i\) tal que \(C_i=x_iG\). Se
+\(b_i=1\), conhece o mesmo \(x_i\) tal que
+\(C_i-2^iH=x_iG\). Uma assinatura em anel esconde qual destes dois casos foi
+usado; a composição Borromean liga os 64 anéis numa só assinatura.
 
-Segundo descreve-se b em termos binários :\vspace{.175cm}
-\[b = \sum_{i=0}^{k-1} b_i 2^i \]
-\vspace{.175cm}
+\textbf{Funciona porque} uma assinatura válida demonstra conhecimento do
+logaritmo discreto, na base \(G\), de um ponto em cada par. Sob a vinculação do
+compromisso e a solidez da assinatura, isso obriga cada \(b_i\) a ser um bit.
+A soma pública dos \(C_i\) liga os 64 bits ao compromisso original, pelo que
+\(0\leq b\leq2^{64}-1\).
 
-O compromisso $C_a$ define-se então como :\vspace{.175cm}
-\[C_{a} = \sum_{i=0}^{k-1} C_{i} = \sum_{i=0}^{k-1} x_i G + b_i 2^i H \]
-\vspace{.175cm}
+As testemunhas privadas são \((b_0,\ldots,b_{63})\) e
+\((x_0,\ldots,x_{63})\). Os dados públicos são \(C\), os 64 pontos \(C_i\),
+os pontos fixos \(2^iH\) e a assinatura. O percurso legado codifica cada ponto
+e escalar em 32 bytes; descodifica os \(C_i\) como pontos canónicos da curva e
+reduz a Keccak--256 a escalares quando encadeia os desafios. Não existe nesse
+percurso um teste autónomo de pertença de cada \(C_i\) ao subgrupo primo, nem
+existe no traslado um prefixo textual de separação de domínio. São regras
+históricas de compatibilidade que não devemos transportar para um protocolo
+novo.
 
-O objectivo aqui é de provar que o compromisso $C_a$ é válido. Mas $C_a$, só por si não prova algo pois é somente um ponto de CE. A prova de domínio advém de que cada $C_i$ satisfaz um certo constrangimento na assinatura to tipo {\em Borromean}. 
-
-Se cada $C_i$ é :
-
-\vspace{.175cm}
-\[C_{i} = x_i G + b_i 2^i H \]
-\vspace{.175cm}
-
-então, se $b_i$ = 1:
-\vspace{.175cm}
-\[x_i G = C_{i} - b_i 2^i H \]
-\vspace{.175cm}
-
-e se $b_i$ = 0 :
-
-\vspace{.175cm}
-\[x_i G = C_{i} \]
-\vspace{.175cm}
-
-Como tal, a chave privada que é usada é o escalar $x_i$, e o seu ponto de CE $x_i G$. 
-Há que provar este contrangimento sem revelar $b_i$. 
-\newpage
-Para isso fixa-se $C_i$ e $C_i - 2^i H$, como argumentos para a prova de domínio.
-
-Seja que $b_i$ = 0, então o caso base é:
-\begin{align*}
-\alpha=r()\\
-\beta_1=r()\\
-\omega = H_s(\alpha G)\\
-\psi_g = \beta_1 G + \omega (\bold{C_i - 2^i H})\\
-\Psi_g = H_s(\psi_g)\\
-\lambda = r()\\
-\beta_0=\alpha-x_i*\lambda\\
-\end{align*}
-
-agora passa-se $\Psi_g$, $\beta_0$, $\beta_1$ e $\lambda$ para o verificador.  
-
-\begin{align*}
-\mu=\beta_0 G + \lambda \bold{C_i}\\
-\mu= (\alpha-x_i*\lambda) G + \lambda \bold{C_i}\\
-\mu= \alpha G-\lambda (x_i G) + \lambda \bold{C_i}\\ 
-\mu= \alpha G\\
-\theta= H_s(\mu)\\
-\psi_c = \beta_1 G + \theta (\bold{C_i - 2^i H})\\
-\Psi_c = H_s(\psi_c)\\
-%eeComp = dumber25519.hash_to_scalar(LC2)
-\end{align*}
-
-Note-se que $\Psi_g$ é igual a $\Psi_c$ e como tal a prova é válida.\newline
-Em que $r()$ é um escalar aleatório no corpo finito $F_p$. E $H_s(\alpha G)$ é um certo escalar aleatório, que resulta do argumento dado á função {\em hash} $H_s(\alpha G)$ (aqui $\alpha G$, $H_s$ aceita qualquer tipo de dados como argumento).   
-O operador binário * é uma multiplicação entre dois escalares no corpo finito $F_p$. E $\alpha G$ por exemplo é adicionar o ponto de CE $G$, consigo próprio $\alpha$ vezes.  
-\newpage
-Seja que $b_i$ = 1, então o caso base é:
-\begin{align*}
-\alpha=r()\\
-\psi_g = \alpha G\\
-\Psi_g = H_s(\psi_g)\\
-\lambda = r()\\
-\beta_0=r()\\
-\phi=\beta_0 G + \lambda \bold{C_i}\\
-\epsilon = H_s(\phi)\\
-\beta_1 = \alpha-x_i*\epsilon\\
-\end{align*}
-
-agora passa-se $\Psi_g$, $\beta_0$, $\beta_1$ e $\lambda$ para o verificador.  
-
-\begin{align*}
-\mu=\beta_0 G + \lambda \bold{C_i}\\
-\theta= H_s(\mu)\\
-\psi_c = \beta_1 G + \theta (\bold{C_i - 2^i H})\\
-\psi_c = (\alpha-x_i*\epsilon) G + \theta (\bold{C_i - 2^i H})\\
-\psi_c = \alpha G - \epsilon(x_i G)
-                  + \theta (\bold{C_i - 2^i H})\\
-\psi_c = \alpha G - H_s(\beta_0 G + \lambda \bold{C_i})(x_i G)\\
-                 + H_s(\beta_0 G + \lambda \bold{C_i})(\bold{C_i - 2^i H})\\
-\psi_c = \alpha G\\ 
-\Psi_c = H_s(\psi_c)\\
-\end{align*}
-
-Note-se que $\Psi_g$ é igual a $\Psi_c$ e como tal a prova é válida.
-
-As provas apresentadas funcionam, porque :
-
-os argumentos precalculados, $C_i - 2^i H$ e $C_i$ só permitem que b seja 1 ou 0.
-Á parte de que a geração de uma assinatura deste tipo só se define para que b seja um bit. Mesmo que o algoritmo seja alterado para tentar fazer assinaturas com outros valores para b, as equações dadas não se resolveriam na parte da verificação.
-Quem verifica sabe de certeza que o provador usou um bit mas não sabe se esse bit tem o valor de 0 ou 1.
-
-Para mais, este caso base cobre todos os índices de um vector de 64 bits.
-visto que a verificação é sempre a mesma :
-\begin{align*}
-\mu=\beta_0 G + \lambda C_i\\
-\theta= H_s(\mu)\\
-\psi_c = \beta_1 G + \theta (C_i - 2^i H)\\
-\Psi_c = H_s(\psi_c)\\
-%eeComp = dumber25519.hash_to_scalar(LC2)
-\end{align*}
-
-O bob podia gerar cada $C_i$ e repetir o processo descrito em cima. A alice para cada $C_i$ gerava $C_i -2^i H$, recebia também os argumentos para cada prova $\Psi_g$, $\beta_0$, $\beta_1$ e $\lambda$, e verificava que a prova é válida.
-A alice sabe portanto que :
-
-\vspace{.175cm}
-\[C_{a} = \sum_{i=0}^{k-1} C_{i} \]
-\vspace{.175cm}
-\newline
-e tem a certeza que b é um vector de 64 bits, ou seja que o montante está dentro do domínio de 0 a $2^{64} -1$. Estas provas constituem uma assinatura em anel, mas não se trata própriamente de um anel, não é um processo circular. Para mais veja-se \cite{DangerousFreedom1984} .\footnote{No código em {\em python}, evita-se enviar $\lambda$, e usa-se $\Psi_g$ como parámetro para a verificação final, bem como variável supostamente aleatória! Ou seja $\Psi_g$ é utilizado para calcular $\Psi_c$ (através de bbs0 e bbs1) como resultado final... O que não deixa de ser elegante! }
-\newline\newline\newline
-É aparente que $2^i$ pode ser qualquer $k_i>0 \in F_p$.
-Seja que :
-\vspace{.175cm}
-\[b = \sum_{i=1}^{m} b_i k_i \]
-\vspace{.175cm}
-\newline
-Os termos de $2^i$ são conhecidos pelo verificador de antemão, como tal não são transmitidos pelo provador. Se fosse $k_i$ em vez de $2^i$, o provador teria de enviar mais $m$ escalares em $F_p$. pois então o constrangimento passaria a ser :
-
-Se cada $C_i$ é :
-
-\vspace{.175cm}
-\[C_{i} = x_i G + b_i k_i H \]
-\vspace{.175cm}
-
-então, se $b_i$ = 1:
-\vspace{.175cm}
-\[x_i G = C_{i} - b_i k_i H \]
-\vspace{.175cm}
-
-e se $b_i$ = 0 :
-
-\vspace{.175cm}
-\[x_i G = C_{i} \]
-\vspace{.175cm}
-
-
-De seguida faz-se exactamente o mesmo processo descrito em cima, e as provas acontecem á mesma. Em termos de $2^i$, com 64 bits o valor máximo é $(2^{64})-1$. Em que cada montante $b$ nesse domínio é equiprovável. Ou seja existem $2^{64}$ combinações distintas possíveis. No caso de serem $m$ escalares, o constrangimento adicional teria de ser válido : 
-
-\[\sum_{i=1}^{m} k_i \leq (2^{64})-1 \]
-
-Se isto não fosse o caso o verificador nem se dava ao trabalho de olhar para as provas. E o número de combinações distintas possíveis seria $2^m$. Se $m=2$, imagine-se $k_1=2$ e $k_2=3$. O bob envia 5 xmr para a alice e quem verifica só sabe que o montante enviado é zero, dois, trés ou cinco. O que seria mau em termos de privacidade. 
+O custo de armazenamento explica a substituição. Para uma única saída, o
+objecto histórico contém 64 pontos \(C_i\), dois vectores de 64 respostas e um
+desafio: \(64+64+64+1=193\) objectos de 32 bytes, isto é, 6176 bytes antes de
+pequenos custos de serialização. Além disso, existe uma prova separada para
+cada saída. As Bulletproofs seguintes comprimem a relação e agregam várias
+saídas.
 
 \section{Bulletproofs}
 \label{sec:bullet_proofs}
@@ -406,38 +360,70 @@ Se isto não fosse o caso o verificador nem se dava ao trabalho de olhar para as
 \centerline{{\it Sou mais rápido quando me mexo.}}
 \centerline{\quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad {\it Sundance}}
 
-\subparagraph{Em português : provas de bala.\newline}
+\subparagraph{Em português: provas de bala.\newline}
 
-Á partida não se percebe sequer como é que alguém chega a descobrir o algoritmo descrito anteriormente, das assinaturas borromeanas. Não se esplica aqui também todos os vectores de ataque contra tais assinaturas ou se as assinaturas borromeanas para o seu custo de comunicação, são as mais compactas. O leitor que pensa portanto como é que se chega a tal coisa? Ou também : "não se pode forjar tais assinaturas?" permanece sem explicação dada. Não só isso mas mais, o que se segue é muito mais complicado e será explicado em termos verbatim. Ou seja quem segue o método consegue compreender o porque dele funcionar, mas não como é que se chega a tal coisa, nem como se forja uma tal prova, ou onde ele poderá falhar se implementada mal.
+À partida nem se percebe como é que alguém chega a descobrir o algoritmo
+anterior, o das assinaturas Borromean. Também não se explicaram todos os
+vectores de ataque contra essas assinaturas, nem se, para o seu custo de
+comunicação, eram a forma mais compacta possível. O leitor que pergunta
+«como é que se chega a tal coisa?» ou «não se pode forjar isto?» ficou sem a
+história da descoberta.
 
-Se v está entre 0 e $2^{64} - 1$  \newline
-Primeiro passa-se v para a sua representação binária :\newline $\underline{a}_L \leftarrow bits$ v \newline
-Ou seja : \newline $v = \langle\underline{a}_L, \underline{2}^n\rangle$ \newline
-em que $\underline{2}^n = \{2^0, 2^1, 2^2, ..., 2^{n-1}\}$
-Depois põe-se dois constrangimentos adicionais :
+O que se segue é ainda mais complicado. Não se promete aqui inventar a prova
+de novo; promete-se algo mais honesto: seguir a bala enquanto ela se mexe,
+passo a passo, até se perceber por que acerta no alvo. Assim se vê por que o
+método funciona, que peças impedem a falsificação e onde uma implementação mal
+feita poderia estragar a magia. Esta é a Bulletproof clássica de Bünz
+\emph{et al.} \cite{Bulletproofs_paper,adam-zero-to-bulletproofs}, apresentada
+primeiro para um único montante. A agregação e a passagem para Bulletproof+
+virão depois; não se atropela esta batalha com a seguinte.
+
+Fixe-se \(n=64\). Se \(v\) está entre \(0\) e \(2^{64}-1\), passa-se primeiro
+\(v\) para a sua representação binária:
+\[
+ \underline{a}_L\leftarrow\operatorname{bits}(v),\qquad
+ v=\langle\underline{a}_L,\underline{2}^{\,n}\rangle,
+ \qquad
+ \underline{2}^{\,n}=(2^0,2^1,\ldots,2^{n-1}).
+\]
+Depois impõem-se dois constrangimentos adicionais:
 \begin{align*}
 v = \langle\underline{a}_L, \underline{2}^n\rangle\\
 \underline{a}_R = \underline{a}_L - \underline{1}\\
-\underline{a}_L \circ \underline{a}_R  = 0
+\underline{a}_L \circ \underline{a}_R  = \underline{0}.
 \end{align*}
 
-Depois faz-se o seguinte :
+O segundo diz que cada coordenada é mesmo um bit:
+\(a_{L,i}(a_{L,i}-1)=0\).
+Agora faz-se o seguinte:
 
 \begin{align*}
 v = \langle\underline{a}_L, \underline{2}^n\rangle\\
 0 = \langle\underline{a}_L - \underline{1} - \underline{a}_R, \underline{y}^n\rangle\\
-0 = \langle\underline{a}_L \circ \underline{a}_R, \underline{y}^n\rangle
+0 = \langle\underline{a}_L \circ \underline{a}_R, \underline{y}^{\,n}\rangle.
 \end{align*}
 
-Note-se que isto são tudo afirmações equivalentes, mas a introdução de $\underline{y}^n$, já é : "excepto uma negligível probabilidade de falhar" (enp).
-Porque $\underline{y}^n = \{y^0, y^1, y^2, ..., y^{n-1}\}$, com qualquer $\underline{c} = \{c_0, c_1, c_2, ...c_{n-1}\}$ (neste caso $\underline{c} = \underline{a}_L - \underline{1} - \underline{a}_R$ ou $\underline{c} = \underline{a}_L \circ \underline{a}_R$) constitui o polinómio : 
+Aqui entra a primeira pequena faísca. As afirmações vectoriais e as duas
+igualdades escalares são equivalentes, excepto com probabilidade negligenciável
+de falhar. Daqui em diante abreviaremos esta ressalva por \emph{enp}: excepto
+com probabilidade negligenciável. Com
+\(\underline{y}^{\,n}=(y^0,y^1,\ldots,y^{n-1})\), qualquer vector
+\(\underline c=(c_0,c_1,\ldots,c_{n-1})\) define o polinómio
 \begin{align*}
-F(y) = c_0 y^0 + c_1 y^1 + c_2 y^2 + ... + c_{n-1} y^{n-1}   
+F(y)=c_0+c_1y+c_2y^2+\cdots+c_{n-1}y^{n-1}.
 \end{align*}
 
-E este polinómio tem no máximo $n - 1$ raízes ($F(y) = 0$). Em que $\underline{c} = \underline{0}$ é uma delas. A probabilidade de um atacante encontrar outro $\underline{c}'$ tal que $F(y) = 0$ é : $n/l$, e como tal negligível.\newline
+Se \(\underline c\ne\underline0\), este polinómio não nulo tem no máximo
+\(n-1\) raízes em \(\mathbb Z_l\). Como o provador já se comprometeu aos
+vectores antes de o traslado produzir \(y\), só pode esperar que o desafio
+calhe numa dessas raízes. Para \(n=64\), são no máximo 63 valores bons entre os
+\(l\) valores possíveis: a probabilidade de uma relação falsa sobreviver é no
+máximo \(63/l<2^{-246}\). É isto que quer dizer \emph{enp}; não é impossível
+por decreto, é tão improvável que se trata como impossível. Se
+\(\underline c=\underline0\), pelo contrário, \(F\) é o polinómio zero e
+aceita todos os \(y\). É precisamente essa a resposta honesta.
 
-Continua-se então a representar o mesmo de outra forma ainda :
+Continua-se a representar a mesma coisa de outra forma:
 
 \begin{align*}
 vz^2 = \langle\underline{a}_L, \underline{2}^n\rangle z^2\\
@@ -445,73 +431,101 @@ vz^2 = \langle\underline{a}_L, \underline{2}^n\rangle z^2\\
 0 = \langle\underline{a}_L \circ \underline{a}_R, \underline{y}^n\rangle
 \end{align*}
 
-o que depois de muita manipulação resulta na seguinte equação em que $\underline{a}_L$ e $\underline{a}_R$ se encontram de lados opostos no produto interno :  \newline
+Depois de muita manipulação, \(\underline a_L\) e \(\underline a_R\) acabam em
+lados opostos do mesmo produto interno:
 
 \begin{equation}
-z^2 v + \delta(y,z) = \langle\underline{a}_L - \underline{1}z, \underline{y}^n \circ (\underline{a}_R + \underline{1}z) + z^2 \underline{2}^n\rangle 
+z^2 v + \delta(y,z) = \langle\underline{a}_L - z\underline{1},
+ \underline{y}^{\,n} \circ (\underline{a}_R + z\underline{1})
+ + z^2 \underline{2}^{\,n}\rangle.
+\label{eq:bp-t0-relation}
 \end{equation}
 
 \begin{align*}
-\delta(y,z) = (z - z^2)  \langle \underline{1}, \underline{y}^n \rangle - z^3 \langle \underline{1}, \underline{2}^n \rangle
+\delta(y,z)=(z-z^2)\langle\underline1,\underline y^{\,n}\rangle
+ -z^3\langle\underline1,\underline2^{\,n}\rangle.
 \end{align*}
 
-Para ver como se chega ás equações anteriores veja-se o apêndice \ref{appendix:nota}. Enfim á primeira vista o que se conseguio até agora foi representar que v está constrangido segundo ás trés regras iniciais, de uma forma altamente elaborada.\newline
-O provador não pode enviar o lado direito da equação (5.1) ao verificador senão este fica a saber os bits de $v$.
+Para ver cada passo até estas equações, veja-se o Apêndice
+\ref{appendix:nota}. À primeira vista, o que se conseguiu foi representar as
+três regras iniciais de uma forma altamente elaborada. Mas já há movimento: os
+64 constrangimentos cabem agora num produto interno. O provador não pode enviar
+os vectores do lado direito da Equação~\eqref{eq:bp-t0-relation}, senão o
+verificador fica a saber os bits de \(v\).
 
-Como tal há que obfuscar $\underline{a}_L$ e $\underline{a}_R$ :\newline
+Há portanto que ofuscar \(\underline a_L\) e \(\underline a_R\). Por agora,
+\(x\) é a indeterminada formal do polinómio; só depois de \(T_1,T_2\) entrarem
+no traslado se tornará no desafio concreto:
 
-$(\underline{a}_L + \underline{\dot{s}}_L ) - \underline{1}z\enspace *^5\\
-\underline{y}^n \circ ((\underline{a}_R + \underline{\dot{s}}_R) + \underline{1}z) + z^2 \underline{2}^n\enspace *^6$
+\[
+(\underline{a}_L+x\underline{\dot{s}}_L)-z\underline1
+\quad *^5
+\]
+\[
+\underline{y}^{\,n}\circ
+(\underline{a}_R+x\underline{\dot{s}}_R+z\underline1)
++z^2\underline{2}^{\,n}
+\quad *^6 .
+\]
 
 
-Note-se que o que se alcanço agora foi algo diferente, tanto que : 
+Note-se que se alcançou agora um polinómio diferente. Em geral,
 
 \begin{align*}
-z^2 v + \delta(y,z) \neq \langle(\underline{a}_L + \underline{\dot{s}}_L) - \underline{1}z, \underline{y}^n \circ ((\underline{a}_R + \underline{\dot{s}}_R) + \underline{1}z) + z^2 \underline{2}^n\rangle 
+z^2v+\delta(y,z)\not\equiv
+\langle\underline a_L+x\underline{\dot s}_L-z\underline1,\,
+\underline y^{\,n}\circ
+(\underline a_R+x\underline{\dot s}_R+z\underline1)
++z^2\underline2^{\,n}\rangle .
 \end{align*}
-\newline
-Define-se então o conseguido anteriormente como : \newline
+\medskip
+Define-se então o que já se tinha conseguido como
 $\underline{l}_0 = \underline{a}_L - \underline{1}z\\
 \underline{r}_0 = \underline{y}^n \circ (\underline{a}_R + \underline{1}z) + z^2 \underline{2}^n$
 
-ou seja :
+ou seja:
 \begin{align*}
 z^2 v + \delta(y,z) = \langle \underline{l}_0, \underline{r}_0 \rangle = t_0
 \end{align*}
 
-e também os factores obfuscantes : \newline
+e os factores ofuscantes como
 $\underline{l}_1 = \underline{\dot{s}}_L\\
 \underline{r}_1 = \underline{y}^n \circ \underline{\dot{s}}_R$
 
-força-se então novas igualdades : $*^2$$*^3$ \newline
+Forçam-se então novas igualdades: \( *^2,*^3 \)
 $\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x\\
 \underline{r}(x) = \underline{r}_0 + \underline{r}_1 x$
 
-Finalmente : $*^4$
+Finalmente: \( *^4 \)
 \begin{align*}
 t(x) = \langle \underline{l}(x), \underline{r}(x)\rangle = t_0 + t_1 x + t_2 x^2
 \end{align*}
 
-O que se obtêm como tal, é um polinómio que em $t_0$ se compromete a $V$. O que o provador faz é enviar um número de variáveis ao verificador, que fazem parte de um circuito aritmético. Em que o conjunto dessas variáveis, nesse sistema, implica que $v$ satisfaz a condição do domínio requerido.\newline
+Obtém-se assim um polinómio cujo termo constante
+\(t_0=z^2v+\delta(y,z)\) está ligado ao compromisso \(V\). O provador enviará
+compromissos e respostas que formam um circuito aritmético: em conjunto, eles
+obrigam \(v\) a satisfazer o domínio requerido sem mostrar os seus bits.
 
-calculam-se também os coefficientes de t(x): $*^1$
+Calculam-se também os coeficientes de \(t(x)\): \( *^1 \)
 \[t(x) = \langle (\underline{l}_0 + \underline{l}_1 x), (\underline{r}_0 + \underline{r}_1 x) \rangle = \langle \underline{l}_0, \underline{r}_0 \rangle + \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle + \langle \underline{l}_1 x, \underline{r}_1 x \rangle\]
-\newline
+\medskip
 $t_0 = \langle \underline{l}_0, \underline{r}_0 \rangle\\
 t_1 x = \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle = \langle \underline{l}_0, \underline{r}_1 \rangle x + \langle \underline{l}_1, \underline{r}_0 \rangle x = (\langle \underline{l}_0, \underline{r}_1 \rangle + \langle \underline{l}_1, \underline{r}_0 \rangle ) x\\
 t_2 x^2 = \langle \underline{l}_1, \underline{r}_1 \rangle x^2$
 
 \newpage
+\begingroup
+\raggedright
 $G$, $H$, $\underline{G}$, $\underline{H}$ \hspace*{\fill} \ce{^{0}_{\ }\bot[init]} \newline
 $V = \gamma G + v H$ \hspace*{\fill} \ce{^{1}_{\ }\bot_U(V)} \newline
-$\underline{a}_L \leftarrow bits$ v \newline
-$\underline{a}_R = \underline{a}_L - \underline{1}$ \newline 
+$\underline{a}_L \leftarrow \operatorname{bits}(v)$ \newline
+$\underline{a}_R = \underline{a}_L - \underline{1}$ \newline
 $\dot{\alpha} \leftarrow R()$ \newline
-$A = \langle\underline{G},\underline{a}_L\rangle + \langle\underline{H},\underline{a}_R\rangle + \alpha G \hspace*{\fill}\ce{^{2}_{\ }\bot_U(A)}$ \newline
+$A = \langle\underline{a}_L,\underline{G}\rangle + \langle\underline{a}_R,\underline{H}\rangle + \dot{\alpha} G \hspace*{\fill}\ce{^{2}_{\ }\bot_U(A)}$ \newline
 $\dot{\rho} \leftarrow R()$ \newline
 $\underline{\dot{s}}_L \leftarrow R()$ \newline
 $\underline{\dot{s}}_R \leftarrow R()$ \newline
-$S = \langle\underline{G},\underline{\dot{s}}_L\rangle + \langle\underline{H},\underline{\dot{s}}_R\rangle + \dot{\rho} G$\hspace*{\fill} \ce{^{3}_{\ }\bot_U(S)} \newline
+$S = \langle\underline{\dot{s}}_L,\underline{G}\rangle + \langle\underline{\dot{s}}_R,\underline{H}\rangle + \dot{\rho} G$\hspace*{\fill} \ce{^{3}_{\ }\bot_U(S)} \newline
 $y\leftarrow \ce{^{4}_{\ }\bot_C()}$, $y^{-1}$ \newline
 $z\leftarrow \ce{^{5}_{\ }\bot_C()}$
 \begin{align*}
@@ -528,20 +542,54 @@ $\mu = x\dot{\rho} + \dot{\alpha}$ \hspace*{\fill}$\ce{^{10}_{\ }\bot_U(\mu)}$ \
 (\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x)*^2\\
 (\underline{r}(x) = \underline{r}_0 + \underline{r}_1 x)*^3
 \end{align*}
-\newline
+\medskip
 \begin{align*}
-t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle = (t_0 + t_1 x + t_2 x^2)*^4 
+t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle = (t_0 + t_1 x + t_2 x^2)*^4
 \end{align*}\hspace*{\fill} $\ce{^{11}_{\ }\bot_U(t(x))}$ \newline
 $x_{ip}\leftarrow \ce{^{12}_{\ }\bot_C()}$\newline
 $U = x_{ip} H$\newline\newline\newline
-IP\leftarrow $\{\underline{G}$, $\underline{H'}$, $U$, $\underline{l}(x)$, $\underline{r}(x)\}$ 
+$IP \leftarrow \{\underline{G}, \underline{H'}, U, \underline{l}(x), \underline{r}(x)\}$
+\par
+\endgroup
 
-o símbolo $\bot$ significa um traslado. Ou seja durante este processo sequencial, este traslado devolve hashes. Estas por sua vez são transformadas em escalares ou pontos de CE. Em que $\bot_U()$ é renovar o estado do traslado e $\bot_C()$ devolve um desafio. O $j$ em $\ce{^{j}_{\ }\bot}$ marca o estado do traslado, como base, no tempo. Vectores são sublinhados como 
-$\underline{a}$ para escalares ou $\underline{G}$ para pontos de CE. Para simbolizar variáveis livres usa-se um ponto, acima da letra($\dot{\alpha}$, $\dot{S}}_L$, ...), que recebe um escalar ou ponto de CE aleatório da função R(). Estes valores como sendo livres, têm que ser enviados para o verificador. Ao invés de variáveis como $\underline{G}$, que apesar de serem aleatórias, são valores públicos e bem definidos, e como tal podem e são precalculados pelo verificador de forma independente. Note-se que os vectores têm sempre 64 bits. O protocolo do produto interno, IP, reduz o tamanho dos vectores 
-á ordem de $\log_2(64)$. E para isso acontecer, o provador constroi os seguintes circuitos aritméticos, em que o primeiro trata do lado esquerdo da equação (5.1) e o segundo do lado direito :
+O símbolo \(\bot\) é o traslado: a memória sequencial da conversa. O operador
+\(\bot_U(\cdot)\) absorve uma mensagem e renova o estado; \(\bot_C()\) extrai
+desse estado um desafio escalar e substitui o estado por esse desafio. Assim,
+duas chamadas consecutivas fazem avançar o traslado em vez de devolverem o
+mesmo escalar. O \(j\) em \(\ce{^{j}_{\ }\bot}\) marca o instante do traslado,
+para que provador e verificador voltem a colher o mesmo desafio sem o terem
+combinado fora da prova.
 
-\newline
+O diagrama mostra a ordem pedagógica das dependências, não os limites exactos
+das concatenações na implementação histórica de Monero. Escrevendo
+\(\mathcal H_n\) para Keccak--256 seguido de redução módulo \(l\), essa
+implementação calcula
+\begin{align*}
+ h_0&=\mathcal H_n(V_0\mathbin\|\cdots\mathbin\|V_{p-1}),\\
+ y&=\mathcal H_n(h_0\mathbin\|A\mathbin\|S),&
+ z&=\mathcal H_n(y),\\
+ x&=\mathcal H_n(z\mathbin\|z\mathbin\|T_1\mathbin\|T_2),\\
+ x_{ip}&=\mathcal H_n(x\mathbin\|x\mathbin\|\tau_x\mathbin\|\mu
+                     \mathbin\|t),\\
+ w_j&=\mathcal H_n(w_{j-1}\mathbin\|L_j\mathbin\|R_j),&w_0&=x_{ip}.
+\end{align*}
+Nestes hashes, \(V_j=8^{-1}C_j\) é a representação interna reconstruída a
+partir do compromisso normal \(C_j\); nas equações algébricas, \(V\) continua a
+designar o ponto matemático já restaurado.
 
+Vectores são sublinhados: \(\underline a\) contém escalares e
+\(\underline G\) pontos da curva elíptica. Um ponto sobre uma letra, como em
+\(\dot\alpha\) ou \(\underline{\dot s}_L\), marca aqui aleatoriedade fresca
+escolhida por \(R()\). Esses segredos não são necessariamente enviados; aparecem
+escondidos nos compromissos e combinados nas respostas. Já
+\(\underline G,\underline H\) são geradores públicos determinísticos, que o
+verificador pode obter sozinho. Nesta apresentação de uma saída, cada vector
+tem 64 elementos. O argumento de produto interno reduzirá essa dimensão a 1 em
+\(\log_2 64=6\) dobras.
+
+Antes das dobras, o provador constrói os dois circuitos aritméticos seguintes.
+O primeiro amarra o valor à Equação~\eqref{eq:bp-t0-relation}; o segundo amarra
+os vectores sem os revelar:
 \newcommand{\verteq}{\rotatebox{90}{$\,$}}
 \newcommand{\verteqq}{\rotatebox{90}{$\,=$}}
 \newcommand{\equalto}[2]{\underset{\scriptstyle\overset{\mkern4mu\verteq}{#2}}{#1}}
@@ -549,312 +597,996 @@ $\underline{a}$ para escalares ou $\underline{G}$ para pontos de CE. Para simbol
 
 $\equalto{t(x) H}{+} = \equalto{z^2 v H}{+} + \equalto{\delta(y,z) H}{+} + \equalto{t_1 x H}{+} + \equalto{t_2 x^2 H}{+}$
 
-$\equaltoo{\enspace\dot{\tau}_x G}{\ }  \enspace\enspace= \equaltoo{\gamma z^2 G}{\ }\enspace + \equaltoo{0G}{\ }\quad +\enspace \equaltoo{\dot{\tau}_1 x G}{\ } + \equaltoo{\dot{\tau}_2 x^2 G}{\ }$
+$\equaltoo{\enspace\tau_x G}{\ }  \enspace\enspace= \equaltoo{\gamma z^2 G}{\ }\enspace + \equaltoo{0G}{\ }\quad +\enspace \equaltoo{\dot{\tau}_1 x G}{\ } + \equaltoo{\dot{\tau}_2 x^2 G}{\ }$
 
 $\quad\quad\quad = \underbrace{z^2 V + \delta(y, z) H}_{\text{público}} \enspace+ x T_1 +\enspace x^2 T_2$
 
-\newline
+\medskip
+As mentes ávidas dizem logo: «Ah e tal, mas \(T_1\) e \(T_2\) podiam ser
+qualquer coisa; há ali variáveis aleatórias por todo o lado. Como é que isto
+diz alguma coisa sobre \(v\)?» A resposta está no movimento. \(T_1\) e \(T_2\)
+comprometem o provador aos coeficientes \(t_1,t_2\) antes de o traslado lançar
+\(x\). Depois, uma única avaliação tem de satisfazer simultaneamente
+\(t(x)=\langle\underline l(x),\underline r(x)\rangle\) e a equação do
+compromisso de valor. Os factores aleatórios escondem \(t_0\), e portanto \(v\),
+do verificador; não dão ao provador liberdade para mudar o polinómio depois de
+ver \(x\). Aqui «público» significa a estrutura formal: \(y,z,x\) são
+recompostos pelo verificador a partir do mesmo traslado.
 
-As mentes ávidas ao lerem isto dizem logo :"Ah e tal mas $T_1$ e $T_2$ pode ser qualquer coisa, até porque está ali o $\dot{\tau}_x$, isso são tudo variáveis aleatórias... Como é que isso tem alguma expressão sobre $v$?"$\enspace$ Primeiro t(x) não pode ser directamente igual a $t_0$, pois como $z^2$ e $\delta(y, z)$ são públicos, o verificador conseguiria extraír $v$. Assim $t_1$ e $t_2$ são factores ofuscantes estruturados para manter t(x) secreto ao provador. Mais adiante na altura da $\it{execução}$, irá ser necessário que $t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle$, mais uma razão para que t(x) não possa ser só igual a $t_0$. O que torna $T_1$ e $T_2$ necessários ao circuito. Aqui "público" significa a estrutura formal, y e z têm de ser extraídos do traslado pelo verificador.
+\medskip
+$\equalto{\langle \underline{l}(x),\underline{G}\rangle}{+} = \enspace\equalto{\langle\underline{a}_L,\underline{G}\rangle}{+} + \enspace\enspace\equalto{x\langle\underline{\dot{s}}_L,\underline{G}\rangle}{+} + \quad\equalto{\langle -z\underline{1},\underline{G}\rangle}{+}$  $*^5$
 
-\newline
+$\equalto{\langle \underline{r}(x),\underline{H'}\rangle}{+}  = \equalto{\langle\underline{a}_R,\underline{H}\rangle}{+} + \equalto{x\langle\underline{\dot{s}}_R,\underline{H}\rangle}{+} + \equaltoo{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle}{\ }$  $*^6$
 
-$\equalto{\langle \underline{l}(x),\underline{G}\rangle}{+} = \enspace\equalto{\langle\underline{G},\underline{a}_L\rangle}{+} + \enspace\enspace\equalto{\langle\underline{G},\underline{\dot{s}}_L\rangle}{+} + \quad\equalto{\langle -z\underline{1},\underline{G}\rangle}{+}$  $*^5$
-
-$\equalto{\langle \underline{r}(x),\underline{H'}\rangle}{+}  = \equalto{\langle\underline{H},\underline{a}_R\rangle}{+} + \equalto{x\langle\underline{H},\underline{\dot{s}}_R\rangle}{+} + \equaltoo{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle}{\ }$  $*^6$ 
-
-$\equaltoo{\quad\mu G}{\ } \quad\quad= \enspace\enspace \equaltoo{\dot{\alpha} G}{\ } \quad +\quad \equaltoo{x \dot{\rho} G}{\ }$ 
+$\equaltoo{\quad\mu G}{\ } \quad\quad= \enspace\enspace \equaltoo{\dot{\alpha} G}{\ } \quad +\quad \equaltoo{x \dot{\rho} G}{\ }$
 
 $\quad\quad\quad\quad\enspace=\enspace\enspace\enspace A \quad\quad+\quad x S \quad+\quad \underbrace{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle}_{\text{público}}$
 
-\newline
+\medskip
 
+Em que
+\[
+\underline{H'}=\underline y^{-n}\circ\underline H
+\quad\Longleftrightarrow\quad
+\underline H=\underline y^{\,n}\circ\underline{H'}.
+\]
+Esta é uma das partes mais elegantes. Quando se compromete a
+\(\underline a_R\) e \(\underline{\dot s}_R\), o provador ainda não possui
+\(\underline y^{\,n}\): \(y\) só nasce depois do compromisso \(S\). A troca
+para \(\underline{H'}\) introduz depois essas potências de forma implícita.
+Aquilo que parecia chegar tarde entra no circuito pela mudança dos geradores.
 
-Em que $\underline{H'} = \underline{y}^{-n}\circ\underline{H} \leftrightarrow \underline{H} = \underline{y}^{n}\circ\underline{H'}$\newline
-Esta é uma das partes mais elegantes, o provador não possui $\underline{y}^{n}$ á sua disposição para inserir no circuito aritmético. Portanto usa $\underline{H'}$ para fazer os compromissos de forma implícita/indirecta! Ou seja o provador tem de inserir $\underline{y}^{n}$ contra $\underline{a}_R$ e $\underline{\dot{s}}_R$, só que por causa da forma como o metodo é implementado nessa altura da comunicação entre provador e verificador, $\underline{y}^{n}$ ainda não existia para o provador, veja-se na página anterior como $y$ só existe depois do compromisso a $S$ ... 
-
-Imagine-se que o provador envia :
+Imagine-se que o provador envia:
 
 $t(x)$, $\tau_x$, $\underline{l}(x)$,$\underline{r}(x)$, $\mu$, $T_1$, $T_2$, $A$, $S$
 
-ao verificador. Note-se que o verificador só através de $\underline{l}(x)$ e $\underline{r}(x)$ não consegue extraír $t_0$, por causa dos factores ofuscantes $\underline{\dot{s}}_L$ e $\underline{\dot{s}}_R$.  
+ao verificador. Mesmo recebendo \(\underline l(x)\) e \(\underline r(x)\), ele
+não conseguiria extrair \(t_0\), por causa dos factores ofuscantes
+\(\underline{\dot s}_L\) e \(\underline{\dot s}_R\). Já a seguir nem esses
+dois vectores terão de atravessar a rede.
 
 \subsection{Verificação}
 \label{sec:bullet_ver}
 
-Agora se o verificador receber as duas equações anteriores, ele consegue provar que V está no domínio requerido. Mas por agora ainda estamos numa comunicação com dois vectores de 64 bits, $\underline{l}(x)$ e $\underline{r}(x)$ : \newline
+Se recebesse simplesmente os dois vectores de 64 elementos, o verificador já
+conseguiria conferir os dois circuitos. Mas não saltemos por cima da ponte:
+são mesmo \emph{duas} igualdades.
 
-
-$t(x) H + \tau_x G + \langle \underline{l}(x),\underline{G}\rangle + \langle \underline{r}(x),\underline{H'}\rangle + \mu G=\\= z^2 V + \delta(y, z) H \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle$
-\newline\newline
-a sorte é que :
+Do primeiro circuito, o compromisso ao valor, vem
 \begin{equation}
-\langle \underline{l}(x),\underline{G}\rangle + \langle \underline{r}(x),\underline{H'}\rangle + \langle \underline{l}(x), \underline{r}(x)\rangle U = P_0 - \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
+t(x)H+\tau_xG
+=z^2V+\delta(y,z)H+xT_1+x^2T_2.
+\label{eq:bp-value-check}
 \end{equation}
-\newline\hspace*{\fill} em que o $k=\log_{2}64=6$
+Do segundo circuito, o compromisso aos dois vectores, vem
+\begin{equation}
+\begin{split}
+&\langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+\mu G\\
+&\qquad=A+xS+
+ \langle z\underline y^{\,n}+z^2\underline2^{\,n},\underline{H'}\rangle+
+ \langle-z\underline1,\underline G\rangle.
+\end{split}
+\label{eq:bp-vector-check}
+\end{equation}
 
-o que depois implica :
-
-$t(x) H + \tau_x G + P_0 - \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k  + \mu G=\\= \langle \underline{l}(x), \underline{r}(x)\rangle U + z^2 V + \delta(y, z) H \enspace+ x T_1 +\enspace x^2 T_2 + A + x{S} + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle$
-
-o provador aproveita o facto de que :
-
+A regra é escolar: se \(a=b\) e \(c=d\), então \(a+c=b+d\). Somando os lados
+esquerdos das duas igualdades, e fazendo o mesmo aos lados direitos, obtemos
 \begin{align*}
-t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle
+&t(x)H+\tau_xG+
+ \langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+\mu G\\
+={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
 \end{align*}
-e só envia t(x) :\newline
+Esta linha é simplesmente a soma das Equações~\eqref{eq:bp-value-check} e
+\eqref{eq:bp-vector-check}. Mas enviar
+\(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
 
+\medskip
+\noindent\emph{A sorte é que:} há uma porta mais estreita.
+
+Depois de \(t(x)\) entrar no traslado, ambos os lados extraem \(x_{ip}\) e
+calculam \(U=x_{ip}H\). A construção do polinómio dá então a seta decisiva:
+\[
+t(x)=\langle\underline l(x),\underline r(x)\rangle
+\quad\overset{\times U}{\Longrightarrow}\quad
+\underbrace{\langle\underline l(x),\underline r(x)\rangle U}
+            _{\text{vectores}}
+=\underbrace{t(x)U}_{\text{escalar}}.
+\]
+Acrescentemos esse mesmo ponto aos dois lados da igualdade grande:
+\begin{align*}
+&t(x)H+\tau_xG+
+ \underbrace{\langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+
+ \langle\underline l(x),\underline r(x)\rangle U}_{P_k}
+ +\mu G\\
+={}&t(x)U+z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\end{align*}
+
+Ponhamos \(k=\log_2 64=6\). O argumento de produto interno dobra o termo sob a
+chaveta até restarem os escalares \(a,b\):
+\begin{equation}
+\begin{split}
+P_k={}&\langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle+
+ \langle\underline l(x),\underline r(x)\rangle U\\
+={}&P_0-\sum_{j=1}^{k}
+ \left(u_j^2L_j+u_j^{-2}R_j\right).
+\end{split}
+\label{eq:bp-ip-recursion}
+\end{equation}
+Substituir a chaveta \(P_k\) por esta expressão dá finalmente
+\begin{align*}
+&t(x)H+\tau_xG+P_0
+ -\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right)+\mu G\\
+={}&t(x)U+z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\end{align*}
 \marginnote{pow!}
-$t(x) H + \bold{\tau}_x G + P_0 - \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k + \mu G=\\= t(x) U + z^2 V + \delta(y, z) H \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle$
-$\hspace*{\fill} \blacksquare$
 
-ou seja nem sequer se enviam os $u_{j}^{-2}$ nem os $u_{j}^{2}$.
+Nem os \(u_j\) atravessam a rede: ambos os lados os colhem do traslado. Para
+uma saída enviam-se \(2\cdot6+9=21\) objectos de 32 bytes:
+\[
+ t(x),\tau_x,a,b,\mu,T_1,T_2,A,S,\quad
+ L_1,\ldots,L_6,\quad R_1,\ldots,R_6.
+\]
+São 672 bytes, antes dos pequenos prefixos de serialização, em vez dos 6176
+bytes da prova Borromean de uma saída. É aqui que a bala começa realmente a
+ganhar velocidade.
 
-o que para o custo de comunicação ainda é melhor, enviam-se então 2*6 + 9, escalares e pontos de CE:
-
-$t(x)$, $\tau_x$, $a$, $b$, $\mu$, $T_1$, $T_2$, $A$, $S$, $L_{1,2,3,...6}$ e $R_{1,2,3,...6}$ 
-
-
-Em vez de 2*64 pelo menos, como nas assinaturas borromeanas. 
 \newpage
-\subsubsection{mais detalhes do provador}
+\subsubsection{Mais detalhes do provador}
 \label{sec:bullet_detalhes}
 
-Aqui continua o processo do provador, no protocolo do produto interno IP. Têm-se que $P_k$ é o argumento de começo para o protocolo :\newline
-$P_k = \langle \underline{l}_k(x),\underline{G}_k\rangle + \langle \underline{r}_k(x),\underline{H'}_k\rangle + \langle \underline{l}_k(x), \underline{r}_k(x)\rangle U$
+Aqui continua o processo do provador no protocolo do produto interno IP.
+Começa-se com vectores de dimensão \(2^k\), onde \(k=6\), e com
+\[
+ P_k=\langle\underline l_k(x),\underline G_k\rangle+
+     \langle\underline r_k(x),\underline{H'}_k\rangle+
+     \langle\underline l_k(x),\underline r_k(x)\rangle U.
+\]
 
-Aqui $isto^{\rightarrow}$ significa do início do vector até metade, e $isto^{\leftarrow}$ significa do fim do vector até metade.
-
-Enquanto $k>1$\newline
-$L_k = \langle \underline{l}^{\rightarrow}_{k}(x),\underline{G}^{\leftarrow}_{k}\rangle + \langle \underline{r}^{\leftarrow}_{k}(x),\underline{H'}^{\rightarrow}_{k}\rangle + \langle \underline{l}^{\rightarrow}_{k}(x), \underline{r}^{\leftarrow}_{k}(x)\rangle U$
-
-$R_k = \langle \underline{l}^{\leftarrow}_{k}(x),\underline{G}^{\rightarrow}_{k}\rangle + \langle \underline{r}^{\rightarrow}_{k}(x),\underline{H'}^{\leftarrow}_{k}\rangle + \langle \underline{l}^{\leftarrow}_{k}(x), \underline{r}^{\rightarrow}_{k}(x)\rangle U$
-
-\hspace*{\fill} $\ce{^{13}_{\ }\bot_U(L_k)}$ \newline
-\hspace*{\fill} $\ce{^{14}_{\ }\bot_U(R_k)}$ \newline
-$u_{k}\leftarrow \ce{^{15}_{\ }\bot_C()}$\newline
-
+Aqui \(isto^{\rightarrow}\) significa a primeira metade do vector e
+\(isto^{\leftarrow}\) a segunda. Enquanto \(k>0\), o provador cruza as metades:
 \begin{align*}
-\underline{l}_{k-1}(x) = u_{k} \underline{l}_{k}^{\rightarrow}(x) + u^{-1}_{k} \underline{l}_{k}^{\leftarrow}(x)\\
-\underline{r}_{k-1}(x) = u^{-1}_{k} \underline{r}_{k}^{\rightarrow}(x) + u_{k} \underline{r}_{k}^{\leftarrow}(x)\\
-\underline{G}_{k-1} = u^{-1}_{k} \underline{G}_{k}^{\rightarrow} + u_{k} \underline{G}_{k}^{\leftarrow}\\
-\underline{H'}_{k-1} = u_{k} \underline{H'}_{k}^{\rightarrow} + u^{-1}_{k} \underline{H'}_{k}^{\leftarrow}\\
+L_k={}&
+ \langle\underline l_k^{\rightarrow}(x),\underline G_k^{\leftarrow}\rangle+
+ \langle\underline r_k^{\leftarrow}(x),\underline{H'}_k^{\rightarrow}\rangle+
+ \langle\underline l_k^{\rightarrow}(x),
+        \underline r_k^{\leftarrow}(x)\rangle U,\\
+R_k={}&
+ \langle\underline l_k^{\leftarrow}(x),\underline G_k^{\rightarrow}\rangle+
+ \langle\underline r_k^{\rightarrow}(x),\underline{H'}_k^{\leftarrow}\rangle+
+ \langle\underline l_k^{\leftarrow}(x),
+        \underline r_k^{\rightarrow}(x)\rangle U.
 \end{align*}
-$k=k/2$
+\begingroup
+\raggedright
+\hspace*{\fill}\(\ce{^{13}_{\ }\bot_U(L_k)}\)\newline
+\hspace*{\fill}\(\ce{^{14}_{\ }\bot_U(R_k)}\)\newline
+\par
+\endgroup
+\[
+ u_k\leftarrow\ce{^{15}_{\ }\bot_C()},\qquad u_k\in\mathbb Z_l^*.
+\]
+Os números 13, 14 e 15 marcam apenas a primeira ronda. Na ronda seguinte o
+traslado continua a contar; não recomeça. Se algum desafio for zero, não existe
+\(u_k^{-1}\): o provador recomeça e o verificador rejeita.
 
-se $k=1$ devolve-se $a$ e $b$.
-
-Em que o 13 em $\ce{^{13}_{\ }\bot_U()}$ marca só a primeira ronda. O verificador não se irá perder, e no passo n° 13 do seu traslado, irá colher o mesmo. Passamos agora á magia em volta de $P_k$. Primeiro é notável como os $u_{j}$'s podem ser quaisquer valores em $F_p$. Para chegar a $P_k$, começa-se a partir de  $P_{k-1}$:\newline  
-$
-P_{k-1} = \langle \underline{l}_{k-1}(x),\underline{G}_{k-1}\rangle + \langle \underline{r}_{k-1}(x),\underline{H'}_{k-1}\rangle + \langle \underline{l}_{k-1}(x), \underline{r}_{k-1}(x)\rangle U
-$
-
+Agora dobram-se testemunhas e geradores:
 \begin{align*}
-P_{k-1} = \langle u_{k} \underline{l}_{k}^{\rightarrow}(x) + u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{G}_{k}^{\rightarrow} + u_{k} \underline{G}_{k}^{\leftarrow}\rangle +\\ \langle u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x) + u_{k} \underline{r}_{k}^{\leftarrow}(x), u_{k} \underline{H'}_{k}^{\rightarrow} + u_{k}^{-1} \underline{H'}_{k}^{\leftarrow}\rangle +\\\langle u_{k} \underline{l}_{k}^{\rightarrow}(x) + u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x) + u_{k} \underline{r}_{k}^{\leftarrow}(x)\rangle U
+\underline l_{k-1}(x)
+ &=u_k\underline l_k^{\rightarrow}(x)
+   +u_k^{-1}\underline l_k^{\leftarrow}(x),\\
+\underline r_{k-1}(x)
+ &=u_k^{-1}\underline r_k^{\rightarrow}(x)
+   +u_k\underline r_k^{\leftarrow}(x),\\
+\underline G_{k-1}
+ &=u_k^{-1}\underline G_k^{\rightarrow}
+   +u_k\underline G_k^{\leftarrow},\\
+\underline{H'}_{k-1}
+ &=u_k\underline{H'}_k^{\rightarrow}
+   +u_k^{-1}\underline{H'}_k^{\leftarrow}.
 \end{align*}
-\newline
+Depois faz-se \(k\leftarrow k-1\). Quando \(k=0\), os dois vectores de
+testemunhas já são os escalares \(a\) e \(b\).
+
+Passamos agora à magia em volta de \(P_k\). Para chegar ao compromisso dobrado
+\(P_{k-1}\), substituem-se exactamente as quatro dobras:
 \begin{align*}
-P_{k-1} = 
-\langle \cancel{u_{k}} \underline{l}_{k}^{\rightarrow}(x), \cancel{u_{k}^{-1}} \underline{G}_{k}^{\rightarrow}\rangle + \langle u_{k} \underline{l}_{k}^{\rightarrow}(x), u_{k} \underline{G}_{k}^{\leftarrow}\rangle \\
-\langle \cancel{u_{k}^{-1}} \underline{l}_{k}^{\leftarrow}(x), \cancel{u_{k}} \underline{G}_{k}^{\leftarrow}\rangle + \langle u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{G}_{k}^{\rightarrow}\rangle +\\ 
-\langle \cancel{u_{k}^{-1}} \underline{r}_{k}^{\rightarrow}(x), \cancel{u_{k}} \underline{H'}_{k}^{\rightarrow}\rangle + \langle u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x), u_{k}^{-1} \underline{H'}_{k}^{\leftarrow}\rangle +\\
-\langle \cancel{u_{k}} \underline{r}_{k}^{\leftarrow}(x), \cancel{u_{k}^{-1}} \underline{H'}_{k}^{\leftarrow}\rangle + \langle u_{k} \underline{r}_{k}^{\leftarrow}(x), u_{k} \underline{H'}_{k}^{\rightarrow}\rangle +\\
-\langle \cancel{u_{k}} \underline{l}_{k}^{\rightarrow}(x), \cancel{u_{k}^{-1}} \underline{r}_{k}^{\rightarrow}(x) \rangle U + \langle u_{k} \underline{l}_{k}^{\rightarrow}(x), u_{k} \underline{r}_{k}^{\leftarrow}(x)\rangle U +\\
-\langle \cancel{u_{k}^{-1}} \underline{l}_{k}^{\leftarrow}(x), \cancel{u_{k}} \underline{r}_{k}^{\leftarrow}(x)\rangle U + \langle u_{k}^{-1} \underline{l}_{k}^{\leftarrow}(x), u_{k}^{-1} \underline{r}_{k}^{\rightarrow}(x)\rangle U
+P_{k-1}={}&
+\left\langle
+ u_k\underline l_k^{\rightarrow}+u_k^{-1}\underline l_k^{\leftarrow},
+ u_k^{-1}\underline G_k^{\rightarrow}+u_k\underline G_k^{\leftarrow}
+\right\rangle\\
+&+\left\langle
+ u_k^{-1}\underline r_k^{\rightarrow}+u_k\underline r_k^{\leftarrow},
+ u_k\underline{H'}_k^{\rightarrow}+u_k^{-1}\underline{H'}_k^{\leftarrow}
+\right\rangle\\
+&+\left\langle
+ u_k\underline l_k^{\rightarrow}+u_k^{-1}\underline l_k^{\leftarrow},
+ u_k^{-1}\underline r_k^{\rightarrow}+u_k\underline r_k^{\leftarrow}
+\right\rangle U .
 \end{align*}
-\newline
-
-$
-P_{k-1} = \newline
-\langle  \underline{l}_{k}^{\rightarrow}(x),  \underline{G}_{k}^{\rightarrow}\rangle$ \quad\quad$+ u_{k}^2 \langle \underline{l}_{k}^{\rightarrow}(x), \underline{G}_{k}^{\leftarrow}\rangle\newline$ 
-$\langle  \underline{l}_{k}^{\leftarrow}(x),  \underline{G}_{k}^{\leftarrow}\rangle$ \quad\quad$+ u_{k}^{-2}\langle \underline{l}_{k}^{\leftarrow}(x), \underline{G}_{k}^{\rightarrow}\rangle + $\newline
-$\langle \underline{r}_{k}^{\rightarrow}(x),  \underline{H'}_{k}^{\rightarrow}\rangle$ \quad$+ u_{k}^{-2}\langle \underline{r}_{k}^{\rightarrow}(x), \underline{H'}_{k}^{\leftarrow}\rangle + $\newline
-$\langle  \underline{r}_{k}^{\leftarrow}(x),  \underline{H'}_{k}^{\leftarrow}\rangle$ \quad$+ u_{k}^2 \langle \underline{r}_{k}^{\leftarrow}(x), \underline{H'}_{k}^{\rightarrow}\rangle +$\newline
-$\langle  \underline{l}_{k}^{\rightarrow}(x),  \underline{r}_{k}^{\rightarrow}(x) \rangle U + u_{k}^2 \langle \underline{l}_{k}^{\rightarrow}(x), \underline{r}_{k}^{\leftarrow}(x)\rangle U +$\newline
-$\underbrace{\langle  \underline{l}_{k}^{\leftarrow}(x), \underline{r}_{k}^{\leftarrow}(x)\rangle U}_{P_k} + \underbrace{u_{k}^{-2} \langle \underline{l}_{k}^{\leftarrow}(x), \underline{r}_{k}^{\rightarrow}(x)\rangle U}_{u_{k}^{2}L_k + u_{k}^{-2}R_k}$
-$\marginnote{clik!}$
-$\newline$
-E como tal possibilita-se a seguinte recursão : \newline
-$
-P_k = P_{k-1} - (u_{k}^{2}L_k + u_{k}^{-2}R_k)\newline
-P_{k-1} = P_{k-2} - (u_{k-1}^{2}L_{k-1} + u_{k-1}^{-2}R_{k-1})\newline
-.\newline
-.\newline
-P_{1} = P_{0} - (u_{1}^{2}L_{1} + u_{1}^{-2}R_{1})\newline
-$
-tal que : \newline
-\begin{align*}
-P_k = P_0 - \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k\\
-P_{0} = \ce{^{0}_{\ }\underline{l}(x)}\ce{^{0}_{\ }\underline{G}} + \ce{^{0}_{\ }\underline{r}(x)}\ce{^{0}_{\ }\underline{H'}} + \ce{^{0}_{\ }\underline{l}(x)}\ce{^{0}_{\ }\underline{r}(x)}U 
-\end{align*}
-
-\newline
-Em que $\ce{^{0}_{\ }\underline{l}(x)}$ e $\ce{^{0}_{\ }\underline{r}(x)}$ são só dois escalares (em Monero representa-se isto como $a$ e $b$ respectivamente na transacção).
-
-\subsubsection{o verificador e o fim da batalha}
-\label{sec:bullet_fim}
-
-Enquanto que $\ce{^{0}_{\ }\underline{l}(x)}$ e $\ce{^{0}_{\ }\underline{r}(x)}$ têm de ser transmitidos ao verificador, $\ce{^{0}_{\ }\underline{G}}$ e $\ce{^{0}_{\ }\underline{H'}}$ pode ser, e é calculado independentemente pelo verificador.     
-Se o $\underline{G}_{k}$ inicial tivesse só 8 elementos (em vez de 64):
-
-\begin{align*}
-\begin{bmatrix}
-\ce{^{\ }_{0}\underline{G}_{3}}u_{3}^{-1} \\
-\ce{^{\ }_{1}\underline{G}_{3}}u_{3}^{-1} \\
-\ce{^{\ }_{2}\underline{G}_{3}}u_{3}^{-1} \\
-\ce{^{\ }_{3}\underline{G}_{3}}u_{3}^{-1} \\
-\ce{^{\ }_{4}\underline{G}_{3}}u_{3} \\
-\ce{^{\ }_{5}\underline{G}_{3}}u_{3} \\
-\ce{^{\ }_{6}\underline{G}_{3}}u_{3} \\
-\ce{^{\ }_{7}\underline{G}_{3}}u_{3} \\
-\end{bmatrix}\rightarrow
-\begin{bmatrix}
-(\ce{^{\ }_{0}\underline{G}_{2}}=\ce{^{\ }_{0}\underline{G}_{3}}u_{3}^{-1} + \ce{^{\ }_{4}\underline{G}_{3}}u_{3})u_{2}^{-1} \\
-(\ce{^{\ }_{1}\underline{G}_{2}}=\ce{^{\ }_{1}\underline{G}_{3}}u_{3}^{-1} + \ce{^{\ }_{5}\underline{G}_{3}}u_{3})u_{2}^{-1} \\
-(\ce{^{\ }_{2}\underline{G}_{2}}=\ce{^{\ }_{2}\underline{G}_{3}}u_{3}^{-1} + \ce{^{\ }_{6}\underline{G}_{3}}u_{3})u_{2} \\
-(\ce{^{\ }_{3}\underline{G}_{2}}=\ce{^{\ }_{3}\underline{G}_{3}}u_{3}^{-1} + \ce{^{\ }_{7}\underline{G}_{3}}u_{3})u_{2} \\
-\end{bmatrix}\rightarrow
-\begin{bmatrix}
-\ce{^{\ }_{0}\underline{G}_{1}}u_{1}^{-1} \\
-\ce{^{\ }_{1}\underline{G}_{1}}u_{1} \\
-\end{bmatrix}\rightarrow
-\begin{bmatrix}
-\ce{^{0}_{\ }\underline{G}} \\
-\end{bmatrix}
-\end{align*}
-
-O padrão que $\ce{^{\ }_{2}\underline{G}_{3}}$ segue por exemplo é :
-\begin{align*}
-\ce{^{\ }_{2}\underline{G}_{3}}u_{3}^{-1}u_{2}u_{1}^{-1}  
-\end{align*}
-\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad porque 2 = $010_2$ \newline
-E $\ce{^{\ }_{7}\underline{G}_{3}}u_{3}u_{2}u_{1}$,  porque 7 = $111_2$ ... \newline
-
-E genericamente para $\ce{^{\ }_{i}\underline{G}_{k}}$, segue-se : \newline
-\begin{align*}
-\ce{^{\ }_{i}\underline{G}_{k}} \rightarrow \ce{^{\ }_{i}\underline{G}_{k}}u_{k}^{b(i,k)}u_{k-1}^{b(i,k-1)}u_{k-2}^{b(i,k-2)}...u_{1}^{b(i,1)}
-\end{align*}
-
-\begin{align*}
- b(i,j)=
- \begin{cases} 
-      \text{-1, se o j-ésimo bit de i for 0} \\
-      \text{ 1, se o j-ésimo bit de i for 1} \\
- \end{cases}
-\end{align*}
-
-O que acontece então é que o verificador forma um vector $\underline{\phi}$ com 64 elementos tal que cada elemento :
-
-\begin{align*}
- \underline{\phi}[i]=\prod_{m=1}^{k} u_{m}^{b(i,m)}
-\end{align*}
-
-O mesmo é feito para $\ce{^{0}_{\ }\underline{H'}}$, em que o verificador forma outro vector $\underline{\varphi}$ tal que : 
-
-\begin{align*}
- \underline{\varphi}[i]=\prod_{m=1}^{k} u_{m}^\overline{b(i,m)}
-\end{align*}
-
-em que :
-
-\begin{align*}
- \overline{b(i,m)}=
- \begin{cases} 
-      \text{ 1, se o j-ésimo bit de i for 1} \\
-      \text{-1, se o j-ésimo bit de i for 0} \\
- \end{cases}
-\end{align*}
+O \(u_k\) de cada termo diagonal encontra o seu inverso e desaparece. Os termos
+cruzados não desaparecem: ficam marcados por \(u_k^2\) ou \(u_k^{-2}\).
 
 \newpage
-$
-G, H, \underline{G}, \underline{H} \hspace*{\fill} \ce{^{0}_{\ }\bot[init]} \newline
-\hspace*{\fill} \ce{^{1}_{\ }\bot_U(V)} \newline
-\hspace*{\fill} \ce{^{2}_{\ }\bot_U(A)} \newline
-\hspace*{\fill} \ce{^{3}_{\ }\bot_U(S)} \newline
-y\leftarrow \ce{^{4}_{\ }\bot_C()}, y^{-1} \newline
-z\leftarrow \ce{^{5}_{\ }\bot_C()} \newline
-$
-\begin{align*}
-\delta(y,z) = (z - z^2)  \langle \underline{1}, \underline{y}^n \rangle - z^3 \langle \underline{1}, \underline{2}^n \rangle
-\end{align*}
-$
-\hspace*{\fill} \ce{^{6}_{\ }\bot_U(T_1)} \newline
-\hspace*{\fill} \ce{^{7}_{\ }\bot_U(T_2)} \newline
-x\leftarrow \ce{^{8}_{\ }\bot_C()} \newline
-\hspace*{\fill}\ce{^{9}_{\ }\bot_U(\tau_x)} \newline
-\hspace*{\fill}\ce{^{10}_{\ }\bot_U(\mu)} \newline
-\hspace*{\fill}\ce{^{11}_{\ }\bot_U(t(x))} \newline
-x_{ip}\leftarrow \ce{^{12}_{\ }\bot_C()} \newline
-$
+\noindent Agora ponhamo-los lado a lado, como peças de um fecho éclair:
+\[
+\begin{gathered}
+P_{k-1}=\\[-1mm]
+\underbrace{\begin{aligned}
+ &\langle\underline l_k^{\rightarrow}(x),
+          \underline G_k^{\rightarrow}\rangle\\
+ +{}&\langle\underline l_k^{\leftarrow}(x),
+             \underline G_k^{\leftarrow}\rangle\\
+ +{}&\langle\underline r_k^{\rightarrow}(x),
+             \underline{H'}_k^{\rightarrow}\rangle\\
+ +{}&\langle\underline r_k^{\leftarrow}(x),
+             \underline{H'}_k^{\leftarrow}\rangle\\
+ +{}&\langle\underline l_k^{\rightarrow}(x),
+             \underline r_k^{\rightarrow}(x)\rangle U\\
+ +{}&\langle\underline l_k^{\leftarrow}(x),
+             \underline r_k^{\leftarrow}(x)\rangle U
+\end{aligned}}_{P_k}
+\quad
+\underbrace{\begin{aligned}
+ +{}&u_k^2\langle\underline l_k^{\rightarrow}(x),
+                    \underline G_k^{\leftarrow}\rangle\\
+ +{}&u_k^{-2}\langle\underline l_k^{\leftarrow}(x),
+                       \underline G_k^{\rightarrow}\rangle\\
+ +{}&u_k^{-2}\langle\underline r_k^{\rightarrow}(x),
+                       \underline{H'}_k^{\leftarrow}\rangle\\
+ +{}&u_k^2\langle\underline r_k^{\leftarrow}(x),
+                    \underline{H'}_k^{\rightarrow}\rangle\\
+ +{}&u_k^2\langle\underline l_k^{\rightarrow}(x),
+                    \underline r_k^{\leftarrow}(x)\rangle U\\
+ +{}&u_k^{-2}\langle\underline l_k^{\leftarrow}(x),
+                       \underline r_k^{\rightarrow}(x)\rangle U
+\end{aligned}}_{u_k^2L_k+u_k^{-2}R_k}.
+\end{gathered}
+\]
+\marginnote{clik!}
 
-$i=1$\newline
-enquanto $i < 7$\newline
-$\hspace*{\fill}\ce{^{13}_{\ }\bot_U(L_i)}$ \newline
-$\hspace*{\fill}\ce{^{14}_{\ }\bot_U(R_i)}$ \newline
-$u\leftarrow \ce{^{15}_{\ }\bot_C()}$ \newline
-$i=i+1$
+E como tal possibilita-se a seguinte recursão:
+\[
+\begin{aligned}
+P_k&=P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\
+&\mathrel{\phantom{=}}\downarrow\\[-1mm]
+P_{k-1}&=P_{k-2}
+ -\left(u_{k-1}^2L_{k-1}+u_{k-1}^{-2}R_{k-1}\right)\\
+&\mathrel{\phantom{=}}\downarrow\\[-1mm]
+&\hspace{12mm}\vdots\\[-1mm]
+&\mathrel{\phantom{=}}\downarrow\\[-1mm]
+P_1&=P_0-\left(u_1^2L_1+u_1^{-2}R_1\right).
+\end{aligned}
+\]
+Logo,
+\begin{align}
+P_k&=P_0-\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right),
+\label{eq:bp-p-recursion}\\
+P_0&=a\ce{^{0}_{\ }\underline G}
+    +b\ce{^{0}_{\ }\underline{H'}}
+    +abU.
+\label{eq:bp-p-final}
+\end{align}
+A floresta de 64 coordenadas acabou em dois escalares, \(a,b\), e dois pontos
+finais que o verificador consegue reconstruir. A Equação
+\eqref{eq:bp-ip-recursion}, prometida acima, já não é um truque por explicar.
+\newpage
+\subsubsection{O verificador e o fim da batalha}
+\label{sec:bullet_fim}
 
-Agora o verificador está armado com tudo o que precisa para fazer a verificação final. Voltamos então á equação (5.1) e simplificamos:\newline
+Os escalares finais \(a,b\) têm de ser transmitidos. Os pontos finais
+\(\ce{^{0}_{\ }\underline G}\) e
+\(\ce{^{0}_{\ }\underline{H'}}\), porém, são reconstruídos pelo verificador.
+É aqui que as setas mostram todo o caminho. Para não esconder a mecânica atrás
+de reticências, imagine-se um vector inicial com oito pontos e escreva-se
+\(G_{q,i}\) para o elemento \(i\) de \(\underline G_q\):
+\[
+\begin{array}{c@{\quad}c@{\quad}c}
+\begin{bmatrix}
+G_{3,0}\\G_{3,1}\\G_{3,2}\\G_{3,3}\\
+G_{3,4}\\G_{3,5}\\G_{3,6}\\G_{3,7}
+\end{bmatrix}
+&\xrightarrow{\ u_3\ }&
+\begin{bmatrix}
+G_{2,0}=u_3^{-1}G_{3,0}+u_3G_{3,4}\\
+G_{2,1}=u_3^{-1}G_{3,1}+u_3G_{3,5}\\
+G_{2,2}=u_3^{-1}G_{3,2}+u_3G_{3,6}\\
+G_{2,3}=u_3^{-1}G_{3,3}+u_3G_{3,7}
+\end{bmatrix}
+\\[-1mm]
+&&\overset{u_2}{\Big\downarrow}
+\\[-1mm]
+\begin{bmatrix}
+\ce{^{0}_{\ }\underline G}
+ =u_1^{-1}G_{1,0}+u_1G_{1,1}
+\end{bmatrix}
+&\xleftarrow{\ u_1\ }&
+\begin{bmatrix}
+G_{1,0}=u_2^{-1}G_{2,0}+u_2G_{2,2}\\
+G_{1,1}=u_2^{-1}G_{2,1}+u_2G_{2,3}
+\end{bmatrix}
+\end{array}.
+\]
+Cada seta corta o vector ao meio e volta a cosê-lo com um desafio e o seu
+inverso. Nenhuma coordenada desaparece; muda apenas o peso com que chega ao
+último ponto.
 
-\begin{align*}
-t(x) H + \bold{\tau}_x G + P_0 - \sum_{j=1}^{k} u_{j}^{-2}L_k + u_{j}^{2}R_k + \mu G=\\= t(x) U + z^2 V + \delta(y, z) H \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle
-\end{align*}
-$
-\newline
-$
-\begin{align*}
-t(x) H - t(x) U - \delta(y, z) H + \bold{\tau}_x G + a\ce{^{0}_{\ }\underline{G}} + b\ce{^{0}_{\ }\underline{H'}} + abU + \mu G=\\= z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle 
-\\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
-\end{align*}
-$
-\newline
-$
-\begin{align*}
-(t(x) - \delta(y, z)) H - t(x) U + \bold{\tau}_x G + a\ce{^{0}_{\ }\underline{G}} + b\ce{^{0}_{\ }\underline{H'}} + abU + \mu G=
-\\= z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle 
-\\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
-\end{align*}
-$
-\newline
-$
-\begin{align*}
-(t(x) - \delta(y, z)) H - t(x) U + \bold{\tau}_x G + abU + \mu G=\\=
-z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n - b\underline{\varphi},\underline{H'}\rangle + \langle -z\underline{1} - a\underline{\phi},\underline{G}\rangle
-\\ + \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
-\end{align*}
-$
-\newline
-$
-\begin{align*}
-(t(x) - \delta(y, z)) H - t(x) x_{ip} H + (\tau_x + \mu) G + ab x_{ip} H =\\= z^2 V \enspace+ x T_1 +\enspace x^2 T_2 + A + x S + \langle z\underline{y}^n + z^2\underline{2}^n - b\underline{\varphi},\underline{H'}\rangle + \langle -z\underline{1} - a\underline{\phi},\underline{G}\rangle 
-\\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
-\end{align*}
-$
-\newline
-$
-\begin{align*}
-((t(x) - \delta(y, z)) - ((t(x) - ab)x_{ip})) H =
-\\= z^2 V + (-\tau_x - \mu) G + x T_1 + x^2 T_2 + A + x S 
-\\+ \langle z\underline{y}^n + z^2\underline{2}^n - b\underline{\varphi},\underline{H'}\rangle \\+ \langle -z\underline{1} - a\underline{\phi},\underline{G}\rangle 
-\\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
-\end{align*}
-$
-\newline
-$
-\begin{align*}
-(0, 1) =
-z^2 V + (-\tau_x - \mu) G + x T_1 + x^2 T_2 + A + x S
-\\+ ((\delta(y, z) - t(x)) + ((t(x) - ab)x_{ip})) H 
-\\+ \langle z + y^{-n}\circ(z^2\underline{2}^n - b\underline{\varphi}),\underline{H}\rangle 
-\\+ \langle -z\underline{1} - a\underline{\phi},\underline{G}\rangle
-\\+ \sum_{j=1}^{k} u_{j}^{2}L_k + u_{j}^{-2}R_k
-\end{align*}
+\newpage
+Façamos o jogo das setas. Cada \(G_{3,i}\) começa com uma mochila vazia. Ao
+passar por uma seta, guarda nela o factor escrito por cima. As setas abaixo
+seguem a \emph{contribuição} de cada ponto; não afirmam que, por exemplo,
+\(G_{3,0}=G_{2,0}\), pois \(G_{2,0}\) recebe também \(G_{3,4}\).
 
-Se esta equação passa, então $0 \leq v \leq 2^{64} - 1$ 
+\[
+\begin{aligned}
+G_{3,0}&\xrightarrow{u_3^{-1}}G_{2,0}
+         \xrightarrow{u_2^{-1}}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_0&=u_3^{-1}u_2^{-1}u_1^{-1},&0&=000_2,\\
+G_{3,1}&\xrightarrow{u_3^{-1}}G_{2,1}
+         \xrightarrow{u_2^{-1}}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_1&=u_3^{-1}u_2^{-1}u_1,&1&=001_2,\\
+G_{3,2}&\xrightarrow{u_3^{-1}}G_{2,2}
+         \xrightarrow{u_2}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_2&=u_3^{-1}u_2u_1^{-1},&2&=010_2,\\
+G_{3,3}&\xrightarrow{u_3^{-1}}G_{2,3}
+         \xrightarrow{u_2}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_3&=u_3^{-1}u_2u_1,&3&=011_2,\\
+G_{3,4}&\xrightarrow{u_3}G_{2,0}
+         \xrightarrow{u_2^{-1}}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_4&=u_3u_2^{-1}u_1^{-1},&4&=100_2,\\
+G_{3,5}&\xrightarrow{u_3}G_{2,1}
+         \xrightarrow{u_2^{-1}}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_5&=u_3u_2^{-1}u_1,&5&=101_2,\\
+G_{3,6}&\xrightarrow{u_3}G_{2,2}
+         \xrightarrow{u_2}G_{1,0}
+         \xrightarrow{u_1^{-1}}\ce{^{0}_{\ }\underline G},
+&\phi_6&=u_3u_2u_1^{-1},&6&=110_2,\\
+G_{3,7}&\xrightarrow{u_3}G_{2,3}
+         \xrightarrow{u_2}G_{1,1}
+         \xrightarrow{u_1}\ce{^{0}_{\ }\underline G},
+&\phi_7&=u_3u_2u_1,&7&=111_2.
+\end{aligned}
+\]
 
+O padrão já se vê sem pedir licença: lendo os bits da esquerda para a direita,
+o primeiro escolhe o expoente de \(u_3\), o segundo o de \(u_2\) e o terceiro
+o de \(u_1\); \(0\) escolhe \(-1\), \(1\) escolhe \(+1\). Escrevendo a regra
+com \(m=1\) a partir do bit menos significativo, a seta geral é
+\begin{equation}
+ G_{k,i}\longrightarrow
+ G_{k,i}\prod_{m=1}^{k}u_m^{\,b(i,m)},
+ \qquad
+ b(i,m)=
+ \begin{cases}
+  -1,&\text{se o \(m\)-ésimo bit de \(i\) for 0},\\
+  +1,&\text{se o \(m\)-ésimo bit de \(i\) for 1},
+ \end{cases}
+\label{eq:bp-g-arrow}
+\end{equation}
+e o verificador forma o vector \(\underline\phi\) juntando o conteúdo das oito
+mochilas:
+\[
+ \phi_i=\prod_{m=1}^{k}u_m^{\,b(i,m)},\qquad
+ \ce{^{0}_{\ }\underline G}=\langle\underline\phi,\underline G_k\rangle.
+\]
 
-%(and also explained in \cite{adam-zero-to-bulletproofs,dalek-bulletproofs-notes}).\footnote{It's conceivable that with several outputs in a legitimate range, the sum of their amounts could roll over and cause a similar problem. However, when the maximum output is much smaller than $l$ it takes a huge number of outputs for that to happen. For example, if the range is 0-5, and l = 99, then to counterfeit money using an input of 2, we would need $5 + 5 + …. + 5 + 1 = 101 \equiv 2 \pmod{99}$, for 21 total outputs. In Monero $l$ is about 2\^{}189 times bigger than the available range, which means a ridiculous 2\^{}189 outputs to counterfeit money.} Given the involved and intricate nature of Bulletproofs, it is not elucidated in this document. Moreover we feel the cited materials adequately present its concepts.\footnote{Prior to protocol v8 range proofs were accomplished with Borromean ring signatures, which were explained in the first edition of Zero to Monero \cite{ztm-1}.}
+Para \(\underline{H'}\), cada seta troca o sinal do expoente. O espelho fica
+visível nesta pequena tabela:
+\[
+\begin{array}{c|cc}
+ &\text{bit }0&\text{bit }1\\ \hline
+\underline G&u_m^{-1}&u_m\\
+\underline{H'}&u_m&u_m^{-1}
+\end{array}
+\qquad\Longrightarrow\qquad
+\varphi_i=\phi_i^{-1}.
+\]
+Portanto,
+\[
+ \varphi_i=\prod_{m=1}^{k}u_m^{-b(i,m)},\qquad
+ \ce{^{0}_{\ }\underline{H'}}
+ =\langle\underline\varphi,\underline{H'}_k\rangle.
+\]
+Este sinal contrário é essencial. A versão anterior escrevia os dois padrões
+com o mesmo sinal, o que estava incorrecto.
 
-%The Bulletproof proving algorithm\marginnote{src/ringct/ rctSigs.cpp {\tt proveRange- Bullet- proof()}} takes as input output amounts $b_t$ and commitment masks $y_t$, and outputs all $C^b_t$ and an $n$-tuple aggregate proof $\Pi_{BP} = (A, S, T_1, T_2, \tau_x, \mu, \mathbb{L}, \mathbb{R}, a, b, t)$\footnote{Vectors $\mathbb{L}$ and $\mathbb{R}$ contain $\lceil \textrm{log}_2(64 \cdot p) \rceil$ elements each. $\lceil$ $\rceil$ means the log function is rounded up. Due to their construction, some Bulletproofs use `dummy outputs' as padding to ensure $p$ plus the number of dummy outputs is a power of 2. Those dummy outputs can be generated during verification, and are not stored with the proof data.}\footnote{The variables in a Bulletproof are unrelated to other variables in this document. Symbol overlap is merely coincidental. Note that group elements $A, S, T_1, T_2, \mathbb{L},$ and $\mathbb{R}$ are multiplied by 1/8 before being stored, then multiplied by 8 during verification. This ensures they are all members of the $l$ sub-group (recall Section \ref{elliptic_curves_section}).}. That single proof is used to prove all output amounts are in range at the same time, as aggregating them greatly reduces space requirements (although it does increase the time to verify).\footnote{It turns out multiple separate Bulletproofs can be `batched'\marginnote{rct/ringct/ bulletproofs.cc {\tt bulletproof\_ VERIFY()}} together, which means they are verified simultaneously. Doing so improves how long it takes to verify them, and currently in Monero Bulletproofs are batched on a per-block basis, although there is no theoretical limit to how many can be batched together. Each transaction is only allowed to have one Bulletproof.} The verification algorithm takes as input all $C^b_t$, and $\Pi_{BP}$, and outputs {\tt true} if all committed amounts are in the range 0 to $2^{64} - 1$.
+\newpage
+O verificador refaz agora toda a viagem do traslado:
+\begin{align*}
+&G,H,\underline G,\underline H
+ &&\hspace*{\fill}\ce{^{0}_{\ }\bot[init]}\\
+&V&&\hspace*{\fill}\ce{^{1}_{\ }\bot_U(V)}\\
+&A&&\hspace*{\fill}\ce{^{2}_{\ }\bot_U(A)}\\
+&S&&\hspace*{\fill}\ce{^{3}_{\ }\bot_U(S)}\\
+&y\leftarrow\ce{^{4}_{\ }\bot_C()},\quad
+ y^{-1},\qquad
+ z\leftarrow\ce{^{5}_{\ }\bot_C()} .
+\end{align*}
+Com esses desafios calcula
+\[
+ \delta(y,z)=(z-z^2)\langle\underline1,\underline y^{\,n}\rangle
+ -z^3\langle\underline1,\underline2^{\,n}\rangle.
+\]
+Depois continua:
+\begin{align*}
+&T_1&&\hspace*{\fill}\ce{^{6}_{\ }\bot_U(T_1)}\\
+&T_2&&\hspace*{\fill}\ce{^{7}_{\ }\bot_U(T_2)}\\
+&x\leftarrow\ce{^{8}_{\ }\bot_C()}\\
+&\tau_x&&\hspace*{\fill}\ce{^{9}_{\ }\bot_U(\tau_x)}\\
+&\mu&&\hspace*{\fill}\ce{^{10}_{\ }\bot_U(\mu)}\\
+&t(x)&&\hspace*{\fill}\ce{^{11}_{\ }\bot_U(t(x))}\\
+&x_{ip}\leftarrow\ce{^{12}_{\ }\bot_C()},\qquad U=x_{ip}H.
+\end{align*}
+Finalmente, para \(j=k,k-1,\ldots,1\), absorve \(L_j\), absorve \(R_j\) e
+extrai \(u_j\). Os estados 13, 14 e 15 são a primeira destas rondas; os números
+continuam a avançar nas cinco seguintes. Assim o verificador não recebe
+\(y,z,x,x_{ip},u_1,\ldots,u_k\): reencontra-os.
 
-%The $n$-tuple $\Pi_{BP}$ occupies $(2 \cdot \lceil \textrm{log}_2(64 \cdot p) \rceil + 9) \cdot 32$ bytes of storage.
+Agora está armado para a verificação final. Defina-se
+\[
+ \Sigma_{\rm IP}=
+ \sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right).
+\]
+
+Não saltemos logo para a última linha: devolvamos ao fim da batalha as
+equações que mostram como cada peça cai no seu lugar. A primeira equação de
+verificação, depois de substituir os dois vectores por \(P_k-t(x)U\), é
+\begin{align}
+&t(x)H+\tau_xG+P_k-t(x)U+\mu G\notag\\
+={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\label{eq:bp-ending-start}
+\end{align}
+
+Substituam-se agora as Equações~\eqref{eq:bp-p-recursion} e
+\eqref{eq:bp-p-final}. A floresta dobrada reaparece só nos seus dois escalares
+finais:
+\begin{align}
+&t(x)H-t(x)U+(\tau_x+\mu)G
+ +a\ce{^{0}_{\ }\underline G}
+ +b\ce{^{0}_{\ }\underline{H'}}+abU-\Sigma_{\rm IP}\notag\\
+={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle .
+\label{eq:bp-ending-folded}
+\end{align}
+
+Passando tudo para o lado direito, sem esconder nenhum sinal,
+\begin{align}
+\mathcal O={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G+\Sigma_{\rm IP}\notag\\
+&+[\delta(y,z)-t(x)]H+[t(x)-ab]U\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+          \underline{H'}\rangle
+ +\langle-z\underline1,\underline G\rangle\notag\\
+&-a\ce{^{0}_{\ }\underline G}
+ -b\ce{^{0}_{\ }\underline{H'}}.
+\label{eq:bp-ending-one-side}
+\end{align}
+
+O verificador reconstruiu
+\(\ce{^{0}_{\ }\underline G}=\langle\underline\phi,\underline G\rangle\)
+e
+\(\ce{^{0}_{\ }\underline{H'}}=\langle\underline\varphi,
+\underline{H'}\rangle\). Logo, as duas últimas linhas juntam-se aos produtos
+internos públicos:
+\begin{align}
+\mathcal O={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G+\Sigma_{\rm IP}\notag\\
+&+[\delta(y,z)-t(x)]H+[t(x)-ab]U\notag\\
+&+\langle-z\underline1-a\underline\phi,\underline G\rangle\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
+          -b\underline\varphi,\underline{H'}\rangle .
+\label{eq:bp-ending-reconstructed}
+\end{align}
+
+Finalmente usa-se \(U=x_{ip}H\). Só agora se chega à equação compacta que a
+implementação pode verificar como uma soma multiescalar:
+\begin{align}
+\mathcal O={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
+ +\Sigma_{\rm IP}\notag\\
+&+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
+&+\langle-z\underline1-a\underline\phi,\underline G\rangle\notag\\
+&+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
+          -b\underline\varphi,\underline{H'}\rangle .
+\label{eq:bp-final-hprime}
+\end{align}
+E, como
+\(\underline{H'}=\underline y^{-n}\circ\underline H\), a mesma batalha pode
+terminar toda escrita nos geradores originais:
+\begin{align}
+\mathcal O=(0,1)={}&
+ z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
+ +\Sigma_{\rm IP}\notag\\
+&+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
+&+\left\langle
+ z\underline1+\underline y^{-n}\circ
+   (z^2\underline2^{\,n}-b\underline\varphi),
+ \underline H\right\rangle\notag\\
+&+\langle-z\underline1-a\underline\phi,\underline G\rangle .
+\label{eq:bp-final}
+\end{align}
+\marginnote{bang!}
+
+Se esta soma multiescalar dá a identidade, as codificações são canónicas e
+todos os desafios que precisam de inverso são não nulos, o verificador aceita.
+Sob a dificuldade do logaritmo discreto e o modelo Fiat--Shamir, uma prova
+forjada de que \(0\leq v\leq2^{64}-1\) passa apenas com probabilidade
+negligenciável. Os bits, a máscara \(\gamma\) e os vectores intermédios nunca
+saíram do provador. As setas mexeram-se; a prova ficou mais pequena; Sundance
+tinha razão.
+
+\section{Bulletproof+}
+\label{sec:bulletproof_plus}
+
+A Bulletproof clássica já teve o seu palco, as suas setas e o seu fim da
+batalha. Bulletproof+ não apaga nada disso. É a batalha seguinte: prova a mesma
+afirmação sobre os montantes, conserva a ideia de dobrar vectores com pares
+\(L_j,R_j\), mas muda a coreografia que liga o compromisso inicial ao fecho.
+
+\subsection{O que fica e o que muda}
+
+\begin{description}
+ \item[Fica.] O compromisso de Pedersen, a decomposição em bits, os desafios de
+ Fiat--Shamir colhidos de um traslado, a agregação de vários montantes e as
+ \(\log_2(64M)\) rondas que publicam pares \(L_j,R_j\).
+
+ \item[Muda.] Desaparecem do objecto transmitido
+ \[
+  S,\ T_1,\ T_2,\ \tau_x,\ \mu,\ t,\ a,\ b.
+ \]
+ Em seu lugar aparecem \(A_1,B,r_1,s_1,d_1\), com novas equações de fecho, um
+ traslado separado por domínio e uma equação de verificação própria. As setas
+ continuam a dobrar vectores; já não se pode, porém, pegar na
+ Equação~\eqref{eq:bp-final} e trocar apenas os nomes.
+\end{description}
+
+As duas formas serializadas tornam a diferença visível:
+\begin{align*}
+ \Pi_{\rm BP}
+  &=(A,S,T_1,T_2,\tau_x,\mu,
+     \boldsymbol L,\boldsymbol R,a,b,t),\\
+ \Pi_+
+  &=(A,A_1,B,r_1,s_1,d_1,
+     \boldsymbol L,\boldsymbol R).
+\end{align*}
+Para a mesma dimensão, Bulletproof+ retira três objectos de 32 bytes. A
+agregação, note-se, não nasceu com o sinal \(+\): a Bulletproof clássica já
+agregava montantes. O ganho estrutural de Bulletproof+ está no fecho mais curto
+e na verificação reorganizada.
+
+A ideia algébrica continua a começar em bits. Para \(p\) montantes, ponhamos
+\[
+ N=64,\qquad
+ M=2^{\lceil\log_2 p\rceil},\qquad
+ n=MN,
+\]
+com \(M=1\) quando \(p=1\). Concatenam-se os bits dos \(p\) montantes num
+vector \(\boldsymbol a_L\in\mathbb Z_l^n\); as \(M-p\) posições de montante
+restantes são preenchidas implicitamente com zeros. Definimos
+\[
+ \boldsymbol a_R=\boldsymbol a_L-\boldsymbol 1.
+\]
+As duas relações
+\begin{align}
+ b_j&=\left\langle
+   \boldsymbol a_L^{(j)},\boldsymbol 2^{64}\right\rangle,
+   \label{eq:bp-value-bits}\\
+ \boldsymbol a_L\circ\boldsymbol a_R&=\boldsymbol 0
+   \label{eq:bp-bit-constraint}
+\end{align}
+dizem, respectivamente, que cada valor é a soma dos seus bits e que cada
+coordenada é 0 ou 1. Aqui
+\(\boldsymbol 2^{64}=(1,2,\ldots,2^{63})\), \(\circ\) é o produto coordenada a
+coordenada e \(\boldsymbol a_L^{(j)}\) é o bloco de 64 coordenadas do montante
+\(j\), para \(0\leq j<p\).
+
+O provador compromete-se com estes vectores sem os revelar. Cada dobra publica
+dois pontos, pelo que são necessárias \(\log_2(64M)\) rondas em vez de 64
+compromissos por saída. A verificação continua a ter trabalho proporcional a
+\(64M\): a agregação poupa sobretudo espaço, não transforma toda a verificação
+num cálculo logarítmico.
+
+\subsection{Dos tipos históricos ao Bulletproof+}
+
+Há três nomes parecidos que convém não misturar:
+
+\begin{description}
+ \item[\texttt{RCTTypeBulletproof}.] A versão~8 admitiu a prova Bulletproof
+ original. O objecto serializado contém
+ \[
+  \Pi_{\rm BP}=(A,S,T_1,T_2,\tau_x,\mu,
+                \boldsymbol L,\boldsymbol R,a,b,t).
+ \]
+ A versão~9 deixou de admitir as provas Borromean em novas transacções.
+
+ \item[\texttt{RCTTypeBulletproof2}.] A versão~10 admitiu este tipo e a
+ versão~11 tornou-o obrigatório em lugar do tipo anterior. O sufixo «2» não
+ designa Bulletproof+: a prova continua a usar exactamente a estrutura
+ \(\Pi_{\rm BP}\) e o mesmo verificador. A revisão reduziu os dados ECDH por
+ saída para o montante cifrado de oito bytes e passou a derivar a máscara,
+ como vimos na Secção \ref{sec:pedersen_monero}.
+
+ \item[\texttt{RCTTypeBulletproofPlus}.] A versão~15 admitiu Bulletproof+; a
+ versão~16 proibiu os tipos que ainda usam a prova Bulletproof anterior. Na
+ rede principal, a versão~16 começou no bloco 2\,689\,608. Este é o tipo criado
+ para novas transacções na implementação congelada.
+\end{description}
+\marginnote{\scriptsize\raggedright
+src/crypto-\newline
+note\_core/\newline
+blockchain.cpp,\newline
+{\tt check\_tx\_}\newline
+{\tt outputs()};\newline
+src/hardforks/\newline
+hardforks.cpp}
+
+Os leitores históricos encontrarão ainda \texttt{RCTTypeCLSAG}: esse tipo já
+usava CLSAG para autorizar entradas, mas conservava a estrutura de prova
+\(\Pi_{\rm BP}\). O código continua a analisar e a verificar todos estes
+formatos para ler blocos antigos. Essa compatibilidade não os torna escolhas
+válidas para construir uma transacção da versão~16.
+
+Nas equações da secção clássica usámos os pontos matemáticos já restaurados.
+No objecto Monero serializado, \(A,S,T_1,T_2,\boldsymbol L,\boldsymbol R\) da
+Bulletproof clássica eram guardados multiplicados por \(8^{-1}\); o verificador
+volta a multiplicá-los por 8. Bulletproof+ conserva esta convenção para
+\(A,A_1,B,\boldsymbol L,\boldsymbol R\). É uma representação de implementação,
+não uma seta nova na álgebra.
+
+Para o mesmo \(M\), a parte formada por objectos de 32 bytes ocupa
+\begin{align}
+ \lvert\Pi_{\rm BP}\rvert
+   &=32\bigl(9+2\log_2(64M)\bigr),\label{eq:bp-size}\\
+ \lvert\Pi_{+}\rvert
+   &=32\bigl(6+2\log_2(64M)\bigr).\label{eq:bpp-size}
+\end{align}
+Não se contam aqui os pequenos prefixos de comprimento da serialização.
+Bulletproof+ retira três objectos, ou 96 bytes: para \(M=2\), são 736 contra
+640 bytes; para \(M=16\), 928 contra 832 bytes. A prova Borromean, recordemos,
+ocupava 6176 bytes \emph{por saída}. Estes números são comparações de formato;
+não afirmam, sem uma medição separada, que um verificador seja tantas vezes
+mais rápido do que outro.
+\marginnote{\scriptsize\raggedright
+src/ringct/\newline
+rctTypes.h,\newline
+{\tt Bulletproof} e\newline
+{\tt Bulletproof-}\newline
+{\tt Plus};\newline
+src/crypto-\newline
+note\_basic/\newline
+cryptonote\_\newline
+format\_\newline
+utils.cpp,\newline
+{\tt get\_pruned\_}\newline
+{\tt transaction\_}\newline
+{\tt weight()}}
+
+\subsection{Bulletproof+ na versão 16}
+
+Para não sobrecarregar a notação anterior, chamemos \(v_j\) ao montante e
+\(\gamma_j\) à máscara de compromisso nesta subsecção:
+\[
+ C_j=\gamma_jG+v_jH.
+\]
+Uma Bulletproof+ agregada prova, para todos os seus \(p\) compromissos,
+\begin{equation}
+ \exists\,(\gamma_j,v_j)_{j=0}^{p-1}:
+ \quad C_j=\gamma_jG+v_jH
+ \quad\land\quad 0\leq v_j<2^{64}.
+ \label{eq:bpp-statement}
+\end{equation}
+As aberturas \((\gamma_j,v_j)\) são as testemunhas. Os compromissos
+\((C_0,\ldots,C_{p-1})\), os geradores, o traslado e
+\[
+ \Pi_+=(A,A_1,B,r_1,s_1,d_1,
+          \boldsymbol L,\boldsymbol R)
+\]
+são públicos. O vector de compromissos internos, chamado \(V\) no código, não
+é serializado dentro da prova: é reconstruído a partir de
+\texttt{outPk.mask}.
+
+\subsubsection*{Agregação e preenchimento}
+
+Uma transacção RingCT canónica deste tipo contém exactamente uma Bulletproof+,
+e essa prova cobre todos os seus compromissos de saída. O formato admite
+\(1\leq p\leq16\); a regra geral da versão~16 exige separadamente pelo menos
+duas saídas numa transacção comum. O valor interno \(M\) é a menor potência de
+dois não inferior a \(p\):
+\[
+\begin{array}{c|ccccc}
+ p&1&2&3\text{--}4&5\text{--}8&9\text{--}16\\ \hline
+ M&1&2&4&8&16\\
+ \lvert\boldsymbol L\rvert=\lvert\boldsymbol R\rvert
+  &6&7&8&9&10
+\end{array}
+\]
+Os montantes fictícios usados para completar \(M\) são zeros implícitos; não
+criam saídas nem compromissos serializados.
+
+Durante a análise da transacção, o tamanho de
+\(\boldsymbol L,\boldsymbol R\) tem de corresponder precisamente a esse
+\(M\), o número reconstruído de \(V_j\) tem de ser \(p\), e o limite é 16.
+Assim, uma prova para capacidade 16 não é uma codificação canónica de apenas
+duas saídas.
+\marginnote{\scriptsize\raggedright
+src/crypto-\newline
+note\_core/\newline
+tx\_verification\_\newline
+utils.cpp,\newline
+{\tt is\_canonical\_}\newline
+{\tt bulletproof\_}\newline
+{\tt plus\_layout()};\newline
+src/ringct/\newline
+rctTypes.cpp,\newline
+{\tt n\_bulletproof\_}\newline
+{\tt plus\_amounts()}}
+
+\subsubsection*{As duas representações do compromisso}
+
+A estrutura de transacção guarda o compromisso normal \(C_j\). O provador,
+porém, constrói
+\begin{equation}
+ V_j=8^{-1}C_j=(8^{-1}\gamma_j)G+(8^{-1}v_j)H,
+ \label{eq:bpp-v-eighth}
+\end{equation}
+onde \(8^{-1}\) é o inverso do cofactor no corpo \(\mathbb Z_l\). Na criação,
+\texttt{bulletproof\_plus\_PROVE()} devolve estes \(V_j\);
+\texttt{genRctSimple()} multiplica-os por 8 antes de os colocar em
+\texttt{outPk.mask}. Na leitura acontece o inverso: o analisador multiplica
+cada compromisso de \texttt{outPk} por \(8^{-1}\) para restaurar \(V_j\).
+
+Os pontos \(A,A_1,B,\boldsymbol L,\boldsymbol R\) são igualmente produzidos e
+serializados na representação dividida por 8. Antes da equação final, o
+verificador multiplica todos esses pontos e cada \(V_j\) por 8. Isso elimina
+qualquer componente de torsão e deixa os pontos usados na multiplicação
+multiescalar no subgrupo de ordem prima. Não se deve, pois, multiplicar
+\texttt{outPk.mask} por 8 mais uma vez: ele já é \(C_j\).
+\marginnote{\scriptsize\raggedright
+src/ringct/\newline
+rctSigs.cpp,\newline
+{\tt proveRange-}\newline
+{\tt Bulletproof}\newline
+{\tt Plus()} e\newline
+{\tt genRct}\newline
+{\tt Simple()};\newline
+src/crypto-\newline
+note\_basic/\newline
+cryptonote\_\newline
+format\_\newline
+utils.cpp,\newline
+{\tt expand\_}\newline
+{\tt transaction\_}\newline
+{\tt 1()}}
+
+\subsubsection*{Geradores e traslado}
+
+Além de \(G\) e \(H\), a prova usa vectores públicos
+\(\boldsymbol G=(G_0,\ldots,G_{n-1})\) e
+\(\boldsymbol H=(H_0,\ldots,H_{n-1})\). A implementação deriva cada ponto dos
+bytes de \(H\), da cadeia ASCII \texttt{bulletproof\_plus}, da codificação
+\texttt{varint} do índice e de uma função hash-para-ponto com limpeza pelo
+cofactor. Uma derivação que produzisse a identidade seria rejeitada. A
+segurança pressupõe que não se conhecem relações de logaritmo discreto úteis
+entre estes geradores. Na notação do artigo Bulletproof+, os papéis dos
+geradores de valor e de máscara aparecem trocados: no código Monero, \(H\)
+leva o montante e \(G\) leva a máscara.
+
+O traslado começa num ponto fixo derivado da cadeia
+\texttt{bulletproof\_plus\_transcript}. Escrevendo
+\(\mathcal H_n\) para Keccak--256 seguido de redução módulo \(l\), a ordem é:
+\begin{align}
+ T_1&=\mathcal H_n\!\left(
+   T_0\mathbin\|\mathcal H_n(V_0\mathbin\|\cdots\mathbin\|V_{p-1})
+   \right),\notag\\
+ y&=\mathcal H_n(T_1\mathbin\|A),&
+ z&=\mathcal H_n(y),\label{eq:bpp-transcript-start}\\
+ T^{(0)}&=z,&
+ u_k=T^{(k+1)}&=\mathcal H_n\!\left(
+   T^{(k)}\mathbin\|L_k\mathbin\|R_k\right),
+   \label{eq:bpp-transcript-round}\\
+ e&=\mathcal H_n\!\left(
+   T^{(\log_2 n)}\mathbin\|A_1\mathbin\|B\right).
+ \label{eq:bpp-transcript-end}
+\end{align}
+A cadeia inicial separa este protocolo de outros usos do hash. Todos os
+desafios são escalares reduzidos; o provador recomeça e o verificador rejeita
+se \(y,z,u_k\) ou \(e\) forem zero.
+\marginnote{\scriptsize\raggedright
+src/crypto-\newline
+note\_config.h,\newline
+{\tt HASH\_KEY\_}\newline
+{\tt BULLETPROOF\_}\newline
+{\tt PLUS\_*};\newline
+src/ringct/\newline
+bulletproofs\_\newline
+plus.cc,\newline
+{\tt get\_exponent()} e\newline
+{\tt transcript\_}\newline
+{\tt update()}}
+
+\subsubsection{Mais detalhes do provador}
+\label{sec:bpp_detalhes}
+
+Definamos o compromisso vectorial
+\[
+ \left\langle\boldsymbol a,\boldsymbol G\right\rangle+
+ \left\langle\boldsymbol b,\boldsymbol H\right\rangle
+ =\sum_{i=0}^{n-1}a_iG_i+\sum_{i=0}^{n-1}b_iH_i.
+\]
+O primeiro ponto enviado é
+\begin{equation}
+ A=8^{-1}\!\left(
+   \langle\boldsymbol a_L,\boldsymbol G\rangle+
+   \langle\boldsymbol a_R,\boldsymbol H\rangle+\alpha G
+   \right),
+ \label{eq:bpp-a}
+\end{equation}
+com \(\alpha\in_R\mathbb Z_l^*\). Depois dos desafios \(y,z\), o código
+constrói a janela
+\begin{equation}
+ d_{jN+i}=z^{\,2(j+1)}2^i,
+ \quad 0\leq j<M,\quad0\leq i<N,
+ \label{eq:bpp-window}
+\end{equation}
+e os vectores
+\begin{align}
+ \boldsymbol a'&=\boldsymbol a_L-z\boldsymbol1,\notag\\
+ b'_i&=a_{R,i}+z+d_i\,y^{\,n-i}.
+ \label{eq:bpp-prime-vectors}
+\end{align}
+A máscara acumulada que liga estes vectores aos compromissos é
+\begin{equation}
+ \alpha'=\alpha+y^{\,n+1}
+       \sum_{j=0}^{p-1}z^{\,2(j+1)}\gamma_j.
+ \label{eq:bpp-alpha-prime}
+\end{equation}
+Todas estas igualdades são em \(\mathbb Z_l\).
+
+O argumento de produto interno dobra
+\((\boldsymbol a',\boldsymbol b',
+  \boldsymbol G,\boldsymbol H)\) em cada desafio \(u_k\). Cada ronda envia
+\(L_k,R_k\), inclui duas máscaras aleatórias novas e reduz sucessivamente a
+dimensão até 1. Chamemos \(a^\star,b^\star\) aos escalares finais,
+\(G^\star,H^\star\) aos geradores finais e \(\alpha^\star\) à máscara
+acumulada depois de todas as dobras.
+Com escalares aleatórios não nulos \(r,s,d,\eta\), o fecho calculado pelo
+código é
+\begin{align}
+ A_1={}&8^{-1}\!\left(
+  rG^\star+sH^\star+dG+
+  y(rb^\star+sa^\star)H\right),\label{eq:bpp-a1}\\
+ B={}&8^{-1}\!\left(\eta G+rysH\right),\label{eq:bpp-b}\\
+ r_1={}&r+ea^\star,\qquad
+ s_1=s+eb^\star,\label{eq:bpp-rs}\\
+ d_1={}&\eta+ed+e^2\alpha^\star.
+ \label{eq:bpp-d1}
+\end{align}
+Na criação pela carteira, as máscaras do compromisso são derivadas como na
+Equação~\eqref{eq:commitment-mask}; \(\alpha\), as máscaras das rondas e
+\(r,s,d,\eta\) vêm do gerador de escalares uniformes não nulos. Esta
+aleatoriedade é necessária para ocultar os bits e as aberturas. A ocultação de
+Pedersen perfeita, a propriedade de conhecimento da prova e a heurística
+Fiat--Shamir são afirmações distintas; a solidez e o conhecimento de
+Bulletproof+ são garantias computacionais sob as hipóteses do protocolo, não
+uma consequência da ocultação perfeita por si só.
+
+\subsection{Verificação}
+\label{sec:bpp_ver}
+
+O verificador não recebe os bits nem as máscaras. Recompõe \(V_j\) e todos os
+desafios do traslado das Equações~\eqref{eq:bpp-transcript-start}--
+\eqref{eq:bpp-transcript-end}. Recompõe também as potências de \(y,z,u_k\) e os
+geradores dobrados. As respostas \(r_1,s_1,d_1\) substituem os escalares finais nas
+Equações~\eqref{eq:bpp-a1}--\eqref{eq:bpp-d1}. Depois de reunir termos, toda a
+prova se reduz a uma multiplicação multiescalar que tem de dar a identidade
+\(\mathcal O\).
+
+A implementação pode verificar várias provas desta família numa só equação.
+Se \(\mathcal F_q\) é a combinação de pontos que deveria ser
+\(\mathcal O\) para a prova \(q\), escolhe pesos independentes
+\(w_q\in_R\mathbb Z_l^*\) e testa
+\begin{equation}
+ \sum_q w_q\mathcal F_q=\mathcal O.
+ \label{eq:bpp-batch}
+\end{equation}
+Os pesos impedem, excepto com probabilidade desprezável da ordem de \(1/l\),
+que erros de provas diferentes se cancelem de propósito. Isto é
+\emph{verificação em lote} de várias provas; não é a agregação de vários
+montantes dentro de uma prova.
+
+No percurso de consenso congelado,
+\texttt{verRctSemanticsSimple()} reúne separadamente as Bulletproof+ e as
+Bulletproof antigas recebidas no conjunto de transacções que lhe foi passado.
+Um suplemento de transacções de bloco pode assim ser verificado em lote; a
+validação isolada de uma transacção chama o mesmo verificador com uma única
+prova. Não afirmamos que toda a verificação aconteça sempre «por bloco».
+\marginnote{\scriptsize\raggedright
+src/ringct/\newline
+rctSigs.cpp,\newline
+{\tt verRct-}\newline
+{\tt Semantics}\newline
+{\tt Simple()};\newline
+src/crypto-\newline
+note\_core/\newline
+tx\_verification\_\newline
+utils.cpp,\newline
+{\tt ver\_mixed\_rct\_}\newline
+{\tt semantics()}}
+
+\subsubsection{O verificador e o fim da batalha}
+\label{sec:bpp_fim}
+
+Antes da equação final, há condições de aceitação que não devem desaparecer
+atrás da álgebra:
+
+\begin{itemize}
+ \item \(r_1,s_1,d_1\) têm de ser codificações escalares canónicas, isto é,
+ menores que \(l\). Os desafios produzidos por hash são reduzidos módulo \(l\)
+ e têm de ser não nulos.
+
+ \item \(A,A_1,B,V_j,L_k,R_k\) têm de descodificar como pontos comprimidos
+ canónicos sobre a curva. Uma codificação não canónica ou que não representa
+ um ponto provoca rejeição; as excepções de descodificação são convertidas em
+ \texttt{false} pelo invólucro RingCT.
+
+ \item Os pontos fornecidos pela prova são multiplicados pelo cofactor 8 antes
+ da multiplicação multiescalar. Não há, contudo, uma regra separada que rejeite
+ toda ocorrência da identidade: uma identidade honesta é extremamente
+ improvável nos pontos aleatórios, mas o verificador decide-a pela estrutura e
+ pela equação completa. Os geradores derivados são explicitamente não nulos.
+
+ \item A prova tem de ser não vazia, os vectores
+ \(\boldsymbol L,\boldsymbol R\) têm o mesmo comprimento exacto e esse
+ comprimento tem de concordar com o número de compromissos e com o limite de
+ 16. A transacção RingCT deste tipo tem exactamente uma prova canónica.
+
+ \item A equação de lote, a correspondência entre prova e
+ \texttt{outPk}, a Equação~\eqref{eq:commitment-balance} e as CLSAG são testes
+ distintos; todos têm de passar.
+\end{itemize}
+\marginnote{\scriptsize\raggedright
+src/ringct/\newline
+bulletproofs\_\newline
+plus.cc,\newline
+{\tt bulletproof\_}\newline
+{\tt plus\_VERIFY()};\newline
+src/ringct/\newline
+rctOps.cpp,\newline
+{\tt scalarmult8()};\newline
+src/crypto/\newline
+crypto-ops.c,\newline
+{\tt ge\_frombytes\_}\newline
+{\tt vartime()}}
+
+Chegámos assim à afirmação prometida: para cada compromisso ligado ao traslado
+de \(\Pi_+\), o provador conhece uma abertura cujo montante está em
+\([0,2^{64}-1]\). Continuam públicos o número de saídas, os compromissos, o
+formato e tamanho da prova e a taxa da transacção. Continuam fora desta
+afirmação a identidade do destinatário, a propriedade da saída, a ausência de
+dupla despesa, a autorização das entradas e a validade completa da
+transacção. O próximo capítulo juntará essas peças sem alterar o significado
+limitado, mas essencial, da prova de intervalo.

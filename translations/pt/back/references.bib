@@ -7,10 +7,11 @@
     isbn = {038795273X},
     publisher = {Springer-Verlag New York, Inc.},
     address = {Secaucus, NJ, USA},
-    url = {\url{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.394.3037&rep=rep1&type=pdf} [Online; accessed 03/04/2020]}
+    url = {http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.394.3037&rep=rep1&type=pdf},
+    note = {\url{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.394.3037&rep=rep1&type=pdf} [Online; accessed 03/04/2020]}
 } 
 
-@Inbook{Bernstein2008,
+@incollection{Bernstein2008,
     author="Bernstein, Daniel J.
     and Birkner, Peter
     and Joye, Marc
@@ -62,12 +63,14 @@
     volume={61},
     number={2},
     pages={190--192},
+    year={2014},
     note = {\url{https://www.ams.org/notices/201402/rnoti-p190.pdf} [Online; accessed 03/04/2020]}
 }
 
-@article{cryptoNoteWhitePaper,
+@misc{cryptoNoteWhitePaper,
     title={{CryptoNote V2.0}},
     author={van Saberhagen, Nicolas},
+    year={2013},
     note = {\url{https://cryptonote.org/whitepaper.pdf} [Online; accessed 04/04/2018]}
 }
 
@@ -97,7 +100,7 @@
     note = {\url{https://cryptonote.org/cns/cns008.txt} [Online; accessed 04/04/2018]},
 }
 
-@Inbook{Liu2004,
+@incollection{Liu2004,
 	author="Liu, Joseph K.
 	and Wei, Victor K.
 	and Wong, Duncan S.",
@@ -134,7 +137,7 @@
 	note = {\url{https://chaum.com/publications/Group_Signatures.pdf} [Online; accessed 03/04/2020]}
 }
 
-@Inbook{Bernstein2007,
+@incollection{Bernstein2007,
 	author="Bernstein, Daniel J.
 	and Lange, Tanja",
 	editor="Kurosawa, Kaoru",
@@ -150,7 +153,7 @@
     note = {\url{https://eprint.iacr.org/2007/286.pdf} [Online; accessed 03/04/2020]},
 }
 
-@Inbook{Pedersen1992,
+@incollection{Pedersen1992,
 	author="Pedersen, Torben Pryds",
 	editor="Feigenbaum, Joan",
 	title="Non-Interactive and Information-Theoretic Secure Verifiable Secret Sharing",
@@ -166,11 +169,12 @@
 	note = {\url{https://www.cs.cornell.edu/courses/cs754/2001fa/129.PDF} [Online; accessed 03/04/2020]}
 }
 
-@inproceedings{Signatures2015BorromeanRS,
+@misc{Signatures2015BorromeanRS,
 	title={{Borromean Ring Signatures}},
 	author={Gregory Maxwell and Andrew Poelstra},
 	year={2015},
-	note={\url{https://pdfs.semanticscholar.org/4160/470c7f6cf05ffc81a98e8fd67fb0c84836ea.pdf} [Online; accessed 04/04/2018]}
+	howpublished={Blockstream technical draft},
+	note={\url{https://github.com/Blockstream/borromean_paper/blob/master/borromean_draft_0.01_9ade1e49.pdf} [Online; accessed 04/04/2018]}
 }
 
 %duplicate mrl0005
@@ -187,7 +191,7 @@
 	url = {https://www.ledgerjournal.org/ojs/index.php/ledger/article/view/34}
 }
 
-@Inbook{Fujisaki2007,
+@incollection{Fujisaki2007,
 	author="Fujisaki, Eiichiro
 	and Suzuki, Koutarou",
 	editor="Okamoto, Tatsuaki
@@ -240,12 +244,12 @@
 	timestamp = {Mon, 03 Jul 2017 08:05:20 +0200},
 	biburl    = {http://dblp.org/rec/bib/journals/corr/MillerMLN17},
 	bibsource = {dblp computer science bibliography, http://dblp.org},
-	note = {\url{https://arxiv.org/pdf/1704.04299.pdf} [Online; accessed 03/04/2020}
+	note = {\url{https://arxiv.org/pdf/1704.04299.pdf} [Online; accessed 03/04/2020]},
 }
 
 @misc{ReplyTo-AnalysisOfLinkability,
     author = {Justin Ehrenhofer and Monero Community},
-    title = {{An Unofficial Response to ``An Empirical Analysis of Linkability in the Monero Blockchain"}},
+    title = {{An Unofficial Response to ``An Empirical Analysis of Linkability in the Monero Blockchain''}},
     howpublished = {CryptoNote},
     year = {2017},
     month = {April},
@@ -263,7 +267,6 @@
 	           Part {II}},
 	pages     = {153--173},
 	year      = {2017},
-	crossref  = {DBLP:conf/esorics/2017-2},
 	url       = {https://doi.org/10.1007/978-3-319-66399-9_9},
 	doi       = {10.1007/978-3-319-66399-9_9},
 	timestamp = {Fri, 03 Nov 2017 06:13:45 +0100},
@@ -346,9 +349,12 @@
 }
 
 @misc{NSA-NIST,
-    author = {},
+    author = {Peter Woit},
     title = {{Trust the math? An Update}},
-    note = {\url{http://www.math.columbia.edu/~woit/wordpress/?p=6522} [Online; accessed 04/04/2018]},
+    year = {2013},
+    month = {December},
+    day = {21},
+    note = {\url{https://www.math.columbia.edu/~woit/wordpress/?p=6522} [Online; accessed 04/04/2018]},
 }
 
 @misc{rivest-leak-secret,
@@ -366,7 +372,7 @@
 }
 
 @misc{ecdsa,
-    author = {Don Johnson and Alfred Menezes},
+    author = {Don Johnson and Alfred Menezes and Scott A. Vanstone},
     title = {{The Elliptic Curve Digital Signature Algorithm (ECDSA)}},
     howpublished = {Technical Report CORR 99-34, Dept. of C\&O, University of Waterloo, Canada},
     year = {1999},
@@ -374,14 +380,17 @@
 }
 
 @misc{eddsa-irtf,
-    author = {S. Josefsson and SJD AB and I. Liusvaara},
+    author = {Simon Josefsson and Ilari Liusvaara},
     title = {{Edwards-Curve Digital Signature Algorithm (EdDSA)}},
-    howpublished = {Internet Research Task Force (IRTF)},
+    howpublished = {RFC 8032},
     year = {2017},
-    note = {\url{https://tools.ietf.org/html/rfc8032} [Online; accessed 05/11/2018]},
+    month = {January},
+    doi = {10.17487/RFC8032},
+    note = {\url{https://www.rfc-editor.org/info/rfc8032} [Online; accessed 05/11/2018]},
 }
 
 @misc{ASNL-issue,
+    key = {Monero Research Lab issue 4},
     title = {{Issue with proof of unforgeability of ASNL}},
     year = {2016},
     note = {\url{https://github.com/monero-project/research-lab/issues/4} [Online; accessed 04/04/2018]},
@@ -396,7 +405,7 @@
 }
 
 @misc{key-image-bug,
-    author = {Riccardo ``fluffypony" Spagni and luigi1111},
+    author = {Riccardo ``fluffypony'' Spagni and luigi1111},
     title = {{Disclosure of a Major Bug in Cryptonote Based Currencies}},
     year = {2017},
     month = {May},
@@ -404,31 +413,37 @@
 }
 
 @misc{wiki-modular-arithmetic,
+    key = {Wikipedia modular arithmetic},
     title = {Modular arithmetic},
     note = {\url{https://en.wikipedia.org/wiki/Modular_arithmetic} [Online; accessed 04/16/2018]},
 }
 
 @misc{luigi-address,
+    key = {CryptoNote address tests},
     title = {{Cryptonote Address Tests}},
     note = {\url{https://xmr.llcoins.net/addresstests.html} [Online; accessed 04/19/2018]},
 }
 
 @misc{integrated-addresses,
+    key = {Monero Stack Exchange payment IDs},
     title = {How do payment ids work?},
     note = {\url{https://monero.stackexchange.com/questions/1910/how-do-payment-ids-work} [Online; accessed 04/21/2018]},
 }
 
 @misc{wolfram-xor,
+    key = {Wolfram MathWorld XOR},
     title = {{XOR -- from Wolfram Mathworld}},
     note = {\url{http://mathworld.wolfram.com/XOR.html} [Online; accessed 04/21/2018]},
 }
 
 @misc{cryptographic-oracle,
+    key = {Information Security Stack Exchange oracle},
     title = {{cryptography - What is a cryptographic oracle?}},
     note = {\url{https://security.stackexchange.com/questions/10617/what-is-a-cryptographic-oracle} [Online; accessed 04/22/2018]},
 }
 
 @misc{deprecating-payment-ids,
+    key = {Monero DevMeeting 2018-05-06},
     title = {{DevMeeting 2018-05-06}},
     note = {\url{https://monerobase.com/wiki/DevMeeting_2018-05-06} [Online; accessed 05/06/2018]},
 }
@@ -441,12 +456,12 @@
 	pages = "313 - 314",
 	year = "1993",
 	issn = "0167-7152",
-	doi = "https://doi.org/10.1016/0167-7152(93)90021-A",
-	url = "http://www.sciencedirect.com/science/article/pii/016771529390021A",
+	doi = "10.1016/0167-7152(93)90021-A",
+	url = "https://doi.org/10.1016/0167-7152(93)90021-A",
 	author = "Paola Scozzafava",
 	keywords = "Modulo , sum modulo , sum modulo  of independent random variables, uniform distribution",
 	abstract = "If one of two independent random variables (possibly both) is uniformly distributed, then so is their sum modulo m; we show that the converse is true if m is a prime number and the relevant probabilities are rational numbers.",
-	note = {\url{https://sci-hub.tw/https://www.sciencedirect.com/science/article/abs/pii/016771529390021A} [Online; accessed 03/04/2020]}
+	note = {\url{https://doi.org/10.1016/0167-7152(93)90021-A}}
 }
 
 @inproceedings{Miller:point-compression-origin,
@@ -466,18 +481,21 @@
 } 
 
 @misc{eddsa-ed25519-irtf,
-    author = {S. Josefsson and SJD AB and N. Moeller},
+    author = {Simon Josefsson and Niels M{\"o}ller},
     title = {{EdDSA and Ed25519}},
-    howpublished = {Internet Research Task Force (IRTF)},
+    howpublished = {Internet-Draft draft-josefsson-eddsa-ed25519-03},
     year = {2015},
-    note = {\url{https://tools.ietf.org/html/draft-josefsson-eddsa-ed25519-03} [Online; accessed 05/11/2018]},
+    month = {May},
+    day = {12},
+    note = {\url{https://datatracker.ietf.org/doc/html/draft-josefsson-eddsa-ed25519-03} [Online; accessed 05/11/2018]},
 }
 
-@article{maxwell2018simple-musig,
+@misc{maxwell2018simple-musig,
     title = {{Simple Schnorr Multi-Signatures with Applications to Bitcoin}},
     author = {Maxwell, Gregory and Poelstra, Andrew and Seurin, Yannick and Wuille, Pieter},
     month = {May},
     year = {2018},
+    howpublished = {Cryptology ePrint Archive, Report 2018/068},
     note = {\url{https://eprint.iacr.org/2018/068.pdf} [Online; accessed 03/01/2020]},
 }
 
@@ -496,11 +514,13 @@
 }
 
 @misc{tutorialspoint-cryptography,
+    key = {Tutorials Point cryptography tutorial},
     title = {{Cryptography Tutorial}},
     note = {\url{https://www.tutorialspoint.com/cryptography/index.htm} [Online; accessed 05/19/2018]},
 }
 
 @misc{AES-encryption,
+    key = {NIST FIPS 197},
     citeulike-article-id = {2470825},
     keywords = {bibtex-import},
     posted-at = {2008-03-05 09:38:14},
@@ -517,6 +537,7 @@
 }
 
 @misc{cryptonight7,
+    key = {Monero CryptoNight v7},
     title = {Monero Cryptonight variants, and add one for v7},
     note = {\url{https://github.com/monero-project/monero/pull/3253} [Online; accessed 05/23/2018]},
     year = {2018},
@@ -524,23 +545,28 @@
 }
 
 @misc{monero-history,
+    key = {Monero history},
     title = {Monero inception and history.},
     note = {\url{https://monero.stackexchange.com/questions/475/monero-inception-and-history-how-did-monero-get-started-what-are-its-origins-a/476#476} [Online; accessed 05/23/2018]},
 }
 
 @misc{monero-0.9.3,
+    key = {Monero 0.9.3},
     title = {{Monero v0.9.3 - Hydrogen Helix - released!}},
     note = {\url{https://www.reddit.com/r/Monero/comments/4bgw4z/monero_v093_hydrogen_helix_released_urgent_and/} [Online; accessed 05/24/2018]},
 }
 
 @misc{monero-v5,
+    key = {Monero v5},
     title = {{Add intervening v5 fork for increased min block size}},
     note = {\url{https://github.com/monero-project/monero/pull/1869} [Online; accessed 05/24/2018]},
 }
 
 @misc{monero-tail-emission,
+    author = {{Monero Project}},
     title = {Tail emission},
-    note = {\url{https://getmonero.org/resources/moneropedia/tail-emission.html} [Online; accessed 05/24/2018]},
+    year = {2022},
+    note = {\url{https://www.getmonero.org/get-started/faq/} [Online; accessed 08/29/2026]},
 }
 
 @misc{bitmonero-launched,
@@ -553,16 +579,19 @@
 }
 
 @misc{dynamic-per-kb-fee,
+    key = {Monero dynamic fee},
     title = {How does the dynamic fee calculation work?},
     note = {\url{https://monero.stackexchange.com/questions/2531/how-does-the-dynamic-fee-calculation-work} [Online; accessed 05/25/2018]},
 }
 
 @misc{monero-coin-emission,
+    key = {Monero coin emission},
     title = {{Useful for learning about Monero coin emission}},
     note = {\url{https://www.reddit.com/r/Monero/comments/512kwh/useful_for_learning_about_monero_coin_emission/d78tpgi/} [Online; accessed 05/25/2018]},
 }
 
 @misc{transaction-lock,
+    key = {Monero transaction lock},
     title = {What is the block maturity value seen in many pool interfaces?},
     note = {\url{https://monero.stackexchange.com/questions/2251/what-is-the-block-maturity-value-seen-in-many-pool-interfaces} [Online; accessed 05/26/2018]},
 }
@@ -592,6 +621,7 @@
 }
 
 @misc{DAG-wikipedia,
+    key = {Wikipedia directed acyclic graph},
     title = {{Directed acyclic graph}},
     note = {\url{https://en.wikipedia.org/wiki/Directed_acyclic_graph} [Online; accessed 05/27/2018]},
 }
@@ -603,12 +633,12 @@
 	issue_date = {November 1976},
 	volume = {22},
 	number = {6},
-	month = sep,
-	year = {2006},
+	month = nov,
+	year = {1976},
 	issn = {0018-9448},
 	pages = {644--654},
 	numpages = {11},
-	url = {http://dx.doi.org/10.1109/TIT.1976.1055638},
+	url = {https://doi.org/10.1109/TIT.1976.1055638},
 	doi = {10.1109/TIT.1976.1055638},
 	acmid = {2269104},
 	publisher = {IEEE Press},
@@ -646,6 +676,7 @@
 }
 
 @misc{nist-sha3,
+    author = {{National Institute of Standards and Technology}},
     title = {{NIST Releases SHA-3 Cryptographic Hash Standard}},
     year = {2015},
     month = {August},
@@ -654,6 +685,7 @@
 }
 
 @misc{ringct-dates,
+    key = {Monero RingCT dates},
     title = {{Ring CT; Moneropedia}},
     note = {\url{https://getmonero.org/resources/moneropedia/ringCT.html} [Online; accessed 06/05/2018]},
 }
@@ -668,17 +700,19 @@
 }
 
 @misc{premine-description,
+    key = {CryptoCompare premine},
     title = {What is a premine?},
     note = {\url{https://www.cryptocompare.com/coins/guides/what-is-a-premine/} [Online; accessed 06/11/2018]},
 }
 
 @misc{chacha-irtf,
-    author = {Y. Nir and Check Point and A. Langley and Google Inc.},
+    author = {Yoav Nir and Adam Langley},
     title = {{ChaCha20 and Poly1305 for IETF Protocols}},
-    howpublished = {Internet Research Task Force (IRTF)},
+    howpublished = {RFC 7539},
     year = {2015},
     month = {May},
-    note = {\url{https://tools.ietf.org/html/rfc7539} [Online; accessed 05/11/2018]},
+    doi = {10.17487/RFC7539},
+    note = {\url{https://www.rfc-editor.org/info/rfc7539} [Online; accessed 05/11/2018]},
 }
 
 @MISC{Bernstein_chacha,
@@ -756,6 +790,8 @@
 @misc{Bulletproofs_paper,
     author = {Benedikt B\"{u}nz and Jonathan Bootle and Dan Boneh and Andrew Poelstra and Pieter Wuille and Greg Maxwell},
     title = {{Bulletproofs: Short Proofs for Confidential Transactions and More}},
+    howpublished = {Cryptology ePrint Archive, Report 2017/1066},
+    year = {2017},
     note = {\url{https://eprint.iacr.org/2017/1066.pdf} [Online; accessed 10/28/2018]},
 }
 
@@ -783,21 +819,90 @@
 }
 
 @misc{randomx,
+    key = {Monero Outreach RandomX},
     title = {RandomX},
     note = {\url{https://www.monerooutreach.org/stories/RandomX.php} [Online; accessed 10/12/2019]},
 }
 
+@misc{randomx-spec-v1,
+    author = {Tevador and RandomX contributors},
+    title = {{RandomX Specification, version 1}},
+    year = {2026},
+    note = {Especifica\c{c}\~ao na revis\~ao \texttt{12f2c2ffe2108d6cf54c391fee33c8bc3646cdab}
+    (vers\~ao 1.2.3), incorporada como subm\'odulo pelo c\'odigo Monero
+    consultado, \url{https://github.com/tevador/RandomX/blob/12f2c2ffe2108d6cf54c391fee33c8bc3646cdab/doc/specs.md}},
+}
+
+@misc{randomx-design-v1,
+    author = {Tevador and RandomX contributors},
+    title = {{RandomX Design}},
+    year = {2026},
+    note = {Descri\c{c}\~ao, an\'alise e resultados emp\'iricos da vers\~ao 1,
+    na revis\~ao incorporada pelo Monero,
+    \url{https://github.com/tevador/RandomX/blob/12f2c2ffe2108d6cf54c391fee33c8bc3646cdab/doc/design.md}},
+}
+
+@misc{randomx-audits,
+    author = {{RandomX contributors}},
+    title = {{RandomX Security Audits}},
+    year = {2019},
+    note = {Relat\'orios de Trail of Bits, X41 D-Sec, Kudelski Security e
+    QuarksLab,
+    \url{https://github.com/tevador/RandomX/tree/12f2c2ffe2108d6cf54c391fee33c8bc3646cdab/audits}},
+}
+
+@misc{randomx-v2-release,
+    author = {{RandomX contributors}},
+    title = {{RandomX version 2 releases}},
+    year = {2026},
+    note = {Vers\~ao algor\'itmica posterior, publicada separadamente e n\~ao
+    incorporada na fotografia de consenso Monero descrita neste livro,
+    \url{https://github.com/tevador/RandomX/releases/tag/v2.0.1}},
+}
+
+@inproceedings{argon2-paper,
+    author = {Alex Biryukov and Daniel Dinu and Dmitry Khovratovich},
+    title = {{Argon2: New Generation of Memory-Hard Functions for Password
+    Hashing and Other Applications}},
+    booktitle = {2016 IEEE European Symposium on Security and Privacy},
+    year = {2016},
+    pages = {292--302},
+    note = {\url{https://www.password-hashing.net/argon2-specs.pdf}},
+}
+
+@misc{memory-hard-tradeoffs,
+    author = {Alex Biryukov and Daniel Dinu and Dmitry Khovratovich},
+    title = {{Fast and Tradeoff-Resilient Memory-Hard Functions for
+    Cryptocurrencies and Password Hashing}},
+    howpublished = {Cryptology ePrint Archive, Report 2015/430},
+    year = {2015},
+    note = {\url{https://eprint.iacr.org/2015/430}},
+}
+
+@inproceedings{blake2-paper,
+    author = {Jean-Philippe Aumasson and Samuel Neves and Zooko Wilcox-O'Hearn
+    and Christian Winnerlein},
+    title = {{BLAKE2: Simpler, Smaller, Fast as MD5}},
+    booktitle = {Applied Cryptography and Network Security},
+    year = {2013},
+    pages = {119--135},
+    note = {\url{https://blake2.net/blake2.pdf}},
+}
+
 @misc{boronbutterfly-v10,
-    title = {{Monero 0.14.0 ``Boron Butterfly" Release}},
+    key = {Monero Boron Butterfly},
+    title = {{Monero 0.14.0 ``Boron Butterfly'' Release}},
     note = {\url{https://web.getmonero.org/2019/02/25/monero-0.14.0-released.html} [Online; accessed 10/12/2019]},
 }
 
 @misc{berylliumbullet-v8,
-    title = {{Monero 0.13.0 ``Beryllium Bullet" Release}},
+    key = {Monero Beryllium Bullet},
+    title = {{Monero 0.13.0 ``Beryllium Bullet'' Release}},
     note = {\url{https://www.getmonero.org/2018/10/11/monero-0.13.0-released.html} [Online; accessed 10/12/2019]},
 }
 
 @misc{miner-tx-checks,
+    key = {HackerOne miner transaction checks},
     title = {{hackerone \#501585}},
     note = {\url{https://hackerone.com/reports/501585} [Online; accessed 12/28/2019]},
 }
@@ -846,7 +951,7 @@
 	journal   = {CoRR},
 	volume    = {abs/1704.04299},
 	year      = {2017},
-	note = {\url{https://arxiv.org/pdf/1704.04299.pdf} [Online; accessed 03/04/2020}
+	note = {\url{https://arxiv.org/pdf/1704.04299.pdf} [Online; accessed 03/04/2020]},
 }
 
 %flawed source
@@ -893,17 +998,18 @@
 }
 
 @misc{articmine-fee-video,
-    author = {Francisco Caba$\tilde{\textrm{n}}$as},
+    author = {Francisco Caba{\~n}as},
     title = {{MoneroKon 2019 - Spam Mitigation and Size Control in Permissionless Blockchains}},
     year = {2019},
     month = {June},
     note = {\url{https://www.youtube.com/watch?v=Hbm0ub3qWw4&list=LL2HXH-vq_sTPXMNP4fZNKRw&index=10&t=0s} [Online; accessed 01/10/2020]},
 }
 
-@misc{mastering-monero,
-    author = {Serhack et al.},
-    title = {{Mastering Monero}},
-    year = {2019},
+@book{mastering-monero,
+    author = {SerHack and {Monero Community}},
+    title = {{Mastering Monero: The Future of Private Transactions}},
+    publisher = {LernoLibro LLC},
+    year = {2018},
     month = {December},
     note = {\url{https://masteringmonero.com/} [Online; accessed 01/10/2020]},
 }
@@ -917,7 +1023,7 @@
 }
 
 @misc{articmine-36c3-dynamics,
-    author = {Francisco Caba$\tilde{\textrm{n}}$as},
+    author = {Francisco Caba{\~n}as},
     title = {{Lightning talk: An Overview of Monero’s Adaptive Blockweight Approach to Scaling}},
     year = {2019},
     month = {December},
@@ -958,7 +1064,7 @@
 }
 
 @misc{articmine-defcon27-video,
-    author = {Francisco Caba$\tilde{\textrm{n}}$as},
+    author = {Francisco Caba{\~n}as},
     title = {{Francisco Cabanas - Critical Role of Min Block Reward Trail Emission - DEF CON 27 Monero Village}},
     year = {2019},
     month = {December},
@@ -974,6 +1080,7 @@
 }
 
 @misc{bitcoin-txsizes-2015,
+    key = {TradeBlock transaction size trends},
     title = {{Analysis of Bitcoin Transaction Size Trends}},
     year = {2015},
     month = {October},
@@ -1005,7 +1112,7 @@
 }
 
 @misc{mms-manual,
-    author = {Ren\'e ``rbrunner7" Brunner},
+    author = {Ren\'e ``rbrunner7'' Brunner},
     title = {{Multisig transactions with MMS and CLI wallet}},
     note = {\url{https://web.getmonero.org/resources/user-guides/multisig-messaging-system.html} [Online; accessed 01/21/2020]},
 }
@@ -1019,7 +1126,7 @@
 }
 
 @misc{mms-project-proposal,
-    author = {Ren\'e ``rbrunner7" Brunner},
+    author = {Ren\'e ``rbrunner7'' Brunner},
     title = {{Project Rationale From the Initiator}},
     year = {2018},
     month = {January},
@@ -1041,6 +1148,7 @@
 }
 
 @misc{coinjoin-wiki,
+    key = {Bitcoin Wiki CoinJoin},
     title = {{CoinJoin}},
     note = {\url{https://en.bitcoin.it/wiki/CoinJoin} [Online; accessed 01/26/2020]},
 }
@@ -1083,6 +1191,19 @@
     note = {\url{https://eprint.iacr.org/2018/417} [Online; accessed 02/07/2020]},
 }
 
+@inproceedings{musig2,
+    author = {Jonas Nick and Tim Ruffing and Yannick Seurin},
+    title = {{MuSig2: Simple Two-Round Schnorr Multi-Signatures}},
+    booktitle = {Advances in Cryptology -- CRYPTO 2021},
+    series = {Lecture Notes in Computer Science},
+    volume = {12825},
+    pages = {189--221},
+    publisher = {Springer},
+    year = {2021},
+    note = {Cryptology ePrint Archive, Report 2020/1261,
+    \url{https://eprint.iacr.org/2020/1261}},
+}
+
 @InProceedings{generalized-birthday-wagner,
     author="Wagner, David",
     editor="Yung, Moti",
@@ -1104,6 +1225,7 @@
 }
 
 @misc{credit-card-reversals,
+    key = {Tidal Commerce payment reversal},
     title = {{Payment Reversal Explained + 10 Ways to Avoid Them}},
     year = {2018},
     month = {October},
@@ -1119,7 +1241,7 @@
 }
 
 @misc{openbazaar-rbrunner-investigation,
-    author = {Ren\'e ``rbrunner7" Brunner},
+    author = {Ren\'e ``rbrunner7'' Brunner},
     title = {{Basic Monero support ready for assessment, Issue \#1638}},
     year = {2019},
     month = {June},
@@ -1159,8 +1281,8 @@
 }
 
 @misc{lithiumluna-v7,
-    title = {{Monero 0.12.0.0 ``Lithium Luna" Release}},
-    author = {Riccardo ``fluffypony" Spagni},
+    title = {{Monero 0.12.0.0 ``Lithium Luna'' Release}},
+    author = {Riccardo ``fluffypony'' Spagni},
     year = {2018},
     month = {March},
     note = {\url{https://web.getmonero.org/2018/03/29/monero-0.12.0.0-released.html} [Online; accessed 02/18/2020]},
@@ -1175,6 +1297,7 @@
 }
 
 @misc{base-58-encoding,
+    key = {Bitcoin Wiki Base58Check},
     title = {{Base58Check encoding}},
     year = {2017},
     month = {November},
@@ -1214,7 +1337,7 @@
 }
 
 @misc{adam-zero-to-bulletproofs,
-    author = {Adam ``waxwing" Gibson},
+    author = {Adam ``waxwing'' Gibson},
     title = {{From Zero (Knowledge) To Bulletproofs}},
     year = {2018},
     month = {March},
@@ -1222,7 +1345,7 @@
 }
 
 @misc{adam-wagnerian-tragedies,
-    author = {Adam ``waxwing" Gibson},
+    author = {Adam ``waxwing'' Gibson},
     title = {{Avoiding Wagnerian Tragedies}},
     year = {2019},
     month = {December},
@@ -1236,7 +1359,7 @@
 }
 
 @misc{randomx-pr-5549,
-    author = {Howard ``hyc" Chu},
+    author = {Howard ``hyc'' Chu},
     title = {{RandomX, Pull Request \#5549}},
     year = {2019},
     month = {May},
@@ -1258,15 +1381,16 @@
     title = {{Triptych: logarithmic-sized linkable ring signatures with applications}},
     howpublished = {Cryptology ePrint Archive, Report 2020/018},
     year = {2020},
-    note = {\url{https://eprint.iacr.org/2020/018.pdf} [Online; accessed 03/04/2020},
+    note = {\url{https://eprint.iacr.org/2020/018.pdf} [Online; accessed 03/04/2020]},
 }
 
 @inproceedings{omniring-paper,
     author = {Lai, Russell W. F. and Ronge, Viktoria and Ruffing, Tim and Schr\"{o}der, Dominique and Thyagarajan, Sri and Wang, Jiafan},
     year = {2019},
-    month = {11},
+    month = {November},
     pages = {31-48},
     title = {{Omniring: Scaling Private Payments Without Trusted Setup}},
+    booktitle = {Proceedings of the 2019 ACM SIGSAC Conference on Computer and Communications Security},
     isbn = {978-1-4503-6747-9},
     doi = {10.1145/3319535.3345655},
     note = {\url{https://eprint.iacr.org/2019/580.pdf} [Online; accessed 03/04/2020]}
@@ -1288,10 +1412,13 @@
     note = {\url{https://eprint.iacr.org/2019/373.pdf} [Online; accessed 03/04/2020]},
 }
 
-@misc{human-action,
-    author = {Ludwig Von Mises},
-    title = {{Human Action: A Treatise on Economics; The Scholar's Edition}},
-    year = {1949},
+@book{human-action,
+    author = {Mises, Ludwig von},
+    title = {{Human Action: A Treatise on Economics}},
+    edition = {Scholar's},
+    publisher = {Ludwig von Mises Institute},
+    address = {Auburn, Alabama},
+    year = {1998},
     note = {\url{https://cdn.mises.org/Human\%20Action_3.pdf} [Online; accessed 03/05/2020]},
 }
 
@@ -1303,6 +1430,7 @@
 }
 
 @misc{extended-euclidean,
+    key = {Wikipedia extended Euclidean algorithm},
     title = {{Extended Euclidean algorithm}},
     note = {\url{https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm} [Online; accessed 03/19/2020]},
 }
@@ -1332,7 +1460,7 @@
 }
 
 @misc{monero-ring-heuristics-ryo,
-    author = {Ryo ``fireice\_uk" Cryptocurrency},
+    author = {Ryo ``fireice\_uk'' Cryptocurrency},
     title = {{On-chain tracking of Monero and other Cryptonotes}},
     year = {2019},
     month = {April},
@@ -1356,6 +1484,7 @@ choosing safe curves for elliptic-curve cryptography}},
 }
 
 @misc{mises-org-fungible,
+    key = {Mises Wiki fungible},
     title = {{Fungible}},
     year = {2014},
     month = {July},
@@ -1379,6 +1508,7 @@ choosing safe curves for elliptic-curve cryptography}},
 }
 
 @misc{diffie-hellman-problem,
+    key = {Wikipedia Diffie--Hellman problem},
     title = {{Diffie–Hellman problem}},
     year = {2019},
     month = {December},
@@ -1386,8 +1516,227 @@ choosing safe curves for elliptic-curve cryptography}},
 }
 
 @misc{varint-spec,
+    key = {The xz file format},
     title = {{The .xz File Format}},
     year = {2009},
     month = {August},
     note = {\url{https://tukaani.org/xz/xz-file-format.txt} section 1.2 [Online; accessed 04/02/2020]},
+}
+
+@misc{monero-source-v16,
+    author = {{Monero Project}},
+    title = {{Monero source code}},
+    year = {2026},
+    month = {August},
+    note = {Revis\~ao 3646f648db57f60cca86430e25a635d19fa9b92a, datada de
+    14 de Agosto de 2026,
+    \url{https://github.com/monero-project/monero/tree/3646f648db57f60cca86430e25a635d19fa9b92a}},
+}
+
+@article{dandelion-plus-plus,
+    author = {Giulia Fanti and Shaileshh Bojja Venkatakrishnan and Surya Bakshi
+    and Bradley Denby and Shruti Bhargava and Andrew Miller and Pramod Viswanath},
+    title = {{Dandelion++: Lightweight Cryptocurrency Networking with Formal
+    Anonymity Guarantees}},
+    journal = {Proceedings of the ACM on Measurement and Analysis of Computing
+    Systems},
+    volume = {2},
+    number = {2},
+    pages = {29:1--29:34},
+    year = {2018},
+    month = {June},
+    doi = {10.1145/3224424},
+    note = {\url{https://arxiv.org/abs/1805.11060}},
+}
+
+@misc{monero-pruning-doc,
+    author = {{Monero Project}},
+    title = {{Pruning --- Moneropedia}},
+    year = {2026},
+    note = {Documenta\c{c}\~ao oficial consultada em Agosto de 2026,
+    \url{https://www.getmonero.org/resources/moneropedia/pruning.html}},
+}
+
+@misc{monero-dandelion-inbound-proposal,
+    author = {Boog900},
+    title = {{Proving maximum outbound connection count to allow selecting
+    inbound peers as a Dandelion++ stem}},
+    year = {2026},
+    month = {May},
+    howpublished = {Monero Research Lab, proposta \#160},
+    note = {Proposta aberta, n\~ao implementada na revis\~ao consultada,
+    \url{https://github.com/monero-project/research-lab/issues/160}},
+}
+
+@misc{monero-tx-inventory-proposal,
+    author = {Boog900},
+    title = {{Change how transactions are broadcasted to significantly reduce
+    P2P bandwidth usage}},
+    year = {2024},
+    month = {May},
+    howpublished = {Monero, proposta \#9334},
+    note = {Proposta aberta, n\~ao implementada na revis\~ao consultada,
+    \url{https://github.com/monero-project/monero/issues/9334}},
+}
+
+@inproceedings{curve-trees,
+    author = {Matteo Campanelli and Mathias Hall-Andersen and Simon Holmgaard Kamp},
+    title = {{Curve Trees: Practical and Transparent Zero-Knowledge Accumulators}},
+    booktitle = {32nd USENIX Security Symposium (USENIX Security 23)},
+    pages = {4391--4408},
+    publisher = {USENIX Association},
+    year = {2023},
+    month = {August},
+    note = {Vers\~ao revista de Cryptology ePrint Archive, Report 2022/756,
+    \url{https://www.usenix.org/conference/usenixsecurity23/presentation/campanelli}},
+}
+
+@misc{eagen-divisors,
+    author = {Liam Eagen},
+    title = {{Zero Knowledge Proofs of Elliptic Curve Inner Products from
+    Principal Divisors and Weil Reciprocity}},
+    howpublished = {Cryptology ePrint Archive, Report 2022/596},
+    year = {2022},
+    note = {\url{https://eprint.iacr.org/2022/596}},
+}
+
+@misc{fcmp-plus-plus-paper,
+    author = {Luke Parker},
+    title = {{FCMP++: Full-Chain Membership Proofs for Monero}},
+    year = {2024},
+    howpublished = {Especifica\c{c}\~ao em desenvolvimento},
+    note = {Reposit\'orio da especifica\c{c}\~ao e fontes em
+    \url{https://github.com/kayabaNerve/fcmp-plus-plus-paper}},
+}
+
+@misc{carrot-specification,
+    author = {Jeffro256},
+    title = {{Carrot: Cryptonote Address on Rerandomizable-RingCT-Output
+    Transactions}},
+    year = {2026},
+    howpublished = {Especifica\c{c}\~ao em desenvolvimento},
+    note = {Hierarquia de chaves, n\'iveis de acesso e protocolo de
+    endere\c{c}amento na revis\~ao
+    \texttt{c65a418c3860e28afcc8b8f75b3127069d830750}, consultada em 26 de
+    Agosto de 2026,
+    \url{https://github.com/jeffro256/carrot/blob/c65a418c3860e28afcc8b8f75b3127069d830750/carrot.md}},
+}
+
+@misc{monero-fcmp-introduction,
+    author = {Luke Parker},
+    title = {{Full-Chain Membership Proofs Development}},
+    year = {2024},
+    month = {April},
+    day = {27},
+    note = {\url{https://www.getmonero.org/2024/04/27/fcmps.html}},
+}
+
+@misc{generalized-bulletproofs-review,
+    author = {{Cypher Stack}},
+    title = {{Generalized Bulletproofs Security Analysis}},
+    year = {2024},
+    month = {May},
+    note = {Relat\'orio e materiais em
+    \url{https://github.com/cypherstack/generalized-bulletproofs}},
+}
+
+@misc{fcmp-composition-review,
+    author = {{Cypher Stack}},
+    title = {{FCMP++ Composition Security Analysis}},
+    year = {2024},
+    month = {June},
+    note = {Relat\'orio e provas de seguran\c{c}a para a composi\c{c}\~ao e a
+    prova de autoriza\c{c}\~ao de gasto e liga\c{c}\~ao em
+    \url{https://github.com/cypherstack/fcmp-review}},
+}
+
+@misc{veridise-fcmp-audit,
+    author = {{Veridise}},
+    title = {{Full-Chain Membership Proofs Audit}},
+    year = {2025},
+    month = {June},
+    note = {Auditoria do circuito, da aritm\'etica e da implementa\c{c}\~ao,
+    incluindo verifica\c{c}\~ao formal de dispositivos n\~ao interactivos com Picus,
+    \url{https://veridise.com/audits-archive/company/monero-research-lab/magic-grants-monero-fcmp-2025-06-03}},
+}
+
+@misc{slver-bullet,
+    author = {Brandon Goodell and Rigo Salazar and Freeman Slaughter and Luke Szramowski},
+    title = {{SLVer Bullet: Straight-Line Verification for Bulletproofs}},
+    howpublished = {Cryptology ePrint Archive, Report 2025/1345},
+    year = {2025},
+    note = {\url{https://eprint.iacr.org/2025/1345}},
+}
+
+@misc{zksecurity-divisor-notes,
+    author = {{zkSecurity}},
+    title = {{Notes on Divisor Techniques for Elliptic-Curve Proofs}},
+    year = {2026},
+    note = {Revis\~ao t\'ecnica em
+    \url{https://blog.zksecurity.xyz/posts/divisor-notes/divisor-techniques.pdf}},
+}
+
+@misc{trailofbits-fcmp-audit,
+    author = {{Trail of Bits}},
+    title = {{Monero FCMP++ Cryptography Implementation Audited by Trail of Bits}},
+    year = {2026},
+    month = {August},
+    note = {Resumo e liga\c{c}\~ao para o relat\'orio de auditoria em
+    \url{https://magicgrants.org/2026/08/17/Monero-FCMP-Cryptography-Implementation-ToB}},
+}
+
+@misc{monero-fcmp-milestone,
+    author = {{Monero Project}},
+    title = {{FCMP++ Integration Milestone}},
+    year = {2026},
+    note = {Estado de integra\c{c}\~ao consultado em 31 de Agosto de 2026,
+    \url{https://github.com/monero-project/monero/milestone/1}},
+}
+
+@misc{monero-fcmp-integration-pr,
+    author = {{j-berman}},
+    title = {{{[WIP]} Full-Chain Membership Proof++ Integration, Pull Request \#9436}},
+    year = {2024},
+    month = {August},
+    day = {14},
+    note = {Pedido de integra\c{c}\~ao em rascunho consultado em 31 de Agosto
+    de 2026, \url{https://github.com/monero-project/monero/pull/9436}},
+}
+
+@misc{monero-fcmp-integration-audit,
+    author = {{j-berman}},
+    title = {{FCMP++ Integration Audit}},
+    year = {2026},
+    month = {April},
+    day = {6},
+    note = {Proposta e estado dos marcos consultados em 31 de Agosto de 2026,
+    \url{https://ccs.getmonero.org/proposals/fcmp%2B%2B-integration-audit.html}},
+}
+
+@misc{monero-oxide-fcmp-source,
+    author = {Luke Parker and contributors},
+    title = {{monero-oxide FCMP++ implementation}},
+    year = {2026},
+    note = {Fotografia do ramo \texttt{fcmp++}, revis\~ao
+    \texttt{31c26d96eaadbba910ffe3613ad8b4cf9c598a93}, 18 de Agosto de 2026,
+    \url{https://github.com/monero-oxide/monero-oxide/tree/31c26d96eaadbba910ffe3613ad8b4cf9c598a93}},
+}
+
+@misc{monero-master-fcmp-status,
+    author = {{Monero Project}},
+    title = {{Mainnet hard-fork schedule and RingCT type definitions}},
+    year = {2026},
+    note = {Fontes do ramo principal consultadas em 31 de Agosto de 2026:
+    \url{https://github.com/monero-project/monero/blob/master/src/hardforks/hardforks.cpp}
+    e
+    \url{https://github.com/monero-project/monero/blob/master/src/ringct/rctTypes.h}},
+}
+
+@misc{monero-fcmp-generator-fix,
+    author = {{Monero Project}},
+    title = {{Fix FCMP++ generator definitions, Pull Request \#10963}},
+    year = {2026},
+    month = {August},
+    note = {Correc\c{c}\~ao integrada em 23 de Agosto de 2026,
+    \url{https://github.com/monero-project/monero/pull/10963}},
 }

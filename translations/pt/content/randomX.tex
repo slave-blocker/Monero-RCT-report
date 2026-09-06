@@ -178,12 +178,14 @@ mineração a partir da altura 36:
  \node[below] at (2,-.08) {\(34\)};
  \node[below] at (3,-.08) {\(35\)};
  \node[below] at (4,-.08) {\(36\)};
- \node[above,align=center,fill=green!15,draw,rounded corners] at (0,0.72)
+ \node[above,align=center,fill=green!15,draw,rounded corners] at (0,1.02)
    {bloco-semente};
- \draw[decorate,decoration={brace,amplitude=5pt}] (1,.27)--(3,.27)
-   node[midway,above=5pt] {\(L=3\)};
- \draw[very thick,BlueViolet,->] (4,.72)--(15.5,.72)
+ \draw[thin,->] (0,.77)--(0,.18);
+ \draw[decorate,decoration={brace,mirror,amplitude=5pt}] (1,-.48)--(3,-.48)
+   node[midway,below=6pt] {\(L=3\)};
+ \draw[very thick,BlueViolet,->] (4,1.02)--(15.5,1.02)
    node[midway,above] {época governada por \(K=\operatorname{ID}_{32}\)};
+ \draw[thin,->] (4,.77)--(4,.18);
 \end{tikzpicture}
 \end{center}
 
@@ -265,21 +267,23 @@ Há duas maneiras de responder quando a máquina virtual pede \(D_K[i]\):
 \end{description}
 
 \begin{center}
-\begin{tikzpicture}[>=stealth,node distance=.65cm and 1cm,
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,
   every node/.style={font=\small},
   box/.style={draw,rounded corners,align=center,minimum height=.8cm,
-    text width=2.4cm}]
- \node[box,fill=green!12] (cache) {Cache \(C_K\)\\256 MiB};
- \node[box,fill=blue!10,right=2.2cm of cache,yshift=.85cm] (full)
+    text width=2.75cm}]
+ \node[box,fill=green!12] (cache) at (0,0) {Cache \(C_K\)\\256 MiB};
+ \node[box,fill=blue!10] (full) at (4.4,1.15)
    {Dataset guardado\\\(D_K[i]\) já existe};
- \node[box,fill=yellow!16,right=2.2cm of cache,yshift=-.85cm] (light)
+ \node[box,fill=yellow!16] (light) at (4.4,-1.15)
    {cálculo no momento\\\(\Phi_K(i,C_K)\)};
- \node[box,right=2.1cm of full,yshift=-.85cm] (same)
+ \node[box] (same) at (8.8,0)
    {o mesmo item\\de 64 bytes};
- \draw[->,thick] (cache)--node[above,sloped]{preparar} (full);
- \draw[->,thick] (cache)--node[below,sloped]{reconstituir} (light);
- \draw[->,thick] (full)--(same);
- \draw[->,thick] (light)--(same);
+ \draw[->,thick] (cache.east) to[bend left=12]
+   node[above,sloped,fill=white,inner sep=1pt]{preparar} (full.west);
+ \draw[->,thick] (cache.east) to[bend right=12]
+   node[below,sloped,fill=white,inner sep=1pt]{reconstituir} (light.west);
+ \draw[->,thick] (full.east) to[bend left=12] (same.west);
+ \draw[->,thick] (light.east) to[bend right=12] (same.west);
 \end{tikzpicture}
 \end{center}
 

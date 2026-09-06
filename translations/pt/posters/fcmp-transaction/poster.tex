@@ -9,384 +9,311 @@
 \usepackage{amsmath,amssymb}
 \usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,calc,positioning}
+\usetikzlibrary{arrows.meta,calc,positioning,backgrounds,shapes.geometric}
 
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0pt}
 \renewcommand{\familydefault}{\sfdefault}
 
-\definecolor{PosterInk}{HTML}{17212B}
-\definecolor{PosterPaper}{HTML}{FBFAF7}
-\definecolor{PublicFill}{HTML}{EDF2FF}
-\definecolor{PublicLine}{HTML}{5B4BB7}
-\definecolor{SecretFill}{HTML}{F6ECFA}
-\definecolor{SecretLine}{HTML}{8A3FA0}
-\definecolor{ProofFill}{HTML}{EAF6EC}
-\definecolor{ProofLine}{HTML}{347A43}
-\definecolor{StructureFill}{HTML}{E7F5F4}
-\definecolor{StructureLine}{HTML}{277A78}
-\definecolor{FixedFill}{HTML}{FFF0DE}
-\definecolor{FixedLine}{HTML}{C56516}
-\definecolor{ContingentFill}{HTML}{FFF9D9}
-\definecolor{ContingentLine}{HTML}{A68100}
+% Azul = bytes públicos; violeta = testemunha; verde = relações verificadas;
+% turquesa = estrutura; laranja = fotografia de código; amarelo = estado
+% contingente. Os contornos escuros preservam a distinção na impressão.
+\definecolor{PosterInk}{HTML}{101820}
+\definecolor{PosterPaper}{HTML}{F7F5EF}
+\definecolor{PublicFill}{HTML}{B8D5FF}
+\definecolor{PublicLine}{HTML}{174EA6}
+\definecolor{SecretFill}{HTML}{E4B9F3}
+\definecolor{SecretLine}{HTML}{72208B}
+\definecolor{ProofFill}{HTML}{B8E8BF}
+\definecolor{ProofLine}{HTML}{176B35}
+\definecolor{StructureFill}{HTML}{A7E8E4}
+\definecolor{StructureLine}{HTML}{006D73}
+\definecolor{FixedFill}{HTML}{FFD0A1}
+\definecolor{FixedLine}{HTML}{A94700}
+\definecolor{ContingentFill}{HTML}{FFE36E}
+\definecolor{ContingentLine}{HTML}{7A5A00}
+\definecolor{BridgeFill}{HTML}{FFE0B8}
+\definecolor{BridgeLine}{HTML}{B34200}
 
 \newcommand{\Pub}{\textcolor{PublicLine}{\textbf{PÚBLICO}}}
-\newcommand{\Sec}{\textcolor{SecretLine}{\textbf{SEGREDO}}}
-\newcommand{\Pro}{\textcolor{ProofLine}{\textbf{PROVADO}}}
+\newcommand{\Sec}{\textcolor{SecretLine}{\textbf{PROVADOR}}}
+\newcommand{\Pro}{\textcolor{ProofLine}{\textbf{VERIFICADO}}}
 \newcommand{\Det}{\textcolor{StructureLine}{\textbf{DETERMINÍSTICO}}}
-\newcommand{\Fix}{\textcolor{FixedLine}{\textbf{IMPLEMENTAÇÃO FIXADA}}}
+\newcommand{\Fix}{\textcolor{FixedLine}{\textbf{FIXADO}}}
 \newcommand{\Con}{\textcolor{ContingentLine}{\textbf{CONTINGENTE}}}
-\newcommand{\cardtitle}[1]{{\fontsize{11.8}{12.6}\selectfont\bfseries #1}\par\vspace{1.2mm}}
-\newcommand{\hairline}{\par\vspace{.7mm}{\color{PosterInk!25}\hrule height .35pt}\vspace{1.1mm}}
+\newcommand{\ntitle}[1]{{\fontsize{10.7}{11.4}\selectfont\bfseries #1}\par\vspace{1mm}}
+\newcommand{\ruleline}{\par\vspace{.7mm}{\color{PosterInk!30}\hrule height .45pt}\vspace{.9mm}}
 
 \tikzset{
-  card/.style={
-    rounded corners=4pt,
-    line width=.75pt,
-    inner sep=6.5pt,
-    align=left,
-    anchor=center,
-    font=\fontsize{8.9}{10.25}\selectfont,
-    text=PosterInk
-  },
-  public/.style={card,draw=PublicLine,fill=PublicFill},
-  secret/.style={card,draw=SecretLine,fill=SecretFill},
-  proof/.style={card,draw=ProofLine,fill=ProofFill},
-  structure/.style={card,draw=StructureLine,fill=StructureFill},
-  fixed/.style={card,draw=FixedLine,fill=FixedFill},
-  contingent/.style={card,draw=ContingentLine,fill=ContingentFill,dash pattern=on 3pt off 1.7pt},
-  flow/.style={-{Stealth[length=2.4mm,width=1.65mm]},line width=1.05pt,draw=PosterInk!68},
-  proof flow/.style={flow,draw=ProofLine},
-  money flow/.style={flow,draw=PublicLine},
-  tinylabel/.style={fill=PosterPaper,inner sep=1.5pt,font=\fontsize{8}{8.5}\selectfont\bfseries,text=PosterInk!76}
+  region/.style={rounded corners=18pt,line width=1.1pt},
+  nodebase/.style={rounded corners=11pt,line width=1.15pt,inner sep=6pt,
+    align=left,font=\fontsize{8.35}{9.55}\selectfont,text=PosterInk},
+  public object/.style={nodebase,draw=PublicLine,fill=PublicFill},
+  secret object/.style={nodebase,draw=SecretLine,fill=SecretFill},
+  proof object/.style={nodebase,draw=ProofLine,fill=ProofFill},
+  structure object/.style={nodebase,draw=StructureLine,fill=StructureFill},
+  bridge object/.style={nodebase,draw=BridgeLine,fill=BridgeFill,line width=1.45pt},
+  public flow/.style={-{Stealth[length=2.7mm,width=1.9mm]},line width=1.45pt,draw=PublicLine},
+  secret flow/.style={-{Stealth[length=2.7mm,width=1.9mm]},line width=1.35pt,
+    draw=SecretLine,dash pattern=on 4pt off 2pt},
+  proof flow/.style={-{Stealth[length=2.7mm,width=1.9mm]},line width=1.45pt,draw=ProofLine},
+  bridge flow/.style={-{Stealth[length=2.9mm,width=2mm]},line width=1.75pt,draw=BridgeLine},
+  edge label/.style={fill=PosterPaper,rounded corners=3pt,inner sep=2pt,
+    font=\fontsize{7.6}{8.2}\selectfont\bfseries,text=PosterInk}
 }
 
 \begin{document}
 \noindent
 \begin{tikzpicture}[x=1cm,y=1cm]
   \path[use as bounding box] (0,0) rectangle (43.18,27.94);
-  \coordinate (page-south-west) at (0,0);
-  \coordinate (page-south) at (21.59,0);
-  \coordinate (page-south-east) at (43.18,0);
-  \coordinate (page-center) at (21.59,13.97);
-  \coordinate (page-north-west) at (0,27.94);
-  \coordinate (page-north) at (21.59,27.94);
-  \coordinate (page-north-east) at (43.18,27.94);
-  \fill[PosterPaper] (page-south-west) rectangle (page-north-east);
+  \fill[PosterPaper] (0,0) rectangle (43.18,27.94);
 
-  % A dobra transforma a folha aberta de 17 x 11 in em Letter. A linha fica
-  % atrás de tudo; o conteúdo matemático não depende dela.
-  \draw[PosterInk!18,dash pattern=on 2pt off 2pt,line width=.45pt]
-    ([yshift=10mm]page-south) -- ([yshift=-23mm]page-north);
-  \node[anchor=north,font=\fontsize{7.5}{8}\selectfont\bfseries\color{PosterInk!48},
-        fill=PosterPaper,inner sep=1pt] at ([yshift=-.8mm]page-north) {DOBRA};
+  \draw[PosterInk!18,dash pattern=on 2pt off 2pt,line width=.5pt]
+    (21.59,1.4)--(21.59,25.05);
+  \node[anchor=north,font=\fontsize{7.2}{7.8}\selectfont\bfseries,
+        text=PosterInk!55,fill=PosterPaper,inner sep=1pt]
+    at (21.59,27.9) {DOBRA};
 
-  \node[anchor=north,font=\fontsize{22}{23}\selectfont\bfseries,text=PosterInk]
-    at ([yshift=-7mm]page-north)
-    {ANATOMIA DE UMA TRANSAÇÃO FCMP\texttt{++}};
-  \node[anchor=north,font=\fontsize{9.2}{10.3}\selectfont\itshape,text=PosterInk!78]
-    at ([yshift=-17.2mm]page-north)
-    {Uma folha escondida; uma entrada pública comum; pertença, autorização e montantes cosidos sem revelar o caminho.};
+  \node[anchor=north,font=\fontsize{22.5}{23.5}\selectfont\bfseries,text=PosterInk]
+    at (21.59,27.35) {FCMP\texttt{++}: QUEM SABE O QUÊ, E QUE EQUAÇÃO LIGA AS PEÇAS?};
+  \node[anchor=north,font=\fontsize{9.4}{10.4}\selectfont\itshape,text=PosterInk!82]
+    at (21.59,26.35)
+    {A árvore fixa uma folha; \(Q\) torna-a pública sem a identificar; FCMP e SAL provam relações complementares sobre os mesmos bytes.};
 
-  % Legenda semântica: estas cores mantêm sempre o mesmo significado.
-  \node[public,text width=3.85cm,minimum height=7mm,inner sep=3pt,anchor=north west]
-    at ([xshift=6mm,yshift=-23mm]page-north-west) {\Pub\quad visível};
-  \node[secret,text width=3.85cm,minimum height=7mm,inner sep=3pt,anchor=north west]
-    at ([xshift=49mm,yshift=-23mm]page-north-west) {\Sec\quad carteira};
-  \node[proof,text width=3.85cm,minimum height=7mm,inner sep=3pt,anchor=north west]
-    at ([xshift=92mm,yshift=-23mm]page-north-west) {\Pro\quad relação};
-  \node[structure,text width=6.05cm,minimum height=7mm,inner sep=3pt,anchor=north west]
-    at ([xshift=135mm,yshift=-23mm]page-north-west) {\Det\quad estrutura};
-  \node[fixed,text width=8.55cm,minimum height=7mm,inner sep=3pt,anchor=north west]
-    at ([xshift=222mm,yshift=-23mm]page-north-west) {\Fix\quad fotografia datada};
-  \node[contingent,text width=9.65cm,minimum height=7mm,inner sep=3pt,anchor=north west]
-    at ([xshift=318mm,yshift=-23mm]page-north-west) {\Con\quad depende da transação/rede};
+  \node[public object,rounded corners=8pt,text width=3.55cm,minimum height=6.5mm,
+        inner sep=3pt,anchor=north west] at (.7,25.45) {\Pub\quad bytes visíveis};
+  \node[secret object,rounded corners=8pt,text width=3.8cm,minimum height=6.5mm,
+        inner sep=3pt,anchor=north west] at (5.05,25.45) {\Sec\quad só a carteira};
+  \node[proof object,rounded corners=8pt,text width=4.15cm,minimum height=6.5mm,
+        inner sep=3pt,anchor=north west] at (9.7,25.45) {\Pro\quad relação aceite};
+  \node[structure object,rounded corners=8pt,text width=5.55cm,minimum height=6.5mm,
+        inner sep=3pt,anchor=north west] at (14.7,25.45) {\Det\quad todos recalculam};
+  \node[nodebase,draw=FixedLine,fill=FixedFill,rounded corners=8pt,text width=6.9cm,
+        minimum height=6.5mm,inner sep=3pt,anchor=north west]
+        at (20.75,25.45) {\Fix\quad fotografia de código datada};
+  \node[nodebase,draw=ContingentLine,fill=ContingentFill,rounded corners=8pt,
+        dash pattern=on 3pt off 1.6pt,text width=13.15cm,minimum height=6.5mm,
+        inner sep=3pt,anchor=north west]
+        at (28.5,25.45) {\Con\quad depende da integração, cadeia ou transacção};
 
-  % ------------------------------------------------------------------
-  % Metade esquerda: da folha pública ao caminho escondido.
-  % ------------------------------------------------------------------
-  \node[public,text width=8.95cm,anchor=north west] (leaf)
-    at ([xshift=6mm,yshift=-35mm]page-north-west) {%
-      \cardtitle{1. A FOLHA QUE JÁ ESTAVA NA CADEIA}
-      \vspace{-1.5mm}\[
-        \ell_i=\bigl(O_i,H_p(O_i),C_i\bigr),\qquad C_i=a_iG+v_iH
-      \]
-      \Pub\ \(O_i\) nasce com a saída; \(H_p(O_i)\) calcula-se a partir dela;
-      \(C_i\) compromete o montante. A cadeia contém todas as folhas, mas
-      não revela qual foi escolhida pelo gasto.
-      \hairline
-      \Sec\ \(p_{k,i}\) é a chave privada de utilização única; a carteira
-      conhece também a folha escolhida, \(a_i,v_i\) e o caminho.
-      Historicamente \(O_i=p_{k,i}G\); na abertura geral,
-      \(O_i=p_{k,i}G+p_{a,i}T\).
+  \filldraw[region,fill=SecretFill!52,draw=SecretLine]
+    (.65,17.85) rectangle (42.53,24.45);
+  \filldraw[region,fill=PublicFill!60,draw=PublicLine]
+    (.65,10.55) rectangle (42.53,17.40);
+  \filldraw[region,fill=ProofFill!53,draw=ProofLine]
+    (.65,1.72) rectangle (42.53,10.08);
+
+  \node[anchor=north west,font=\fontsize{10.2}{10.8}\selectfont\bfseries,
+        text=SecretLine,fill=SecretFill!52,inner sep=2pt] at (1.0,24.32)
+    {1 · CARTEIRA / PROVADOR — testemunha que nunca é publicada};
+  \node[anchor=north west,font=\fontsize{10.2}{10.8}\selectfont\bfseries,
+        text=PublicLine,fill=PublicFill!60,inner sep=2pt] at (1.0,17.27)
+    {2 · TRANSCRIÇÃO PÚBLICA — pontos que nó e provas recebem byte por byte};
+  \node[anchor=north west,font=\fontsize{10.2}{10.8}\selectfont\bfseries,
+        text=ProofLine,fill=ProofFill!53,inner sep=2pt] at (1.0,9.95)
+    {3 · VERIFICADOR — relações provadas, não segredos revelados};
+
+  \node[secret object,text width=8.45cm,anchor=north west] (wpath)
+    at (1.0,23.63) {%
+      \ntitle{FOLHA ESCOLHIDA + CAMINHO}
+      \(\ell_i=(O_i,H_p(O_i),C_i)\), a posição conceptual \(j_n\), todos os
+      ramos, coordenadas e aberturas até à raiz.
+      \ruleline
+      A árvore é pública; \textbf{a escolha} da folha e o caminho usado como
+      testemunha é que ficam secretos.
     };
 
-  \node[structure,text width=8.95cm,anchor=north west] (tree)
-    at ([xshift=6mm,yshift=-80mm]page-north-west) {%
-      \cardtitle{2. CURVE TREE: O CAMINHO EXISTE, A POSIÇÃO NÃO SAI}
-      \Det\ Um ramo transforma slots num ponto:
+  \node[secret object,text width=8.25cm,anchor=north west] (wmasks)
+    at (10.15,23.63) {%
+      \ntitle{CHAVES + MÁSCARAS FRESCAS}
+      Chaves que controlam a saída: \(p_{k,i},p_{a,i}\). Máscaras amostradas
+      pela carteira: \(r_{O,i},r_{I,i},r_{R,i},r_{C,i}\) e as dos ramos.
       \[
-       {}^{n+1}\!P_{j_{n+1}}=D_n+\sum_{j=0}^{w_n-1}
-       \left\langle{}^{n}\!B[j],{}^{n}\!\mathbf G_j\right\rangle_n .
-      \]
-      O pai guarda somente \( {}^{n+1}\!x_{j_{n+1}}\), mas a testemunha
-      conserva \(x,y\) e prova que o ponto está na curva. A saída de um nível
-      é a entrada do seguinte.
-      \[
-       \text{Ed25519}\longrightarrow\mathbb E_{\rm S}\longrightarrow
-       \mathbb E_{\rm H}\longrightarrow\mathbb E_{\rm S}\longrightarrow\cdots
-      \]
-      Ciclo Selene--Helios: coordenada de uma \(=\) escalar nativo da outra.
-      \hairline
-      \Pub\ árvore e raiz \(\mathcal R_{\rm tree}\).\quad
-      \Sec\ \(j_n\), ramos \(B^n\), máscaras \(r_n\), coordenadas e aberturas.
-      \hairline
-      \Pro\ produtos de pertença mostram que \emph{algum} factor é zero;
-      os encaixes reutilizam as mesmas variáveis até ao topo. A prova de raiz
-      fecha o último ramo:
-      \[
-       N_{\rm raiz}+c_{\rm raiz}
-       (\widehat{\mathcal R}-\mathcal R_{\rm tree})
-       =s_{\rm raiz}H_{\rm raiz}.
+        z_i=p_{k,i}r_{I,i}\quad\text{em }\mathbb F_\ell .
       \]
     };
 
-  \node[fixed,text width=8.95cm,anchor=south west] (fixed)
-    at ([xshift=6mm,yshift=5mm]page-south-west) {%
-      \cardtitle{IMPLEMENTAÇÃO FIXADA --- NÃO É LEI DE CURVE TREES}
-      \Fix\ primeira camada: \(38\) folhas; cada folha vira \(6\) coordenadas
-      Wei25519, logo \(38\times6=228\) escalares e \(6\) desafios de
-      compressão. Camadas superiores: ramos alternados de \(18\) e \(38\)
-      escalares. Infraestrutura: até \(12\) camadas e até \(128\) entradas
-      agregadas.
-      \[
-        \operatorname{cap}(h)=\prod_{n=0}^{h-1}w_n,\qquad
-        w_0=38,\quad w_{n>0}\in\{18,38\}\ \text{alternados}.
-      \]
-      A pertença inicial comprime as seis coordenadas e impõe
-      \[
-        t_\star=\sum_{k=0}^{5}c_kq_k,\qquad
-        \prod_{j=0}^{37}(t_j-t_\star)=0;
-      \]
-      acima, usa \(\prod_j({}^{n}\!B[j]-{}^{n}\!x_{j_n})=0\).
-      Capacidade de slots não é ocupação real. \textbf{Padding/preenchimento:}
-      a regra não é fixada no capítulo; não inventar folhas fictícias nem
-      arredondamento do número de entradas.
-      \hairline
-      \Det\ \(G,T,U,V\) são pontos distintos; \(T\) ofusca e \(U,V\) são
-      derivados deterministicamente com separação de domínio. \(H\) pertence
-      a RingCT, não é um quinto parâmetro SAL.
-    };
-
-  % ------------------------------------------------------------------
-  % Centro: FCMP conduz à única ponte pública Q.
-  % ------------------------------------------------------------------
-  \node[proof,text width=8.2cm,anchor=north] (fcmp)
-    at ([xshift=-52mm,yshift=-35mm]page-north) {%
-      \cardtitle{3. FCMP: PERTENÇA + ABERTURA DE \(Q_i\)}
-      \Pro\ conhece uma folha, os ramos e as máscaras; satisfaz um caminho
-      até \(\mathcal R_{\rm tree}\); e recupera \emph{essa mesma folha} de
-      \(Q_i\):
+  \node[secret object,text width=8.25cm,anchor=north west] (wconstruct)
+    at (19.1,23.63) {%
+      \ntitle{A CARTEIRA CONSTRÓI A PONTE}
       \[
       \begin{aligned}
-       O_i&=\widetilde O_i-r_{O,i}T,&
-       H_p(O_i)&=\widetilde H_{O,i}-r_{I,i}U,\\
-       C_i&=\widetilde C_i-r_{C,i}G,&
-       R_i&=r_{I,i}V+r_{R,i}T.
+       \widetilde O_i&=O_i+r_{O,i}T,&
+       \widetilde H_{O,i}&=H_p(O_i)+r_{I,i}U,\\
+       R_i&=r_{I,i}V+r_{R,i}T,&
+       \widetilde C_i&=C_i+r_{C,i}G.
       \end{aligned}
       \]
-      \textbf{Ainda não prova:} conhecimento de \(p_{k,i}\), a equação da
-      imagem de chave, nem o valor numérico \(v_i\). Um compromisso vinculante
-      fixa uma abertura; o argumento de conhecimento prova que ela é conhecida.
+      \(R_i\) transporta a mesma máscara \(r_{I,i}\) nas bases \(U,V\).
     };
 
-  % O halo de Q atravessa a dobra. As duas colunas deixam a linha central
-  % livre entre componentes da tupla, para a equação continuar legível.
-  \node[public,rounded corners=9pt,line width=1.45pt,minimum width=10.1cm,
-        minimum height=5.35cm,inner sep=0pt] (qhalo) at ([yshift=-2mm]page-center) {};
-  \node[font=\fontsize{18}{19}\selectfont\bfseries,text=PublicLine,fill=PublicFill,
-        inner sep=2pt] at ([yshift=18mm]page-center) {\(Q_i\)};
-  \node[anchor=north east,text width=4.45cm,align=left,
-        font=\fontsize{8.8}{10.3}\selectfont,text=PosterInk]
-    at ([xshift=-2.4mm,yshift=12mm]page-center) {%
-      \(Q_i=(\widetilde O_i,\widetilde H_{O,i},\)\par\vspace{1mm}
-      \(\widetilde O_i=O_i+r_{O,i}T\)\par
-      \(\widetilde H_{O,i}=H_p(O_i)+r_{I,i}U\)
-    };
-  \node[anchor=north west,text width=4.45cm,align=left,
-        font=\fontsize{8.8}{10.3}\selectfont,text=PosterInk]
-    at ([xshift=2.4mm,yshift=12mm]page-center) {%
-      \(R_i,\widetilde C_i)\)\par\vspace{1mm}
-      \(R_i=r_{I,i}V+r_{R,i}T\)\par
-      \(\widetilde C_i=C_i+r_{C,i}G\)
-    };
-  \node[anchor=south east,text width=4.4cm,align=right,
-        font=\fontsize{8.25}{9.25}\selectfont,text=PosterInk]
-    at ([xshift=-2.4mm,yshift=-27mm]page-center) {%
-      \Pub\ uma só ponte re-randomizada; FCMP e SAL recebem byte por byte o
-      mesmo \(Q_i\).
-    };
-  \node[anchor=south west,text width=4.4cm,align=left,
-        font=\fontsize{8.25}{9.25}\selectfont,text=PosterInk]
-    at ([xshift=2.4mm,yshift=-27mm]page-center) {%
-      \(\widetilde C_i\) liga-a também a RingCT.\par
-      \Sec\ máscaras frescas.
-      \(R_i\) \textbf{não} é a raiz nem um nonce de Schnorr: transporta
-      \(r_{I,i}\) entre as duas metades.
+  \node[secret object,text width=11.7cm,anchor=north west] (wproof)
+    at (28.05,23.63) {%
+      \ntitle{TRABALHO DE PROVA — FORA DA ÁRVORE PÚBLICA}
+      FCMP recebe a folha/caminho e prepara compromissos, decomposições e
+      funções de divisor. Por input e \(L\) camadas:
+      \[
+        \underbrace{5}_{r_OT,\ r_IU,\ r_IV,\ r_RT,\ r_CG}
+        +\underbrace{(L-1)}_{\text{máscaras de ramo}}=L+4.
+      \]
+      SAL prepara \(P_i=p_{k,i}G+r_{I,i}V+z_iU+r_{P,i}T\) e nonces. As
+      funções racionais são testemunhas do provador; \textbf{não} são nós da
+      árvore.
     };
 
-  \node[proof,text width=8.2cm,anchor=south] (contract)
-    at ([xshift=-52mm,yshift=7mm]page-south) {%
-      \cardtitle{A COSTURA: NÃO HÁ UMA “SETA SECRETA”}
-      FCMP e SAL não partilham uma variável privada por decreto. Partilham o
-      ponto público \(R_i\) dentro do mesmo \(Q_i\). Comparar as extracções dá
-      a relação multibase
+  \node[structure object,ellipse,text width=5.1cm,minimum height=3.0cm,
+        align=center] (root) at (4.15,13.65) {%
+      \textbf{ÁRVORE / RAIZ}\\[-1mm]
+      \(38\) folhas \(\times6\) coordenadas;\\
+      acima, ramos \(18/38\); \(Z=0\).\\[1mm]
+      \(\mathcal R_{\rm tree}\)
+    };
+
+  \node[public object,ellipse,text width=9.0cm,minimum height=4.45cm,
+        align=center,line width=1.8pt] (q) at (14.0,13.62) {%
+      {\fontsize{15}{16}\selectfont\bfseries A PONTE \(Q_i\)}\\[1mm]
+      \(Q_i=(\widetilde O_i,\widetilde H_{O,i},R_i,\widetilde C_i)\)\\[1.2mm]
+      FCMP e SAL recebem \textbf{o mesmo objecto serializado}.\\
+      A folha continua oculta; as quatro componentes são públicas.
+    };
+
+  \node[bridge object,ellipse,text width=5.2cm,minimum height=3.25cm,
+        align=center] (rpoint) at (21.9,13.62) {%
+      \textbf{O ELO \(R_i\)}\\[-1mm]
+      \(R_i=r_{I,i}V+r_{R,i}T\)\\[1mm]
+      não é raiz, nonce nem divisor
+    };
+
+  \node[public object,ellipse,text width=4.5cm,minimum height=2.8cm,
+        align=center] (p) at (28.4,14.38) {%
+      \textbf{AUXILIAR SAL}\\
+      \(P_i\)\\[-1mm]
+      fixa produto em \(U\)
+    };
+  \node[public object,ellipse,text width=4.5cm,minimum height=2.8cm,
+        align=center] (image) at (34.5,14.38) {%
+      \textbf{MARCA DO GASTO}\\
+      \(I_i=p_{k,i}H_p(O_i)\)\\
+      repete num gasto duplo
+    };
+  \node[public object,ellipse,text width=4.6cm,minimum height=2.9cm,
+        align=center] (amount) at (39.05,12.55) {%
+      \textbf{PSEUDO-SAÍDA}\\
+      \(\widetilde C_i\)\\
+      conserva o montante
+    };
+  \node[public object,rounded corners=18pt,text width=4.1cm,minimum height=1.25cm,
+        align=center] (tx) at (29.2,11.55) {\textbf{mensagem / transacção}};
+
+  \node[proof object,text width=11.05cm,anchor=north west] (vfcmp)
+    at (1.0,9.23) {%
+      \ntitle{FCMP — «UMA FOLHA SOB ESTA RAIZ ABRE ESTE \(Q_i\)»}
+      O circuito verifica um caminho até \(\mathcal R_{\rm tree}\) e recupera
+      a mesma folha das variáveis de \(Q_i\):
       \[
       \begin{aligned}
-       \mathbf0={}&(p_{k,P}-p_{k,O})G+(r_{I,P}-r_I^{\rm F})V\\
+       O_i&=\widetilde O_i-r_{O,i}^{(\mathrm{FCMP})}T,&
+       H_p(O_i)&=\widetilde H_{O,i}-r_{I,i}^{(\mathrm{FCMP})}U,\\
+       C_i&=\widetilde C_i-r_{C,i}^{(\mathrm{FCMP})}G,&
+       R_i&=r_{I,i}^{(\mathrm{FCMP})}V+r_{R,i}^{(\mathrm{FCMP})}T.
+      \end{aligned}
+      \]
+      \Pro\ pertença + abertura de \(Q_i\). Não prova ainda \(p_k\), a
+      imagem de chave ou o valor numérico do montante.
+    };
+
+  \node[bridge object,text width=12.65cm,anchor=north west] (vbind)
+    at (13.05,9.23) {%
+      \ntitle{COSTURA MULTIBASE — AS EXTRACÇÕES TÊM DE COINCIDIR}
+      SAL extrai candidatos com proveniência \(P,O,Q\); FCMP extrai os
+      candidatos marcados \((\mathrm{FCMP})\). Comparar duas aberturas do
+      \textbf{mesmo} ponto \(P_i-\widetilde O_i-R_i\) dá
+      \[
+      \begin{aligned}
+       \mathbf0={}&(p_{k,P}-p_{k,O})G
+        +(r_{I,P}-r_I^{(\mathrm{FCMP})})V\\[-1mm]
        &+(p_{k,P}r_{I,P}-z_Q)U
-       +(r_P-\widetilde p_a-r_R^{\rm F}-r_{\rm dif})T .
+        +(r_P-\widetilde p_a-r_R^{(\mathrm{FCMP})}-r_{\rm dif})T.
       \end{aligned}
       \]
-      Relações desconhecidas entre as bases e a vinculação forçam
+      Vinculação força
+      \(p_{k,P}=p_{k,O}=p_k\),
+      \(r_{I,P}=r_I^{(\mathrm{FCMP})}=r_I\) e
+      \(z_Q=p_{k,P}r_{I,P}=p_kr_I\).
+      \ruleline
+      Os sobrescritos e subscritos são \textbf{rótulos de proveniência}, não
+      potências nem posições da árvore.
+    };
+
+  \node[proof object,text width=13.95cm,anchor=north west] (vsal)
+    at (27.7,9.23) {%
+      \ntitle{SAL + RINGCT — AUTORIZAÇÃO, DUPLO GASTO E EQUILÍBRIO}
+      SAL abre \(P_i\), \(\widetilde O_i\), a diferença e \(I_i\) com quatro
+      equações de verificação. Depois da costura:
       \[
-      \begin{aligned}
-        p_{k,P}&=p_{k,O}=p_{k,i},&
-        r_{I,P}&=r_I^{\rm F}=r_{I,i},\\[-1mm]
-        &&z_i&=p_{k,i}r_{I,i}.
-      \end{aligned}
+       I_i=p_{k,i}\widetilde H_{O,i}-z_iU
+          =p_{k,i}H_p(O_i).
       \]
-      Assim não se pode provar pertença de uma saída e autorização de outra:
-      a identidade dos pontos públicos e as relações demonstradas deixam uma
-      única testemunha composta.
-    };
-
-  % ------------------------------------------------------------------
-  % Metade direita: SAL, imagem de chave, agregação e RingCT.
-  % ------------------------------------------------------------------
-  \node[proof,text width=8.55cm,anchor=north] (sal)
-    at ([xshift=54mm,yshift=-35mm]page-north) {%
-      \cardtitle{4. SAL: A CHAVE QUE AUTORIZA O GASTO}
-      \Sec\ \(p_{k,i}\), \(\widetilde p_{a,i}=p_{a,i}+r_{O,i}\),
-      \(r_{I,i}\), \(z_i=p_{k,i}r_{I,i}\), máscaras e nonces.
+      \Pro\ o mesmo \(p_{k,i}\) controla a folha; a mesma saída volta a
+      produzir \(I_i\), permitindo detectar um segundo gasto.
+      \ruleline
+      RingCT usa a componente pública \(\widetilde C_i\):
       \[
-        \widetilde O_i=p_{k,i}G+\widetilde p_{a,i}T,\qquad
-        P_i=p_{k,i}G+r_{I,i}V+z_iU+r_{P,i}T.
+        \sum_i\widetilde C_i
+        =\sum_o C_o^{\rm novo}+v_{\rm taxa}H.
       \]
-      \Pro\ as quatro equações do verificador ligam produto, abertura,
-      costura e imagem:
-      \[
-      \begin{aligned}
-       c^2P+cA+B&=cs_1G+cs_2V+s_1s_2U+s_TT,\\
-       N_O+c\widetilde O&=s_1G+s_aT,\\
-       N_P+c(P-\widetilde O-R)&=s_zU+s_rT,\\
-       N_I+cI&=s_1\widetilde H_O-s_zU.
-      \end{aligned}
-      \]
-      SAL isolada admite candidatos extraídos distintos. É a abertura FCMP de
-      \(R_i\), mais vinculação multibase, que os identifica.
+      FCMP liga \(C_i\) à folha; RingCT prova equilíbrio e intervalos. FCMP
+      não extrai \(v_i\), e SAL não usa \(r_{C,i}\) na sua álgebra.
     };
 
-  \node[public,text width=8.25cm,anchor=north east] (image)
-    at ([xshift=-6mm,yshift=-35mm]page-north-east) {%
-      \cardtitle{5. IMAGEM DE CHAVE: A MARCA DO GASTO}
-      \[
-       \boxed{I_i=p_{k,i}\widetilde H_{O,i}-z_iU
-       =p_{k,i}H_p(O_i)}
-      \]
-      \Pub\ \(I_i\) aparece quando a saída é gasta.
-      \hairline
-      \Det\ A mesma saída e o mesmo \(p_{k,i}\) produzem o mesmo \(I_i\),
-      mesmo com aleatoriedade de prova inteiramente nova.
-      \hairline
-      \Pro\ se a mesma saída for apresentada outra vez, a imagem repete-se;
-      o nó reconhece o segundo gasto. A privacidade esconde \emph{qual} folha,
-      não apaga esta marca determinística.
-    };
+  \draw[secret flow] (wpath.south) .. controls +(0,-7mm) and +(0,7mm) ..
+    node[edge label,pos=.52]{caminho privado} (vfcmp.north west);
+  \draw[secret flow] (wmasks.south) .. controls +(0,-5mm) and +(0,7mm) ..
+    node[edge label,pos=.45]{re-randomiza} (q.north);
+  \draw[secret flow] (wconstruct.south) --
+    node[edge label,pos=.48]{publica quatro pontos} (q.north east);
+  \draw[secret flow] (wproof.south west) .. controls +(-5mm,-5mm) and +(0,6mm) ..
+    node[edge label,pos=.47]{prova SAL} (p.north);
+  \draw[secret flow] (wproof.south east) .. controls +(5mm,-5mm) and +(0,6mm) ..
+    node[edge label,pos=.53]{publica} (image.north);
 
-  \node[structure,text width=8.55cm,anchor=south] (multi)
-    at ([xshift=54mm,yshift=7mm]page-south) {%
-      \cardtitle{6. VÁRIAS ENTRADAS: POR INPUT E EM COMUM}
-      Para \(i=1,\ldots,m\), cada saída gasta traz o seu
-      \(Q_i,I_i,p_{k,i}\), folha, caminho e máscaras. Dentro de cada input,
-      o mesmo \(Q_i\) é a ponte FCMP--SAL e \(\widetilde C_i\) é a
-      pseudo-saída usada por RingCT.
-      \hairline
-      \Det\ \textbf{Partilha-se:} raiz, transação e parâmetros públicos dão o
-      contexto comum; as relações ficam numa verificação em lote, cuja
-      aceitação só termina quando o lote é verificado.
-      Níveis Selene agregam-se em
-      \(\mathsf{Prova}_{\rm S}:n=0,2,4,\ldots\); níveis Helios em
-      \(\mathsf{Prova}_{\rm H}:n=1,3,5,\ldots\). As referências preservam
-      a identidade de cada posição comprometida: não são cópias soltas.
-      \hairline
-      \Sec\ \textbf{Não se partilha:} folha, \(p_{k,i}\), caminho e máscaras
-      continuam a ser testemunhas próprias de cada input.
-      \hairline
-      \Fix\ a infraestrutura descrita agrega até \(128\) inputs.
-      \(128\) é um teto desta implementação fixada, não uma propriedade
-      conceptual de FCMP++ nem o número efetivo \(m\) de uma transação.
-    };
+  \draw[public flow] (root.east) -- node[edge label]{raiz escolhida} (q.west);
+  \draw[bridge flow] (q.east) -- node[edge label]{terceira componente} (rpoint.west);
+  \draw[public flow] (rpoint.east) .. controls +(5mm,5mm) and +(-5mm,0) ..
+    node[edge label,pos=.52]{entra na diferença} (p.west);
+  \draw[public flow] (p.east) -- node[edge label]{produto ligado} (image.west);
+  \draw[public flow] (q.south east) .. controls +(9mm,-3mm) and +(-5mm,4mm) ..
+    node[edge label,pos=.61]{\(\widetilde C_i\)} (amount.west);
+  \draw[public flow] (tx.north east) .. controls +(5mm,3mm) and +(0,-3mm) .. (p.south);
 
-  \node[public,text width=8.25cm,anchor=north east] (ringct)
-    at ([xshift=-6mm,yshift=-97mm]page-north-east) {%
-      \cardtitle{7. RINGCT: ENTRADAS GASTAS \(\ne\) NOVAS SAÍDAS}
-      \textbf{Input gasto \(i\):} refere uma folha histórica escondida;
-      publica \(Q_i\), \(I_i\) e a pseudo-saída \(\widetilde C_i\).
-      \par\vspace{1mm}
-      \textbf{Nova saída \(o\):} cria uma nova chave de utilização única e
-      um compromisso \(C_o^{\rm novo}\); o verificador exige as provas de
-      intervalo aplicáveis.
-      \[
-        \boxed{\sum_i\widetilde C_i
-        =\sum_o C_o^{\rm novo}+v_{\rm taxa}H}
-      \]
-      Como \(\widetilde C_i=(a_i+r_{C,i})G+v_iH\), re-randomizar muda a
-      máscara e conserva o coeficiente de \(H\). FCMP liga \(C_i\) à folha;
-      RingCT prova equilíbrio e intervalos. FCMP não extrai \(v_i\), e SAL
-      não usa \(r_{C,i}\) na sua álgebra.
-    };
+  \draw[proof flow] (root.south) .. controls +(0,-5mm) and +(-5mm,5mm) ..
+    node[edge label,pos=.42]{fecha o caminho} (vfcmp.north);
+  \draw[proof flow] (q.south west) .. controls +(0,-5mm) and +(5mm,5mm) ..
+    node[edge label,pos=.45]{abre a folha} (vfcmp.north east);
+  \draw[proof flow] (q.south east) .. controls +(0,-5mm) and +(-5mm,5mm) ..
+    node[edge label,pos=.48]{mesmos bytes} (vbind.north west);
+  \draw[bridge flow] (rpoint.south) -- node[edge label]{obriga concordância} (vbind.north);
+  \draw[proof flow] (p.south) .. controls +(0,-4mm) and +(-5mm,5mm) ..
+    node[edge label,pos=.45]{abre} (vsal.north west);
+  \draw[proof flow] (image.south) .. controls +(0,-5mm) and +(0,5mm) ..
+    node[edge label,pos=.47]{verifica} (vsal.north);
+  \draw[proof flow] (amount.south) .. controls +(0,-4mm) and +(5mm,5mm) ..
+    node[edge label,pos=.48]{equilíbrio} (vsal.north east);
 
-  \node[contingent,text width=8.25cm,anchor=south east] (contingent)
-    at ([xshift=-6mm,yshift=7mm]page-south-east) {%
-      \cardtitle{NÚMEROS QUE NÃO DEVEM VIRAR LEIS}
-      \Con\ \(m\) inputs reais, número de novos outputs, taxa, ocupação da
-      árvore, raiz escolhida e estado de ativação/integração pertencem à
-      transação, à cadeia ou ao momento observado. As revisões e datas do
-      capítulo são fotografias identificadas.
-      \hairline
-      \textbf{Regra de leitura:} equações da composição são conceptuais;
-      \(38/18\), \(12\) e \(128\) pertencem à implementação fixada; valores
-      efetivos e estado da rede são contingentes.
-    };
-
-  % Rótulos curtos tornam as setas inequívocas.
-  \draw[flow] (leaf.south) -- node[tinylabel]{folha escolhida} (tree.north);
-  \draw[proof flow] (tree.east) .. controls +(12mm,0) and +(-12mm,0) ..
-    node[tinylabel,pos=.52]{caminho até à raiz} (fcmp.west);
-  \draw[proof flow] (fcmp.south east) .. controls +(5mm,-10mm) and +(-12mm,9mm) ..
-    node[tinylabel,pos=.42]{abre a ponte} (qhalo.north west);
-  \draw[proof flow] (qhalo.north east) .. controls +(12mm,8mm) and +(-9mm,-9mm) ..
-    node[tinylabel,pos=.53]{mesmo \(Q_i\)} (sal.south west);
-  \draw[proof flow] (sal.east) -- node[tinylabel]{autoriza} (image.west);
-  \draw[flow] (qhalo.south east) .. controls +(12mm,-6mm) and +(-8mm,9mm) ..
-    node[tinylabel,pos=.58]{repete por input} (multi.north west);
-  \draw[money flow] (qhalo.east) .. controls +(35mm,-2mm) and +(-17mm,8mm) ..
-    node[tinylabel,pos=.73]{\(\widetilde C_i\)} (ringct.north west);
-  \draw[money flow] (multi.east) .. controls +(9mm,0) and +(-10mm,-5mm) ..
-    node[tinylabel,pos=.54]{soma de inputs} (ringct.west);
-
-  \node[anchor=south east,
-        font=\fontsize{8}{8.7}\selectfont\itshape,text=PosterInk!70,
-        fill=PosterPaper,inner sep=1.5pt]
-    at ([xshift=-3mm,yshift=1.1mm]page-south)
-    {“A árvore diz: uma folha sob esta raiz; FCMP: esta folha escondida por \(Q\).”};
-  \node[anchor=south west,
-        font=\fontsize{8}{8.7}\selectfont\itshape,text=PosterInk!70,
-        fill=PosterPaper,inner sep=1.5pt]
-    at ([xshift=3mm,yshift=1.1mm]page-south)
-    {“SAL: autorização; \(R\): a chave desta mesma folha.”};
+  \node[nodebase,draw=FixedLine,fill=FixedFill,rounded corners=12pt,
+        text width=19.15cm,minimum height=9mm,anchor=south west]
+    at (.75,.35) {\Fix\ \textbf{revisões consultadas:} Monero
+      \texttt{3646f648}; \texttt{monero-oxide} \texttt{31c26d96}.
+      \(38/18\), até 12 camadas e até 128 inputs descrevem essa fotografia;
+      não são leis matemáticas de Curve Trees.};
+  \node[nodebase,draw=ContingentLine,fill=ContingentFill,rounded corners=12pt,
+        dash pattern=on 3pt off 1.7pt,text width=19.55cm,minimum height=9mm,
+        anchor=south east]
+    at (42.43,.35) {\Con\ activação, raiz/bloco de referência, ordenação final
+      de lotes, \(m\) inputs, outputs novos, taxa e ocupação da árvore dependem
+      da integração ou da transacção. Presença de código não significa regra
+      de consenso activa.};
 
 \end{tikzpicture}
 \end{document}

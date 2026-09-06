@@ -28,6 +28,103 @@ do circuito \cite{eagen-divisors}. Luke Parker adapta e compõe estas peças par
 as saídas do Monero e para a prova SAL \cite{fcmp-plus-plus-paper}. FCMP++ é,
 portanto, uma composição, não uma alcunha para uma única equação.
 
+\clearpage
+\section{Borromean, Bulletproofs e FCMP++}
+\label{sec:fcmp-three-vector-views}
+
+As provas de intervalo Borromean e Bulletproofs do
+Capítulo~\ref{chapter:pedersen-commitments} fornecem a escala certa para ler
+FCMP++. Nas Borromean, as coordenadas continuam individualizadas na
+transcrição. Nas Bulletproofs, o argumento de produto interno (IPA) reduz os
+vectores a metade em cada uma das \(\lceil\log_2 n\rceil\) rondas. FCMP++
+acrescenta uma compressão estrutural anterior:
+as \(N\) folhas tornam-se ramos de uma árvore, o caminho conserva um ramo por
+altura e Generalized Bulletproofs dobra os vectores agregados desse caminho
+\cite{Signatures2015BorromeanRS,Bulletproofs_paper,curve-trees,
+generalized-bulletproofs-review}.
+
+\begin{center}
+\begin{tikzpicture}[
+ >=stealth,
+ font=\small,
+ panel/.style={draw=black!55,rounded corners=2pt,minimum width=14.2cm,
+   fill=black!2},
+ title/.style={font=\bfseries\small,anchor=west},
+ vec/.style={draw=BlueViolet!65,rounded corners=2pt,fill=BlueViolet!6,
+   inner xsep=7pt,inner ysep=5pt,align=center},
+ note/.style={font=\footnotesize,align=center,text width=12.5cm},
+ flow/.style={->,thick,draw=black!65}
+]
+ \node[panel,minimum height=2.25cm,anchor=north] (bor) at (0,0) {};
+ \node[title] at (-6.85,-.25) {Borromean: largura preservada};
+ \node[vec] (borv) at (-3.65,-1.05)
+   {$[\,b_0\mid b_1\mid\cdots\mid b_{n-1}\,]$};
+ \node[vec] (bors) at (3.15,-1.05)
+   {$[\,\sigma_0\mid\sigma_1\mid\cdots\mid\sigma_{n-1}\,]$};
+ \draw[flow] (borv) -- node[above,font=\footnotesize]
+   {sem dobra} (bors);
+ \node[note] at (0,-1.85)
+   {Um anel de dois membros por bit; cada coordenada conserva a sua resposta.
+    Comunicação $\Theta(n)$.};
+
+ \node[panel,minimum height=2.45cm,anchor=north] (bp) at (0,-2.45) {};
+ \node[title] at (-6.85,-2.70) {Bulletproofs: dobra algébrica};
+ \node[vec] (bpn) at (-5.25,-3.55) {$[\,\mathbf l\mid\mathbf r\,]_n$};
+ \node[vec] (bph) at (-1.6,-3.55) {$[\,\mathbf l'\mid\mathbf r'\,]_{n/2}$};
+ \node[vec] (bpq) at (2.05,-3.55) {$\cdots\ [\,\cdot\,]_1$};
+ \node[vec] (bpt) at (5.35,-3.55)
+   {$\{(L_i,R_i)\}_{i=1}^{\lceil\log_2 n\rceil}$};
+ \draw[flow] (bpn) -- node[above,font=\footnotesize] {$x_1$} (bph);
+ \draw[flow] (bph) -- node[above,font=\footnotesize] {$x_2,\ldots$} (bpq);
+ \draw[flow] (bpq) -- (bpt);
+ \node[note] at (0,-4.42)
+   {Cada desafio combina as metades esquerda e direita. O trabalho continua
+    linear no comprimento; a comunicação cai para $\Theta(\!\log n\!)$.};
+
+ \node[panel,minimum height=4.45cm,anchor=north] (fcmp) at (0,-5.10) {};
+ \node[title] at (-6.85,-5.35) {FCMP++: ramos, altura e depois IPA};
+ \node[vec] (leaves) at (-4.9,-6.35)
+   {$[\,\ell_0\mid\ell_1\mid\cdots\mid\ell_{N-1}\,]$};
+ \node[vec] (parents) at (0,-6.35)
+   {$[\,P^{(1)}_0\mid\cdots\mid P^{(1)}_{N/w_0-1}\,]$};
+ \node[vec] (root) at (5.15,-6.35) {$[\,\mathcal R_{\rm tree}\,]$};
+ \draw[flow] (leaves) -- (parents);
+ \draw[flow] (parents) -- (root);
+ \node[vec] (path) at (-4.0,-7.72)
+   {$[\,\mathbf B^{(0)}\mid\mathbf B^{(1)}\mid\cdots
+      \mid\mathbf B^{(D-1)}\,]$};
+ \node[vec] (parity) at (1.35,-7.72)
+   {$[\,\mathbf w_{\rm S}\,]\quad[\,\mathbf w_{\rm H}\,]$};
+ \node[vec] (proofs) at (5.35,-7.72)
+   {$\pi_{\rm S},\ \pi_{\rm H}$};
+ \draw[flow] (path) -- node[above,font=\footnotesize]
+   {S/H} (parity);
+ \draw[flow] (parity) -- node[above,font=\footnotesize]
+   {IPA} (proofs);
+ \node[note,text width=12.8cm] at (0,-8.85)
+   {A árvore reduz $N$ folhas a um ramo escondido por altura; os níveis pares
+    e ímpares são agregados em duas provas. O IPA de cada Generalized
+    Bulletproof substitui os vectores finais por pares $(L_i,R_i)$.};
+\end{tikzpicture}
+\end{center}
+
+Se \(D\) é a altura e \(w_d\) a largura do ramo no nível \(d\), então
+\begin{align}
+ N&\leq\prod_{d=0}^{D-1}w_d,
+ &m_{\rm ramos}&=6w_0+\sum_{d=1}^{D-1}w_d.
+ \label{eq:fcmp-birds-eye-dimensions}
+\end{align}
+O primeiro número mede o universo coberto; o segundo conta, antes das variáveis
+auxiliares, os coeficientes do caminho. Restam ainda os \(D-1\) pontos
+intermédios re-randomizados. Ramos e altura reduzem o conjunto inteiro a um
+caminho escondido; o IPA comprime a comunicação dos vectores que o certificam.
+
+SAL contém outro IPA, o argumento ponderado de Bulletproofs+. Este certifica
+em \(P\) o termo \(p_{k_{\!P}}r_{I_{\!P}}\); não o acrescenta depois da
+extracção. A pertença e SAL usam relações diferentes, que o ponto público
+\(R\) fará coincidir \cite{fcmp-composition-review}.
+\clearpage
+
 \section{A declaração, antes da maquinaria}
 \label{sec:fcmp-ownership-first}
 
@@ -491,24 +588,16 @@ o emprego exacto de \(R\).
 \subsection{Como \texorpdfstring{\(R\)}{R} identifica os candidatos extraídos}
 \label{sec:fcmp-r-binding}
 
-Comecemos pelo tipo, antes da álgebra. Seja \(\mathbb G_{\rm Ed}\) o subgrupo
-de ordem prima \(\ell\) usado por Ed25519 e seja
-\(\mathbb F_\ell=\mathbb Z/\ell\mathbb Z\) o seu campo escalar. Os pontos
-\(G,T,U,V\) e as quatro componentes de \(Q\) pertencem a
-\(\mathbb G_{\rm Ed}\); \(r_I,r_R\) e as restantes máscaras pertencem a
-\(\mathbb F_\ell\). A carteira constrói
+A carteira constrói
 \begin{align}
  R=r_IV+r_RT\in\mathbb G_{\rm Ed}.
  \label{eq:fcmp-r-exact-type}
 \end{align}
-Assim, \(R\) é um compromisso de duas bases: compromete o escalar \(r_I\) na
-base \(V\), ocultando-o com \(r_R\) na base \(T\). É a terceira componente
-pública de
-\(Q=(\widetilde O,\widetilde H_O,R,\widetilde C)\). Não é a raiz da árvore,
-um nonce, uma função racional nem o resultado de uma função de dispersão. A
-sua função é transportar, por uma igualdade pública vinculante, a máscara que
-também abre
+Este compromisso de duas bases transporta, na sua componente em \(V\), a
+mesma máscara que abre
 \(\widetilde H_O=H_p(O)+r_IU\) \cite{fcmp-plus-plus-paper,monero-oxide-fcmp-source}.
+O termo \(r_RT\) oculta essa componente e \(R\) integra a entrada pública
+\(Q=(\widetilde O,\widetilde H_O,R,\widetilde C)\).
 
 Esta reutilização tem de ser lida com cuidado. Dentro da relação FCMP, a mesma
 variável de testemunha \(r_I\) ocorre nas bases \(U\) e \(V\); o circuito
@@ -537,21 +626,21 @@ respectivamente:
  r_R^{(\mathrm{FCMP})},r_C^{(\mathrm{FCMP})}\end{gathered}\) & escalares extraídos da
  relação de pertença; \(r_j\) é a máscara de \(R\) na base \(T\)\\
  \hline
- \(x',r_i',r_p'\) & \(p_{k,P},r_{I,P},r_P\) & escalares extraídos da abertura
+ \(x',r_i',r_p'\) & \(p_{k_{\!P}},r_{I_{\!P}},r_P\) & escalares extraídos da abertura
  de produto de \(P\)\\
  \hline
  \(x'',y'',z'',r_p''\) &
- \(p_{k,O},\widetilde p_a,z_Q,r_{\rm dif}\) & escalares extraídos das três
+ \(p_{k_{\!O}},\widetilde p_a,z_Q,r_{\rm dif}\) & escalares extraídos das três
  equações de Schnorr; \(Q\) em \(z_Q\) recorda a costura à entrada pública\\
  \hline
 \end{tabular}
 \end{center}
 
-O símbolo \(k\) em \(p_k\) significa «chave de utilização única»; o símbolo
-\(I\) em \(r_I\) lembra a máscara aplicada à base de imagem. Nenhum deles é
-um índice de camada da árvore. A multiplicação de dois escalares, como
-\(p_{k,P}r_{I,P}\), ocorre em \(\mathbb F_\ell\); a justaposição de um escalar
-e um ponto, como \(r_{I,P}V\), é multiplicação escalar no grupo.
+Nos candidatos extraídos por SAL, a origem fica num subíndice de segundo
+nível: \(p_{k_{\!P}}\) é o candidato para \(p_k\) obtido da abertura de
+\(P\), enquanto \(p_{k_{\!O}}\) vem da abertura de \(\widetilde O\). Do mesmo
+modo, \(r_{I_{\!P}}\) é o candidato para \(r_I\) obtido de \(P\). A letra de
+proveniência aparece deliberadamente menor que o subíndice semântico.
 
 \subsubsection*{As quatro aberturas que se encontram}
 
@@ -581,26 +670,28 @@ O cancelamento de \(p_kG\) e \(r_IV\) explica a forma da diferença, mas é
 apenas uma verificação de correcção para uma testemunha já coerente. Na prova
 de conhecimento temos de começar com candidatos possivelmente distintos.
 
-O extractor do argumento de produto ponderado devolve uma abertura de \(P\);
-o extractor de Schnorr devolve aberturas de \(\widetilde O\), da diferença e
-da imagem. Escrevendo explicitamente a proveniência, obtém-se
+O extractor do argumento de produto interno ponderado de Bulletproofs+ usado
+por SAL devolve uma abertura multiplicativa de \(P\); o extractor de Schnorr
+devolve aberturas de \(\widetilde O\), da diferença e da imagem. Obtém-se
 \begin{align}
- P&=p_{k,P}G+r_{I,P}V+
-      (p_{k,P}r_{I,P})U+r_PT,
+ P&=p_{k_{\!P}}G+r_{I_{\!P}}V+
+      (p_{k_{\!P}}r_{I_{\!P}})U+r_PT,
  \label{eq:fcmp-sal-extracted-p}\\
- \widetilde O&=p_{k,O}G+\widetilde p_aT,
+ \widetilde O&=p_{k_{\!O}}G+\widetilde p_aT,
  \label{eq:fcmp-sal-extracted-o}\\
  P-\widetilde O-R&=z_QU+r_{\rm dif}T,
  \label{eq:fcmp-sal-extracted-difference}\\
- I&=p_{k,O}\widetilde H_O-z_QU.
+ I&=p_{k_{\!O}}\widetilde H_O-z_QU.
  \label{eq:fcmp-sal-extracted-image}
 \end{align}
-Há aqui uma distinção decisiva. A primeira linha contém o produto
-\(p_{k,P}r_{I,P}\) porque a própria relação de produto ponderado o exige. Nas
-duas linhas seguintes, \(z_Q\) é por enquanto um escalar independente: o
+O produto \(p_{k_{\!P}}r_{I_{\!P}}\) já pertence à relação certificada pelo
+IPA ponderado: é o coeficiente de \(U\) que o extractor devolve juntamente
+com os coeficientes de \(G\) e \(V\). Não é formado a posteriori a partir de
+dois escalares extraídos independentemente \cite{fcmp-composition-review}.
+Nas duas linhas seguintes, \(z_Q\) é por enquanto um escalar independente: o
 extractor de Schnorr apenas sabe que é o coeficiente de \(U\) reutilizado na
 diferença e na imagem. SAL isolada ainda não identificou
-\(p_{k,P}\) com \(p_{k,O}\), nem \(r_{I,P}\) com a máscara da folha, nem
+\(p_{k_{\!P}}\) com \(p_{k_{\!O}}\), nem \(r_{I_{\!P}}\) com a máscara da folha, nem
 \(z_Q\) com o produto. Também não extrai uma abertura autónoma de \(R\). O
 valor \(r_{\rm dif}\) é só o coeficiente combinado de \(T\).
 
@@ -617,7 +708,7 @@ folha, as relações extraídas são
 \end{align}
 Esta é a definição operacional de \(r_I^{(\mathrm{FCMP})}\): é o escalar que
 o extractor de pertença devolve na abertura simultânea de
-\(\widetilde H_O\) e \(R\). Não se pressupõe que seja igual a \(r_{I,P}\); é
+\(\widetilde H_O\) e \(R\). Não se pressupõe que seja igual a \(r_{I_{\!P}}\); é
 isso que falta provar.
 
 Façamos agora a substituição sem omitir passos. Pela abertura extraída de
@@ -625,9 +716,9 @@ Façamos agora a substituição sem omitir passos. Pela abertura extraída de
 é
 \begin{align*}
  P-\widetilde O-R
- &=\bigl[p_{k,P}G+r_{I,P}V
-       +(p_{k,P}r_{I,P})U+r_PT\bigr]\\
- &\quad-\bigl[p_{k,O}G+\widetilde p_aT\bigr]
+ &=\bigl[p_{k_{\!P}}G+r_{I_{\!P}}V
+       +(p_{k_{\!P}}r_{I_{\!P}})U+r_PT\bigr]\\
+ &\quad-\bigl[p_{k_{\!O}}G+\widetilde p_aT\bigr]
        -\bigl[r_I^{(\mathrm{FCMP})}V
               +r_R^{(\mathrm{FCMP})}T\bigr].
 \end{align*}
@@ -636,10 +727,10 @@ Mas o extractor de Schnorr abre esse mesmo ponto público como
 quatro bases, fica
 \begin{align}
  \mathbf 0
- &=(p_{k,P}-p_{k,O})G
- +(r_{I,P}-r_I^{(\mathrm{FCMP})})V
+ &=(p_{k_{\!P}}-p_{k_{\!O}})G
+ +(r_{I_{\!P}}-r_I^{(\mathrm{FCMP})})V
  \nonumber\\
- &\quad +(p_{k,P}r_{I,P}-z_Q)U
+ &\quad +(p_{k_{\!P}}r_{I_{\!P}}-z_Q)U
  +(r_P-\widetilde p_a-r_R^{(\mathrm{FCMP})}-r_{\rm dif})T.
  \label{eq:fcmp-composed-multibase-zero}
 \end{align}
@@ -648,31 +739,28 @@ uma relação não trivial entre \(G,V,U,T\). Sob a hipótese de logaritmos
 discretos multibase desconhecidos, a vinculação computacional força-os a zero.
 Os coeficientes de \(G,V,U\) impõem, por esta ordem,
 \begin{align}
- p_{k,P}&=p_{k,O}=:p_k,
+ p_{k_{\!P}}&=p_{k_{\!O}}=:p_k,
  &
- r_{I,P}&=r_I^{(\mathrm{FCMP})}=:r_I,
+ r_{I_{\!P}}&=r_I^{(\mathrm{FCMP})}=:r_I,
  &
- z_Q&=p_{k,P}r_{I,P}=p_kr_I.
+ z_Q&=p_{k_{\!P}}r_{I_{\!P}}=p_kr_I.
  \label{eq:fcmp-composed-witness-identities}
 \end{align}
 O coeficiente de \(T\) fixa apenas a combinação
 \(r_P-\widetilde p_a-r_R^{(\mathrm{FCMP})}-r_{\rm dif}=0\); SAL não extrai
 \(r_R^{(\mathrm{FCMP})}\) de forma independente.
 
-Esta é a origem exacta da igualdade
-\(z_Q=p_{k,P}r_{I,P}\). No relatório de composição, os mesmos valores chamam-se
-\(z''\), \(x'\) e \(r_i'\), e a prova do teorema obtém literalmente
-\(z''=x'r_i'\) ao comparar os coeficientes da igualdade multibase. A forma com
-subscritos \(Q\) e \(P\) não é uma fórmula encontrada por reconhecimento
-óptico nem uma equação adicional do protocolo: é a renomeação documentada na
-tabela acima \cite{fcmp-composition-review}.
+No relatório de composição, os mesmos valores chamam-se \(z''\), \(x'\) e
+\(r_i'\). A extracção do IPA ponderado fornece o termo \(x'r_i'\) na abertura
+de \(P\); a comparação multibase impõe depois \(z''=x'r_i'\)
+\cite{fcmp-composition-review}.
 
 As duas aberturas extraídas de \(\widetilde O\), juntamente com
-\(p_{k,O}=p_k\), fecham também a propriedade de controlo da própria saída:
+\(p_{k_{\!O}}=p_k\), fecham também a propriedade de controlo da própria saída:
 \begin{align}
  O
  &=\widetilde O-r_O^{(\mathrm{FCMP})}T\nonumber\\
- &=p_{k,O}G+(\widetilde p_a-r_O^{(\mathrm{FCMP})})T\nonumber\\
+ &=p_{k_{\!O}}G+(\widetilde p_a-r_O^{(\mathrm{FCMP})})T\nonumber\\
  &=p_kG+p_aT,\qquad
  p_a:=\widetilde p_a-r_O^{(\mathrm{FCMP})}.
  \label{eq:fcmp-composed-output-control}
@@ -690,32 +778,6 @@ Agora, e só agora, podemos substituir
 Esta derivação transforma a conta honesta
 \eqref{eq:fcmp-key-image-from-q}--\eqref{eq:fcmp-key-image-cancellation}
 numa conclusão de conhecimento da composição.
-
-\subsubsection*{Um traço numérico das comparações}
-
-Um modelo simbólico pequeno ajuda a localizar cada coeficiente. Trabalhemos
-em \(\mathbb F_{101}\) e representemos, apenas para esta conta, um ponto pelo
-seu vector de coeficientes na ordem \((G,V,U,T)\). Escolhamos
-\begin{align*}
- p_k=7,\qquad r_I=11,\qquad z=7\cdot11=77,
- \qquad r_P=13,\quad\widetilde p_a=5,\quad r_R=17.
-\end{align*}
-Então
-\begin{align*}
- P&=(7,11,77,13),&
- \widetilde O&=(7,0,0,5),&
- R&=(0,11,0,17),\\
- P-\widetilde O-R&=(0,0,77,-9)=(0,0,77,92)
- \quad\pmod{101}.
-\end{align*}
-Logo a abertura da diferença tem necessariamente \(z_Q=77\) e
-\(r_{\rm dif}=92\) neste modelo; os coeficientes de \(G\) e \(V\) cancelam
-porque os candidatos coincidem. Se o extractor de Schnorr declarasse, por
-exemplo, \(z_Q=76\), a diferença entre as aberturas produziria
-\(U+\lambda T=\mathbf0\), uma relação entre bases que a hipótese de vinculação
-exclui. Este vector formal serve apenas para acompanhar coeficientes: os
-pontos reais não expõem coordenadas numa base livre e a segurança não se
-instancia no grupo minúsculo de ordem 101.
 
 \subsubsection*{O que cada interveniente conhece e verifica}
 
@@ -1714,16 +1776,18 @@ impõe
  \label{eq:fcmp-sal-verify-image}
 \end{align}
 
-A primeira linha é quadrática em \(c\): o produto
-\(s_1s_2\) recompõe os termos dos nonces e a abertura
-multiplicativa de \(P\), produzindo os candidatos \(p_{k,P},r_{I,P}\) da
+A primeira linha é a equação de verificação do IPA ponderado. É quadrática em
+\(c\): o produto \(s_1s_2\) recompõe os termos dos nonces e a abertura
+multiplicativa de \(P\), produzindo os candidatos
+\(p_{k_{\!P}},r_{I_{\!P}}\) e o coeficiente
+\(p_{k_{\!P}}r_{I_{\!P}}\) da
 Equação~\eqref{eq:fcmp-sal-extracted-p}. A segunda linha fornece o candidato
-\(p_{k,O}\) que abre \(\widetilde O\). A terceira fornece \(z_Q\) na
+\(p_{k_{\!O}}\) que abre \(\widetilde O\). A terceira fornece \(z_Q\) na
 diferença \(P-\widetilde O-R\); a quarta reutiliza esse candidato e
-\(p_{k,O}\) na relação da imagem. Há uma transcrição e respostas partilhadas,
+\(p_{k_{\!O}}\) na relação da imagem. Há uma transcrição e respostas partilhadas,
 mas a relação SAL isolada ainda permite que
-\(p_{k,P}\ne p_{k,O}\) ou
-\(p_{k,P}r_{I,P}\ne z_Q\). A Equação
+\(p_{k_{\!P}}\ne p_{k_{\!O}}\) ou
+\(p_{k_{\!P}}r_{I_{\!P}}\ne z_Q\). A Equação
 \eqref{eq:fcmp-composed-multibase-zero}, que inclui a abertura FCMP de \(R\),
 é o passo que exclui essas diferenças.
 

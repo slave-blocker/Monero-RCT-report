@@ -18,8 +18,10 @@ imagem de chave publicada é precisamente \(I=p_kH_p(O)\).
 aqui», sem dizer onde. Uma prova de autorização responderá «conheço
 \(p_k\)», sem o publicar. Entre as duas ficará uma só entrada pública,
 re-randomizada, que impedirá as respostas de falarem de saídas diferentes.
-Começaremos pela costura inteira; as duas curvas, os divisores e as
-optimizações terão a gentileza de esperar pela sua vez.
+Começaremos pela costura inteira; as duas curvas e as optimizações terão
+a gentileza de esperar pela sua vez. Os certificados de divisores do
+capítulo~\ref{chapter:divisors} serão aplicados às multiplicações ocultas
+do caminho.
 
 Curve Trees, de Matteo Campanelli, Mathias Hall-Andersen e Simon Holmgaard
 Kamp, fornece o acumulador e o caminho oculto \cite{curve-trees}. Liam Eagen
@@ -1358,276 +1360,29 @@ referidas aos compromissos da prova.
 dos mesmos compromissos que produzem os pontos de ramo. A compressão muda o
 custo da igualdade conceptual, não os objectos que ela liga.
 
-\section{Divisores: certificar uma multiplicação de pontos}
-\label{sec:fcmp-divisors}
+\section{Aplicação dos certificados de divisores}
 
-Falta explicar uma operação escondida na expressão «o ramo produz um ponto».
-O circuito precisa, repetidas vezes, de certificar uma relação
-\begin{align}
- W=s_A\,A
- \label{eq:fcmp-hidden-scalar-multiplication}
-\end{align}
-quando o escalar \(s_A\), o ponto \(W\), ou ambos, pertencem à testemunha.
-Repetir dentro do circuito todas as duplicações e adições usuais seria caro.
-O dispositivo de Eagen substitui essa escada por um certificado de
-divisor \cite{eagen-divisors}.
+O capítulo~\ref{chapter:divisors} estabeleceu o certificado de
+\(W=s_AA\), o divisor associado à decomposição do escalar e a verificação
+por uma recta desafiada. Aqui aplicamos essa construção aos pontos já
+comprometidos em \eqref{eq:fcmp-gbp-external-vcs}. Os coeficientes da função,
+a representação escalar e as coordenadas usadas nos testes referem-se às
+mesmas variáveis que aparecem nas aberturas e no caminho.
 
-O dispositivo escreve a curva, sobre o campo base \(\mathbb F\), na forma
-curta de Weierstrass
-\begin{align}
- \mathbb E:\qquad
- y_P^2=x_P^3+a_{\mathbb E}x_P+b_{\mathbb E},
- \qquad P=(x_P,y_P),
- \label{eq:fcmp-short-weierstrass}
-\end{align}
-onde \(a_{\mathbb E}\) e \(b_{\mathbb E}\) são coeficientes públicos da curva,
-não a máscara \(a\) de \eqref{eq:fcmp-amount-commitment}.
-
-Um divisor é uma soma formal de suporte finito:
-\begin{align}
- D=\sum_{P\in S}m_P[P],
- \qquad S\subseteq\mathbb E,\quad |S|<\infty,\quad m_P\in\mathbb Z.
- \label{eq:fcmp-formal-divisor}
-\end{align}
-O grupo dos divisores é o grupo abeliano livre gerado pelos símbolos \([P]\).
-Isto quer dizer que só se somam coeficientes do mesmo símbolo:
-\(2[A]-[A]+[B]=[A]+[B]\). Não se aplica aqui a lei da curva para substituir
-\([A]+[B]\) por \([A+B]\). Em geral, esses dois divisores são diferentes,
-mesmo quando o ponto \(A+B\) existe.
-
-O \emph{suporte} é
-\(\operatorname{supp}(D)=\{P:m_P\ne0\}\), o conjunto finito onde o divisor
-tem multiplicidade não nula, e o grau é \(\deg D=\sum_Pm_P\). O sinal de
-\(m_P\), num divisor formal arbitrário, ainda não declara um zero ou um pólo.
-Essa interpretação nasce de uma função racional.
-
-Seja \(\mathbb F(\mathbb E)\) o corpo de funções da curva e
-\(f\in\mathbb F(\mathbb E)^\times\) uma função racional não nula. Num ponto
-\(P\), ela admite localmente
-\(f=t_P^m u\), onde \(t_P\) é um parâmetro local e \(u(P)\ne0\). Define-se
-\(\operatorname{ord}_P(f)=m\): \(m>0\) é um zero de multiplicidade \(m\),
-\(m<0\) é um pólo de multiplicidade \(-m\), e \(m=0\) não pertence ao
-suporte. O divisor da função é
-\begin{align}
- \operatorname{div}(f)=
- \sum_{P\in\mathbb E}\operatorname{ord}_P(f)[P].
- \label{eq:fcmp-rational-function-divisor}
-\end{align}
-Um divisor desta forma chama-se \emph{principal}; todo o divisor principal tem
-grau zero. Numa curva elíptica, a recíproca exige ainda que a soma ponderada
-dos pontos, agora calculada com a verdadeira lei do grupo da curva, seja a
-identidade:
-\begin{align}
- D\text{ principal}
- \quad\Longleftrightarrow\quad
- \deg D=0
- \ \text{ e }\
- \sum_Pm_PP=\mathcal O_\infty .
- \label{eq:fcmp-principal-divisor-criterion}
-\end{align}
-
-As duas somas na condição têm, portanto, naturezas diferentes. Em
-\(D=\sum_Pm_P[P]\), somamos símbolos com coeficientes inteiros. Em
-\(\sum_Pm_PP\), multiplicamos pontos da curva por inteiros e usamos a lei do
-grupo. O critério liga essas duas estruturas; não as identifica.
-
-Um exemplo pequeno torna a distinção concreta. Sejam \(A,B\) pontos genéricos,
-\(C=A+B\), \(\lambda_{A,B}\) a recta que passa por \(A,B\) e \(v_C\) a recta
-vertical que passa por \(C\). A recta \(\lambda_{A,B}\) encontra ainda a curva
-em \(-C\). Assim, a função racional
-\begin{align}
- f_{A,B}=\frac{\lambda_{A,B}}{v_C}
- \quad\text{tem}\quad
- \operatorname{div}(f_{A,B})=[A]+[B]-[C]-[\mathcal O_\infty].
- \label{eq:fcmp-small-principal-divisor}
-\end{align}
-O lado direito tem grau \(1+1-1-1=0\) e soma de grupo
-\(A+B-C-\mathcal O_\infty=\mathcal O_\infty\). Os zeros são \(A,B\); os
-pólos são \(C,\mathcal O_\infty\), todos com multiplicidade um no caso
-genérico. Ainda assim,
-\([A]+[B]\ne[C]+[\mathcal O_\infty]\) como divisor formal: a função
-\(f_{A,B}\) é precisamente o certificado de que a diferença é principal.
-Nos casos \(A=B\) ou de intersecções tangentes, as ordens locais registam as
-multiplicidades correctas sem alterar a definição.
-
-É isto que torna zeros e pólos úteis para FCMP++. Uma alegação de multiplicação
-de pontos pode ser reescrita como uma soma assinada que vale zero no grupo. O
-divisor conserva cada ocorrência e multiplicidade dessa soma; uma função
-racional com aquele divisor testemunha que a relação é principal. O circuito
-não precisa de refazer toda a escada de duplicações: compromete os coeficientes
-da função e testa uma identidade desafiada que só uma relação coerente deverá
-satisfazer.
-
-Para ver a ponte até \eqref{eq:fcmp-hidden-scalar-multiplication}, escrevamos
-\begin{align}
- s_A=\sum_{i=0}^{\ell_A-1}e_i2^i,
- \qquad e_i\in\{0,1\},
- \qquad A_i=2^iA .
- \label{eq:fcmp-scalar-decomposition}
-\end{align}
-Então \(W=s_A\,A\) equivale a
-\(\sum_ie_iA_i-W=\mathcal O_\infty\). O divisor
-\begin{align}
- D_{s_A}=
- \sum_{i=0}^{\ell_A-1}e_i[A_i]+[-W]
- -\left(1+\sum_{i=0}^{\ell_A-1}e_i\right)[\mathcal O_\infty]
- \label{eq:fcmp-dlog-divisor}
-\end{align}
-tem grau zero e é principal exactamente quando aquela soma no grupo se anula.
-Os coeficientes de uma função polinomial \(f\) no corpo de funções, com
-\(\operatorname{div}(f)=D_{s_A}\), tornam-se a testemunha algébrica. A
-implementação admite uma representação escalar mais flexível que esta
-decomposição binária ilustrativa, mas impõe a consistência da representação que
-reutiliza.
-
-Verificar \(f\) separadamente em toda a tabela \(A_i\) perderia a economia.
-Depois de comprometer a testemunha, a transcrição determina uma linha
-\begin{align}
- \mathcal L(P)=y_P-c_{\rm declive}x_P-c_{\rm corte},
- \label{eq:fcmp-random-line}
-\end{align}
-onde \(P=(x_P,y_P)\) é um ponto da curva e
-\(c_{\rm declive},c_{\rm corte}\) vêm dos desafios.
-
-A escrita curta
-\(f(\operatorname{div}\mathcal L)
-=\mathcal L(\operatorname{div}f)\) só admite avaliações ordinárias quando os
-suportes são disjuntos. Aqui \(f\) e \(\mathcal L\) são polinómios na curva e
-ambos têm um pólo em \(\mathcal O_\infty\); usar aquela escrita sem
-regularização produziria zero ou infinito.
-
-A construção usa a forma polinomial regularizada, o resultante elíptico.
-Para uma função polinomial \(g\), escolhemos primeiro o representante reduzido
-canónico
-\begin{align}
- g(x,y)=g_0(x)+y\,g_1(x)
- \quad\text{em}\quad
- \mathbb F[\mathbb E]
- =\mathbb F[x,y]/(y^2-x^3-a_{\mathbb E}x-b_{\mathbb E}).
- \label{eq:fcmp-reduced-function-representative}
-\end{align}
-Isto reduz todas as potências \(y^2\) pela equação da curva e torna o
-representante único. Seja
-\(\deg_\infty(g):=-\operatorname{ord}_{\mathcal O_\infty}(g)\) a ordem do seu
-pólo no infinito e \(\operatorname{lc}(g)\) o coeficiente do termo de maior
-peso nesse representante (peso \(2\) para a coordenada \(x\) e \(3\) para
-\(y\)). Se os suportes finitos forem disjuntos, a identidade exacta é
-\begin{align}
- \operatorname{Res}_{\mathbb E}(f,\mathcal L)
- &=\operatorname{lc}(\mathcal L)^{\deg_\infty(f)}
-   \prod_{\substack{\mathcal L(P)=0\\P\ne\mathcal O_\infty}}
-      f(P)^{\operatorname{ord}_P(\mathcal L)}
- \nonumber\\
- &=(-1)^{\deg_\infty(f)\,\deg_\infty(\mathcal L)}
-   \operatorname{lc}(f)^{\deg_\infty(\mathcal L)}
-   \prod_{\substack{f(P)=0\\P\ne\mathcal O_\infty}}
-      \mathcal L(P)^{\operatorname{ord}_P(f)}.
- \label{eq:fcmp-weil-reciprocity}
-\end{align}
-O sinal e os coeficientes líderes são exactamente a contribuição do ponto
-comum \(\mathcal O_\infty\). A forma geral desta regularização torna a ideia
-explícita. Se \(t_P\) é um parâmetro local,
-\(m_f:=\operatorname{ord}_P(f)\), \(m_g:=\operatorname{ord}_P(g)\),
-\(f=t_P^{m_f}u_f\) e \(g=t_P^{m_g}u_g\), com \(u_f\) e \(u_g\) unidades em
-\(P\), o símbolo local é
-\begin{align}
- \{f,g\}_P
- &:={(-1)}^{m_f\,m_g}\frac{u_f(P)^{m_g}}{u_g(P)^{m_f}}
-  ={(-1)}^{\operatorname{ord}_P(f)\operatorname{ord}_P(g)}
-    \left.
-    \frac{f^{\operatorname{ord}_P(g)}}
-         {g^{\operatorname{ord}_P(f)}}
-    \right|_P,
- \nonumber\\
- \prod_P\{f,g\}_P&=1.
- \label{eq:fcmp-local-symbol}
-\end{align}
-Na última avaliação cancelam-se primeiro as potências de \(t_P\); o resultado
-permanece finito e não nulo mesmo quando os suportes coincidem. O resultante
-em \eqref{eq:fcmp-weil-reciprocity} é a especialização em que o único suporte
-comum é \(\mathcal O_\infty\) \cite{eagen-divisors}. O
-\(\operatorname{lc}(f)\) dessa equação é o coeficiente líder para o peso
-elíptico no infinito; não é o coeficiente de \(x\) que a implementação fixa em
-\(1\) apenas para excluir a função nula.
-
-A linha corta a curva em três pontos, contando multiplicidades. Escrevamos
-\(Z(P)=y_P-c_{\rm declive}x_P\) e chamemos \(A_r(c_{\rm corte})\) aos três
-pontos com \(\mathcal L(A_r(c_{\rm corte}))=0\). A derivada logarítmica do
-resultante dá
-\begin{align}
- \sum_{r=0}^{2}\frac{\mathrm d}{\mathrm d c_{\rm corte}}
-       \log f\bigl(A_r(c_{\rm corte})\bigr)
- =\sum_{P\ne\mathcal O_\infty}
-       \frac{\operatorname{ord}_P(f)}{c_{\rm corte}-Z(P)}.
- \label{eq:fcmp-log-derivative}
-\end{align}
-Aqui \(\frac{\mathrm d}{\mathrm d c}\log h\) é apenas a abreviatura formal
-\((\mathrm d h/\mathrm d c)/h\), definida quando \(h\ne0\); não se toma um
-logaritmo analítico no corpo finito.
-Assim, a função dispendiosa é avaliada apenas nos três pontos da linha. A
-derivada elimina o sinal e os coeficientes líderes, constantes em
-\(c_{\rm corte}\), e
-converte os produtos em somas de razões. A igualdade só está definida fora dos
-zeros dos denominadores; a probabilidade desprezável de uma escolha degenerada
-é uma condição do argumento de solidez, não uma divisão por zero.
-
-A revisão fixada trata esses denominadores de três maneiras. Os valores
-públicos \(2y_{A_r}\) e \(c_{\rm corte}-Z(A_i)\), para os pontos tabelados
-\(A_i\), são testados e invertidos fora do circuito; um zero interrompe a
-execução. Para o termo \([-W]\), ponha-se
-\(d_W:=c_{\rm corte}-Z(-W)
-=c_{\rm corte}+y_W+c_{\rm declive}x_W\). Este denominador usa um
-dispositivo de inversão que impõe, dentro do circuito,
-\begin{align}
- d_W\,d_W^{-1}=1.
- \label{eq:fcmp-output-denominator-inverse}
-\end{align}
-Cada razão do lado da função usa antes a restrição cruzada. Com
-\(f_x:=\partial f/\partial x\) e \(f_y:=\partial f/\partial y\), o numerador e
-o denominador são
-\begin{align}
- p_{\rm den}^{(r)}o_r&=p_{\rm num}^{(r)},
- \nonumber\\
- p_{\rm num}^{(r)}
-   &=2y_{A_r}f_x(A_r)
-     +\bigl(3x_{A_r}^{\,2}+a_{\mathbb E}\bigr)f_y(A_r),
- \nonumber\\
- p_{\rm den}^{(r)}
-   &=f(A_r)
-     \bigl(3x_{A_r}^{\,2}+a_{\mathbb E}
-           -2c_{\rm declive}y_{A_r}\bigr).
- \label{eq:fcmp-divisor-cross-multiplication}
-\end{align}
-O provador honesto calcula
-\(o_r=p_{\rm num}^{(r)}/p_{\rm den}^{(r)}\) e interrompe a execução se
-\(p_{\rm den}^{(r)}=0\). A restrição cruzada, porém, não prova por si só que
-\(p_{\rm den}^{(r)}\ne0\) quando também \(p_{\rm num}^{(r)}=0\). Sob os
-limites de grau do argumento de Eagen, esse evento degenerado tem
-probabilidade desprezável porque os desafios são amostrados depois dos compromissos
+Na revisão fixada, os denominadores públicos são testados e invertidos fora
+do circuito. O denominador secreto do ponto resultante usa a restrição
+\eqref{eq:fcmp-output-denominator-inverse}; as razões das avaliações da
+função usam \eqref{eq:fcmp-divisor-cross-multiplication}. O provador honesto
+interrompe a execução se uma dessas razões não estiver definida. Os casos
+degenerados da multiplicação cruzada pertencem à análise de solidez do
+argumento, com desafios posteriores aos compromissos e graus limitados
 \cite{eagen-divisors,monero-oxide-fcmp-source}.
 
-\textbf{Público.} A curva, as bases ou tabelas fixas aplicáveis, os
-compromissos das variáveis e da função, os desafios e as avaliações da prova.
-No dispositivo FCMP, \(W\) é normalmente um ponto comprometido, não um ponto
-revelado.
-
-\textbf{Segredo conhecido pelo provador.} \(s_A\), as coordenadas de \(W\) e
-de qualquer outro ponto comprometido, a representação escalar consistente e
-os coeficientes do representante polinomial cujo divisor é \(D_{s_A}\).
-
-\textbf{Igualdade demonstrada.} O argumento prova que o provador conhece uma
-função comprometida cujo divisor é principal e corresponde à soma ponderada
-que termina em \(W\). A identidade regularizada
-\eqref{eq:fcmp-weil-reciprocity}, seguida das verificações de derivadas e
-denominadores, liga essa função aos pontos declarados; por
-\eqref{eq:fcmp-principal-divisor-criterion}, a relação certifica
-\eqref{eq:fcmp-hidden-scalar-multiplication}.
-
-\textbf{Ligação à igualdade anterior.} Os pontos e escalares deste dispositivo
-são as mesmas variáveis referidas pelos compromissos de
-\eqref{eq:fcmp-gbp-external-vcs}. O certificado por divisores não produz um
-segundo ponto parecido com \(W\); prova a relação do ponto já usado na
-equação de curva e no caminho.
+A implementação admite uma representação escalar mais flexível que a
+exposição binária de \eqref{eq:fcmp-scalar-decomposition}, impondo a
+consistência da decomposição reutilizada. O ponto \(W\) é normalmente
+comprometido. O dispositivo certifica a multiplicação desse ponto, já usado
+na equação de curva e nas aberturas do caminho.
 
 \subsection{Quantas funções racionais são construídas, e onde}
 \label{sec:fcmp-divisor-count}

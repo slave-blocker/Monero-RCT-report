@@ -1,0 +1,877 @@
+\chapter{Divisores: certificar uma multiplicação de pontos}
+\label{chapter:divisors}
+\label{sec:fcmp-divisors}
+
+\section{A pergunta que uma função pode responder}
+
+A afirmação \(Q=nP\) tem um sentido conhecido: somar \(P\) consigo
+mesmo \(n\) vezes produz \(Q\). Podemos confirmá-la por duplicações e
+adições. Que objecto poderia acompanhar \(Q\) e certificar o resultado?
+
+Uma função na curva pode desempenhar esse papel. A ponte está nos seus
+zeros e pólos: os lugares onde ocorrem, contados com multiplicidade,
+obedecem a uma relação na lei do grupo. Construiremos essa ligação desde
+uma recta até uma função que testemunha a multiplicação.
+
+Para estudar essa ponte, usaremos uma curva não singular na forma curta de
+Weierstrass, sobre um corpo \(\mathbb F\) de característica maior que três:
+\begin{equation}
+ \mathbb E:\quad y^2=x^3+a_{\mathbb E}x+b_{\mathbb E},
+ \qquad 4a_{\mathbb E}^{\,3}+27b_{\mathbb E}^{\,2}\ne0.
+ \label{eq:fcmp-short-weierstrass}
+\end{equation}
+Chamaremos \(\mathcal O_\infty\) à identidade. Nesta apresentação,
+\(-(x,y)=(x,-y)\). O inverso em coordenadas de Edwards, estabelecido no
+capítulo anterior, tem outra fórmula: a representação dos pontos importa.
+
+O nosso exemplo será deliberadamente pequeno:
+\[
+ \mathbb E/\mathbb F_{17}:\quad y^2=x^3+2x+2,
+ \qquad P=(5,1),\qquad Q=(10,6).
+\]
+As contas deste exemplo serão módulo \(17\). Construiremos a função que
+certifica \(Q=3P\) e examinaremos o seu divisor. Um corpo pequeno permite
+conferir as contas; a solidez criptográfica exigirá corpos grandes.
+
+\newpage
+\section{Uma recta, três encontros e uma soma}
+
+Na forma de Weierstrass, a soma tem uma leitura geométrica. Uma recta passa
+por \(A\) e \(B\), encontra a curva num terceiro ponto \(R\), e a soma
+\(A+B\) é o inverso de \(R\). Se os dois pontos coincidem, usa-se a tangente.
+Se são inversos, a recta é vertical e a soma é \(\mathcal O_\infty\).
+
+Para uma recta não vertical \(y=mx+c\), a substituição na curva dá
+\[
+ x^3-m^2x^2+(a_{\mathbb E}-2mc)x+b_{\mathbb E}-c^2=0.
+\]
+O polinómio é cúbico. As suas raízes são as coordenadas dos três encontros,
+contados com multiplicidade, numa extensão do corpo se necessário. Pela soma
+das raízes, \(x_A+x_B+x_R=m^2\); assim,
+\[
+ x_{A+B}=m^2-x_A-x_B,
+ \qquad y_{A+B}=m(x_A-x_{A+B})-y_A.
+\]
+São operações no corpo, mesmo quando a figura que as sugere é desenhada sobre
+os reais. Num corpo finito, a curva é um conjunto de pontos discretos; a
+equação de intersecção conserva o raciocínio algébrico.
+
+No exemplo, a tangente em \(P=(5,1)\) tem declive
+\[
+ m=\frac{3\cdot5^2+2}{2\cdot1}
+   =\frac9{2}=13\pmod {17}.
+\]
+Logo, \(2P=(6,3)\). A recta por \(P\) e \(2P\) tem declive
+\((3-1)/(6-5)=2\), e fornece \(3P=(10,6)=Q\).
+
+\begin{center}
+\begin{tikzpicture}[>=stealth, node distance=1.1cm]
+ \node[draw,rounded corners,align=center] (a) {\(A,B\)\\pontos dados};
+ \node[draw,rounded corners,align=center,right=of a] (b)
+ {recta\\terceiro encontro \(R\)};
+ \node[draw,rounded corners,align=center,right=of b] (c)
+ {reflexão\\\(A+B=-R\)};
+ \draw[->] (a)--(b); \draw[->] (b)--(c);
+\end{tikzpicture}
+\end{center}
+
+A relação que interessa guardar é \(A+B+R=\mathcal O_\infty\).
+Cada recta oferece, portanto, uma pequena soma nula. O certificado final
+reunirá estas relações e eliminará os pontos intermédios.
+
+\newpage
+\section{A função existe sobre a curva}
+
+A expressão \(\lambda(x,y)=y-mx-c\) define uma função. Avaliá-la num ponto
+da curva dá \(\lambda(A)=y_A-mx_A-c\). O resultado é zero exactamente
+quando \(A\) pertence à recta. A recta desenhada no plano e a função
+restringida à curva têm papéis distintos: a primeira indica os encontros;
+a segunda permite multiplicar, dividir e comparar valores.
+
+Na curva, as coordenadas não são independentes. A função \(y^2\) é a mesma
+que \(x^3+a_{\mathbb E}x+b_{\mathbb E}\). Por isso, o anel das funções
+polinomiais na parte afim é
+\[
+ \mathbb F[\mathbb E]=
+ \mathbb F[x,y]/(y^2-x^3-a_{\mathbb E}x-b_{\mathbb E}).
+\]
+O quociente diz que identificamos expressões cuja diferença é um múltiplo
+da equação da curva. Reduzindo as potências de \(y\), cada elemento admite
+um representante único
+\begin{equation}
+ f(x,y)=f_0(x)+yf_1(x),\qquad f_0,f_1\in\mathbb F[x].
+ \label{eq:fcmp-reduced-function-representative}
+\end{equation}
+Por exemplo, \(y^3= y(x^3+a_{\mathbb E}x+b_{\mathbb E})\).
+Esta redução tornará possível escrever uma função como uma lista finita de
+coeficientes, adequada a uma testemunha algébrica.
+
+O corpo de funções \(\mathbb F(\mathbb E)\) é o corpo de fracções deste
+anel: os seus elementos são razões de funções polinomiais, com denominador
+não identicamente nulo. Uma razão pode não estar definida pela sua expressão
+num ponto particular; é preciso determinar se há cancelamento ou um pólo.
+
+Há uma precaução própria dos corpos finitos. Consideramos funções como
+objectos algébricos na curva, e não apenas tabelas dos valores nos seus poucos
+pontos racionais. Um polinómio pode anular-se em todos esses pontos sem ser
+a função identicamente nula. Os zeros geométricos incluem também os pontos
+definidos sobre extensões do corpo.
+
+\textbf{Verificação de compreensão.} Que função representa
+\(y^2-x^3-2x-2\) no nosso exemplo? A função nula. Já \(y-2x+9\) é uma
+função não nula, embora se anule em três encontros com a curva. Um certificado
+precisará sempre de uma função não nula.
+
+\newpage
+\section{Um zero pode contar mais de uma vez}
+
+Saber que \(f(A)=0\) ainda não diz quantas vezes esse zero conta. Num
+polinómio de uma variável, \((t-t_0)^2\) tem um zero duplo em \(t_0\).
+Na curva, procede-se localmente: escolhe-se uma coordenada que se anule
+simplesmente no ponto e mede-se a primeira potência não nula da função.
+
+Essa coordenada chama-se \emph{parâmetro local}. Se \(y_A\ne0\), podemos
+usar \(t=x-x_A\); a equação da curva determina uma expansão local de
+\(y\) em potências de \(t\). Uma função não nula escreve-se
+\[
+ f=t^m u,\qquad u(A)\ne0.
+\]
+O inteiro \(m\) é a ordem de \(f\) em \(A\), escrita
+\(\operatorname{ord}_A(f)\). Uma ordem positiva indica um zero; uma ordem
+negativa, um pólo; uma ordem nula, um valor local finito e não nulo.
+
+A tangente elimina o termo linear da expansão. Num ponto comum, a sua
+função tem, por isso, um zero de ordem dois. Num ponto de inflexão, a ordem
+pode ser três. O número de pontos distintos e o número de intersecções
+contadas com multiplicidade deixam então de coincidir.
+
+No nosso exemplo, a tangente é
+\[
+ \lambda_{P,P}=y-13x+13.
+\]
+Substituir \(y=13x-13\) na equação da curva produz o polinómio mónico
+\[
+ (x-5)^2(x-6).
+\]
+Há duas ocorrências em \(P=(5,1)\) e uma em \(-2P=(6,14)\). A tangente
+não precisa de encontrar três pontos distintos para fornecer três zeros
+contados correctamente.
+
+Se \(y_A=0\), a expressão \(x-x_A\) já não é, em geral, um parâmetro
+local: neste caso, \(y\) serve como parâmetro e \(x-x_A\) tem ordem dois.
+É por isso que a ordem pertence à função na curva, e não apenas à aparência
+da sua expressão no plano.
+
+\textbf{Verificação de compreensão.} Se \(f\) tem um zero duplo e \(g\)
+um zero simples no mesmo ponto, qual é a ordem de \(f/g\)? É um:
+localmente, \(t^2u/(tv)=t(u/v)\). O cancelamento tem de respeitar as ordens.
+
+\newpage
+\section{O infinito entra na contabilidade}
+
+Uma função polinomial não tem pólos na parte afim da curva. Isso não impede
+que os tenha no ponto \(\mathcal O_\infty\). Para ver esse ponto,
+homogeneizamos a equação:
+\[
+ Y^2Z=X^3+a_{\mathbb E}XZ^2+b_{\mathbb E}Z^3.
+\]
+As coordenadas afins são \(x=X/Z\), \(y=Y/Z\). Quando \(Z=0\), a equação
+obriga a \(X=0\), ficando o único ponto \([0:1:0]\). É a identidade da
+curva nesta representação.
+
+Na carta \(Y\ne0\), ponhamos \(u=X/Y\) e \(v=Z/Y\). A equação torna-se
+\[
+ v=u^3+a_{\mathbb E}uv^2+b_{\mathbb E}v^3.
+\]
+Perto da identidade, \(u\) é um parâmetro local e \(v\) começa em ordem
+três. Como \(x=u/v\) e \(y=1/v\), obtemos
+\[
+ \operatorname{ord}_{\mathcal O_\infty}(x)=-2,
+ \qquad \operatorname{ord}_{\mathcal O_\infty}(y)=-3.
+\]
+São ordens algébricas; não estamos a fazer tender números de um corpo finito
+para uma grandeza infinita.
+
+A função vertical \(x-x_A\) tem, portanto, um pólo duplo na identidade.
+A função de uma recta não vertical, \(y-mx-c\), tem um pólo triplo:
+o termo \(y\), de ordem \(-3\), não pode ser cancelado por termos de
+ordens \(-2\) e zero. Os dois zeros afins da vertical e os três zeros
+afins da recta equilibram esses pólos.
+
+Também se explica a escolha dos pesos \(2\) para \(x\) e \(3\) para
+\(y\). No representante reduzido \(f_0+yf_1\), os monómios \(x^i\)
+têm ordem de pólo \(2i\), e os monómios \(yx^j\), ordem \(3+2j\).
+Um peso é par e o outro ímpar; os termos de maior peso não se cancelam entre
+as duas parcelas. Este peso mede a ordem do pólo no infinito.
+
+O ponto no infinito é, pois, indispensável: deixa visível o saldo que uma
+função polinomial transporta para fora da parte afim.
+
+\newpage
+\section{O divisor: um registo de lugares e ordens}
+
+Podemos agora dar nome ao registo que temos vindo a preparar. Um
+\emph{divisor} é uma soma formal finita
+\begin{equation}
+ D=\sum_{A\in S}m_A[A],\qquad m_A\in\mathbb Z.
+ \label{eq:fcmp-formal-divisor}
+\end{equation}
+O símbolo \([A]\) guarda o lugar \(A\); o coeficiente guarda uma
+multiplicidade inteira. Neste capítulo, os divisores serão escritos sobre
+os pontos geométricos, isto é, sobre o fecho algébrico do corpo. Quando todos
+os pontos usados são racionais, como no exemplo, as contas já se fazem
+sobre \(\mathbb F\).
+
+Somar divisores é somar coeficientes do mesmo símbolo. Assim,
+\[
+ 2[A]+[B]-[A]=[A]+[B].
+\]
+Esta operação não soma pontos na curva. Mesmo que \(C=A+B\), o divisor
+\([A]+[B]\) conserva dois lugares, enquanto \([C]\) conserva um só.
+O grupo dos divisores é o grupo abeliano livre gerado pelos símbolos dos
+pontos; nenhuma relação de adição da curva é imposta nesta definição.
+
+O \emph{suporte} de \(D\) é o conjunto dos lugares com coeficiente não
+nulo. O seu \emph{grau} é
+\[
+ \deg D=\sum_A m_A.
+\]
+Por exemplo, \(2[P]+[-2P]-3[\mathcal O_\infty]\) tem grau zero e, no
+nosso exemplo, suporte com três pontos distintos. Coeficientes negativos
+pertencem à definição de divisor; só quando o divisor provém de uma função
+significam efectivamente ordens de pólos.
+
+Para uma função racional não nula, o divisor é
+\begin{equation}
+ \operatorname{div}(f)=\sum_A\operatorname{ord}_A(f)[A].
+ \label{eq:fcmp-rational-function-divisor}
+\end{equation}
+Chamamos \emph{principal} a um divisor que tem esta forma. Uma constante
+não nula tem divisor zero. A função identicamente nula não tem divisor:
+não admite uma ordem finita nos seus pontos.
+
+\textbf{Verificação de compreensão.} Quanto vale
+\([A]+[-A]\)? Como divisor, continua a ser essa soma formal, salvo se os
+lugares coincidirem. A soma dos pontos \(A+(-A)\), por sua vez, é a
+identidade. Os parênteses rectos preservam a distinção.
+
+\newpage
+\section{Multiplicar funções soma os seus divisores}
+
+Se localmente \(f=t^m u\) e \(g=t^n v\), com \(u,v\) unidades, então
+\(fg=t^{m+n}uv\). A ordem de um produto é a soma das ordens. Seguem-se
+as identidades
+\[
+ \operatorname{div}(fg)=\operatorname{div}(f)+\operatorname{div}(g),
+ \qquad
+ \operatorname{div}(f/g)=\operatorname{div}(f)-\operatorname{div}(g).
+\]
+Esta é a primeira ferramenta de construção: relações pequenas podem ser
+reunidas por multiplicação; os lugares intermédios podem desaparecer por
+divisão.
+
+Consideremos \(C=A+B\), em posição genérica. A recta por \(A,B\) tem
+terceiro encontro em \(-C\). A vertical por \(C\) passa também por \(-C\).
+Os respectivos divisores são
+\begin{align*}
+ \operatorname{div}(\lambda_{A,B})
+   &=[A]+[B]+[-C]-3[\mathcal O_\infty],\\
+ \operatorname{div}(v_C)
+   &=[C]+[-C]-2[\mathcal O_\infty],
+ \qquad v_C=x-x_C.
+\end{align*}
+Ao dividir, o encontro \(-C\) cancela-se e resta
+\begin{equation}
+ h_{A,B}=\frac{\lambda_{A,B}}{v_C},\qquad
+ \operatorname{div}(h_{A,B})=[A]+[B]-[C]-[\mathcal O_\infty].
+ \label{eq:fcmp-small-principal-divisor}
+\end{equation}
+No caso genérico, os zeros são \(A,B\) e os pólos são
+\(C,\mathcal O_\infty\). Se houver coincidências, somam-se primeiro os
+coeficientes: a lista de zeros e pólos efectiva pode ser menor.
+
+Para duplicar \(P\), a mesma construção dá
+\[
+ \operatorname{div}(h_{P,P})=2[P]-[2P]-[\mathcal O_\infty].
+\]
+A tangência já fornece o coeficiente dois; não se acrescenta uma segunda
+condição de avaliação num ponto diferente.
+
+O divisor da razão tem grau zero. Esta igualdade reflecte um facto geral:
+numa curva projectiva não singular, toda a função racional não nula tem
+tantos zeros como pólos, contando multiplicidades. A condição é necessária
+para um divisor ser principal. Precisamos, contudo, de uma segunda condição
+que guarde a posição dos lugares, pois uma mera contagem perde a relação
+entre os pontos.
+
+\newpage
+\section{Duas somas que convém nunca confundir}
+
+A cada divisor podemos associar dois resultados. O primeiro é o inteiro
+\(\deg D\). O segundo é um ponto, obtido aplicando a lei do grupo aos
+lugares com as suas multiplicidades:
+\[
+ \sigma(D)=\sum_A m_A A.
+\]
+Coeficientes negativos mandam somar inversos; coeficientes positivos mandam
+somar repetidamente. O símbolo \(D\) é o registo formal; \(\sigma(D)\)
+é o resultado da soma dos pontos registados.
+
+Para o divisor da recta por \(A,B\), temos
+\[
+ \deg D=3-3=0,
+ \qquad \sigma(D)=A+B+(-A-B)=\mathcal O_\infty.
+\]
+Para a vertical, a soma é \(A+(-A)=\mathcal O_\infty\). Produtos e
+quocientes destas funções conservam as duas condições. Tanto o grau como
+\(\sigma\) são aditivos.
+
+O exemplo \(D=[P]-[Q]\) mostra a diferença entre as condições. O grau
+é zero para quaisquer \(P,Q\), mas \(\sigma(D)=P-Q\) só é a identidade
+quando \(P=Q\). Se \(P\ne Q\), não existe uma função com um único zero
+simples em \(P\) e um único pólo simples em \(Q\). A curva elíptica impõe
+mais do que o equilíbrio do número de zeros e pólos.
+
+O teorema que usaremos é precisamente
+\begin{equation}
+ D\text{ principal}\quad\Longleftrightarrow\quad
+ \deg D=0\ \text{ e }\ \sigma(D)=\mathcal O_\infty.
+ \label{eq:fcmp-principal-divisor-criterion}
+\end{equation}
+A formulação vale para divisores geométricos na curva elíptica. Para os
+divisores de pontos racionais considerados aqui, a função testemunha pode
+ser tomada sobre o corpo base. A construção por rectas que faremos fornece
+essa função directamente.
+
+Este critério é a ponte procurada. Um registo formal cuja soma no grupo é
+zero pode ser o divisor de uma função; reciprocamente, o divisor de uma
+função tem soma nula. Para compreender a afirmação, falta explicar por que
+a geometria das rectas representa todas as classes de grau zero. Esse será
+o próximo passo.
+
+\newpage
+\section{Por que a ponte respeita a lei do grupo}
+
+Dois divisores dizem-se \emph{linearmente equivalentes} quando a sua
+diferença é principal. Escrevemos \(D\sim D'\). A função
+\(h_{A,B}\) construída anteriormente demonstra
+\[
+ [A]+[B]\sim[A+B]+[\mathcal O_\infty].
+\]
+Os divisores dos dois lados continuam diferentes. O sinal \(\sim\) diz
+que existe uma função cuja contabilidade transforma um no outro.
+
+Subtraindo duas cópias da identidade, obtemos
+\[
+ ([A]-[\mathcal O_\infty])+([B]-[\mathcal O_\infty])
+ \sim[A+B]-[\mathcal O_\infty].
+\]
+Esta relação deixa reduzir uma soma de diferenças a uma única diferença.
+As verticais permitem tratar os inversos, e a identidade não acrescenta
+nada. Para qualquer divisor de grau zero, a redução conduz a
+\[
+ D\sim[\sigma(D)]-[\mathcal O_\infty].
+\]
+Em particular, se \(\sigma(D)=\mathcal O_\infty\), o representante final
+é zero. As funções usadas nas reduções, multiplicadas ou divididas conforme
+o caso, fornecem uma função de divisor \(D\).
+
+Falta justificar a unicidade desse representante. Se
+\([S]-[\mathcal O_\infty]\) fosse principal com \(S\ne\mathcal O_\infty\),
+a função correspondente teria um único pólo simples, na identidade, e
+nenhum pólo afim. Seria, pois, uma função polinomial na parte afim. Mas o
+representante \(f_0+yf_1\) mostra que uma função polinomial não constante
+tem ordem de pólo pelo menos dois: não há monómio de peso um. Tal função
+não existe. Isto completa a justificação do critério.
+
+O conjunto de classes de divisores de grau zero chama-se
+\(\operatorname{Pic}^0(\mathbb E)\). A correspondência
+\[
+ S\longmapsto\text{classe de }[S]-[\mathcal O_\infty]
+\]
+é um isomorfismo com o grupo da curva. O nome é útil, mas o mecanismo já
+está à vista: uma recta transporta a adição dos pontos para a equivalência
+dos divisores. É esse mecanismo que o certificado aproveitará.
+
+\newpage
+\section{Construir o certificado de uma multiplicação}
+
+Voltemos à relação \(Q=nP\), com \(n\ge1\). O divisor
+\[
+ D_n=n[P]-[Q]-(n-1)[\mathcal O_\infty]
+\]
+tem grau zero. A sua soma no grupo é \(nP-Q\). Pelo critério, existe
+uma função com este divisor exactamente quando \(Q=nP\).
+
+A existência pode ser acompanhada passo a passo. Ponhamos \(F_1=1\).
+Supondo \(Q_k=kP\) e
+\[
+ \operatorname{div}(F_k)=k[P]-[Q_k]-(k-1)[\mathcal O_\infty],
+\]
+a função da próxima adição satisfaz
+\[
+ \operatorname{div}(h_{Q_k,P})
+ =[Q_k]+[P]-[Q_{k+1}]-[\mathcal O_\infty].
+\]
+Logo, \(F_{k+1}=F_kh_{Q_k,P}\) tem o divisor desejado. O termo
+\(-[Q_k]\) cancela-se com \([Q_k]\). A função final guarda a relação
+entre os extremos sem conservar os pontos intermédios no seu divisor.
+
+Também podemos seguir uma cadeia de duplicações e adições. Se já temos
+\(F_u,F_v\), então
+\[
+ F_{u+v}=F_uF_vh_{uP,vP}
+\]
+tem divisor \((u+v)[P]-[(u+v)P]-(u+v-1)[\mathcal O_\infty]\).
+Para duplicar, usa-se \(F_u^2h_{uP,uP}\). A construção deixa assim
+acompanhar o algoritmo habitual de multiplicação escalar.
+
+Para \(n=3\), a conta formal inteira cabe em duas linhas:
+\begin{align*}
+ \operatorname{div}(h_{P,P})&=2[P]-[2P]-[\mathcal O_\infty],\\
+ \operatorname{div}(h_{2P,P})&=[2P]+[P]-[3P]-[\mathcal O_\infty].
+\end{align*}
+A soma dá \(3[P]-[3P]-2[\mathcal O_\infty]\).
+
+Há aqui uma diferença de custos a conservar. O provador ainda calcula os
+pontos e constrói a função. O certificado abre uma possibilidade de
+verificação diferente; não elimina o trabalho necessário para obter a
+testemunha. Além disso, a ordem \(n\) do zero em \(P\) seria enorme para
+um escalar criptográfico. Teremos de escolher uma representação mais económica.
+
+\newpage
+\section{O certificado completo em módulo dezassete}
+
+No exemplo, já encontrámos \(2P=(6,3)\) e \(Q=3P=(10,6)\). As duas
+rectas e as duas verticais são
+\begin{align*}
+ \lambda_{P,P}&=y-13x+13,&v_{2P}&=x-6,\\
+ \lambda_{2P,P}&=y-2x+9,&v_Q&=x-10.
+\end{align*}
+Assim,
+\[
+ F_3=\frac{(y-13x+13)(y-2x+9)}{(x-6)(x-10)}
+\]
+tem divisor \(3[P]-[Q]-2[\mathcal O_\infty]\). O cancelamento em
+\(2P\) exprime-se nas ordens locais, mesmo que a fracção escrita
+pareça indeterminada nesse ponto.
+
+Para preparar uma testemunha polinomial, multiplicamos por \(v_Q\). A
+função \(f=F_3v_Q\) fica com divisor
+\[
+ \operatorname{div}(f)=3[P]+[-Q]-4[\mathcal O_\infty].
+\]
+Reduzir o produto das rectas pela equação da curva dá
+\[
+ (y-13x+13)(y-2x+9)
+ =(x-6)\bigl(x^2+15x+2y\bigr).
+\]
+Podemos, portanto, tomar
+\[
+ f=x^2+15x+2y.
+\]
+O maior peso é quatro, vindo de \(x^2\). A função tem um pólo de ordem
+quatro na identidade. Em \(P\), a construção pelas rectas fornece um zero
+triplo. Em \(-Q=(10,11)\), fornece um zero simples. São quatro zeros:
+não há espaço para outros.
+
+Uma substituição ordinária confirma
+\(f(5,1)=0\) e \(f(10,11)=0\), mas não mede, por si só, o zero triplo.
+Essa multiplicidade vem da tangente e do cancelamento local. Pelo contrário,
+\(f(10,6)=7\ne0\): o zero adicional está em \(-Q\), não em \(Q\).
+
+O certificado tem agora uma forma concreta: três coeficientes não nulos
+e uma ordem de pólo limitada. O divisor tem soma \(3P-Q\), logo a
+existência desta função com estas ordens certifica a multiplicação. A
+próxima simplificação reduzirá também o número de ocorrências de \(P\).
+
+\newpage
+\section{Os dígitos substituem uma multiplicidade enorme}
+
+Para um escalar \(s_A\), escrevamos uma decomposição binária e preparemos
+uma tabela pública de pontos:
+\begin{equation}
+ s_A=\sum_{i=0}^{\ell_A-1}e_i2^i,
+ \qquad e_i\in\{0,1\},\qquad A_i=2^iA.
+ \label{eq:fcmp-scalar-decomposition}
+\end{equation}
+A relação a certificar é
+\begin{equation}
+ W=s_AA\quad\Longleftrightarrow\quad
+ \sum_i e_iA_i-W=\mathcal O_\infty.
+ \label{eq:fcmp-hidden-scalar-multiplication}
+\end{equation}
+Em lugar de pôr \(s_A\) ocorrências em \(A\), usamos uma ocorrência em
+cada ponto seleccionado pela decomposição. O divisor correspondente é
+\begin{equation}
+ D_{s_A}=\sum_i e_i[A_i]+[-W]
+       -\left(1+\sum_i e_i\right)[\mathcal O_\infty].
+ \label{eq:fcmp-dlog-divisor}
+\end{equation}
+O grau é zero, e a soma no grupo é \(s_AA-W\). O número de zeros afins
+é, no máximo, \(\ell_A+1\), em vez de crescer com o valor inteiro do
+escalar. Como só há pólos no infinito, a função testemunha pode ser
+representada por um polinómio na curva.
+
+No caso \(3=1+2\), a tabela selecciona \(P\) e \(2P\). O divisor passa
+a ser \([P]+[2P]+[-Q]-3[\mathcal O_\infty]\), e a própria recta
+\(y-2x+9\) é uma testemunha. A função de peso quatro da página anterior
+era correcta; a decomposição permitiu uma de peso três.
+
+Os bits precisam de ser realmente bits, por exemplo pela condição
+\(e_i(e_i-1)=0\). A recomposição tem de usar os mesmos dígitos que o
+divisor. Se a representação deve ser canónica, impõe-se ainda o intervalo
+do escalar. As contas dos coeficientes usam o corpo base; as contas dos
+escalares seguem a ordem do subgrupo. Estes módulos não são intercambiáveis.
+
+Se \(W=\mathcal O_\infty\), o termo \([-W]\) junta-se ao termo do
+infinito; não se inventam coordenadas afins para a identidade. Se
+\(s_A=0\) e \(W=\mathcal O_\infty\), o divisor é zero e uma constante
+não nula serve de testemunha. Casos de identidade exigem esse tratamento
+explícito nas representações e nos dispositivos de verificação.
+
+\newpage
+\section{O tamanho da função também faz parte da prova}
+
+Uma função pode anular-se numa lista qualquer de pontos se lhe concedermos
+grau suficiente. Por exemplo, o produto das verticais desses pontos
+anula-se também nos respectivos inversos. A mera existência de zeros nos
+lugares declarados não demonstra que a soma dos pontos seja a identidade.
+É preciso excluir zeros adicionais.
+
+Se o divisor prescrito tem \(d\) zeros afins, contando multiplicidades,
+uma função polinomial testemunha deve ter pólo de ordem \(d\) no infinito.
+O representante reduzido impõe limites transparentes:
+\[
+ 2\deg f_0\le d,
+ \qquad 3+2\deg f_1\le d.
+\]
+A segunda condição desaparece quando \(f_1=0\). Estes limites dão uma
+ordem de pólo de, no máximo, \(d\). Se já houver \(d\) zeros prescritos
+com as multiplicidades certas, o equilíbrio do divisor obriga a que todos
+os zeros tenham sido contabilizados.
+
+Esta observação fornece uma verificação exacta, embora potencialmente
+dispendiosa: confirmar que \(f\ne0\), confirmar o limite de peso e
+confirmar cada zero com a respectiva ordem. Para lugares repetidos, avaliar
+\(f\) uma vez não basta. Verifica-se a expansão local ou condições de
+interpolação que expressem a multiplicidade. Em característica positiva,
+derivadas ordinárias de ordem elevada podem perder informação; coeficientes
+da expansão local evitam essa ambiguidade.
+
+As funções \(f_0+yf_1\) de peso limitado formam um espaço vectorial de
+dimensão aproximadamente \(d\), e exactamente \(d\) para \(d\ge1\).
+Para \(d=3\), a base é \(1,x,y\); para \(d=4\), é
+\(1,x,x^2,y\). As condições de zeros constituem equações lineares nos
+coeficientes, quando os lugares e as condições locais são conhecidos.
+
+No exemplo binário de \(3P\), o peso três força uma recta. Uma recta por
+\(P\) e \(2P\) só admite como terceiro encontro \(-Q\). O limite da
+função transforma a interpolação numa afirmação sobre a soma. Num protocolo,
+esta ligação entre limites, multiplicidades e pontos tem de ser conservada.
+
+\newpage
+\section{Avaliar uma função num divisor}
+
+Podemos substituir muitas avaliações individuais por uma identidade entre
+produtos. Para um divisor \(D=\sum_A m_A[A]\), define-se
+\[
+ f(D)=\prod_A f(A)^{m_A},
+\]
+desde que \(f\) não tenha zeros nem pólos no suporte de \(D\). Os
+expoentes negativos significam inversas multiplicativas. A expressão
+depende das multiplicidades, tal como o divisor.
+
+A reciprocidade de Weil afirma, para funções racionais não nulas com
+divisores de suportes disjuntos,
+\[
+ f(\operatorname{div}g)=g(\operatorname{div}f).
+\]
+Do lado esquerdo, avaliamos \(f\) nos zeros e pólos de \(g\). Do lado
+direito, avaliamos \(g\) nos zeros e pólos de \(f\). A identidade permite
+escolher \(g\) simples e deslocar para essa função as numerosas avaliações
+da lista que queremos certificar.
+
+Para visualizar a troca, suponhamos que os zeros de \(f\) são
+\(P_1,\ldots,P_d\) e que \(g\) tem apenas três zeros. Avaliar uma
+função complicada em três lugares pode ser mais económico do que avaliá-la
+nos \(d\) lugares. Do outro lado ficam \(d\) avaliações de uma função
+simples. A reciprocidade não elimina essas parcelas; muda a sua natureza.
+
+Há, contudo, um obstáculo que a fórmula curta não resolve. A nossa função
+\(f\) é polinomial na curva, e queremos que \(g\) seja a função de uma
+recta. Ambas têm um pólo em \(\mathcal O_\infty\). Os suportes não são
+disjuntos. Substituir ingenuamente os valores no infinito produziria
+expressões sem sentido.
+
+Precisamos de conservar a contribuição local nesse ponto antes de cancelar
+as ordens. A regularização da próxima página fará precisamente isso. Esta
+precaução é necessária para obter uma identidade exacta, com o sinal e os
+coeficientes correctos. Uma igualdade vaga de produtos esconderia a parte
+da contabilidade que já aprendemos a não omitir.
+
+\newpage
+\section{A contribuição local e o resultante elíptico}
+
+Se num lugar \(A\) escrevemos \(f=t^{m_f}u_f\) e \(g=t^{m_g}u_g\),
+as unidades \(u_f,u_g\) têm valores finitos e não nulos. O símbolo local
+guarda o valor depois do cancelamento das potências do parâmetro:
+\begin{equation}
+ \{f,g\}_A=(-1)^{m_fm_g}
+       \frac{u_f(A)^{m_g}}{u_g(A)^{m_f}},
+ \qquad \prod_A\{f,g\}_A=1.
+ \label{eq:fcmp-local-symbol}
+\end{equation}
+A segunda igualdade é a forma geral da reciprocidade. Quando os suportes
+são disjuntos, recupera a identidade da página anterior. Quando coincidem,
+permite tratar a contribuição comum sem avaliar um zero ou um pólo como
+se fosse um valor ordinário.
+
+Para polinómios na curva, ponhamos
+\(\deg_\infty(f)=-\operatorname{ord}_{\mathcal O_\infty}(f)\).
+O coeficiente do monómio de maior peso no representante reduzido chama-se
+\(\operatorname{lc}(f)\). Escolhendo \(t=x/y\) no infinito, os termos
+líderes de \(x\) e \(y\) são \(t^{-2}\) e \(t^{-3}\), com coeficiente
+um. Esta escolha torna explícita a correspondência com o peso elíptico.
+
+Se os suportes finitos de \(f,g\) forem disjuntos, o resultante elíptico
+admite as duas expressões
+\begin{align}
+ \operatorname{Res}_{\mathbb E}(f,g)
+ &=\operatorname{lc}(g)^{\deg_\infty(f)}
+   \prod_{\substack{g(A)=0\\A\ne\mathcal O_\infty}}
+      f(A)^{\operatorname{ord}_A(g)}\nonumber\\
+ &=(-1)^{\deg_\infty(f)\deg_\infty(g)}
+   \operatorname{lc}(f)^{\deg_\infty(g)}
+   \prod_{\substack{f(A)=0\\A\ne\mathcal O_\infty}}
+      g(A)^{\operatorname{ord}_A(f)}.
+ \label{eq:fcmp-weil-reciprocity}
+\end{align}
+O sinal e os coeficientes líderes são a contribuição do infinito. Esta
+forma permite a troca de avaliações que procurávamos, respeitando o pólo
+comum. O resultante pode ainda ser definido quando há zeros comuns, mas
+as razões que usaremos exigem desafios fora desses casos degenerados.
+
+É nesta identidade regularizada que assenta o método de certificação por
+avaliações desafiadas \cite{eagen-divisors}. O teorema dos divisores certifica a soma; o resultante
+oferece uma maneira de testar a função testemunha contra a lista de pontos.
+
+\newpage
+\section{Uma recta desafiada interroga a testemunha}
+
+Depois de fixar a função testemunha, escolhemos a recta
+\begin{equation}
+ \mathcal L(x,y)=y-c_{\rm declive}x-c_{\rm corte},
+ \qquad Z(x,y)=y-c_{\rm declive}x.
+ \label{eq:fcmp-random-line}
+\end{equation}
+Chamemos \(B_0,B_1,B_2\) aos seus encontros com a curva. Para usar
+avaliações no corpo base, o procedimento de desafio tem de fornecer esses
+pontos no corpo. Uma construção possível escolhe dois pontos distintos,
+não inversos, e toma o terceiro encontro da recta por eles. Escolher dois
+coeficientes uniformes não garante que os três encontros sejam racionais.
+
+Suponhamos encontros simples e nenhum zero comum finito com \(f\).
+Se \(\operatorname{div}(f)=\sum_j m_j[P_j]-d[\mathcal O_\infty]\),
+com \(m_j>0\) e \(\sum_jm_j=d\), o resultante dá
+\[
+ \prod_{r=0}^2 f(B_r)
+ =(-1)^{3d}\operatorname{lc}(f)^3
+    \prod_j\mathcal L(P_j)^{m_j}.
+\]
+Como \(\mathcal L(P_j)=Z(P_j)-c_{\rm corte}\), os sinais cancelam-se:
+\[
+ \prod_{r=0}^2 f(B_r)
+ =\operatorname{lc}(f)^3
+   \prod_j(c_{\rm corte}-Z(P_j))^{m_j}.
+\]
+A função trabalhosa aparece em três avaliações. A lista dos zeros aparece
+através de avaliações da função linear \(Z\).
+
+Por que escolher o declive depois de fixar a testemunha? Uma verificação
+que usasse só a coordenada \(x\) confundiria \(P\) e \(-P\). Já
+\(Z(P)-Z(P')=(y_P-y_{P'})-c_{\rm declive}(x_P-x_{P'})\) depende do
+declive. Para pontos distintos com abscissas diferentes, há um único
+declive que causa colisão; com abscissas iguais e ordenadas diferentes,
+não há nenhum. Um desafio imprevisível dificulta a substituição dos lugares.
+
+Uma avaliação isolada não é uma equivalência determinística. Uma testemunha
+falsa pode coincidir num desafio particular. A solidez probabilística
+depende dos limites de grau e da distribuição dos desafios, escolhidos
+depois de a testemunha ficar vinculada. Esses elementos pertencem ao argumento.
+
+\newpage
+\section{Dos produtos às somas: a derivada logarítmica}
+
+Os produtos anteriores podem ser convertidos em somas de razões. Para uma
+função formal \(H(c)\ne0\), escrevemos
+\[
+ \frac{\mathrm d}{\mathrm dc}\log H(c)=\frac{H'(c)}{H(c)}.
+\]
+Esta notação não invoca logaritmos reais num corpo finito. É uma abreviatura
+algébrica, cuja regra de produto segue da derivação formal:
+\((UV)'/(UV)=U'/U+V'/V\).
+
+Mantendo fixo \(c_{\rm declive}\) e derivando em
+\(c=c_{\rm corte}\), os factores constantes do resultante desaparecem.
+Os encontros \(B_r(c)\) movem-se formalmente com a recta. Obtemos
+\begin{equation}
+ \sum_{r=0}^2\frac{\mathrm d}{\mathrm dc}\log f(B_r(c))
+ =\sum_j\frac{m_j}{c-Z(P_j)}.
+ \label{eq:fcmp-log-derivative}
+\end{equation}
+Esta igualdade vale como identidade de funções racionais fora dos lugares
+onde os denominadores se anulam. Mesmo que os encontros individuais
+precisem de uma extensão para ser escritos como funções de \(c\), a soma
+simétrica provém do resultante e está definida sobre o corpo base.
+
+Para o divisor binário da multiplicação escalar, o lado direito é
+\[
+ \sum_i\frac{e_i}{c-Z(A_i)}+\frac1{c-Z(-W)},
+\]
+quando \(W\) é afim. Os dígitos entram linearmente; as parcelas da tabela
+pública podem ser preparadas fora do circuito. A parcela de \(-W\) liga
+a identidade ao ponto resultante que se pretende certificar.
+
+A derivada elimina também a escala global: substituir \(f\) por
+\(\alpha f\), com \(\alpha\ne0\), não altera \(f'/f\). Isto é
+coerente com \(\operatorname{div}(\alpha f)=\operatorname{div}(f)\).
+A função zero continua excluída, porque essas razões não existem para ela.
+
+Em característica \(p\), as multiplicidades da soma são lidas no corpo,
+logo módulo \(p\). Por exemplo, a derivada de uma potência \(p\)-ésima
+é zero. Limites de grau muito inferiores à característica e restrições
+nos dígitos impedem que este fenómeno apague a informação pretendida. A
+derivada é uma ferramenta de verificação sob essas condições.
+
+\newpage
+\section{Derivar ao longo da curva}
+
+Para calcular o lado esquerdo, não basta derivar \(f\) em \(x\) mantendo
+\(y\) fixo. O ponto permanece simultaneamente na curva e na recta.
+Escrevamos \(B(c)=(x(c),y(c))\), com declive fixo \(m=c_{\rm declive}\).
+As equações dão
+\[
+ 2y\frac{\mathrm dy}{\mathrm dc}
+ =(3x^2+a_{\mathbb E})\frac{\mathrm dx}{\mathrm dc},
+ \qquad
+ \frac{\mathrm dy}{\mathrm dc}-m\frac{\mathrm dx}{\mathrm dc}=1.
+\]
+Resolvendo o sistema e escrevendo
+\(\Delta=3x^2+a_{\mathbb E}-2my\), obtemos, quando \(\Delta\ne0\),
+\[
+ \frac{\mathrm dx}{\mathrm dc}=\frac{2y}{\Delta},
+ \qquad
+ \frac{\mathrm dy}{\mathrm dc}=\frac{3x^2+a_{\mathbb E}}{\Delta}.
+\]
+Se \(f_x,f_y\) são as derivadas parciais do representante reduzido,
+a regra da cadeia fornece
+\[
+ \frac{\mathrm d}{\mathrm dc}\log f(B(c))
+ =\frac{2y f_x(B)+(3x^2+a_{\mathbb E})f_y(B)}
+        {f(B)(3x^2+a_{\mathbb E}-2my)}.
+\]
+O numerador guarda a derivação ao longo da curva; o denominador inclui
+tanto o valor de \(f\) como a condição de transversalidade da recta.
+
+Podemos conferir a identidade em pequeno. Para \(f=y-2x+9\), a recta
+\(y=6\) encontra a curva em \((0,6),(7,6),(10,6)\). As três razões
+calculadas pela fórmula são, respectivamente, \(14,7,2\). A soma é
+\(6\) em \(\mathbb F_{17}\). Do lado dos zeros \(P,2P,-Q\), obtemos
+\[
+ \frac1{6-1}+\frac1{6-3}+\frac1{6-11}
+ =7+6+10=6\pmod {17}.
+\]
+A recta \(y=1\), pelo contrário, passa pelo zero \(P\): aí uma razão
+teria denominador zero. Nem toda a recta serve para este teste.
+
+\textbf{Verificação de compreensão.} Que condição geométrica corresponde
+a \(\Delta=0\), num ponto com \(y\ne0\)? O declive da recta coincide
+com \((3x^2+a_{\mathbb E})/(2y)\), o declive da tangente. Os encontros
+deixam de ser simples. As tangências eram úteis para construir a função;
+esta fórmula de avaliação desafiada exige evitá-las.
+
+\newpage
+\section{O que as restrições realmente verificam}
+
+Para cada encontro desafiado \(B_r\), introduz-se a razão \(o_r\) e
+impõe-se uma igualdade multiplicativa:
+\begin{align}
+ p_{\rm den}^{(r)}o_r&=p_{\rm num}^{(r)},\nonumber\\
+ p_{\rm num}^{(r)}&=2y_{B_r}f_x(B_r)
+        +(3x_{B_r}^{\,2}+a_{\mathbb E})f_y(B_r),\nonumber\\
+ p_{\rm den}^{(r)}&=f(B_r)
+        (3x_{B_r}^{\,2}+a_{\mathbb E}-2c_{\rm declive}y_{B_r}).
+ \label{eq:fcmp-divisor-cross-multiplication}
+\end{align}
+Esta restrição representa a divisão quando o denominador é não nulo.
+Se numerador e denominador forem ambos zero, aceita qualquer \(o_r\).
+A multiplicação cruzada, sozinha, não demonstra a existência da razão.
+
+Para um denominador secreto cuja inversa deve existir, pode impor-se
+explicitamente \(du=1\). Na parcela do ponto resultante,
+\begin{equation}
+ d_W=c_{\rm corte}+y_W+c_{\rm declive}x_W,
+ \qquad d_Wd_W^{-1}=1.
+ \label{eq:fcmp-output-denominator-inverse}
+\end{equation}
+Para denominadores públicos, o verificador pode testar a não nulidade e
+calcular as inversas fora do circuito. Um protocolo que use apenas
+multiplicação cruzada em certas parcelas tem de incluir os casos degenerados
+na sua análise probabilística.
+
+A identidade final compara \(\sum_r o_r\) com a soma das parcelas
+prescritas pelo divisor. Porém, as avaliações de \(f,f_x,f_y\) têm de
+vir dos mesmos coeficientes, já fixados, e os limites de peso têm de ser
+impostos. A variável \(W\) deve satisfazer a equação da curva; os dígitos
+devem satisfazer as condições da decomposição. Valores soltos que
+satisfaçam uma igualdade final não bastam.
+
+Nos argumentos do tipo Eagen, desafios imprevisíveis e limites de grau
+controlam a probabilidade de uma testemunha inválida passar pelos testes.
+A contagem de raízes de polinómios não nulos explica a economia: uma
+diferença algébrica de grau limitado só se pode anular num conjunto
+limitado de desafios. A distribuição concreta de rectas e as colisões de
+\(Z\) entram igualmente nessa análise. A solidez pertence ao conjunto
+das condições, não a uma única igualdade de razões.
+
+\newpage
+\section{Da função ao certificado em conhecimento zero}
+
+Podemos finalmente reunir as peças. A afirmação é \(W=s_AA\). O provador
+calcula \(W\), decompõe \(s_A\), constrói o divisor prescrito e encontra
+os coeficientes de uma função não nula com o peso permitido. A função é
+uma testemunha da soma nula; não precisa de ser publicada.
+
+Para manter valores secretos, o protocolo exterior usa compromissos:
+objectos públicos que vinculam o provador a valores, permitindo que esses
+valores permaneçam ocultos. As suas construções e provas serão desenvolvidas
+nos capítulos seguintes. Aqui importa a ordem das operações: primeiro
+vincular pontos, dígitos e coeficientes; depois obter os desafios; por fim
+provar as restrições das avaliações e da identidade.
+
+O conhecimento zero não resulta apenas da presença de divisores. Publicar
+os coeficientes pode revelar os zeros da função e, com eles, os pontos
+seleccionados. O sistema de prova envolvente é responsável por esconder a
+testemunha e por garantir que todas as restrições se referem aos mesmos
+valores comprometidos.
+
+Uma normalização exclui a função nula, por exemplo fixando a um um
+coeficiente que se saiba ser não nulo. Multiplicar uma função por uma
+constante não nula preserva o divisor e a derivada logarítmica. Mas escolher
+de antemão um coeficiente específico pode excluir testemunhas verdadeiras
+quando esse coeficiente se anula. Uma estratégia de normalização deve
+tratar esse caso para assegurar a completude. O coeficiente fixado não é
+necessariamente o coeficiente líder de peso elíptico do resultante.
+
+Em FCMP++, esta maquinaria certificará multiplicações ocultas nas aberturas
+de pontos e de ramos. O capítulo~\ref{chapter:fcmp-plus-plus} identificará
+as relações concretas e a contagem das funções. A árvore fornece os pontos
+sobre os quais se fazem alegações; as funções testemunham as multiplicações
+necessárias para ligar as aberturas.
+
+O fio matemático pode agora ser seguido sem saltos: a decomposição dá uma
+soma de pontos; essa soma determina um divisor de grau zero; a função
+testemunha que o divisor é principal; a reciprocidade liga a função aos
+lugares prescritos; as avaliações desafiadas tornam a verificação económica.
+Os limites e as condições de não nulidade conservam a validade de cada elo.

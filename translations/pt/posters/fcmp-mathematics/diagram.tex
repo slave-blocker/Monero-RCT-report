@@ -1,0 +1,177 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage[a3paper,landscape,margin=0pt]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+\definecolor{Ink}{HTML}{162A35}
+\definecolor{Paper}{HTML}{FAF8F2}
+\definecolor{Violet}{HTML}{704595}
+\definecolor{VioletWash}{HTML}{F0E9F6}
+\definecolor{Blue}{HTML}{245F92}
+\definecolor{BlueWash}{HTML}{E7F0F8}
+\definecolor{Green}{HTML}{2F6853}
+\definecolor{GreenWash}{HTML}{E7F1EB}
+\definecolor{Gold}{HTML}{9A661C}
+\definecolor{GoldWash}{HTML}{FAF0D9}
+\newcommand{\heading}[2]{{\color{#1}\fontsize{13}{15}\selectfont\bfseries #2}\par\vspace{3pt}}
+\newcommand{\smallline}[1]{{\fontsize{10}{12}\selectfont #1}\par}
+\tikzset{
+ card/.style={rounded corners=7pt,line width=.85pt},
+ flow/.style={-{Stealth[length=3mm,width=2mm]},draw=Ink,line width=1.4pt},
+ connector/.style={-{Stealth[length=3mm,width=2mm]},draw=Green,line width=1.4pt},
+ label/.style={font=\fontsize{10}{12}\selectfont\bfseries,fill=Paper,inner sep=3pt,align=center},
+ body/.style={anchor=north west,inner sep=0pt,align=left,text=Ink,
+ font=\fontsize{11}{13}\selectfont},
+ mini/.style={draw=Green,fill=white,rounded corners=4pt,inner sep=5pt,
+ font=\fontsize{11}{13}\selectfont,align=center}
+}
+\begin{document}
+\noindent\begin{tikzpicture}[remember picture,overlay,x=1cm,y=1cm]
+\begin{scope}[shift={(current page.south west)}]
+\fill[Paper] (0,0) rectangle (42,29.7);
+\node[anchor=north,text=Ink,font=\fontsize{27}{32}\selectfont\bfseries]
+ at (21,28.9) {FCMP++: a apresentação muda; a relação permanece};
+\node[anchor=north,text=Ink,font=\fontsize{13}{16}\selectfont]
+ at (21,27.65) {Uma folha escondida, uma chave conhecida, uma imagem de chave correcta e o mesmo montante.};
+\node[anchor=west,text=Violet,font=\fontsize{11}{14}\selectfont\bfseries] at (1.1,26.5)
+ {VIOLETA: escolha e testemunha ocultas};
+\node[anchor=west,text=Blue,font=\fontsize{11}{14}\selectfont\bfseries] at (15.1,26.5)
+ {AZUL: pontos e declaração públicos};
+\node[anchor=west,text=Green,font=\fontsize{11}{14}\selectfont\bfseries] at (29.1,26.5)
+ {VERDE: relações demonstradas};
+
+\draw[card,draw=Violet,fill=VioletWash] (1,19.1) rectangle (13,25.5);
+\draw[card,draw=Blue,fill=BlueWash] (15,19.1) rectangle (27,25.5);
+\draw[card,draw=Green,fill=GreenWash] (29,19.1) rectangle (41,25.5);
+\node[body,text width=11cm] at (1.5,25) {
+ \heading{Violet}{A FOLHA ESCOLHIDA}
+ \(\mathsf F=(O,B,C)\in\mathcal S_{\mathcal R}\).
+ A árvore contém folhas públicas; fica oculta \emph{qual delas} é utilizada.
+ \[
+  O=xG+yT,\qquad C=aG+vH.
+ \]
+ \(x\): chave principal; \(v\): montante.\\
+ \(B\): base da imagem, fixada pela saída.
+ \smallline{Na chave habitual \(O=xG\), toma-se \(y=0\).}
+ O provador conhece a chave, as máscaras e um caminho da folha até à raiz.
+};
+\node[body,text width=11cm] at (15.5,25) {
+ \heading{Blue}{A APRESENTAÇÃO PARTILHADA}
+ \(Q=(\widetilde O,\widetilde B,R,\widetilde C)\).
+ \begin{align*}
+ \widetilde O&=O+r_oT,\\
+ \widetilde B&=B+r_bU,\\
+ R&=r_bV+r_rT,\\
+ \widetilde C&=C+r_cG.
+ \end{align*}
+ \textbf{A mesma máscara \(r_b\) aparece em duas bases.}
+ FCMP e SAL recebem a mesma apresentação \(Q\).
+};
+\node[body,text width=11cm] at (29.5,25) {
+ \heading{Green}{A RELAÇÃO RECUPERADA}
+ Existe a mesma folha na raiz aceite, e o provador conhece a sua chave:
+ \[
+  (O,B,C)\in\mathcal S_{\mathcal R},\qquad O=xG+yT.
+ \]
+ A imagem publicada e o compromisso de entrada satisfazem
+ \[
+  \boxed{I=xB},\qquad \widetilde C=C+r_cG.
+ \]
+ A folha permanece escondida. A imagem identifica a repetição; o compromisso conserva o montante.
+};
+\draw[flow] (13,21.9)--node[label,above,text width=1.55cm]{ocultar}(15,21.9);
+\draw[flow] (27,21.9)--node[label,above,text width=1.55cm]{provar}(29,21.9);
+
+\draw[card,draw=Green,fill=GreenWash] (1,9.0) rectangle (20.3,17.4);
+\draw[card,draw=Green,fill=GreenWash] (21.7,9.0) rectangle (41,17.4);
+\node[body,text width=18.2cm] at (1.55,16.9) {
+ \heading{Green}{1 · FCMP: ESTA APRESENTAÇÃO ABRE UMA FOLHA SOB A RAIZ}
+ \smallline{Cada selecção utiliza os valores comprometidos do mesmo ramo. O primeiro nível selecciona as seis coordenadas de uma única tupla; os seguintes seleccionam a abscissa de um nó.}
+};
+\node[mini] (leaf) at (3.7,14.5) {folha\\\((O,B,C)\)};
+\node[mini] (branch) at (8.5,14.5) {primeiro ramo\\\(N_0\)};
+\node[mini] (parent) at (13.3,14.5) {pais\\\(N_1,\ldots\)};
+\node[mini] (root) at (18,14.5) {raiz aceite\\\(\mathcal R\)};
+\draw[connector] (leaf)--node[label,above]{tupla}(branch);
+\draw[connector] (branch)--node[label,above]{abscissa}(parent);
+\draw[connector] (parent)--node[label,above]{caminho}(root);
+\node[body,text width=18.2cm] at (1.55,13.15) {
+ \(\widetilde N_h=N_h+r_hH_h^*\): o circuito recupera o nó, verifica a curva e selecciona \(x(N_h)\) no pai. O último compromisso abre a raiz fixada.
+ \smallline{Os compromissos vectoriais ligam as coordenadas às listas. Selene e Helios alternam os corpos de aritmética. Os divisores certificam as multiplicações ocultas.}
+ \textbf{FCMP conhece a folha e as máscaras; a pertença, por si só, não demonstra conhecimento de \(x\).}
+};
+\node[body,text width=18.2cm] at (22.25,16.9) {
+ \heading{Green}{2 · SAL: ESTA CHAVE AUTORIZA ESTA IMAGEM}
+ A ocultação faz nascer um produto, que tem de ser certificado:
+ \[
+  x\widetilde B=xB+(xr_b)U,\qquad z=xr_b.
+ \]
+ O compromisso de produto e a diferença pública são
+ \[
+  \Pi=xG+r_bV+zU+\rho T,\qquad
+  D=\Pi-\widetilde O-R.
+ \]
+ Quando as aberturas coincidem, \(D=zU+dT\), com
+ \(d=\rho-\widetilde y-r_r\) e \(\widetilde y=y+r_o\).
+ SAL demonstra a abertura de \(\Pi\) com o produto correcto e as relações
+ \[
+  \widetilde O=xG+\widetilde yT,\qquad
+  D=zU+dT,\qquad I=x\widetilde B-zU.
+ \]
+ \textbf{O produto remove exactamente a máscara da base:}
+ \[
+  I=x(B+r_bU)-(xr_b)U=xB.
+ \]
+};
+\draw[connector] (18.6,19.1)--(18.6,17.4);
+\draw[connector] (23.4,19.1)--(23.4,17.4);
+\node[label,text width=8cm] at (21,18.25) {mesmos pontos públicos · testemunhas vinculadas};
+
+\draw[card,draw=Gold,fill=GoldWash] (1,5.35) rectangle (41,8.7);
+\node[body,text width=38.8cm] at (1.6,8.3) {
+ \heading{Gold}{POR QUE AS DUAS PROVAS NÃO PODEM TROCAR A CHAVE OU A MÁSCARA}
+ Se as aberturas usassem \(x_1,x_2\), máscaras \(r_1,r_b\) e produto \(z_2\), a diferença imporia
+ \[
+ (x_1-x_2)G+(r_1-r_b)V+(x_1r_1-z_2)U
+ +(\rho_1-\widetilde y_2-r_r-d_2)T=0.
+ \]
+ \smallline{Com aberturas conhecidas e bases sem relações de logaritmo discreto conhecidas, a vinculação obriga a \(x_1=x_2\), \(r_1=r_b\) e \(z_2=x_1r_b\). As bases pertencem a um grupo cíclico; esta conclusão é computacional, não independência linear.}
+};
+
+\draw[card,draw=Blue,fill=BlueWash] (1,.95) rectangle (13,4.85);
+\draw[card,draw=Blue,fill=BlueWash] (15,.95) rectangle (27,4.85);
+\draw[card,draw=Blue,fill=BlueWash] (29,.95) rectangle (41,4.85);
+\node[body,text width=11cm] at (1.5,4.45) {
+ \heading{Blue}{O MESMO MONTANTE}
+ \(\widetilde C=(a+r_c)G+vH\): conserva \(v\). A transacção exige
+ \[\sum_i\widetilde C_i=\sum_j C'_j+fH.\]
+ \smallline{\(f\) é a comissão. Intervalos e limites agregados tornam este equilíbrio uma igualdade de montantes inteiros.}
+};
+\node[body,text width=11cm] at (15.5,4.45) {
+ \heading{Blue}{A MESMA TRANSACÇÃO}
+ O desafio vincula a autorização à transacção \(m\), à apresentação \(Q\), à imagem \(I\) e aos compromissos da prova.
+ \smallline{Mudar o destino ou o compromisso de entrada muda a declaração autorizada.}
+ \textbf{Pertença, autorização e equilíbrio referem-se às mesmas entradas.}
+};
+\node[body,text width=11cm] at (29.5,4.45) {
+ \heading{Blue}{UMA MARCA PARA O MESMO GASTO}
+ \[\boxed{I=xB}\]
+ Novas máscaras dão outro \(Q\), mas a mesma chave sobre a mesma base dá a mesma imagem.
+ \smallline{O verificador rejeita imagens repetidas na transacção e imagens já utilizadas em gastos aceites. Essa consulta completa a condição de não repetição.}
+};
+\node[anchor=south,text=Ink,font=\fontsize{11}{13}\selectfont\bfseries]
+ at (21,.4) {A máscara muda a apresentação. A prova conserva a folha, a chave, o montante e a imagem que lhe correspondem.};
+\end{scope}
+\end{tikzpicture}
+\null
+\end{document}

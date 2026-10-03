@@ -933,46 +933,199 @@ que prova as relações desse caminho.
 \newpage
 \section{Os divisores certificam as máscaras dos pontos}
 
-As aberturas ocultas exigem relações como \(W=rA\). O circuito conhece
-as coordenadas de \(W\) e uma representação de \(r\), mas o verificador
-não as recebe. O certificado do capítulo~\ref{chapter:divisors} permite
- demonstrar a multiplicação sem repetir no circuito a escada inteira de
-adições e duplicações \cite{eagen-divisors}.
+Retirar uma máscara exige mais do que encontrar um ponto na curva.
+Da igualdade \(\widetilde O=O+r_oT\), o circuito tem de recuperar a
+mesma saída que selecciona no ramo. Introduzindo \(W_o=r_oT\), são
+necessárias duas relações:
+\[
+ W_o=r_oT,\qquad \widetilde O=O+W_o.
+\]
+Se a primeira fosse omitida, \(W_o\) seria apenas uma diferença livre.
+Para qualquer folha escolhida, bastaria tomar
+\(W_o=\widetilde O-O\). Estar na curva não demonstra conhecimento
+do logaritmo dessa diferença na base permitida.
+
+Uma prova usual de Schnorr para \(W_o=r_oT\) publicaria \(W_o\).
+Mas então \(O=\widetilde O-W_o\) ficaria revelado. Mantendo \(W_o\)
+secreto, teríamos de verificar a equação de Schnorr através das suas
+coordenadas ocultas ou de outra ligação demonstrada. A dificuldade
+regressaria: provar uma relação de grupo cujos pontos são variáveis
+secretas de um circuito aritmético.
 
 No primeiro ramo, as relações a certificar são
 \[
  r_oT,\qquad r_bU,\qquad r_bV,\qquad r_rT,\qquad r_cG.
 \]
-Há quatro máscaras e cinco multiplicações. O mesmo \(r_b\) aparece em
-duas bases, porque \(\widetilde B\) e \(R\) precisam de transportar
-a mesma máscara por relações diferentes. Partilham a representação
-escalar; cada tabela de pontos determina a sua função testemunha.
+Há quatro máscaras e cinco multiplicações. As duas ocorrências de
+\(r_b\) partilham a representação escalar, para que \(\widetilde B\)
+e \(R\) transportem a mesma máscara. Nos níveis seguintes, a relação
+\(W_h=r_hH_h^*\) permite recuperar \(N_h\) através de
+\(\widetilde N_h=N_h+W_h\), antes de seleccionar a sua abscissa no pai.
 
-Nos níveis superiores, uma multiplicação \(r_hH_h^*\) permite recuperar
-o nó original da sua apresentação. O circuito verifica a equação da
-curva, o certificado da multiplicação e a adição que liga o resultado
-ao ponto público. Depois usa as coordenadas desse mesmo nó na selecção
-do pai.
-
-Se há \(L\ge1\) ramos no caminho, o primeiro nível requer cinco
-certificados e as \(L-1\) passagens seguintes requerem um cada uma:
+Para um caminho com \(L\ge1\) ramos, são, portanto,
 \[
  5+(L-1)=L+4.
 \]
-O fechamento por Schnorr da raiz e a autorização SAL têm outras relações;
-não acrescentam funções de divisor a esta contagem. A fórmula descreve
-as alegações deste caminho, não o tamanho final da prova.
+O fechamento da raiz e SAL trabalham directamente com pontos públicos;
+não acrescentam funções de divisor a esta contagem. A árvore pública
+também não contém essas funções: elas
+pertencem à testemunha que certifica as máscaras do caminho.
 
-Os coeficientes das funções pertencem à testemunha. As avaliações
- desafiadas, os limites de peso e as condições dos denominadores ligam-nos
-às multiplicações declaradas. A função não se torna uma componente da
-árvore pública. A árvore guarda pontos e coordenadas; a função testemunha
-que as máscaras desses pontos obedecem às relações exigidas.
+São estas multiplicações ocultas que FCMP++ precisa de demonstrar.
+Os divisores fornecem o certificado escolhido para o fazer
+\cite{eagen-divisors,monero-oxide-fcmp-source}. A necessidade da relação
+é anterior à escolha da ferramenta. Podemos satisfazê-la sem divisores;
+teremos, nesse caso, de pagar o custo de outro circuito para a mesma relação.
 
-A diferença entre calcular e certificar mantém-se. O provador calcula as
-máscaras e prepara as funções. O verificador confirma as restrições que
-certificam esses cálculos. A economia está na forma da relação verificada,
-sem dispensar a preparação de uma testemunha verdadeira.
+\newpage
+\section{Como seria o circuito sem divisores}
+
+Para calcular \(W=rA\) directamente, escrevamos
+\(r=\sum_{i=0}^{b-1}e_i2^i\), com \(e_i\in\{0,1\}\).
+Uma cadeia binária percorre os dígitos do mais significativo para o menos
+significativo:
+\[
+ P_0=\mathcal O_\infty,\qquad
+ P_{j+1}=2P_j+e_{b-1-j}A,\qquad P_b=W.
+\]
+Para \(r=13=(1101)_2\), as somas parciais são
+\[
+ \mathcal O_\infty\longrightarrow A\longrightarrow3A
+ \longrightarrow6A\longrightarrow13A.
+\]
+O circuito tem de certificar os dígitos, as duplicações e as adições
+condicionais. Os pontos intermédios tornam-se coordenadas da testemunha.
+
+Uma adição afim não excepcional já mostra o trabalho necessário.
+Se \(P=(u,v)\), \(Q=(s,t)\), \(P+Q=(z,w)\) e \(u\ne s\),
+introduzimos o declive \(\lambda\) e impomos
+\begin{align*}
+ \lambda(s-u)&=t-v,\\
+ \lambda^2&=z+u+s,\\
+ \lambda(z-u)&=-w-v.
+\end{align*}
+São três multiplicações entre variáveis. Impor
+\((s-u)h=1\) exige uma quarta e exclui o denominador nulo.
+A duplicação usa a tangente; a identidade e os pontos inversos precisam
+de condições próprias ou de fórmulas completas. Não podemos aplicar estas
+quatro restrições indiscriminadamente à cadeia inteira.
+
+Com dígitos secretos, também a escolha entre adicionar \(A\) e conservar
+o ponto exige restrições. A condição \(e_i(e_i-1)=0\), por si só,
+custa uma multiplicação por dígito. Uma cadeia desta forma tem custo
+linear em \(b\), com várias operações de coordenadas por etapa.
+Tabelas de bases fixas e janelas podem melhorar os factores dessa conta;
+não existe um número universal de portas para todos os circuitos possíveis.
+
+Os divisores substituem esta longa cadeia certificada por uma função que
+guarda a relação entre os pontos. O provador continua a calcular \(rA\).
+O que muda é o trabalho que coloca no circuito para convencer o verificador.
+A vantagem deve ser medida nesse circuito, juntamente com o custo de
+preparar a função; não se confunde com acelerar a multiplicação de pontos
+quando o escalar é conhecido.
+
+\newpage
+\section{Uma função troca a cadeia por sete multiplicações}
+
+Para a representação utilizada aqui, fixemos \(b\) posições e
+\(A_i=2^iA\). Uma testemunha honesta usa multiplicidades inteiras
+\(d_i\ge0\) tais que
+\[
+ r\equiv\sum_{i=0}^{b-1}d_i2^i\pmod{\operatorname{ord}(A)},
+ \qquad \sum_i d_i=b.
+\]
+São multiplicidades, não uma decomposição binária canónica a certificar
+com um teste booleano por posição. Para \(13\), com quatro posições,
+\((1,0,1,1)\) pode ser substituído por \((1,0,3,0)\):
+\(1+3\cdot4=13\), e a soma das multiplicidades passa de três para quatro.
+A troca \(2^{i+1}=2\cdot2^i\) conserva o ponto e ajusta essa soma.
+
+Para \(W=rA\) afim, o divisor a certificar é
+\[
+ D=\sum_i d_i[A_i]+[-W]-(b+1)[\mathcal O_\infty].
+\]
+O seu peso fixo permite uma função \(f=f_0+yf_1\) com
+\(2\deg f_0\le b+1\) e \(3+2\deg f_1\le b+1\).
+Este espaço tem dimensão \(b+1\); normalizar um coeficiente não nulo
+deixa \(b\) coeficientes secretos. A normalização e os casos excepcionais
+obedecem às condições do capítulo~\ref{chapter:divisors}.
+
+Uma recta desafiada, \(y=mx+c\), fornece três encontros \(B_k\).
+Pondo \(Z(P)=y_P-mx_P\), o teste da derivada logarítmica toma a forma
+\[
+ \sum_{k=0}^2 o_k
+ =\sum_i\frac{d_i}{c-Z(A_i)}+\frac1{c-Z(-W)}.
+\]
+As parcelas da tabela são públicas e os \(d_i\) entram linearmente.
+Em cada encontro, a equação
+\(p_{\rm den}^{(k)}o_k=p_{\rm num}^{(k)}\) custa uma multiplicação:
+ambas as expressões são lineares nos coeficientes de \(f\), pois
+\(B_k\) é público. São três portas. A inversa da parcela de \(-W\)
+exige mais uma, e verificar \(W\) na curva exige três. Total:
+\[
+ 3+1+3=7
+ \qquad\text{portas por certificado.}
+\]
+Esta conta refere-se ao dispositivo de avaliação adoptado
+\cite{monero-oxide-fcmp-source}; não inclui as adições às apresentações,
+a selecção dos ramos ou SAL. Os limites de peso, os compromissos anteriores
+ao desafio e o tratamento dos denominadores degenerados fazem parte da
+solidez. Sete portas não dispensam essas hipóteses, nem transformam
+as avaliações lineares em operações gratuitas.
+
+\newpage
+\section{O tempo e o espaço que a economia conserva}
+
+Uma multiplicação oculta guarda \(b\) multiplicidades, \(b\)
+coeficientes normalizados e duas coordenadas de \(W\):
+\[
+ 2b+2\quad\text{elementos do corpo na testemunha principal.}
+\]
+Com \(b=253\), são \(508\) elementos. Numa representação de 32 octetos
+por elemento, ocupam \(508\cdot32=16\,256\) octetos.
+A tabela pública \((A_i)\) ocupa \(2b=506\) elementos, ou
+\(16\,192\) octetos. São contas de armazenamento das coordenadas e
+dos coeficientes, excluindo variáveis auxiliares, compromissos e memória
+de trabalho \cite{monero-oxide-fcmp-source}.
+
+As cinco funções do primeiro nível partilham quatro representações
+escalares. Guardam, portanto,
+\[
+ 4b+5b+10=9b+10.
+\]
+Para \(b=253\), são \(2287\) elementos, ou \(73\,184\) octetos,
+antes das coordenadas da folha e dos filhos do ramo. As quatro tabelas
+das bases \(T,U,V,G\) podem ser reutilizadas entre entradas; as funções
+dependem das máscaras e têm de ser preparadas para cada testemunha.
+
+Nos níveis superiores, \(b=255\) dá \(512\) elementos por certificado.
+Uma entrada com \(L\) ramos guarda, nesta parte da testemunha,
+\(2287+512(L-1)\) elementos, ou \(73\,184+16\,384(L-1)\) octetos.
+As listas de filhos e as variáveis auxiliares acrescentam-se a esta conta.
+
+O provador calcula os pontos e constrói as funções. Uma construção
+equilibrada em coeficientes, com produtos e divisões polinomiais escolares,
+admite custo \(O(b^2)\) em operações de corpo: a recorrência
+\(T(b)=2T(b/2)+O(b^2)\) tem essa ordem. Pode usar \(O(b)\) memória
+de trabalho se descartar os resultados já consumidos. Métodos rápidos e
+tabelas de interpolação alteram a troca entre tempo e memória; guardar
+uma matriz densa de interpolação, por exemplo, exige \(O(b^2)\) espaço.
+
+Já a preparação e avaliação dos testes desafiados percorrem \(O(b)\)
+termos por certificado. As sete portas reduzem a parte multiplicativa,
+mas a prova aritmética ainda tem de abrir os vectores e tratar as
+combinações lineares. Para \(L+4\) certificados, essa parte usa
+\(7(L+4)\) portas; as restantes restrições somam-se-lhe.
+
+Estes valores medem trabalho e armazenamento, não segundos nem memória
+total de uma aplicação. A prova transmitida também não publica os
+\(508\) elementos secretos: demonstra a abertura dos seus compromissos.
+A dobragem comprime o argumento, enquanto o provador conserva uma
+testemunha extensa. Para vectores de dimensão \(n\), há \(\log_2 n\)
+rondas, mas a verificação ainda processa geradores em número proporcional
+a \(n\). A vantagem dos divisores é retirar a cadeia de pontos
+das portas do circuito, pagando pela função e pelas avaliações que a
+certificam; o tempo total resulta da soma desses custos.
 
 \newpage
 \section{O que a pertença entrega à autorização}

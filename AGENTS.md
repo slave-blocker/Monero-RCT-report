@@ -10,7 +10,7 @@
 ## FCMP++ rewriting scope
 
 - Rebuild the FCMP++ chapter from primary sources. Do not reuse the existing chapter's prose, structure, examples, figures, or sequence of exposition. The old chapter remains recoverable through Git history only.
-- The replacement FCMP++ chapter is to occupy 35 text pages. The former chapter occupied 27 text pages, excluding its following one-page poster.
+- The replacement FCMP++ chapter is to occupy 38 text pages, including three additional pages explaining the need for divisor certificates and their computational costs. The former chapter occupied 27 text pages, excluding its following one-page poster.
 - Use the preceding chapter on divisors as established mathematical background, consistent with the cumulative exposition of the book.
 
 ## Local primary sources

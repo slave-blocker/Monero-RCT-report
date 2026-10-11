@@ -670,8 +670,11 @@ Do segundo circuito, o compromisso aos dois vectores, vem
 \label{eq:bp-vector-check}
 \end{equation}
 
-A regra é escolar: se \(a=b\) e \(c=d\), então \(a+c=b+d\). Somando os lados
-esquerdos das duas igualdades, e fazendo o mesmo aos lados direitos, obtemos
+A regra é escolar: se \(a=b\) e \(c=d\), então \(a+c=b+d\). A recíproca,
+porém, não vale: diferenças não nulas podem cancelar-se. A soma é uma condição
+necessária, não um teste suficiente; conservaremos as duas condições até à
+verificação ponderada. Somando os lados esquerdos das duas igualdades, e
+fazendo o mesmo aos lados direitos, obtemos
 \begin{align*}
 &t(x)H+\tau_xG+
  \langle\underline l(x),\underline G\rangle+
@@ -1048,8 +1051,8 @@ Agora está armado para a verificação final. Defina-se
 \]
 
 Não saltemos logo para a última linha: devolvamos ao fim da batalha as
-equações que mostram como cada peça cai no seu lugar. A primeira equação de
-verificação, depois de substituir os dois vectores por \(P_k-t(x)U\), é
+equações que mostram como cada peça cai no seu lugar. A soma das duas
+condições, depois de substituir os dois vectores por \(P_k-t(x)U\), é
 \begin{align}
 &t(x)H+\tau_xG+P_k-t(x)U+\mu G\notag\\
 ={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
@@ -1102,8 +1105,8 @@ internos públicos:
 \label{eq:bp-ending-reconstructed}
 \end{align}
 
-Finalmente usa-se \(U=x_{ip}H\). Só agora se chega à equação compacta que a
-implementação pode verificar como uma soma multiescalar:
+Finalmente usa-se \(U=x_{ip}H\). Chega-se assim à condição necessária escrita
+como uma soma multiescalar:
 \begin{align}
 \mathcal O={}&
  z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
@@ -1115,10 +1118,10 @@ implementação pode verificar como uma soma multiescalar:
 \label{eq:bp-final-hprime}
 \end{align}
 E, como
-\(\underline{H'}=\underline y^{-n}\circ\underline H\), a mesma batalha pode
-terminar toda escrita nos geradores originais:
+\(\underline{H'}=\underline y^{-n}\circ\underline H\), chamemos \(\mathcal F\)
+à soma escrita nos geradores originais:
 \begin{align}
-\mathcal O=(0,1)={}&
+\mathcal F={}&
  z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
  +\Sigma_{\rm IP}\notag\\
 &+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
@@ -1131,8 +1134,33 @@ terminar toda escrita nos geradores originais:
 \end{align}
 \marginnote{bang!}
 
-Se esta soma multiescalar dá a identidade, as codificações são canónicas e
-todos os desafios que precisam de inverso são não nulos, o verificador aceita.
+Para conservar os dois testes, separemos o resíduo do compromisso ao valor:
+\begin{equation}
+ \mathcal E_v=z^2V+xT_1+x^2T_2+
+       [\delta(y,z)-t(x)]H-\tau_xG.
+ \label{eq:bp-value-residual}
+\end{equation}
+O resíduo da condição vectorial, já dobrada, é
+\(\mathcal E_{\rm IP}=\mathcal F-\mathcal E_v\). Uma prova válida exige
+\(\mathcal E_v=\mathcal O\) e \(\mathcal E_{\rm IP}=\mathcal O\), não apenas
+\(\mathcal F=\mathcal O\). Depois de receber a prova inteira, o verificador
+escolhe pesos independentes \(w_v,w_{\rm IP}\in_R\mathbb Z_l^*\) e testa
+\begin{equation}
+ w_v\mathcal E_v+w_{\rm IP}\mathcal E_{\rm IP}
+ =w_{\rm IP}\mathcal F+(w_v-w_{\rm IP})\mathcal E_v
+ \stackrel{?}{=}\mathcal O.
+ \label{eq:bp-weighted-check}
+\end{equation}
+Esta é uma única soma multiescalar, mas com pesos distintos para as duas
+condições. Por exemplo, resíduos \(dG\) e \(-dG\), com \(d\ne0\), deixam
+\((w_v-w_{\rm IP})dG\); só se cancelam quando os pesos coincidem. Para resíduos
+fixos e não ambos nulos, a probabilidade de cancelamento é no máximo
+\(1/(l-1)\). Os pesos são escolhidos pelo verificador depois de a prova ficar
+fixada; não são valores fornecidos pelo provador. O mesmo princípio permite
+combinar várias provas, com novos pesos independentes para cada uma.
+
+Se a soma ponderada dá a identidade, as codificações são canónicas e todos os
+desafios que precisam de inverso são não nulos, o verificador aceita.
 Sob a dificuldade do logaritmo discreto e o modelo Fiat--Shamir, uma prova
 forjada de que \(0\leq v\leq2^{64}-1\) passa apenas com probabilidade
 negligenciável. Os bits, a máscara \(\gamma\) e os vectores intermédios nunca

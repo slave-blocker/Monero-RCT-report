@@ -252,7 +252,7 @@ carteira.
 \subsection{Segredos partilhados por subconjuntos}
 \label{sec:smaller-thresholds}
 
-Para um subconjunto \(S\subseteq\mathcal P\) com \(|S|=q\), as rondas
+Para \(q\geq2\) e um subconjunto \(S\subseteq\mathcal P\) com \(|S|=q\), as rondas
 Diffie--Hellman produzem conceptualmente
 \begin{align*}
  D_S=8^{q-1}\left(\prod_{i\in S}a_i\right)G,
@@ -261,6 +261,15 @@ Diffie--Hellman produzem conceptualmente
 O factor \(8\) em cada passo limpa o cofactor da curva. Cada membro de \(S\)
 consegue chegar a \(D_S\) a partir da sua chave privada e dos pontos
 recebidos; quem está fora de \(S\) não aprende \(b_S\).
+
+No caso \(N\)-de-\(N\), temos \(q=1\) e não há troca Diffie--Hellman para
+formar a parcela. Usa-se directamente a chave-base privada:
+\[
+ b_{\{i\}}=a_i,\qquad B_{\{i\}}=A_i=a_iG.
+\]
+Aplicar aqui \(\mathcal H_n(A_i)\) produziria uma parcela pública, pois
+\(A_i\) é conhecido por todos. A ponderação seguinte aplica-se nos dois casos;
+para \(q=1\), a parcela conservada é \(x_{\{i\}}=\lambda_{\{i\}}a_i\).
 
 Os pontos \(B_S=b_SG\) formam a lista \(\mathbb B\) da
 equação \eqref{eq:multisig-weighted-aggregate}. Depois de calcular os
@@ -307,7 +316,7 @@ saltada.
 Consideremos Alice, Bob e Carlos, com \(M=2\) e \(N=3\). Temos \(q=2\), pelo
 que são criados três segredos:
 \begin{align*}
- b_{AB}&=\mathcal H_n(8a_Ab_BG),\\
+ b_{AB}&=\mathcal H_n(8a_Aa_BG),\\
  b_{AC}&=\mathcal H_n(8a_Aa_CG),\\
  b_{BC}&=\mathcal H_n(8a_Ba_CG).
 \end{align*}
@@ -541,8 +550,26 @@ válidos.
 
 Dois proponentes não devem construir propostas concorrentes com os mesmos
 pares públicos. Uma resposta enviada para uma delas consome os respectivos
-segredos, mesmo que a transacção nunca seja submetida. Reutilizar o par na
-outra proposta abre a equação de extracção vista na secção anterior.
+segredos, mesmo que a transacção nunca seja submetida. Com dois valores
+aleatórios, quando os restantes termos são conhecidos, a contribuição de
+uma parcela fixa \(x_i\) tem, em sessões distintas, a forma
+\[
+ s_i^{(j)}=\alpha_{i,0}+b_j\alpha_{i,1}-c_jx_i.
+\]
+Aqui, \(c_j\) é o coeficiente público da parcela; na CLSAG inclui o desafio
+e o factor de agregação \(\mu_P\).
+Duas respostas revelam
+\[
+ s_i^{(1)}-s_i^{(2)}
+ =(b_1-b_2)\alpha_{i,1}-(c_1-c_2)x_i,
+\]
+o que não determina, em geral, \(x_i\): restam duas incógnitas. Se
+\(b_1=b_2\) e \(c_1\ne c_2\), regressamos à extracção com um só valor
+aleatório. Três respostas permitem resolver o sistema nas incógnitas
+\(\alpha_{i,0},\alpha_{i,1},x_i\) quando as linhas \((1,b_j,-c_j)\) são
+linearmente independentes. O par é, por isso, de uso único; duas respostas
+com coeficientes diferentes não devem ser confundidas com uma extracção
+automática da chave.
 
 A chave privada da transacção é derivada de entropia nova e das imagens de
 chave das entradas. Isto evita que propostas repetidas criem as mesmas chaves

@@ -232,19 +232,20 @@ aceite.
 
 %Assume all nodes are mining at the same time, but quit on their `current' block when they receive a new one from the network. They immediately start mining a fresh block that references the new one.
 
-Recolhamos $b$ blocos recentes, indexados por $u\in\{1,\ldots,b\}$, cada um
+Recolhamos $b\geq2$ blocos recentes, indexados por $u\in\{1,\ldots,b\}$, cada um
 com dificuldade $d_u$. Por enquanto, admitamos carimbos temporais honestos. O
 intervalo entre o mais antigo e o mais recente é
 \begin{align*}
 Tempo\hspace{1em}total = {TS}_b - {TS}_1 .  
 \end{align*}
 
-O trabalho esperado para os blocos no intervalo é
+O primeiro carimbo marca o início do intervalo: o trabalho que produziu esse
+bloco já ficou para trás. O trabalho esperado para os blocos seguintes é
 \footnote{O carimbo é escolhido pelo mineiro e não prova o instante exacto em
 que começou ou terminou. Esta hipótese serve apenas para chegar à intuição; o
 algoritmo activo apara carimbos extremos.}
 \begin{align*}
-Dificuldade\ total = \sum_{u=1}^b d_u .
+Dificuldade\ total = \sum_{u=2}^b d_u .
 \end{align*}
 %Suppose we collect a bunch $b$ of recent blocks from the blockchain (say, with index $u \in \{1,...,b\}$) which each had a difficulty $d_u$. For now, assume the nodes who mined them were honest, so each block timestamp ${TS}_u$ is accurate.   
 %The total time between the earliest block and most recent block is $\mathit{totalTime} = {TS}_b - {TS}_1$. The approximate number of hashes it took to mine all the blocks is $\mathit{totalDifficulty} = \sum_{u=1}^b d_u$.
@@ -741,7 +742,8 @@ fórmula que o nó v16 executa.
 %A basic 1-input, 2-output Bitcoin transaction is 250 bytes \cite{bitcoin-txsizes-2015}, or 430 bytes for 2-in/2-out.} 
 %and the fees it would take to offset the penalty when the median is at its minimum (the smallest penalty-free zone, 300kB) \cite{articmine-36c3-dynamics}. In other words, the penalty induced by a 303kB block weight.% Doing this ensures fees required for common transactions to push up the median directly scale off the default fee, rather than requiring a disjointed multiplier compared to sub-median fees.
 
-Primeiro, a taxa $T$ que iguala a penalização marginal de acrescentar uma
+Primeiro, suponhamos $M_N\leq P_B\leq P_B+P_T\leq2M_N$. Na zona penalizada,
+a taxa $T$ que iguala a perda marginal de subvenção ao acrescentar uma
 transacção de peso $P_T$ a um bloco de peso $P_B$ é
 %Firstly, the fee T to balance the marginal penalty MP from adding a transaction with weight PT to a block with weight BW, is\vspace{.175cm}
 \begin{align*}
@@ -749,7 +751,17 @@ T=B_0\left[\left(\frac{P_B+P_T}{M_N}-1\right)^2
           -\left(\frac{P_B}{M_N}-1\right)^2\right].
 \end{align*}
 
-Define-se o factor de peso do bloco:
+Se algum dos pesos fica abaixo de $M_N$, usa-se antes a penalização por ramos:
+\begin{align*}
+ P(W)&=B_0\left[\max\!\left(0,\frac{W}{M_N}-1\right)\right]^2,
+       &&0\leq W\leq2M_N,\\
+ T&=P(P_B+P_T)-P(P_B).
+\end{align*}
+Assim, dois pesos não superiores a $M_N$ dão $T=0$; se apenas o segundo
+ultrapassa a mediana, só ele sofre penalização. São expressões idealizadas em
+aritmética real; a regra inteira de recompensa determina o arredondamento.
+
+Na zona penalizada, define-se o factor de peso do bloco:
 \begin{align*}
 F_b=\frac{P_B}{M_N}-1
 \end{align*}
@@ -986,17 +998,16 @@ condições acima e o peso máximo do bloco sejam satisfeitos.
 
 Desde que RingCT foi implementado em Janeiro de 2017 (v4)
 \cite{ringct-dates}, o nó que guarda uma saída de mineiro v2 fabrica também o
-compromisso de máscara nula
+compromisso de máscara escalar igual a um
 \marginnote{src/block- chain\_db/ blockchain\_ db.cpp
 {\tt add\_trans- action()}}
 \begin{align*}
-C=0G+aH=aH.
+C=1G+aH=G+aH.
 \end{align*}
 Esse compromisso não está escondido na transacção de mineiro; é metadado
 derivado do montante claro. Permite, contudo, que a saída apareça mais tarde
-num anel CLSAG juntamente com saídas RingCT normais. A antiga expressão
-$G+aH$ estava errada: ``máscara identidade'' no comentário do código significa
-o escalar zero, não o escalar um.
+num anel CLSAG juntamente com saídas RingCT normais. O montante $a$ é público
+e a máscara é conhecida; este compromisso não pretende ocultar a recompensa.
 
 %Since RingCT was implemented in January 2017 (v4 of the protocol) \cite{ringct-dates}, people downloading a new copy of the blockchain compute a commitment to the miner transaction (a.k.a. tx) amount\marginnote{src/block- chain\_db/ blockchain\_ db.cpp {\tt add\_trans- action()}} $a$, as $C = 1G + aH$, and store it for referral. This allows block miners to spend their miner transaction outputs just like a normal transaction's outputs, putting them in MLSAG rings with other normal and miner tx outputs.\\
 
@@ -1245,7 +1256,7 @@ inteiros variáveis; o ID e o {\em nonce} têm tamanho fixo:
 %Within each transaction is an `extra' field which can contain more-or-less arbitrary data. If a miner needs a wider range of nonces than just 4 bytes, they can add or alter data in their miner tx's extra field to `extend' the nonce size. \cite{extra-field-stackexchange}}
     \item transacção de mineiro completa, com prefixo e base RingCT nula. A
           base de dados deriva ainda, para cada saída v2, o compromisso
-          $C=aH$;
+          $C=G+aH$;
 %32 bytes for a one-time address, 32 bytes for a transaction public key (+1 byte for its `extra' tag), and variable integers for the unlock time, corresponding block's height, and amount. After downloading the blockchain, we also need 32 bytes to store an amount commitment $C = 1G + a H$ (only for post-RingCT miner tx amounts).
     \item contagem do vector como {\em varint} e IDs de transacção de 32 bytes
           cada. O desserializador impõe ainda um limite defensivo de $2^{28}$

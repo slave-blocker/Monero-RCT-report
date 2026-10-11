@@ -139,8 +139,10 @@ possui as entradas. É a CLSAG que prende cada pseudo-compromisso à saída
 real de um anel.
 
 O programa de referência baralha as saídas antes de lhes atribuir os índices
-\(t\) e ordena as entradas por imagem de chave. São escolhas de construção
-da carteira; o consenso recebe apenas a ordem final.
+\(t\); este baralhamento é uma escolha da carteira. As entradas, pelo contrário,
+têm de estar ordenadas por imagem de chave em ordem estritamente decrescente
+dos bytes da codificação. Desde a versão 7, o consenso rejeita uma transacção
+que não respeite essa ordem.
 
 
 \subsection{Dados de cada saída}

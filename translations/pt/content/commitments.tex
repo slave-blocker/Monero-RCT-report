@@ -291,10 +291,10 @@ com as assinaturas das entradas.
 
 As primeiras transacções RingCT provaram a
 Equação~\eqref{eq:range-statement} com assinaturas em anel Borromean
-\cite{Signatures2015BorromeanRS,MRL-0005-ringct}. Esta construção permanece no
-código para validar a história da lista de blocos, mas deixou de ser permitida
-em novas transacções depois da versão~8 do protocolo. É portanto um formato
-histórico, não a prova usada pela versão~16.
+\cite{Signatures2015BorromeanRS,MRL-0005-ringct}. A construção permite ver o
+intervalo nascer, bit a bit, de compromissos e assinaturas de Schnorr. É um
+formato histórico: a versão~9 deixou de o admitir em novas transacções, embora
+continue a ser necessário verificar as provas antigas da lista de blocos.
 \marginnote{\scriptsize\raggedright
 src/crypto-\newline
 note\_core/\newline
@@ -306,53 +306,293 @@ rctSigs.cpp,\newline
 {\tt proveRange()} e\newline
 {\tt verRange()}}
 
-Vale a pena perceber a ideia, porque nela se vê directamente o intervalo.
-Escrevemos os 64 bits de \(b\) como
+Seja o compromisso ao montante \(b\):
+\[
+ C_a=xG+bH.
+\]
+Primeiro, fazemos uma partição aleatória da máscara \(x\), tal que
+\[
+ x=\sum_{i=0}^{63}x_i\pmod l.
+\]
+Podemos escolher os primeiros 63 escalares e determinar o último pela
+diferença. Podemos também escolher todas as máscaras e definir \(x\) pela
+soma; em ambos os casos, é esta igualdade que liga as partes ao compromisso.
+
+Segundo, descrevemos \(b\) em termos binários:
 \[
  b=\sum_{i=0}^{63}b_i2^i,\qquad b_i\in\{0,1\}.
 \]
-O provador escolhe máscaras \(x_i\in\mathbb Z_l^*\), forma
+Para cada bit, formamos um compromisso
 \begin{equation}
- C_i=x_iG+b_i2^iH
+ C_i=x_iG+b_i2^iH.
  \label{eq:borromean-bit-commitment}
 \end{equation}
-e obtém
+O compromisso inicial fica então decomposto:
 \begin{equation}
- C(x,b)=\sum_{i=0}^{63}C_i,\qquad
- x=\sum_{i=0}^{63}x_i\pmod l.
+ \begin{split}
+ \sum_{i=0}^{63}C_i
+   &=\left(\sum_{i=0}^{63}x_i\right)G
+     +\left(\sum_{i=0}^{63}b_i2^i\right)H\\
+   &=xG+bH=C_a.
+ \end{split}
  \label{eq:borromean-sum}
 \end{equation}
-Para cada índice, publica-se o anel de dois pontos
+
+O objectivo é provar que o montante de \(C_a\) pertence ao intervalo. Mas
+\(C_a\), só por si, não prova tal coisa: é somente um ponto de curva
+elíptica. Publicar os \(C_i\) e verificar a soma também não basta. Falta
+provar que cada compromisso contém uma das duas parcelas permitidas,
+\(0\) ou \(2^i\), sem revelar qual delas.
+
+Se \(b_i=0\), temos
 \[
- \bigl(C_i,\ C_i-2^iH\bigr).
+ C_i=x_iG+0H=x_iG.
 \]
-Se \(b_i=0\), o provador conhece \(x_i\) tal que \(C_i=x_iG\). Se
-\(b_i=1\), conhece o mesmo \(x_i\) tal que
-\(C_i-2^iH=x_iG\). Uma assinatura em anel esconde qual destes dois casos foi
-usado; a composição Borromean liga os 64 anéis numa só assinatura.
+Se \(b_i=1\), temos
+\[
+ C_i-2^iH=x_iG+2^iH-2^iH=x_iG.
+\]
+Como tal, fixamos para cada índice um anel de duas chaves públicas:
+\begin{equation}
+ P_{i,0}=C_i,\qquad P_{i,1}=C_i-2^iH.
+ \label{eq:borromean-ring-pair}
+\end{equation}
+Alice conhece a chave privada \(x_i\) de uma delas. O índice dessa chave é
+precisamente o bit \(b_i\). Uma assinatura em anel prova conhecimento de uma
+das duas chaves privadas e esconde o índice; a composição borromeana reúne
+os 64 anéis num único desafio.
 
-\textbf{Funciona porque} uma assinatura válida demonstra conhecimento do
-logaritmo discreto, na base \(G\), de um ponto em cada par. Sob a vinculação do
-compromisso e a solidez da assinatura, isso obriga cada \(b_i\) a ser um bit.
-A soma pública dos \(C_i\) liga os 64 bits ao compromisso original, pelo que
-\(0\leq b\leq2^{64}-1\).
+\subsection{Preparar os dois casos}
 
-As testemunhas privadas são \((b_0,\ldots,b_{63})\) e
-\((x_0,\ldots,x_{63})\). Os dados públicos são \(C\), os 64 pontos \(C_i\),
-os pontos fixos \(2^iH\) e a assinatura. O percurso legado codifica cada ponto
-e escalar em 32 bytes; descodifica os \(C_i\) como pontos canónicos da curva e
-reduz a Keccak--256 a escalares quando encadeia os desafios. Não existe nesse
-percurso um teste autónomo de pertença de cada \(C_i\) ao subgrupo primo, nem
-existe no traslado um prefixo textual de separação de domínio. São regras
-históricas de compatibilidade que não devemos transportar para um protocolo
-novo.
+Vamos seguir a geração e depois refazer, como Bob, as contas da verificação.
+Todos os escalares que se seguem pertencem a \(\mathbb Z_l\), e todas as
+operações entre eles são feitas módulo~\(l\). Empregamos \(\mathcal H_n\)
+para obter um escalar a partir das codificações dos pontos, como nas provas
+anteriores.
 
-O custo de armazenamento explica a substituição. Para uma única saída, o
-objecto histórico contém 64 pontos \(C_i\), dois vectores de 64 respostas e um
-desafio: \(64+64+64+1=193\) objectos de 32 bytes, isto é, 6176 bytes antes de
-pequenos custos de serialização. Além disso, existe uma prova separada para
-cada saída. As Bulletproofs seguintes comprimem a relação e agregam várias
-saídas.
+Alice escolhe um escalar aleatório novo \(\alpha_i\) para cada anel. Primeiro
+prepara um ponto final \(\psi_i\); só depois de preparar todos os anéis pode
+calcular o desafio comum. Aqui os dois casos começam por caminhos diferentes.
+
+\paragraph{Se \(b_i=0\).}
+Alice conhece a chave privada de \(C_i\). Escolhe também uma resposta
+aleatória \(\beta_{i,1}\) para a outra chave e calcula
+\begin{align*}
+ \omega_i&=\mathcal H_n(\alpha_iG),\\
+ \psi_i&=\beta_{i,1}G+\omega_i(C_i-2^iH).
+\end{align*}
+O ponto \(\alpha_iG\) começa o percurso na chave que Alice conhece; o
+desafio \(\omega_i\) permite avançar pela outra chave, com a resposta
+simulada \(\beta_{i,1}\). A resposta da primeira chave fica por calcular.
+
+\paragraph{Se \(b_i=1\).}
+Alice conhece a chave privada de \(C_i-2^iH\). Prepara simplesmente
+\[
+ \psi_i=\alpha_iG.
+\]
+Agora o ponto final está na chave que ela conhece. A passagem pela primeira
+chave e as duas respostas serão calculadas depois do desafio comum.
+
+\subsection{O desafio que liga os 64 anéis}
+
+Uma vez preparados todos os pontos finais, Alice calcula
+\begin{equation}
+ \lambda=\mathcal H_n(\psi_0\mathbin\|\psi_1\mathbin\|\cdots
+                         \mathbin\|\psi_{63}).
+ \label{eq:borromean-common-challenge}
+\end{equation}
+A ordem é a dos bits, do menos significativo ao mais significativo, e cada
+ponto entra através da sua codificação de 32 bytes. O desafio \(\lambda\)
+fica assim preso aos resultados de todos os anéis. Não é um escalar que Alice
+possa escolher livremente depois de ver as respostas.
+\marginnote{\tiny\raggedright\path{src/ringct/rctSigs.cpp},
+\texttt{genBorromean()} e \texttt{verifyBorromean()}}
+
+Falta fechar cada percurso. Se \(b_i=0\), Alice calcula a resposta que
+deixara em aberto:
+\[
+ \beta_{i,0}=\alpha_i-x_i\lambda.
+\]
+Se \(b_i=1\), escolhe uma resposta aleatória \(\beta_{i,0}\), passa pela
+primeira chave e fecha na segunda:
+\begin{align*}
+ \mu_i&=\beta_{i,0}G+\lambda C_i,\\
+ \theta_i&=\mathcal H_n(\mu_i),\\
+ \beta_{i,1}&=\alpha_i-x_i\theta_i.
+\end{align*}
+
+Alice envia os 64 compromissos \(C_i\) e a assinatura
+\[
+ \sigma_{\rm B}=
+ \bigl(\lambda,(\beta_{i,0})_{i=0}^{63},
+                 (\beta_{i,1})_{i=0}^{63}\bigr).
+\]
+Os bits \(b_i\), as máscaras \(x_i\) e os escalares \(\alpha_i\) ficam
+privados. Os pontos \(\psi_i\) não são enviados: Bob irá reconstruí-los.
+Também não se enviam os \(2^iH\), pois são pontos fixos que o verificador
+conhece de antemão.
+
+\subsection{A mesma verificação para zero e para um}
+
+Bob começa por verificar a igualdade \(C_a=\sum_iC_i\). Depois, para cada
+índice, faz sempre as mesmas contas:
+\begin{align*}
+ \mu_i'&=\beta_{i,0}G+\lambda C_i,\\
+ \theta_i'&=\mathcal H_n(\mu_i'),\\
+ \psi_i'&=\beta_{i,1}G+\theta_i'(C_i-2^iH).
+\end{align*}
+No fim, calcula
+\[
+ \lambda'=\mathcal H_n(\psi_0'\mathbin\|\psi_1'\mathbin\|\cdots
+                          \mathbin\|\psi_{63}')
+\]
+e exige \(\lambda'=\lambda\). Vamos ver por que ambos os casos chegam à
+mesma igualdade.
+
+\paragraph{Quando o bit é zero.}
+Sabemos que \(C_i=x_iG\) e que
+\(\beta_{i,0}=\alpha_i-x_i\lambda\). Portanto,
+\begin{align*}
+ \mu_i'
+   &=\beta_{i,0}G+\lambda C_i\\
+   &=(\alpha_i-x_i\lambda)G+\lambda C_i\\
+   &=\alpha_iG-\lambda(x_iG)+\lambda C_i\\
+   &=\alpha_iG.
+\end{align*}
+Os dois termos em \(\lambda\) cancelam-se. Logo,
+\[
+ \theta_i'=\mathcal H_n(\alpha_iG)=\omega_i,
+\]
+e o ponto final reconstruído é
+\begin{align*}
+ \psi_i'
+   &=\beta_{i,1}G+\theta_i'(C_i-2^iH)\\
+   &=\beta_{i,1}G+\omega_i(C_i-2^iH)\\
+   &=\psi_i.
+\end{align*}
+
+\paragraph{Quando o bit é um.}
+A primeira resposta foi escolhida aleatoriamente. Bob reconstrói exactamente
+o ponto que Alice usou para calcular a segunda resposta:
+\[
+ \mu_i'=\beta_{i,0}G+\lambda C_i=\mu_i,
+ \qquad \theta_i'=\theta_i.
+\]
+Agora usamos \(C_i-2^iH=x_iG\) e
+\(\beta_{i,1}=\alpha_i-x_i\theta_i\):
+\begin{align*}
+ \psi_i'
+   &=\beta_{i,1}G+\theta_i'(C_i-2^iH)\\
+   &=(\alpha_i-x_i\theta_i)G+\theta_i(C_i-2^iH)\\
+   &=\alpha_iG-\theta_i(x_iG)+\theta_i(x_iG)\\
+   &=\alpha_iG=\psi_i.
+\end{align*}
+É na segunda chave que os termos se cancelam. Em ambos os casos,
+\(\psi_i'=\psi_i\); repetindo o argumento para os 64 índices, obtemos
+\[
+ \lambda'
+  =\mathcal H_n(\psi_0\mathbin\|\cdots\mathbin\|\psi_{63})
+  =\lambda.
+\]
+
+Bob não recebeu nenhuma indicação do caso escolhido. A diferença está na
+resposta que Alice conseguiu calcular com a sua chave privada; as equações
+que Bob executa são idênticas. Há também um verdadeiro fecho circular: o
+desafio inicial produz os pontos finais, e o hash desses pontos tem de
+reproduzir o desafio inicial.
+
+\subsection{Por que razão isto prova o intervalo}
+
+As contas anteriores mostram que uma prova honesta é aceite. Para excluir
+uma falsificação precisamos, além disso, da solidez de conhecimento da
+assinatura borromeana, no modelo do oráculo aleatório, e da dificuldade do
+logaritmo discreto. Sob essas hipóteses, uma assinatura válida atesta
+conhecimento de um escalar \(z_i\) e de um índice \(d_i\in\{0,1\}\) em cada
+anel, tais que
+\[
+ P_{i,d_i}=z_iG,
+ \qquad C_i=z_iG+d_i2^iH.
+\]
+Estas testemunhas, que Bob não conhece, definem uma abertura do compromisso
+inicial. Com efeito,
+\begin{align*}
+ C_a
+   &=\sum_{i=0}^{63}C_i\\
+   &=\left(\sum_{i=0}^{63}z_i\right)G
+     +\left(\sum_{i=0}^{63}d_i2^i\right)H.
+\end{align*}
+O montante desta abertura é um inteiro entre zero e
+\[
+ \sum_{i=0}^{63}2^i=2^{64}-1.
+\]
+A vinculação computacional do compromisso impede Alice de conhecer outra
+abertura com montante diferente. É assim que a assinatura prova a
+Equação~\eqref{eq:range-statement}: uma das duas chaves em cada anel determina
+um bit, e a igualdade da soma prende todos os bits ao mesmo compromisso.
+
+Não basta dizer que o algoritmo de geração aceita apenas bits. Um atacante
+pode escrever outro algoritmo; é a relação verificada, juntamente com as
+hipóteses criptográficas, que limita o montante. Em particular, se aceitássemos
+um \(\lambda\) livre sem exigir
+\eqref{eq:borromean-common-challenge}, bastaria escolher as respostas e
+calcular \(\mu_i'\), \(\theta_i'\) e \(\psi_i'\) pela própria fórmula de
+verificação. Todas essas contas seriam possíveis sem conhecer uma única chave
+privada. O teste final é precisamente o constrangimento que falta a essa
+tentativa.
+
+O conhecimento do bit permanece oculto pelas propriedades de conhecimento
+zero da composição, e a máscara oculta o montante. Isto não significa que os
+montantes possíveis sejam equiprováveis na vida real: a prova não elimina
+informação exterior à transacção, nem escolhe a distribuição dos pagamentos.
+\footnote{A derivação matemática usa pontos do subgrupo primo. O formato
+legado descodifica os compromissos como pontos da curva sem um teste autónomo
+de pertença a esse subgrupo. Os desafios são Keccak--256 reduzida módulo~\(l\),
+sem um prefixo textual de separação de domínio. Estas regras pertencem à prova
+de intervalo histórica; a assinatura de mensagens com contexto explícito do
+capítulo \ref{chapter:advanced-schnorr} é uma construção distinta.}
+
+\subsection{Os pesos e o espaço ocupado}
+
+É aparente que o papel de \(2^i\) poderia ser desempenhado por outros pesos
+públicos. Com inteiros positivos \(k_1,\ldots,k_m\), formaríamos
+\[
+ C_i=x_iG+b_ik_iH,\qquad
+ (P_{i,0},P_{i,1})=(C_i,C_i-k_iH),
+\]
+e, reunindo agora \(m\) anéis no desafio comum, provaríamos uma abertura com
+montante
+\[
+ b=\sum_{i=1}^{m}b_ik_i,\qquad b_i\in\{0,1\}.
+\]
+Se quiséssemos manter todas estas somas no intervalo Monero, exigiríamos
+\(\sum_i k_i\leq2^{64}-1\) como desigualdade de inteiros. Mas os pesos
+determinariam um conjunto de somas admissíveis, que poderia deixar lacunas.
+
+Por exemplo, se \(k_1=2\) e \(k_2=3\), as quatro escolhas dos bits dariam
+\[
+ 0\cdot2+0\cdot3=0,\quad
+ 1\cdot2+0\cdot3=2,\quad
+ 0\cdot2+1\cdot3=3,\quad
+ 1\cdot2+1\cdot3=5.
+\]
+Bob saberia que o montante pertence a \(\{0,2,3,5\}\), embora não soubesse
+qual deles foi escolhido. Com outros pesos, escolhas distintas poderiam
+ainda produzir a mesma soma: \(2^m\) conta os vectores de bits, não garante
+\(2^m\) montantes distintos. As potências de dois dão-nos exactamente o que
+pretendemos: todos os inteiros do intervalo, sem lacunas e com uma
+representação única. Sendo fixas, também dispensam a transmissão dos pesos.
+
+Resta contar o preço desta clareza. Para uma única saída, transmitimos 64
+pontos \(C_i\), 64 respostas \(\beta_{i,0}\), 64 respostas
+\(\beta_{i,1}\) e o desafio comum \(\lambda\). Cada ponto ou escalar ocupa
+32 bytes, pelo que a prova histórica ocupa
+\[
+ (64+64+64+1)\times32=193\times32=6176\text{ bytes}.
+\]
+O compromisso da saída já figura na transacção e não está contado outra vez
+neste total. Cada saída precisa da sua própria prova. As Bulletproofs que se
+seguem conservam a decomposição em bits, mas comprimem a prova e permitem
+agregar vários montantes.
 
 \section{Bulletproofs}
 \label{sec:bullet_proofs}

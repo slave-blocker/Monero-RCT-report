@@ -465,6 +465,20 @@ uma transacção ainda fora de um bloco seja propagada rapidamente aos mineiros.
 \section{Poda da blockchain e sincronização de nós podados}
 \label{sec:node-pruning}
 
+Um nó podado acompanha toda a lista de blocos, desde a origem até à ponta.
+Conserva os cabeçalhos e os dados de todas as transacções necessários para
+reconhecer as saídas e impedir gastos duplos. A economia vem de omitir parte
+das assinaturas e provas antigas, mantendo os hashes que as vinculam à
+história. A cadeia continua inteira; é uma parte dos dados das transacções
+que deixa de ocupar espaço local.
+
+Há, porém, duas perguntas diferentes: quanto fica no disco e quanto chega
+pela rede. Receber dados completos e apagá-los depois poupa disco;
+receber respostas já podadas pode poupar também a descarga. A secção
+\ref{subsec:pruned-sync-modes} distingue estes percursos e a secção
+\ref{subsec:pruned-sync-validation} explica o que se pode verificar quando
+as provas antigas não foram recebidas.
+
 Dandelion++ propaga uma transacção recente da txpool; a sincronização transfere
 blocos históricos e constrói o estado necessário para validar transacções
 futuras. Ambas as funções consomem ligações, largura de banda, memória e disco,

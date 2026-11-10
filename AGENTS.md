@@ -6,6 +6,9 @@
 - Centre the exposition on the mathematics behind Monero: definitions, exact relations, derivations, and the hypotheses under which the results hold. Present the selected construction as a fixed mathematical object, with a lasting, self-contained exposition rather than a running account of software development. Do not present contingent implementation choices or conjectures as unconditional mathematical laws.
 - Keep commit hashes, audit debates, implementation chronology, and incidental code details out of the chapter prose. Use primary papers and source code to establish correctness; keep source-version tracking in working notes or bibliographic metadata rather than in the exposition.
 - Make understanding possible through reading alone. Work out necessary calculations in the text, explain the meaning of equations and their variables, and build memorable connections between successive ideas. Do not require a pencil, external calculations, or exercises to follow the argument.
+- Explique as construções afirmativamente: apresente o que cada objecto é, como funciona e que propriedade estabelece. Elimine contrastes didácticos recorrentes da forma «não é X, mas Y» e enumerações do que uma construção não faz. Desenvolva contra-exemplos, falhas e comparações pela negativa quando forem expressamente pedidos; conserve sempre as condições matemáticas e as hipóteses necessárias à exactidão do texto.
+- Use «de Monero», «por Monero» e «em Monero», conforme a construção gramatical, sem artigo antes do nome. Para designar a blockchain, use «lista de blocos»; preserve os sentidos matemáticos próprios de «cadeia» quando designem outros objectos.
+- Organize as secções pela continuidade do argumento. A extensão de cada secção deve acompanhar a matéria; elimine o esquema de uma página por secção nos capítulos de divisores e FCMP++. Reserve as quebras de página explícitas para necessidades reais de composição.
 
 ## FCMP++ rewriting scope
 

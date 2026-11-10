@@ -1,1733 +1,1992 @@
-\chapter{Provas de pertença à cadeia completa (FCMP++)}
+\chapter{FCMP++: pertença e autorização de um gasto}
 \label{chapter:fcmp-plus-plus}
 \label{page:fcmp-start}
 
-\section{Uma saída escondida continua ligada ao gasto}
-
-Uma saída gasta deixa de estar disponível, mas a sua identidade não precisa
- de ser revelada. A dificuldade está em conservar uma ligação exacta a um
-objecto que permanece escondido. FCMP++ resolve-a fazendo circular a mesma
-informação matemática sob apresentações diferentes: uma folha na árvore,
-pontos ocultados na entrada e uma imagem de chave que identifica a repetição
- de um gasto \cite{fcmp-plus-plus-paper}.
-
-Fixaremos um grupo aditivo \(\mathbb G\) de ordem prima \(\ell\), com
-bases públicas \(G,H,T,U,V\). Os escalares deste grupo pertencem a
-\(\mathbb F_\ell\). As bases são escolhidas sem relações de logaritmo
- discreto conhecidas. Esta hipótese sustenta a vinculação dos compromissos.
-
-Uma folha contém três pontos:
-\[
- \mathsf F=(O,B,C).
-\]
-\(O\) é a chave da saída; \(B\) é a base pública associada à sua imagem
- de chave; \(C\) é o compromisso de montante. O gasto deverá estabelecer
-\[
- O=xG+yT,\qquad I=xB,\qquad C=aG+vH.
-\]
-A chave principal é \(x\), a imagem de chave é \(I\), o montante é
-\(v\). A autorização e a pertença não precisam de abrir \(C\): a sua
-ligação ao montante será conservada pela re-randomização.
-
-As máscaras mudarão a apresentação pública. A prova conservará a ligação
-à saída utilizada.
-
-\newpage
-\section{Existir, autorizar e não repetir são condições distintas}
-
-Consideremos uma transacção que pretende consumir uma saída. Há três
-perguntas diferentes. A saída existe no conjunto aceite? Quem apresenta a
-transacção conhece a chave que a controla? A mesma saída já foi consumida?
-Nenhuma das respostas dispensa as outras.
-
-A primeira pergunta é de pertença. Se \(\mathcal S\) é o conjunto de
-folhas admissíveis, queremos demonstrar
-\[
- (O,B,C)\in\mathcal S.
-\]
-Esta afirmação não exige conhecer \(x\). As folhas e a árvore são
-públicas; qualquer pessoa pode encontrar uma saída alheia e o seu caminho.
-O segredo necessário para gastar terá de aparecer noutra relação.
-
-A autorização acrescenta conhecimento de \(x,y\) tais que
-\(O=xG+yT\). Para uma chave da forma habitual \(O=xG\), toma-se
-\(y=0\). A apresentação com duas bases permite tratar a máscara que
-mais tarde será adicionada na direcção \(T\), conservando a chave
-principal \(x\).
-
-A não repetição utiliza a imagem de chave:
-\[
- I=xB.
-\]
-A base \(B\) é fixa para a saída. Duas utilizações com a mesma chave
-principal produzem a mesma imagem, ainda que as máscaras da transacção
-sejam inteiramente novas. O verificador consulta o conjunto das imagens
-já utilizadas e rejeita a repetição. Uma prova de pertença não consulta,
-por si mesma, esse conjunto.
-
-A imagem deve ainda ser ligada à mesma folha cuja existência foi provada.
-Sem essa ligação, alguém poderia apresentar uma folha verdadeira e uma
-imagem escolhida livremente. A saída pareceria existir; a marca do gasto
-não corresponderia a ela.
-
-\begin{center}
-\begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{9.1cm}}
-\textbf{Pertença} & A folha está no conjunto representado pela raiz.\\
-\textbf{Autorização} & O provador conhece a chave principal da saída.\\
-\textbf{Ligação} & A imagem publicada usa essa chave e essa base.\\
-\textbf{Não repetição} & A imagem ainda não foi aceite num gasto anterior.
-\end{tabular}
-\end{center}
-
-A separação das condições permite escolher uma ferramenta adequada para
-cada uma. A composição terá de tornar impossível trocar a saída entre elas.
-
-\newpage
-\section{O montante atravessa o gasto sem se revelar}
-
-O compromisso de uma saída é \(C=aG+vH\). Para o incluir numa nova
-transacção, mudamos a máscara sem mudar o montante:
-\[
- \widetilde C=C+r_cG=(a+r_c)G+vH.
-\]
-O coeficiente em \(H\) permanece \(v\). A nova máscara permite ajustar
-o equilíbrio dos compromissos sem publicar qual o compromisso antigo que
-forneceu o valor.
-
-Se uma transacção tem \(m\) entradas, \(n\) saídas e comissão \(f\),
-a igualdade pública é
-\[
- \sum_{i=1}^{m}\widetilde C_i
- =\sum_{j=1}^{n}C'_j+fH.
-\]
-Para um provador que conhece as aberturas, a diferença dos dois lados é
-\[
- \left(\sum_i\widetilde a_i-\sum_j a'_j\right)G
- +\left(\sum_i v_i-\sum_j v'_j-f\right)H.
-\]
-Escolhidas as máscaras para que o primeiro coeficiente seja zero, a igualdade
-exprime a conservação do valor no corpo escalar. A vinculação dos
-compromissos impede produzir aberturas conhecidas que escondam uma diferença
-no coeficiente de montante através da base de máscara.
-
-As provas de intervalo continuam necessárias. A equação de pontos usa
-aritmética modular; sozinha, não distingue um montante admissível de um
-inteiro que tenha o mesmo resto. Quando os montantes estão nos intervalos
-prescritos e os limites totais impedem dar uma volta completa ao módulo,
-a conservação modular traduz-se em conservação de inteiros.
-
-A pertença acrescenta uma condição indispensável: cada \(\widetilde C_i\)
-provém do \(C_i\) de uma folha realmente existente. Uma pessoa pode
-fabricar um compromisso equilibrado para uma transacção imaginária; isso
-não lhe fornece uma saída anterior que possa legitimamente consumir.
-
-A prova de pertença liga o compromisso re-randomizado a uma folha. O argumento de equilíbrio liga os
-compromissos re-randomizados às novas saídas. O montante passa entre estas
-relações como o mesmo coeficiente de \(H\), sem aparecer como número público.
-
-\newpage
-\section{A direcção da máscara determina o que se conserva}
-
-Uma re-randomização é uma translação por um múltiplo de uma base escolhida.
-A sua direcção importa. Para a chave da saída, fazemos
-\[
- \widetilde O=O+r_oT=xG+(y+r_o)T.
-\]
-Chamemos \(\widetilde y=y+r_o\). A máscara entra na segunda parcela;
-a chave principal \(x\) conserva o seu lugar na base \(G\). Para o
-compromisso de montante, a máscara entra na base \(G\), conservando o
-coeficiente de \(H\). O mesmo acto algébrico serve, pois, duas relações,
-com direcções diferentes.
-
-Se \(r_o\) é uniforme em \(\mathbb F_\ell\) e \(T\ne0\), então
-\(r_oT\) percorre uniformemente \(\mathbb G\). Somar o ponto fixo \(O\)
-apenas permuta os resultados. O ponto \(\widetilde O\), visto isoladamente,
-não revela qual foi \(O\). Esta é uma afirmação exacta sobre a distribuição.
-A vinculação à saída depende, separadamente, da prova de conhecimento da
-máscara e da folha.
-
-A nova apresentação não concede a chave principal a quem a produz. Uma
-pessoa que conhece a folha e escolhe \(r_o\) pode calcular
-\(\widetilde O\); continua sem conhecer \(x\). O acto de ocultar uma
-chave pública não é o acto de demonstrar que se possui a chave privada.
-
-Também não podemos somar arbitrariamente \(sG\) a \(O\) e continuar
-a falar da mesma autorização. A abertura passaria a usar \(x+s\).
-A imagem \((x+s)B\) mudaria, contrariando a marca determinística do gasto.
-A direcção \(T\) foi escolhida precisamente para deslocar a parcela que
-pode variar.
-
-A relação \(\widetilde O-O=r_oT\), juntamente com conhecimento de
-\(r_o\), é uma restrição. Embora todo o ponto do grupo seja algum múltiplo
-de \(T\), encontrar esse múltiplo para uma diferença escolhida sem abertura
-é um problema de logaritmo discreto. A existência abstracta de uma máscara
-não equivale ao conhecimento da máscara.
-
-\newpage
-\section{Os três pontos pertencem à mesma folha}
-
-A folha é uma tupla ordenada, não três listas independentes:
-\[
- \mathsf F=(O,B,C).
-\]
-Escolher \(O\) numa folha, \(B\) noutra e \(C\) numa terceira daria
-três pontos públicos legítimos, mas não uma saída legítima. A prova deve
-preservar a sua associação.
-
-A regra pública de formação das folhas determina \(B\) a partir da saída.
-No caso de uma chave original já no subgrupo primo, podemos escrever
-\(B=H_p(O)\). Mais geralmente, a base é derivada da representação original
-admissível da chave, antes de qualquer mudança de coordenadas ou projecção
-para o subgrupo. Fixaremos o conjunto \(\mathcal S\) já formado por essa
-regra; os seus pontos satisfazem as condições do modelo de grupo.
-
-Esta distinção evita atribuir à prova oculta um trabalho que pertence à
-formação pública do conjunto. O circuito não precisa de calcular
-\(H_p\) sobre a chave escondida. Precisa de provar que recuperou os três
-pontos de uma única folha do conjunto cuja raiz foi aceite. A relação entre
-\(O\) e \(B\) já está fixada nessa folha pública.
-
-Um compromisso de ramo poderá guardar, por posição, as seis coordenadas
-\[
- (o_x,o_y,b_x,b_y,c_x,c_y).
-\]
-Os seis valores têm de ser seleccionados em conjunto. A abscissa e a
-ordenada de um ponto também não podem ser escolhidas em posições distintas.
-As verificações de curva asseguram que as coordenadas são pontos; a
-selecção da tupla assegura que são os pontos daquela saída.
-
-Há, portanto, duas espécies de legitimidade. A equação da curva legitima
-um ponto como objecto algébrico. A pertença à tupla legitima a sua utilização
-como componente de uma saída concreta. Um ponto na curva pode não pertencer
-a saída alguma do conjunto.
-
-A árvore conservará esta associação no seu primeiro nível. A autorização
-voltará a encontrá-la através de uma apresentação pública comum, para que
-a chave e a imagem não se desviem da folha seleccionada.
-
-\newpage
-\section{O produto que a ocultação faz nascer}
-
-Ocultemos também a base da imagem de chave:
-\[
- \widetilde B=B+r_bU.
-\]
-Quem conhece a chave \(x\) consegue multiplicar esse ponto público por ela.
-O resultado é
-\[
- x\widetilde B=xB+(xr_b)U.
-\]
-O primeiro termo é a imagem desejada. O segundo nasceu da máscara. Para
-obter a imagem correcta, teremos de demonstrar conhecimento do produto
-\(z=xr_b\) e subtraí-lo:
-\[
- I=x\widetilde B-zU.
-\]
-Esta igualdade explica a necessidade de uma prova de produto na autorização.
-O produto não é um adorno de compressão: é o termo exacto introduzido pela
-ocultação da base.
-
-Resta ligar \(r_b\) à máscara usada pela pertença. Introduzimos um ponto
-auxiliar público
-\[
- R=r_bV+r_rT.
-\]
-A mesma variável \(r_b\) aparece sobre \(U\), em \(\widetilde B\), e
-sobre \(V\), em \(R\). A máscara \(r_r\) esconde-a nesta segunda
-apresentação. A prova de pertença imporá as duas relações com um único
-escalar. A prova de autorização usará \(R\) para impedir que o produto
-seja formado com uma máscara diferente.
-
-O provador publica, assim, a apresentação
-\begin{equation}
- Q=(\widetilde O,\widetilde B,R,\widetilde C).
- \label{eq:fcmp-new-presentation}
-\end{equation}
-A folha original tem três pontos; a apresentação tem quatro. O ponto
-adicional \(R\) guarda a ligação entre relações, não uma quarta componente
-da saída.
-
-Podemos já seguir a identidade que atravessará o capítulo:
-\[
- I=x(B+r_bU)-(xr_b)U=xB.
-\]
-As duas ocorrências de \(r_b\) têm de ser a mesma máscara, e as duas
-ocorrências de \(x\) a mesma chave. O trabalho das provas será tornar
-estas coincidências demonstráveis sem revelar os valores.
-
-\newpage
-\section{A declaração de pertença fica completamente determinada}
-
-A raiz pública \(\mathcal R\) representa um conjunto de folhas admissíveis.
-A apresentação \(Q\) é pública. A prova de pertença demonstra conhecimento
-de uma folha, do seu caminho e de quatro escalares que satisfazem
-\begin{align}
- (O,B,C)&\in\mathcal S_{\mathcal R},\nonumber\\
- \widetilde O&=O+r_oT,\nonumber\\
- \widetilde B&=B+r_bU,\nonumber\\
- R&=r_bV+r_rT,\nonumber\\
- \widetilde C&=C+r_cG.
- \label{eq:fcmp-new-membership}
-\end{align}
-O símbolo \(\mathcal S_{\mathcal R}\) designa o conjunto fixado pela árvore
-aceite. A prova não permite ao provador escolher uma nova árvore que
-contenha a sua folha: o verificador fixa a raiz e a profundidade esperada.
-
-O testemunho inclui \(O,B,C\), as máscaras e os ramos necessários. Não
-inclui obrigatoriamente \(x\), \(y\), \(a\) ou \(v\). Esta declaração
-pode ser satisfeita por alguém que conheça uma saída pública e queira
-ocultá-la. Por essa razão, a prova de pertença, tomada isoladamente, não
-autoriza um gasto.
-
-A identidade de \(r_b\) nas duas equações é parte da declaração. Não
-basta apresentar dois escalares com o mesmo nome. No circuito, as duas
-multiplicações reutilizam a mesma representação escalar, ligada às mesmas
-variáveis comprometidas. As bases são distintas; o valor é um só.
-
-As máscaras de \(Q\) fornecem uma apresentação que pode ser partilhada
-pelas duas provas. FCMP recebe estes quatro pontos e liga-os a uma folha.
-SAL recebe estes mesmos quatro pontos e liga a autorização à apresentação.
-O compromisso de montante também pertence à declaração comum, mesmo
-quando não surge como base numa equação de Schnorr.
-
-Uma prova de conhecimento é mais forte do que uma afirmação de existência
-sem testemunho. Para cada \(Q\), podem existir aberturas abstractas no
-grupo; o argumento exige que o provador conheça aberturas que satisfaçam
-simultaneamente a árvore e as quatro relações. É essa simultaneidade que
-retira liberdade à apresentação oculta.
-
-\newpage
-\section{A vinculação é uma lei de conhecimento}
-
-Um ramo é descrito por uma lista de elementos do corpo,
-\(\boldsymbol a=(a_1,\ldots,a_w)\). Fixemos bases \(F_1,\ldots,F_w\)
-e uma base de máscara \(H_*\), todas no grupo do compromisso. A apresentação
-oculta da lista é
-\[
- K=\sum_{j=1}^{w}a_jF_j+rH_*.
-\]
-Um provador que conhece a lista e a máscara pode abrir \(K\). O argumento
-que o acompanha demonstra que certas operações do circuito usam
-precisamente esses valores.
-
-Se conhecesse duas aberturas diferentes, teria
-\[
- \sum_j(a_j-a'_j)F_j+(r-r')H_*=0.
-\]
-Esta seria uma relação de logaritmos discretos entre as bases. A vinculação
-assenta na dificuldade de encontrar uma relação não trivial destas, dada
-a maneira como as bases são escolhidas \cite{generalized-bulletproofs-review}.
-
-As bases não são vectores linearmente independentes num espaço de dimensão
-\(w+1\). O grupo é cíclico: cada uma é um múltiplo das outras. Esses
-múltiplos existem, mas não são conhecidos. Quando compararmos coeficientes
-de bases diferentes, estaremos a usar a seguinte implicação: ou os
-coeficientes conhecidos coincidem, ou foi encontrada uma relação proibida
-pela hipótese computacional.
-
-Esta precisão será decisiva na composição de SAL. Uma igualdade de pontos,
-sem conhecimento das suas aberturas, não autoriza tratar cada base como um
-eixo formal independente. Uma prova de conhecimento fornece as aberturas;
-a hipótese de logaritmo discreto torna vinculante a sua comparação.
-
-Também aqui ocultação e vinculação são propriedades distintas. Se \(r\)
-é uniforme, \(K\) é uniforme no grupo, qualquer que seja a lista. Uma
-segunda lista terá alguma máscara abstracta que dá o mesmo ponto. Encontrar
-essa máscara é outra questão. O verificador exige conhecimento de uma
-abertura coerente com as restrições.
-
-O compromisso permite, assim, guardar uma lista sem a mostrar. Para
-construir a árvore pública usaremos a mesma combinação de bases, com um
-ponto inicial fixo e sem máscara secreta. Para abrir um caminho escondido,
-a máscara voltará a entrar.
-
-\newpage
-\section{Uma abscissa perde o sinal; uma translação fixa-o}
-
-Um ponto de Weierstrass \(N=(n_x,n_y)\) e o seu inverso
-\(-N=(n_x,-n_y)\) têm a mesma abscissa. Se um pai guardasse apenas
-\(n_x\), a informação pública não distinguiria os dois sinais.
-Queremos, contudo, usar apenas uma coordenada nos níveis superiores da
-árvore, para diminuir o número de valores comprometidos.
-
-Fixemos um ponto público \(\mathcal B\), sem relação conhecida com as
-bases do ramo, e representemos o ramo pelo ponto transladado
-\[
- N=\mathcal B+\sum_j a_jF_j.
-\]
-O pai guarda \(x(N)\). A abertura do ramo demonstra conhecimento dos
-\(a_j\) e da máscara de \(N\), com respeito às bases previstas.
-
-Se alguém tentasse substituir \(N\) por \(-N\), o compromisso sem
-translação teria de representar
-\[
- -N-\mathcal B=-\sum_j a_jF_j-2\mathcal B.
-\]
-O termo \(-2\mathcal B\) não pertence às bases cuja abertura o provador
-conhece. Fornecer uma abertura autorizada para ele revelaria uma relação
-não trivial entre \(\mathcal B\) e essas bases. A translação torna a
-ambiguidade geométrica incompatível com conhecimento de uma abertura
-alternativa, sob a hipótese de vinculação.
-
-Há pontos excepcionais que também têm de ser excluídos ou tratados pela
-representação. A identidade não tem coordenadas afins de Weierstrass; um
-ponto de ordem dois coincide com o seu inverso. Nos grupos de ordem prima
-ímpar utilizados para os ramos, não há ponto não nulo de ordem dois.
-A definição de nó admissível fixa ainda como lidar com a identidade e
-com posições vazias.
-
-A abscissa, tomada isoladamente, continua a perder o sinal. A segurança
-vem do par constituído pela coordenada guardada e pela abertura exigida
-para o ponto transladado. Uma representação mais curta pode conservar a
-relação necessária quando a prova obriga a recuperar o objecto da forma
-prescrita.
-
-Este é o primeiro exemplo de uma economia característica da construção:
-guarda-se menos informação pública, mas impõe-se uma relação mais precisa
-sobre a testemunha escondida.
-
-\newpage
-\section{A raiz nasce de combinações de coordenadas}
-
-No primeiro nível, cada posição contém uma folha inteira. Se um ramo
-admite \(w_0\) folhas, o vector comprometido tem \(6w_0\) componentes:
-\begin{align*}
- \boldsymbol a^{(0)}=(
- &o_{1x},o_{1y},b_{1x},b_{1y},c_{1x},c_{1y},\ldots,\\
- &o_{w_0x},o_{w_0y},b_{w_0x},b_{w_0y},c_{w_0x},c_{w_0y}).
-\end{align*}
-A ordem das coordenadas e das bases faz parte da definição. Permutar
-componentes mudaria o nó.
-
-O ponto correspondente é
-\[
- N^{(0)}=\mathcal B_0+\sum_j a_j^{(0)}F_j^{(0)}.
-\]
-Nos níveis seguintes, cada posição contém apenas a abscissa de um nó
-filho. Para um ramo com filhos \(N_1,\ldots,N_w\), escreve-se
-\[
- N^{(h)}=\mathcal B_h+\sum_{j=1}^{w}x(N_j^{(h-1)})F_j^{(h)}.
-\]
-Os grupos e os corpos apropriados alternarão entre níveis. Por enquanto,
-importa a relação: as coordenadas dos filhos determinam o ponto do pai.
-
-O procedimento repete-se até haver um único nó, a raiz
-\(\mathcal R\). Ela resume a árvore inteira através de combinações
-sucessivas. Não contém visivelmente uma lista de folhas; a vinculação
-impede que se conheçam aberturas diferentes que permitam substituir essa
-lista e conservar a mesma raiz.
-
-As posições vazias recebem valores de preenchimento fixados pela definição.
-O preenchimento deve ser distinguível de uma folha admissível ou de uma
-coordenada seleccionável. Um ramo incompleto não pode oferecer uma saída
-fictícia que satisfaça as condições de curva e de pertença. Os valores
-reservados e as condições de admissibilidade asseguram esta separação.
-
-A raiz é, portanto, um resumo de uma estrutura ordenada. Para demonstrar
-que uma folha pertence à estrutura, será suficiente conhecer um ramo em
-cada nível e mostrar a passagem coerente entre eles. O número de ramos
-necessários cresce com a altura da árvore, em vez de crescer com o número
-total de folhas.
-
-A construção chama-se Curve Trees porque os nós são pontos de curvas,
-obtidos de compromissos de coordenadas \cite{curve-trees}. As provas
-aproveitarão essa natureza algébrica.
-
-\newpage
-\section{Oito folhas bastam para ver a árvore inteira}
-
-Tomemos oito folhas \(\mathsf F_0,\ldots,\mathsf F_7\) e uma largura
-de duas posições em cada nível. O primeiro nível produz quatro nós:
-\[
- N_{01},\quad N_{23},\quad N_{45},\quad N_{67}.
-\]
-Por exemplo, \(N_{45}\) compromete as doze coordenadas das folhas
-\(\mathsf F_4\) e \(\mathsf F_5\), nas suas posições respectivas.
-O nível seguinte produz dois nós:
-\begin{align*}
- M_L&=\mathcal B_1+x(N_{01})F_1^{(1)}+x(N_{23})F_2^{(1)},\\
- M_R&=\mathcal B_1+x(N_{45})F_1^{(1)}+x(N_{67})F_2^{(1)}.
-\end{align*}
-Finalmente,
-\[
- \mathcal R=\mathcal B_2+x(M_L)F_1^{(2)}+x(M_R)F_2^{(2)}.
-\]
-A folha \(\mathsf F_5\) tem um caminho com três escolhas: a segunda
-posição no ramo \(N_{45}\), a primeira no ramo \(M_R\), e a segunda
-no ramo-raiz.
-
-\begin{center}
-\begin{tikzpicture}[>=stealth]
- \node[draw,rounded corners] (f) at (0,0) {\(\mathsf F_5\)};
- \node[draw,rounded corners] (n) at (3,0) {\(N_{45}\)};
- \node[draw,rounded corners] (m) at (6,0) {\(M_R\)};
- \node[draw,rounded corners] (r) at (9,0) {\(\mathcal R\)};
- \draw[->] (f)--node[above]{tupla}(n);
- \draw[->] (n)--node[above]{abscissa}(m);
- \draw[->] (m)--node[above]{abscissa}(r);
-\end{tikzpicture}
-\end{center}
-
-Conhecer os valores desta árvore não é segredo. O segredo da pertença
-é qual destas escolhas está a ser utilizada na prova. Publicar
-\(N_{45}\) e \(M_R\) identificaria um pequeno conjunto de folhas;
-publicar também a posição identificaria \(\mathsf F_5\).
-
-Por isso, o caminho será apresentado através de nós re-randomizados e
-selecções provadas em conhecimento zero. Os ramos originais continuam a
-ser a testemunha que permite abrir cada passo. A raiz é o único nó do
-caminho que não pode ser escolhido pelo provador.
-
-O exemplo mostra ainda a diferença entre o tamanho da árvore e o tamanho
-da testemunha. Oito folhas requerem três ramos no caminho. Com
-\(2^h\) folhas e largura dois, o caminho tem \(h\) ramos. Toda a
-árvore existe publicamente, mas a relação oculta percorre apenas os ramos
-que unem uma folha à raiz.
-
-\newpage
-\section{Abrir um ramo sem mostrar o seu nome}
-
-Seja um nó público
-\[
- N=\mathcal B+\sum_j a_jF_j.
-\]
-O provador conhece os seus filhos e escolhe uma máscara \(r\). Em vez
-de mostrar \(N\), mostra a apresentação
-\[
- \widetilde N=N+rH_*.
-\]
-O compromisso usado no argumento aritmético é
-\[
- \widetilde N-\mathcal B=\sum_j a_jF_j+rH_*.
-\]
-Assim, a mesma combinação que oculta o nó é um compromisso para as variáveis
-que descrevem os seus filhos. Não há necessidade de publicar uma segunda
-lista que tenha de ser ligada à primeira por uma prova separada.
-
-No nível seguinte, o circuito conhece como testemunha as coordenadas de
-\(N\) e a máscara \(r\). Verifica que o ponto está na curva, que
-\(\widetilde N=N+rH_*\), e que \(x(N)\) é uma das coordenadas
-comprometidas no ramo-pai. O verificador vê \(\widetilde N\), mas não
-vê \(N\) nem a posição escolhida.
-
-Uma máscara não liga automaticamente um ponto à árvore. Dado um ponto
-arbitrário \(\widetilde N\), há abstractamente uma diferença em relação
-a qualquer nó. O provador tem de conhecer o escalar dessa diferença na
-base \(H_*\), e o argumento tem de usar as mesmas coordenadas de \(N\)
-na equação de curva e na selecção do pai.
-
-A coordenação faz-se por variáveis partilhadas. O \(n_x\) que entra na
-selecção é o \(n_x\) do ponto cuja abertura foi demonstrada. Se fossem
-duas variáveis sem igualdade imposta, a prova poderia abrir um ponto e
-seleccionar outro.
-
-Cada passo transporta, portanto, uma relação exacta para o nível seguinte:
-existe um nó admissível, essa apresentação é a sua re-randomização e a sua
-abscissa ocupa uma posição no pai. Ao repetir o passo, o nome do nó muda
-sob a máscara; o lugar que ele ocupa na árvore permanece demonstrado.
-
-\newpage
-\section{Seleccionar é fazer um produto anular-se}
-
-Suponhamos uma lista comprometida de valores
-\(a_1,\ldots,a_w\) e um valor secreto \(t\). A condição de pertença
-à lista admite uma forma aritmética simples:
-\[
- \prod_{j=1}^{w}(t-a_j)=0.
-\]
-Num corpo, um produto é zero se e só se pelo menos um dos seus factores
-é zero. Logo, a equação significa exactamente que \(t=a_j\) para
-alguma posição. Não há necessidade de publicar qual o factor que se anula.
-
-Para a lista \((4,9,15)\), o valor \(t=9\) dá
-\[
- (9-4)(9-9)(9-15)=5\cdot0\cdot(-6)=0.
-\]
-Para \(t=8\), nenhum factor é zero e o produto é não nulo em qualquer
-corpo onde aqueles valores sejam distintos de \(8\). A escolha está
-inteiramente expressa na igualdade; o índice desapareceu da declaração.
-
-Num circuito, o produto é construído por multiplicações sucessivas:
-\[
- u_1=t-a_1,\qquad
- u_j=u_{j-1}(t-a_j),\qquad u_w=0.
-\]
-Os valores \(t,a_j,u_j\) pertencem à testemunha. A prova demonstra as
-multiplicações e a igualdade final, sem revelar os resultados intermédios.
-Para um nível superior da árvore, \(t\) é a abscissa do nó filho
-recuperado da apresentação re-randomizada.
-
-A lista pode conter repetições. A equação continuará a provar pertença,
-mas não uma posição única. Isso é suficiente: a relação pede que exista
-um caminho válido, não que a posição seja determinada unicamente por um
-valor repetido.
-
-Os valores da lista têm de estar vinculados ao compromisso do ramo. Se o
-provador pudesse substituir livremente um \(a_j\) depois de receber o
-ponto \(t\), a igualdade seria trivial: bastaria escolher \(a_j=t\).
-O produto ganha força porque é calculado sobre valores já comprometidos,
-na lista que representa aquele pai.
-
-A selecção de uma folha inteira exigirá o mesmo princípio, aplicado a uma
-compressão que conserve a associação das seis coordenadas.
-
-\newpage
-\section{Uma tupla inteira cabe numa combinação desafiada}
-
-Para seleccionar uma folha, precisamos de comparar seis coordenadas de
-uma só posição. Sejam \(\boldsymbol t\in\mathbb F^6\) as coordenadas
-da folha recuperada e \(\boldsymbol a_j\in\mathbb F^6\) as coordenadas
-da posição \(j\) no ramo. Depois de fixar os compromissos, escolhem-se
-seis desafios \(\lambda_1,\ldots,\lambda_6\).
-
-Formam-se as combinações
-\[
- t_* =\sum_{k=1}^{6}\lambda_k t_k,
- \qquad a_{j*}=\sum_{k=1}^{6}\lambda_k a_{jk},
-\]
-e impõe-se
-\[
- \prod_{j=1}^{w_0}(t_*-a_{j*})=0.
-\]
-Se a tupla é realmente uma das posições, a equação vale para todos os
-valores dos desafios. Se difere de cada posição, a igualdade só poderá
-resultar de uma colisão numa combinação linear desafiada.
-
-Para uma diferença fixa não nula
-\(\boldsymbol d=\boldsymbol t-\boldsymbol a_j\), existe pelo menos
-uma componente não nula, \(d_k\). Fixados os outros desafios, há um
-único valor de \(\lambda_k\) que satisfaz
-\(\sum_k\lambda_kd_k=0\). Com desafios uniformes independentes, a
-probabilidade de colisão para aquela posição é \(1/|\mathbb F|\).
-Para \(w_0\) posições, a união dos casos dá o limite
-\(w_0/|\mathbb F|\).
-
-Este raciocínio pressupõe que as tuplas foram fixadas antes dos desafios.
-A prova vincula as variáveis aos compromissos, obtém os desafios da
-transcrição e só depois calcula as combinações. A ordem lógica impede
-adaptar uma coordenada para provocar uma colisão escolhida.
-
-Uma igualdade de seis valores foi, assim, convertida numa igualdade de
-combinações lineares, com erro de solidez controlado. Não se transformou
-numa equivalência incondicional para qualquer desafio isolado. A pertença
-verdadeira passa sempre; a falsa só poderá passar num conjunto pequeno
-de escolhas.
-
-A compressão permite usar o produto da página anterior para a folha
-inteira. O mesmo índice implícito selecciona a chave, a base da imagem e
-o compromisso de montante. A associação que define a saída sobrevive à
-ocultação das coordenadas.
-
-\newpage
-\section{O último ramo fecha o caminho na raiz}
-
-Se o caminho tem \(L\) ramos, designemos por
-\(N_0,\ldots,N_{L-1}\) os nós originais que contém, do primeiro ramo
-até à raiz. Os níveis inferiores têm apresentações
-\(\widetilde N_h=N_h+r_hH_h^*\). O circuito de cada nível recupera
-\(N_h\) e prova que \(x(N_h)\) está na lista do ramo seguinte.
-
-No último nível, a abertura do ramo produz
-\[
- \widetilde N_{L-1}
- =\mathcal B_{L-1}+\sum_j a_jF_j^{(L-1)}+r_{L-1}H_{L-1}^*.
-\]
-O verificador conhece a raiz aceite \(\mathcal R\). Falta ligar o
-último compromisso a esse ponto, mostrando conhecimento de \(r_{L-1}\)
-tal que
-\[
- \widetilde N_{L-1}-\mathcal R=r_{L-1}H_{L-1}^*.
-\]
-Uma prova de Schnorr sobre essa diferença fecha a relação.
-
-Concretamente, o provador escolhe \(k\), publica
-\(A=kH_{L-1}^*\), recebe o desafio \(c\) e responde
-\(s=k+cr_{L-1}\). A verificação é
-\[
- sH_{L-1}^*=A+c(\widetilde N_{L-1}-\mathcal R).
-\]
-O argumento aritmético já demonstrou conhecimento dos filhos do último
-ramo. A prova da diferença demonstra conhecimento da máscara na direcção
-permitida. A vinculação obriga o vector conhecido a abrir a raiz pública,
-em vez de um ponto-raiz escolhido pelo provador.
-
-A estrutura inteira fica agora fechada: a folha pertence ao primeiro ramo;
-cada nó pertence ao pai; o último ramo abre a raiz aceite. A profundidade
-é igualmente fixada pelo verificador. Um caminho mais curto não pode ser
-aceite como se uma apresentação intermédia fosse a raiz.
-
-A árvore pode ter larguras diferentes nos seus níveis. A relação conserva
-a mesma forma: cada selecção usa a lista e a largura correspondentes ao
-nível em causa. A altura mede quantas passagens têm de ser demonstradas;
-a largura mede quantas possibilidades são reunidas por cada produto de
-selecção. São grandezas distintas, com papéis diferentes na economia da prova.
-
-\newpage
-\section{O circuito impõe igualdades simultâneas}
-
-A palavra circuito designa aqui uma relação algébrica. Introduzem-se
-variáveis para as coordenadas, máscaras, dígitos e valores intermédios;
-impõem-se equações que essas variáveis devem satisfazer. O provador conhece
-uma atribuição que as torna verdadeiras. O verificador precisa de se
-convencer de que tal atribuição é conhecida, sem a receber.
-
-As equações de multiplicação têm a forma
-\[
- a_{Lj}a_{Rj}=a_{Oj}.
-\]
-As restantes condições são combinações lineares das variáveis, constantes
-e valores públicos. Uma equação de curva
-\(y^2=x^3+ax+b\), por exemplo, pode ser escrita com
-\[
- u=x^2,\qquad v=ux,\qquad w=y^2,\qquad w-v-ax-b=0.
-\]
-As três primeiras relações são multiplicações; a última é linear. O
-circuito não necessita de um símbolo especial para reconhecer uma curva.
-
-Também a pertença à lista se divide em multiplicações e restrições lineares.
-A igualdade de duas ocorrências de um escalar pode resultar da reutilização
-da mesma variável ou de uma condição linear de igualdade. A relação global
-é a conjunção de todas essas condições, sobre uma única atribuição.
-
-Esta simultaneidade é a força da construção. O provador não demonstra
-separadamente que algum ponto está numa curva e que algum número pertence
-a uma lista. Demonstra que a abscissa daquele ponto, cuja máscara abriu,
-é o número seleccionado na lista comprometida.
-
-As variáveis públicas são fixadas antes da prova: os pontos de \(Q\),
-a raiz, as bases e a forma da árvore. As variáveis secretas incluem as
-coordenadas da folha e dos nós, os filhos dos ramos e os testemunhos das
-multiplicações ocultas. O argumento aritmético distingue os dois papéis;
-um valor que devesse ser público não pode tornar-se uma escolha livre
-do provador.
-
-Uma atribuição verdadeira comprova a satisfatibilidade do circuito. Uma
-prova de conhecimento acrescenta que um provador que convence o verificador
-está vinculado a uma testemunha recuperável pelo argumento de segurança.
-Essa propriedade será necessária quando compusermos a pertença com SAL.
-
-\newpage
-\section{O corpo das coordenadas e o corpo dos escalares}
-
-Uma curva pode estar definida sobre \(\mathbb F_q\), enquanto o seu grupo
-criptográfico tem ordem prima \(\ell\). A equação de curva usa operações
-em \(\mathbb F_q\). As máscaras e respostas de provas baseadas nesse
-grupo usam operações em \(\mathbb F_\ell\). São corpos diferentes.
-
-Se o argumento aritmético opera sobre escalares de um grupo de ordem
-\(\ell\), as suas multiplicações secretas têm naturalmente lugar em
-\(\mathbb F_\ell\). Para verificar coordenadas de uma curva sobre
-\(\mathbb F_q\), seria particularmente económico ter \(\ell=q\).
-A equação de curva passaria a usar directamente a aritmética do circuito.
-
-A dificuldade reaparece no pai. O argumento cria um compromisso que é um
-ponto da sua própria curva. As coordenadas desse compromisso pertencem ao
-corpo base dessa curva, que não precisa de ser o seu corpo escalar. O
-nível seguinte terá de operar sobre essas novas coordenadas.
-
-Uma sucessão de curvas escolhidas ao acaso não resolveria a passagem.
-Queremos duas curvas, \(\mathbb E_S\) e \(\mathbb E_H\), com
-\[
- \mathbb E_S/\mathbb F_h,\quad |\mathbb E_S|=q,
- \qquad
- \mathbb E_H/\mathbb F_q,\quad |\mathbb E_H|=h.
-\]
-O corpo escalar de uma é o corpo base da outra. Um argumento sobre
-\(\mathbb E_S\) verifica pontos com coordenadas em \(\mathbb F_q\);
-o compromisso que produz tem coordenadas em \(\mathbb F_h\), próprias
-para o argumento sobre \(\mathbb E_H\). Depois a passagem inverte-se.
-
-\begin{center}
-\begin{tabular}{c|c|c}
-\textbf{Curva da prova} & \textbf{Aritmética do circuito} & \textbf{Coordenadas produzidas}\\
-\(\mathbb E_S\) & \(\mathbb F_q\) & \(\mathbb F_h\)\\
-\(\mathbb E_H\) & \(\mathbb F_h\) & \(\mathbb F_q\)
-\end{tabular}
-\end{center}
-
-A alternância não muda a soma de pontos em escalares comuns. Cada ponto
-continua na sua curva, cada equação no seu corpo. O que atravessa a passagem
-são coordenadas comprometidas, usadas como valores aritméticos pelo
-argumento seguinte.
-
-\newpage
-\section{Selene e Helios recebem os pontos do Monero}
-
-Para os pontos das folhas, o corpo de coordenadas do Monero é
-\(\mathbb F_q\), com \(q=2^{255}-19\). O subgrupo usado para as chaves
-tem ordem \(\ell\), diferente de \(q\). A curva completa tem cofactor
-oito. Fixaremos as folhas e as bases no subgrupo admissível, conservando
-separadamente as regras de derivação da base \(B\).
-
-Selene é a curva \(\mathbb E_S\): o seu grupo tem ordem \(q\), e o
-seu corpo base é \(\mathbb F_h\). Helios é a curva \(\mathbb E_H\):
-o seu grupo tem ordem \(h\), e o seu corpo base é \(\mathbb F_q\).
-Por isso, o primeiro circuito, provado sobre Selene, opera directamente
-nas coordenadas dos pontos das folhas.
-
-Os nós que esse primeiro compromisso produz estão em Selene. O circuito
-seguinte, provado sobre Helios, recebe as suas coordenadas em
-\(\mathbb F_h\). Os nós produzidos em Helios voltam a ser recebidos
-por um circuito sobre Selene. A torre começa com os pontos do Monero e
-continua no ciclo entre as duas curvas.
-
-Para empregar os certificados de divisores, escrevem-se as curvas na
-forma de Weierstrass. A curva de folhas admite uma representação
-birracional dessa forma, usualmente chamada Wei25519. A transformação
-muda coordenadas, preservando a lei do grupo nos pontos em que está definida.
-Os casos excepcionais são tratados pela representação dos pontos
-admissíveis; não se divide por um denominador nulo.
-
-A chave \(x\) continua a ser um escalar módulo \(\ell\), mesmo quando
-as suas multiplicações são certificadas por um circuito em
-\(\mathbb F_q\). A representação em dígitos liga as operações inteiras
-à multiplicação no subgrupo correcto. Reduzir arbitrariamente \(x\)
-módulo \(q\) não seria uma mudança inocente de notação.
-
-Três curvas desempenham, pois, funções distintas: a curva das chaves
-guarda as relações da saída; Selene prova sobre as primeiras coordenadas;
-Helios permite continuar a árvore. A altura não exige acrescentar novas
-curvas. Exige repetir a passagem algébrica entre os dois corpos.
-
-\newpage
-\section{O compromisso do ramo entra na prova aritmética}
-
-O circuito contém um vector secreto de filhos \(\boldsymbol a\). O ramo
-re-randomizado fornece o ponto público
-\[
- K=\widetilde N-\mathcal B
-   =\langle\boldsymbol a,\boldsymbol F\rangle+rH_*.
-\]
-O argumento tem de provar conhecimento de uma abertura deste ponto e
-satisfação das condições do circuito pelas componentes dessa abertura.
-Generalized Bulletproofs permite incluir esses compromissos vectoriais
-como parte da declaração aritmética.
-
-Esta capacidade resolve um problema de ligação. O ponto publicado já
-representa o ramo. As variáveis \(a_j\) usadas na selecção e nas outras
-restrições são os valores cuja abertura é provada para esse ponto. Não
-precisamos de calcular no circuito a combinação inteira
-\(\sum_j a_jF_j\) através de numerosas adições de pontos: a equação de
-compromisso é verificada pelo argumento de abertura.
-
-As operações que dependem das coordenadas de \(\widetilde N\) pertencem
-ao circuito da curva seguinte. Esse circuito não demonstra a abertura
-vectorial de \(K\); demonstra a remoção da máscara e a selecção da
-abscissa do nó original no pai. O ponto publicado é comum às duas relações,
-mas cada uma impõe a parte que lhe compete.
-
-O mecanismo pode incluir vários ramos e várias entradas nos mesmos
-argumentos aritméticos. As restrições sobre a curva Selene são reunidas
-numa declaração; as restrições sobre Helios noutra. O número de grupos de
-provas não tem de crescer com cada ramo. Cresce o conjunto das variáveis
-e equações que essas provas abrangem.
-
-A palavra generalizado refere-se aqui à abertura de compromissos
-vectoriais externos juntamente com a satisfatibilidade do circuito.
-Não designa a prova de intervalo do montante nem o pequeno argumento de
-produto que usaremos em SAL, embora todas estas construções partilhem
-ferramentas de produtos internos.
-
-A mesma soma de pontos desempenha, assim, dois papéis matemáticos: resume
-os filhos na árvore e vincula as variáveis na prova. A economia nasce
-dessa reutilização exacta, não de uma igualdade entre listas que apenas
-pareçam representar o mesmo ramo.
-
-\newpage
-\section{Muitas condições tornam-se produtos internos}
-
-Escrevamos as entradas e saídas das portas de multiplicação como vectores
-\(\boldsymbol a_L,\boldsymbol a_R,\boldsymbol a_O\). A condição é
-\[
- \boldsymbol a_L\circ\boldsymbol a_R=\boldsymbol a_O,
-\]
-onde \(\circ\) multiplica componente a componente. As condições lineares
-completam essa relação, ligando as portas às variáveis comprometidas e aos
-valores públicos.
-
-Um desafio \(\gamma\) permite reunir os erros das multiplicações:
-\[
- \sum_{j=0}^{n-1}\gamma^j
- (a_{Lj}a_{Rj}-a_{Oj})=0.
-\]
-Se todos os erros são zero, a igualdade vale sempre. Se algum é não nulo,
-a diferença é um polinómio não nulo de grau menor que \(n\), que tem no
-máximo \(n-1\) raízes. Com os valores já vinculados, uma avaliação aleatória
-limita a possibilidade de esconder um erro.
-
-As combinações obtidas podem ser organizadas como produtos internos.
-Para reunir \(t\) termos \(\langle\boldsymbol L_i,\boldsymbol R_i\rangle\),
-formamos os polinómios vectoriais
-\[
- \boldsymbol f_L(X)=\sum_{i=1}^{t}\boldsymbol L_iX^i,
- \qquad
- \boldsymbol f_R(X)=\sum_{i=1}^{t}\boldsymbol R_iX^{t-i}.
-\]
-No produto interno \(\langle\boldsymbol f_L(X),\boldsymbol f_R(X)\rangle\),
-o coeficiente de \(X^t\) é exactamente
-\(\sum_i\langle\boldsymbol L_i,\boldsymbol R_i\rangle\). Os outros
-coeficientes são termos cruzados, que o protocolo trata com compromissos
-antes da avaliação desafiada.
-
-A identidade procurada passa a ocupar um coeficiente determinado. Depois
- de fixar os coeficientes auxiliares, uma avaliação num desafio \(u\)
-reduz o problema a um produto interno entre
-\(\boldsymbol f_L(u)\) e \(\boldsymbol f_R(u)\). A homomorfia dos
-compromissos permite construir as combinações públicas correspondentes.
-
-Esta organização não autoriza substituir qualquer conjunto de equações
-por uma soma arbitrária. Os pesos, os coeficientes públicos e a ordem dos
-compromissos são escolhidos para que um erro produza um polinómio não nulo
- de grau limitado. O argumento de solidez conserva essa ligação entre a
-avaliação curta e a relação longa que ela representa.
-
-\newpage
-\section{Dobrar um produto interno conserva os termos cruzados}
-
-A etapa final de um argumento de produto interno encurta vectores por
-metades. Podemos ver a identidade com duas componentes, sem reconstituir
-a prova completa. Suponhamos o ponto
-\[
- P=a_1G_1+a_2G_2+b_1H_1+b_2H_2
-   +(a_1b_1+a_2b_2)U_*.
-\]
-Definimos os termos cruzados
-\begin{align*}
- L&=a_1G_2+b_2H_1+a_1b_2U_*,\\
- R&=a_2G_1+b_1H_2+a_2b_1U_*.
-\end{align*}
-Depois de fixar \(L,R\), escolhe-se um desafio \(u\ne0\) e formam-se
-\begin{align*}
- a'&=ua_1+u^{-1}a_2,& G'&=u^{-1}G_1+uG_2,\\
- b'&=u^{-1}b_1+ub_2,& H'&=uH_1+u^{-1}H_2.
-\end{align*}
-A expansão dá
-\[
- P+u^2L+u^{-2}R=a'G'+b'H'+a'b'U_*.
-\]
-O novo produto é
-\[
- a'b'=a_1b_1+a_2b_2+u^2a_1b_2+u^{-2}a_2b_1.
-\]
-Os termos que nasceram ao dobrar já estão nos pontos \(L,R\). Por isso,
-a passagem conserva a relação original, com uma combinação desafiada
-que impede escolher livremente os termos cruzados depois da dobragem.
-
-Para vectores maiores, divide-se cada um em duas metades e aplicam-se
-as mesmas identidades a produtos internos entre blocos. A dimensão passa
-de \(n\) a \(n/2\). Repetindo, chega-se a um par de escalares após
-\(\log_2 n\) rondas, quando \(n\) é uma potência de dois.
-
-Esta conta descreve a álgebra da dobragem. O protocolo completo acrescenta
-as máscaras e condições que asseguram conhecimento zero e conhecimento
-da testemunha; publicar os vectores dobrados sem esses cuidados não seria
-uma prova privada. A identidade explica por que a relação pode ser
-encurtada sem perder os termos necessários.
-
-O tamanho curto da prova não significa que todos os custos sejam
-logarítmicos. Geradores, testemunhas e certas operações de verificação
-continuam a depender das dimensões originais. Para a árvore, a primeira
-economia já veio de provar um caminho; a dobragem comprime o argumento
-que prova as relações desse caminho.
-
-\newpage
-\section{Os divisores certificam as máscaras dos pontos}
-
-Retirar uma máscara exige mais do que encontrar um ponto na curva.
-Da igualdade \(\widetilde O=O+r_oT\), o circuito tem de recuperar a
-mesma saída que selecciona no ramo. Introduzindo \(W_o=r_oT\), são
-necessárias duas relações:
-\[
- W_o=r_oT,\qquad \widetilde O=O+W_o.
-\]
-Se a primeira fosse omitida, \(W_o\) seria apenas uma diferença livre.
-Para qualquer folha escolhida, bastaria tomar
-\(W_o=\widetilde O-O\). Estar na curva não demonstra conhecimento
-do logaritmo dessa diferença na base permitida.
-
-Uma prova usual de Schnorr para \(W_o=r_oT\) publicaria \(W_o\).
-Mas então \(O=\widetilde O-W_o\) ficaria revelado. Mantendo \(W_o\)
-secreto, teríamos de verificar a equação de Schnorr através das suas
-coordenadas ocultas ou de outra ligação demonstrada. A dificuldade
-regressaria: provar uma relação de grupo cujos pontos são variáveis
-secretas de um circuito aritmético.
-
-No primeiro ramo, as relações a certificar são
-\[
- r_oT,\qquad r_bU,\qquad r_bV,\qquad r_rT,\qquad r_cG.
-\]
-Há quatro máscaras e cinco multiplicações. As duas ocorrências de
-\(r_b\) partilham a representação escalar, para que \(\widetilde B\)
-e \(R\) transportem a mesma máscara. Nos níveis seguintes, a relação
-\(W_h=r_hH_h^*\) permite recuperar \(N_h\) através de
-\(\widetilde N_h=N_h+W_h\), antes de seleccionar a sua abscissa no pai.
-
-Para um caminho com \(L\ge1\) ramos, são, portanto,
-\[
- 5+(L-1)=L+4.
-\]
-O fechamento da raiz e SAL trabalham directamente com pontos públicos;
-não acrescentam funções de divisor a esta contagem. A árvore pública
-também não contém essas funções: elas
-pertencem à testemunha que certifica as máscaras do caminho.
-
-São estas multiplicações ocultas que FCMP++ precisa de demonstrar.
-Os divisores fornecem o certificado escolhido para o fazer
-\cite{eagen-divisors,monero-oxide-fcmp-source}. A necessidade da relação
-é anterior à escolha da ferramenta. Podemos satisfazê-la sem divisores;
-teremos, nesse caso, de pagar o custo de outro circuito para a mesma relação.
-
-\newpage
-\section{Como seria o circuito sem divisores}
-
-Para calcular \(W=rA\) directamente, escrevamos
-\(r=\sum_{i=0}^{b-1}e_i2^i\), com \(e_i\in\{0,1\}\).
-Uma cadeia binária percorre os dígitos do mais significativo para o menos
-significativo:
-\[
- P_0=\mathcal O_\infty,\qquad
- P_{j+1}=2P_j+e_{b-1-j}A,\qquad P_b=W.
-\]
-Para \(r=13=(1101)_2\), as somas parciais são
-\[
- \mathcal O_\infty\longrightarrow A\longrightarrow3A
- \longrightarrow6A\longrightarrow13A.
-\]
-O circuito tem de certificar os dígitos, as duplicações e as adições
-condicionais. Os pontos intermédios tornam-se coordenadas da testemunha.
-
-Uma adição afim não excepcional já mostra o trabalho necessário.
-Se \(P=(u,v)\), \(Q=(s,t)\), \(P+Q=(z,w)\) e \(u\ne s\),
-introduzimos o declive \(\lambda\) e impomos
-\begin{align*}
- \lambda(s-u)&=t-v,\\
- \lambda^2&=z+u+s,\\
- \lambda(z-u)&=-w-v.
-\end{align*}
-São três multiplicações entre variáveis. Impor
-\((s-u)h=1\) exige uma quarta e exclui o denominador nulo.
-A duplicação usa a tangente; a identidade e os pontos inversos precisam
-de condições próprias ou de fórmulas completas. Não podemos aplicar estas
-quatro restrições indiscriminadamente à cadeia inteira.
-
-Com dígitos secretos, também a escolha entre adicionar \(A\) e conservar
-o ponto exige restrições. A condição \(e_i(e_i-1)=0\), por si só,
-custa uma multiplicação por dígito. Uma cadeia desta forma tem custo
-linear em \(b\), com várias operações de coordenadas por etapa.
-Tabelas de bases fixas e janelas podem melhorar os factores dessa conta;
-não existe um número universal de portas para todos os circuitos possíveis.
-
-Os divisores substituem esta longa cadeia certificada por uma função que
-guarda a relação entre os pontos. O provador continua a calcular \(rA\).
-O que muda é o trabalho que coloca no circuito para convencer o verificador.
-A vantagem deve ser medida nesse circuito, juntamente com o custo de
-preparar a função; não se confunde com acelerar a multiplicação de pontos
-quando o escalar é conhecido.
-
-\newpage
-\section{Uma função troca a cadeia por sete multiplicações}
-
-Para a representação utilizada aqui, fixemos \(b\) posições e
-\(A_i=2^iA\). Uma testemunha honesta usa multiplicidades inteiras
-\(d_i\ge0\) tais que
-\[
- r\equiv\sum_{i=0}^{b-1}d_i2^i\pmod{\operatorname{ord}(A)},
- \qquad \sum_i d_i=b.
-\]
-São multiplicidades, não uma decomposição binária canónica a certificar
-com um teste booleano por posição. Para \(13\), com quatro posições,
-\((1,0,1,1)\) pode ser substituído por \((1,0,3,0)\):
-\(1+3\cdot4=13\), e a soma das multiplicidades passa de três para quatro.
-A troca \(2^{i+1}=2\cdot2^i\) conserva o ponto e ajusta essa soma.
-
-Para \(W=rA\) afim, o divisor a certificar é
-\[
- D=\sum_i d_i[A_i]+[-W]-(b+1)[\mathcal O_\infty].
-\]
-O seu peso fixo permite uma função \(f=f_0+yf_1\) com
-\(2\deg f_0\le b+1\) e \(3+2\deg f_1\le b+1\).
-Este espaço tem dimensão \(b+1\); normalizar um coeficiente não nulo
-deixa \(b\) coeficientes secretos. A normalização e os casos excepcionais
-obedecem às condições do capítulo~\ref{chapter:divisors}.
-
-Uma recta desafiada, \(y=mx+c\), fornece três encontros \(B_k\).
-Pondo \(Z(P)=y_P-mx_P\), o teste da derivada logarítmica toma a forma
-\[
- \sum_{k=0}^2 o_k
- =\sum_i\frac{d_i}{c-Z(A_i)}+\frac1{c-Z(-W)}.
-\]
-As parcelas da tabela são públicas e os \(d_i\) entram linearmente.
-Em cada encontro, a equação
-\(p_{\rm den}^{(k)}o_k=p_{\rm num}^{(k)}\) custa uma multiplicação:
-ambas as expressões são lineares nos coeficientes de \(f\), pois
-\(B_k\) é público. São três portas. A inversa da parcela de \(-W\)
-exige mais uma, e verificar \(W\) na curva exige três. Total:
-\[
- 3+1+3=7
- \qquad\text{portas por certificado.}
-\]
-Esta conta refere-se ao dispositivo de avaliação adoptado
-\cite{monero-oxide-fcmp-source}; não inclui as adições às apresentações,
-a selecção dos ramos ou SAL. Os limites de peso, os compromissos anteriores
-ao desafio e o tratamento dos denominadores degenerados fazem parte da
-solidez. Sete portas não dispensam essas hipóteses, nem transformam
-as avaliações lineares em operações gratuitas.
-
-\newpage
-\section{O tempo e o espaço que a economia conserva}
-
-Uma multiplicação oculta guarda \(b\) multiplicidades, \(b\)
-coeficientes normalizados e duas coordenadas de \(W\):
-\[
- 2b+2\quad\text{elementos do corpo na testemunha principal.}
-\]
-Com \(b=253\), são \(508\) elementos. Numa representação de 32 octetos
-por elemento, ocupam \(508\cdot32=16\,256\) octetos.
-A tabela pública \((A_i)\) ocupa \(2b=506\) elementos, ou
-\(16\,192\) octetos. São contas de armazenamento das coordenadas e
-dos coeficientes, excluindo variáveis auxiliares, compromissos e memória
-de trabalho \cite{monero-oxide-fcmp-source}.
-
-As cinco funções do primeiro nível partilham quatro representações
-escalares. Guardam, portanto,
-\[
- 4b+5b+10=9b+10.
-\]
-Para \(b=253\), são \(2287\) elementos, ou \(73\,184\) octetos,
-antes das coordenadas da folha e dos filhos do ramo. As quatro tabelas
-das bases \(T,U,V,G\) podem ser reutilizadas entre entradas; as funções
-dependem das máscaras e têm de ser preparadas para cada testemunha.
-
-Nos níveis superiores, \(b=255\) dá \(512\) elementos por certificado.
-Uma entrada com \(L\) ramos guarda, nesta parte da testemunha,
-\(2287+512(L-1)\) elementos, ou \(73\,184+16\,384(L-1)\) octetos.
-As listas de filhos e as variáveis auxiliares acrescentam-se a esta conta.
-
-O provador calcula os pontos e constrói as funções. Uma construção
-equilibrada em coeficientes, com produtos e divisões polinomiais escolares,
-admite custo \(O(b^2)\) em operações de corpo: a recorrência
-\(T(b)=2T(b/2)+O(b^2)\) tem essa ordem. Pode usar \(O(b)\) memória
-de trabalho se descartar os resultados já consumidos. Métodos rápidos e
-tabelas de interpolação alteram a troca entre tempo e memória; guardar
-uma matriz densa de interpolação, por exemplo, exige \(O(b^2)\) espaço.
-
-Já a preparação e avaliação dos testes desafiados percorrem \(O(b)\)
-termos por certificado. As sete portas reduzem a parte multiplicativa,
-mas a prova aritmética ainda tem de abrir os vectores e tratar as
-combinações lineares. Para \(L+4\) certificados, essa parte usa
-\(7(L+4)\) portas; as restantes restrições somam-se-lhe.
-
-Estes valores medem trabalho e armazenamento, não segundos nem memória
-total de uma aplicação. A prova transmitida também não publica os
-\(508\) elementos secretos: demonstra a abertura dos seus compromissos.
-A dobragem comprime o argumento, enquanto o provador conserva uma
-testemunha extensa. Para vectores de dimensão \(n\), há \(\log_2 n\)
-rondas, mas a verificação ainda processa geradores em número proporcional
-a \(n\). A vantagem dos divisores é retirar a cadeia de pontos
-das portas do circuito, pagando pela função e pelas avaliações que a
-certificam; o tempo total resulta da soma desses custos.
-
-\newpage
-\section{O que a pertença entrega à autorização}
-
-Podemos fechar a metade aritmética da construção. Dada a raiz
-\(\mathcal R\) e a apresentação \(Q\), o argumento estabelece que se
-conhecem uma folha admissível, um caminho e máscaras que satisfazem
-\eqref{eq:fcmp-new-membership}. Os pontos recuperados são os seleccionados
-no primeiro ramo, e os nós recuperados são os seleccionados nos pais.
-
-Para o verificador, ficam públicos a raiz, a apresentação, os parâmetros
-da árvore e a prova. Para o provador, ficam conhecidos os pontos da folha,
-as máscaras, os ramos e os testemunhos aritméticos. A posição da folha
-não tem de aparecer em nenhuma mensagem.
-
-\begin{center}
-\begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{9.1cm}}
-\textbf{Objecto público} & \textbf{Relação oculta demonstrada}\\
-\(\widetilde O\) & Abre a chave \(O\) da folha com máscara em \(T\).\\
-\(\widetilde B\) & Abre a base \(B\) da mesma folha com máscara em \(U\).\\
-\(R\) & Usa a mesma máscara de \(B\) na base \(V\).\\
-\(\widetilde C\) & Abre o montante comprometido dessa folha com máscara em \(G\).\\
-\(\mathcal R\) & Fecha o caminho que contém a folha seleccionada.
-\end{tabular}
-\end{center}
-
-A propriedade de conhecimento permite falar destas aberturas no argumento
-de composição. Um extractor é uma construção matemática que, dispondo
- de execuções adequadas do provador com desafios diferentes, recupera uma
-testemunha. Não é uma operação do verificador normal, nem um método para
-ler a folha de uma prova publicada. Serve para formalizar o que significa
-um provador conhecer valores coerentes.
-
-A autorização precisará justamente de comparar o escalar \(r_b\) desta
-abertura com o escalar usado no produto \(xr_b\). Sem conhecimento de
-aberturas, a mera existência dos pontos públicos não fornece essa
-comparação. Com as testemunhas extraíveis, a vinculação das bases permite
-estabelecê-la.
-
-Ainda não temos uma transacção autorizada. Temos uma apresentação vinculada
-a uma saída existente e ao seu compromisso de montante. A prova seguinte
-terá de encontrar, nessa mesma apresentação, a chave que autoriza a saída
-e a imagem que marcará o gasto.
-
-\newpage
-\section{Conhecer uma saída pública não é possuir a sua chave}
-
-Uma pessoa pode conhecer a folha \((O,B,C)\), todas as coordenadas e os
-ramos da árvore. Pode escolher \(r_o,r_b,r_r,r_c\), formar \(Q\) e
-construir a prova de pertença. Nenhuma destas operações lhe fornece uma
-abertura \(O=xG+yT\) conhecida.
-
-Para gastar, precisa de conhecer essa abertura. Depois da re-randomização,
-a abertura que usa é
-\[
- \widetilde O=xG+\widetilde yT,
- \qquad \widetilde y=y+r_o.
-\]
-Precisa ainda de demonstrar que a imagem publicada é
-\[
- I=x\widetilde B-(xr_b)U.
-\]
-A primeira relação liga a chave à apresentação. A segunda liga a marca
-do gasto à chave e à base, removendo a máscara que a pertença colocou
-sobre \(B\).
-
-A demonstração de \(I=x\widetilde B-zU\), tomada isoladamente, deixaria
-\(z\) livre. Se pudesse escolher livremente esse coeficiente, o provador
-não estaria obrigado a remover a parcela exacta da máscara. A condição
-\(z=xr_b\) é, por isso, inseparável da autorização.
-
-Também o escalar \(r_b\) usado no produto tem de vir da abertura de
-\(R=r_bV+r_rT\) ligada pela pertença. De outro modo, uma máscara válida
-num argumento poderia ser substituída por outra no segundo. O produto
-ficaria correcto para valores que não correspondem à folha.
-
-A relação de autorização será construída através de um compromisso
-auxiliar que reúne a chave, a máscara e o seu produto. Uma diferença de
-pontos publicamente calculável isolará depois esse produto nas bases
-previstas. Finalmente, equações de Schnorr ligarão a diferença à abertura
- de \(\widetilde O\) e à imagem \(I\).
-
-O conjunto recebe o nome SAL, de autorização de gasto e ligação. A sua
-força aparece na composição com a pertença. A pertença conhece a origem
-dos pontos; SAL conhece a chave que permite utilizá-los. O ponto \(R\)
-é a relação auxiliar que impede as duas testemunhas de falarem de máscaras
-diferentes.
-
-\newpage
-\section{Uma diferença pública isola o produto secreto}
-
-Escolhamos uma máscara adicional \(\rho\) e publiquemos
-\[
- \Pi=xG+r_bV+(xr_b)U+\rho T.
-\]
-Este ponto compromete conjuntamente dois escalares e o seu produto.
-Escrevendo \(z=xr_b\), temos uma abertura sobre quatro bases, com a
-restrição multiplicativa \(z=xr_b\).
-
-O verificador pode calcular
-\[
- D=\Pi-\widetilde O-R.
-\]
-Para o provador honesto, a substituição das aberturas dá
-\begin{align*}
- D&=xG+r_bV+zU+\rho T
-     -(xG+\widetilde yT)-(r_bV+r_rT)\\
-  &=zU+(\rho-\widetilde y-r_r)T.
-\end{align*}
-Chamemos \(d=\rho-\widetilde y-r_r\). A diferença fica
-\[
- D=zU+dT.
-\]
-As parcelas em \(G\) e \(V\) desaparecem porque a chave e a máscara
-coincidem. A prova exigirá uma abertura conhecida da diferença apenas
-sobre \(U,T\). É assim que o cancelamento se transforma numa restrição
-verificável.
-
-Se a chave usada em \(\Pi\) fosse \(x_1\) e a de
-\(\widetilde O\) fosse \(x_2\), sobraria \((x_1-x_2)G\). Se a
-máscara usada em \(\Pi\) fosse \(r_1\) e a de \(R\) fosse \(r_2\),
-sobraria \((r_1-r_2)V\). Conhecer uma abertura da diferença nas bases
-\(U,T\), apesar dessas parcelas, forneceria uma relação entre as bases.
-A vinculação impedirá a troca.
-
-Não concluiremos a igualdade das chaves apenas olhando para \(D\).
-Serão necessárias provas de conhecimento das aberturas de \(\Pi\),
-\(\widetilde O\), \(D\) e \(R\). A última vem da pertença; as
-outras serão demonstradas por SAL. Uma vez disponíveis as aberturas,
-o cancelamento revela exactamente quais os coeficientes que têm de
-coincidir.
-
-O ponto \(D\) não precisa de ser enviado: resulta dos pontos públicos.
-A sua abertura secreta será uma das relações demonstradas.
-
-\newpage
-\section{O produto ocupa um coeficiente quadrático}
-
-Para provar a abertura de \(\Pi\) e a condição \(z=xr_b\), escolhemos
-nonces \(\alpha,\beta\) e observamos a identidade
-\[
- (\alpha+ex)(\beta+er_b)
- =\alpha\beta+e(\alpha r_b+\beta x)+e^2xr_b.
-\]
-O produto pretendido ocupa o coeficiente de \(e^2\). Os termos de graus
-zero e um podem ser comprometidos antes de conhecer o desafio \(e\).
-
-Escolhamos ainda \(\delta,\mu\) e formemos
-\begin{align*}
- A_1&=\alpha G+\beta V+(\alpha r_b+\beta x)U+\delta T,\\
- A_0&=\alpha\beta U+\mu T.
-\end{align*}
-Os pontos \(\Pi,A_1,A_0\) ficam fixados antes do desafio. As respostas
-serão \(u_x=\alpha+ex\), \(u_b=\beta+er_b\) e uma combinação das
-máscaras. A equação a verificar é
-\[
- e^2\Pi+eA_1+A_0
- =eu_xG+eu_bV+u_xu_bU+u_\rho T.
-\]
-Cada base recebe os coeficientes adequados: \(G\) recebe
-\(e\alpha+e^2x\), \(V\) recebe \(e\beta+e^2r_b\), e \(U\)
-recebe a expansão do produto. A máscara fica reunida na base \(T\).
-
-Há uma razão para os dois pontos auxiliares. Se o provador esperasse pelo
-desafio para os escolher, poderia absorver neles um erro na abertura
- de \(\Pi\). Fixá-los primeiro deixa apenas a possibilidade de uma
-coincidência desafiada, que o argumento de conhecimento controla.
-
-Esta é a instância de uma componente do argumento de produto interno
-ponderado em que o peso é um. Não há um vector de tamanho igual ao número
-de folhas da árvore. A multiplicação a provar em SAL é um único produto
- de escalares, independentemente da altura da árvore.
-
-A identidade polinomial mostra a completude: uma testemunha verdadeira
-faz a equação passar. O conhecimento da abertura e a solidez da prova
-exigem o argumento completo, com vinculação aos pontos, desafios
-imprevisíveis e tratamento das execuções alternativas usadas na extracção.
-
-\newpage
-\section{As respostas escondem os factores e conservam a equação}
-
-Depois de receber \(e\), o provador envia
-\begin{align*}
- u_x&=\alpha+ex,\\
- u_b&=\beta+er_b,\\
- u_\rho&=\mu+e\delta+e^2\rho.
-\end{align*}
-A última resposta conserva a máscara de toda a combinação quadrática.
-O verificador não recebe \(x,r_b,\rho\), nem os nonces separadamente.
-Recebe os pontos previamente comprometidos e estas combinações escalares.
-
-Expandamos a verificação pelas suas quatro bases:
-\begin{align*}
- e^2\Pi+eA_1+A_0
- ={}&(e^2x+e\alpha)G+(e^2r_b+e\beta)V\\
- &+(e^2xr_b+e\alpha r_b+e\beta x+\alpha\beta)U\\
- &+(e^2\rho+e\delta+\mu)T.
-\end{align*}
-O lado direito proposto contém precisamente os mesmos coeficientes:
-\[
- eu_x=e\alpha+e^2x,\qquad eu_b=e\beta+e^2r_b,
-\]
-\[
- u_xu_b=\alpha\beta+e\alpha r_b+e\beta x+e^2xr_b.
-\]
-A igualdade verifica o produto das respostas em ligação com o ponto
-\(\Pi\). O produto secreto não é publicado como escalar.
-
-Para um desafio fixo, \(u_x\) é uniforme se \(\alpha\) é uniforme.
-O mesmo vale para \(u_b\) e \(\beta\). As outras máscaras dão ao
-protocolo a distribuição necessária para esconder a testemunha. Esta
-observação explica a função dos nonces; a propriedade de conhecimento
-zero refere-se à distribuição conjunta de todos os pontos e respostas,
- não apenas a cada resposta isolada.
-
-O compromisso de produto ainda não prova a imagem de chave. Temos uma
-abertura conhecida para \(\Pi\) cujos coeficientes obedecem à relação
-multiplicativa. Falta obrigar a chave a ser a da apresentação
-\(\widetilde O\), a máscara a ser a de \(R\), e o produto a ser o
-coeficiente subtraído da imagem. As três equações de Schnorr seguintes
-farão circular essas mesmas grandezas.
-
-\newpage
-\section{Três aberturas partilham a chave e o produto}
-
-As relações lineares necessárias são
-\[
- \widetilde O=xG+\widetilde yT,\qquad
- D=zU+dT,\qquad
- I=x\widetilde B-zU.
-\]
-As três podem ser demonstradas com um protocolo de Schnorr generalizado.
-O mesmo escalar \(x\) aparece na primeira e na terceira; o mesmo \(z\)
-aparece na segunda e na terceira.
-
-Escolhamos nonces \(\eta,\zeta,\theta\). Reutilizamos o nonce
-\(\alpha\) da componente de produto e publicamos
-\begin{align*}
- S_O&=\alpha G+\eta T,\\
- S_D&=\zeta U+\theta T,\\
- S_I&=\alpha\widetilde B-\zeta U.
-\end{align*}
-Depois do desafio comum \(e\), as respostas adicionais são
-\[
- u_y=\eta+e\widetilde y,\qquad
- u_z=\zeta+ez,\qquad
- u_d=\theta+ed.
-\]
-A resposta \(u_x\) já vem da componente de produto.
-
-O verificador testa
-\begin{align*}
- S_O+e\widetilde O&=u_xG+u_yT,\\
- S_D+eD&=u_zU+u_dT,\\
- S_I+eI&=u_x\widetilde B-u_zU.
-\end{align*}
-Para a última igualdade, a substituição dá
-\[
- \alpha\widetilde B-\zeta U+e(x\widetilde B-zU)
- = (\alpha+ex)\widetilde B-(\zeta+ez)U.
-\]
-O mesmo produto \(z\) cuja abertura foi demonstrada para \(D\) entra
-com sinal negativo na imagem. A mesma chave cuja abertura foi demonstrada
-para \(\widetilde O\) multiplica a base pública \(\widetilde B\).
-
-Partilhar uma resposta economiza uma mensagem e coordena a prova honesta.
-Não dispensaremos, porém, a análise da composição: o nome igual de duas
-respostas não é uma demonstração autónoma de que dois extractores
-recuperam a mesma chave. A igualdade das testemunhas será consequência
-das aberturas conhecidas e do cancelamento sobre as bases.
-
-O papel de cada nonce é agora visível. \(\alpha\) acompanha a chave;
-\(\zeta\) acompanha o produto; \(\eta,\theta\) acompanham as
-máscaras das duas aberturas lineares. Os compromissos fixam essas relações
-antes de o desafio determinar as respostas.
-
-\newpage
-\section{As quatro verificações de SAL formam uma só relação}
-
-SAL publica os seis pontos
-\(\Pi,A_1,A_0,S_O,S_D,S_I\) e os seis escalares
-\(u_x,u_b,u_\rho,u_y,u_z,u_d\). Para a apresentação \(Q\) e a
-imagem \(I\), o verificador calcula \(D=\Pi-\widetilde O-R\) e
-exige simultaneamente
-\begin{align}
- e^2\Pi+eA_1+A_0
-  &=eu_xG+eu_bV+u_xu_bU+u_\rho T,
- \label{eq:fcmp-new-sal-product}\\
- S_O+e\widetilde O&=u_xG+u_yT,
- \label{eq:fcmp-new-sal-key}\\
- S_D+e(\Pi-\widetilde O-R)&=u_zU+u_dT,
- \label{eq:fcmp-new-sal-difference}\\
- S_I+eI&=u_x\widetilde B-u_zU.
- \label{eq:fcmp-new-sal-image}
-\end{align}
-A primeira verifica o compromisso de produto. A segunda verifica a
-abertura da chave re-randomizada. A terceira verifica a abertura da
-diferença que deverá isolar o produto. A quarta verifica a imagem em
-relação à chave e à parcela subtraída.
-
-Não são quatro autorizações alternativas: todas têm de passar para a
-mesma transcrição. Os pontos \(Q\), \(I\), os seis compromissos e a
-mensagem autorizada determinam um único desafio. A relação que o provador
-satisfaz reúne os testemunhos das quatro equações.
-
-O ponto \(R\) entra explicitamente na terceira. É aí que a abertura
- da pertença participa na composição. O ponto \(\widetilde C\), embora
-não seja uma base destas equações, pertence à apresentação vinculada pela
-transcrição. A autorização não pode ser transplantada para uma apresentação
-com outro compromisso de montante.
-
-O número de equações não depende de quantas folhas existem na árvore.
-A pertença já isolou uma saída e forneceu a apresentação que SAL recebe.
-Para cada entrada, a autorização trata o produto da sua chave pela sua
-máscara. A economia da árvore e a economia deste produto são construções
- diferentes, reunidas pela declaração pública comum.
-
-A solidez de SAL será usada na forma de conhecimento das aberturas que
-estas equações representam \cite{fcmp-composition-review}. Vamos acompanhar
-a comparação dessas aberturas. É ela que prova que o produto certificado
-é aquele que remove a máscara da base da folha.
-
-\newpage
-\section{Comparar testemunhas obriga as máscaras a coincidir}
-
-Para analisar a composição, distingamos os valores recuperados de cada
-parte. A pertença fornece \(r_b^{M},r_r^{M}\) tais que
-\(R=r_b^{M}V+r_r^{M}T\). A componente de produto fornece
-\[
- \Pi=x_1G+r_1V+(x_1r_1)U+\rho_1T.
-\]
-As equações de Schnorr fornecem
-\[
- \widetilde O=x_2G+y_2T,\qquad
- D=z_2U+d_2T,\qquad I=x_2\widetilde B-z_2U.
-\]
-Usamos nomes distintos antes de demonstrar que os valores coincidem. A
-propriedade de conhecimento de cada argumento permite obter estas
-aberturas no raciocínio matemático.
-
-Substituir as três aberturas em \(D=\Pi-\widetilde O-R\) dá
-\begin{align*}
- 0={}&(x_1-x_2)G+(r_1-r_b^{M})V\;\;\\
- &+(x_1r_1-z_2)U
-   +(\rho_1-y_2-r_r^{M}-d_2)T.
-\end{align*}
-Todos estes coeficientes são conhecidos pelo extractor. Se algum fosse
-não nulo, a igualdade daria uma relação não trivial entre as bases.
-Sob a hipótese de vinculação, a comparação impõe
-\[
- x_1=x_2,\qquad r_1=r_b^{M},\qquad z_2=x_1r_1.
-\]
-O último coeficiente determina ainda
-\(d_2=\rho_1-y_2-r_r^{M}\).
-
-A máscara do produto é, portanto, a máscara da pertença. A chave do
-produto é a chave da abertura re-randomizada. O coeficiente que a imagem
-subtrai é o produto destas duas grandezas. Nenhuma destas coincidências
-foi pressuposta na comparação.
-
-Este argumento explica por que \(R\) é necessário. Sem a sua abertura
-ligada à pertença, sobraria liberdade para uma máscara diferente em
-\(\Pi\). A igualdade \(I=x\widetilde B-zU\) poderia então corresponder
-a outra base recuperada, em vez da base da folha.
-
-A composição prova o conhecimento que realmente precisa. Não é necessário
-atribuir a SAL isoladamente a extracção de todas as máscaras de \(R\).
-A pertença fornece essa abertura; SAL fornece as relações que a comparam
-com o produto e com a imagem. A declaração final nasce da reunião dos
-dois testemunhos.
-
-\newpage
-\section{A máscara desaparece e a imagem fica}
-
-A pertença recuperou uma folha \((O,B,C)\) e máscaras que satisfazem
-\[
- \widetilde B=B+r_b^{M}U,\qquad
- \widetilde O=O+r_o^{M}T.
-\]
-A comparação da página anterior demonstrou
-\(x_1=x_2=:x\), \(r_1=r_b^{M}\) e \(z_2=xr_b^{M}\).
-A equação da imagem torna-se
-\begin{align*}
- I&=x\widetilde B-z_2U\\
-  &=x(B+r_b^{M}U)-(xr_b^{M})U\\
-  &=xB.
-\end{align*}
-A parcela da máscara aparece uma vez com sinal positivo e uma vez com
-sinal negativo. A mesma multiplicação está demonstrada nas duas posições.
-A imagem utiliza a base da folha escondida.
-
-Para a chave, a abertura de \(\widetilde O\) dá
-\begin{align*}
- O&=\widetilde O-r_o^{M}T\\
-  &=xG+(y_2-r_o^{M})T.
-\end{align*}
-Definindo \(y=y_2-r_o^{M}\), recuperamos
+Uma entrada de uma transacção consome uma saída anterior. Até aqui, o
+anel reunia os candidatos públicos, e a assinatura ligava a escolha
+secreta à chave de gasto, ao montante comprometido e à imagem de chave.
+FCMP++ leva a prova de pertença a um conjunto público que pode abranger
+as saídas admitidas de toda a lista de blocos.\footnote{«Cadeia» lembra
+os grilhões dos escravos; neste livro, os blocos dispõem-se numa lista.}
+O trabalho decisivo passa a ser o de provar uma escolha dentro desse
+conjunto e conservar a sua ligação à autorização do gasto.
+
+A construção organiza essa tarefa em duas partes. A pertença estabelece
+de que saída provêm os dados apresentados pela entrada. A autorização
+estabelece o conhecimento das chaves que permitem consumi-la e liga
+esse conhecimento à transacção. A imagem de chave dá ao verificador
+uma etiqueta estável para reconhecer uma utilização repetida.
+As duas provas trabalham sobre uma apresentação pública comum da
+saída, construída de maneira a ocultar a sua identidade.
+
+O nome reúne estes papéis: \emph{Full-Chain Membership Proofs},
+abreviado FCMP, designa a pertença ao conjunto completo; os sinais
+\(++\) acompanham a composição com autorização de gasto e ligação,
+habitualmente designada por SAL, de \emph{Spend Authorization and
+Linkability}. O equilíbrio dos montantes e as provas de intervalo
+conservam as funções estudadas nos capítulos anteriores
+\cite{fcmp-plus-plus-paper,fcmp-composition-review}.
+
+\section{O conjunto público e a escolha secreta}
+\label{sec:fcmp-set-and-choice}
+
+Fixemos o conjunto \(\mathcal S\) de saídas admitido para a prova.
+Cada registo reúne três pontos: a chave da saída, a base usada na
+imagem de chave e o compromisso do montante. Escrevemo-lo como
+\((O,J,C)\). A letra \(I\) continuará a designar a imagem de
+chave, como nas assinaturas em anel; \(J\) designará a sua base.
+Assim, o conjunto tem a forma
+\[
+ \mathcal S=\{(O_0,J_0,C_0),\ldots,(O_{N-1},J_{N-1},C_{N-1})\}.
+\]
+Os registos são públicos. O segredo da pertença é a escolha de um
+deles: o índice da saída consumida e o caminho que a identifica na
+representação do conjunto.
+
+A base \(J\) é determinada pela chave originalmente registada,
+através da função de hash para pontos aplicável à saída. Para uma
+chave \(O\) já representada no subgrupo primo, escrevemos
+\(J=\mathcal H_p(O)\). A inclusão de uma chave com componente de
+torção conserva a base calculada a partir da sua codificação original,
+ao mesmo tempo que representa a chave no subgrupo usado pela prova.
+Esta ordem preserva a imagem de chave associada à saída. A formação
+das folhas dará a transformação exacta dos pontos; o papel de \(J\)
+fica desde já fixado~\cite{monero-source-current-fcmp-tree}.
+
+Para representar \(\mathcal S\), organiza-se uma árvore. As folhas
+guardam os registos; os nós superiores resumem grupos de nós inferiores;
+a raiz resume o conjunto inteiro. Designaremos a raiz por \(\rho\).
+Um caminho fornece, em cada nível, os dados necessários para ligar
+o nó escolhido ao resumo do nível seguinte, até chegar a \(\rho\).
+A prova conserva esse caminho na testemunha secreta. A construção
+\emph{Curve Trees} realiza os resumos com pontos de curvas elípticas
+e torna possível provar estas relações em conhecimento zero
+\cite{curve-trees}.
+
+O verificador recebe uma raiz admitida pelas regras da transacção,
+juntamente com a profundidade correspondente. A prova de pertença
+estabelece a inclusão no conjunto fixado por essa raiz. As regras
+que escolhem a raiz determinam quais as saídas elegíveis; a igualdade
+com uma raiz reconhecida liga a matemática da árvore aos registos
+da lista de blocos.
+
+Uma saída permanece entre os registos depois de ser gasta. A
+verificação de repetição trabalha com as imagens de chave já usadas.
+Esta divisão permite conservar um conjunto público de candidatos e
+actualizar, separadamente, o conjunto das etiquetas de gasto. Para
+aceitar uma nova transacção, o verificador exige imagens de chave
+válidas, não nulas e distintas entre as entradas, e confere que cada
+uma ainda pode ser usada segundo o estado admitido.
+
+\section{A relação que uma entrada demonstra}
+\label{sec:fcmp-input-relation}
+
+Os pontos de saída pertencem ao grupo de ordem prima \(\ell\),
+e os escalares pertencem a \(\mathbb Z_\ell\). Conservamos as
+bases \(G,H\) dos compromissos e introduzimos a base pública
+\(T\) para a chave de saída. A forma da chave é
 \[
  O=xG+yT.
 \]
-A chave que multiplica \(B\) é a chave principal de \(O\). O circuito
-não precisou de revelá-la, nem de revelar a folha. As aberturas usadas na
-análise mostram que um provador que satisfaz a composição conhece os
-valores exigidos pela relação do gasto.
+Os escalares \(x,y\) constituem a abertura que autoriza o gasto.
+Uma chave da forma já estudada, \(O=xG\), corresponde a \(y=0\).
+A imagem mantém o coeficiente \(x\):
+\[
+ I=xJ.
+\]
+Esta escolha permite conservar a mesma etiqueta de gasto quando se
+apresenta a chave com outra máscara na direcção de \(T\). As
+garantias de vinculação usarão a dificuldade de encontrar relações
+não triviais de logaritmo discreto entre as bases pertinentes.
+
+O compromisso \(C\) guarda o montante da saída. Se
+\(C=zG+aH\), uma nova máscara \(r_C\) produz o
+pseudo-compromisso
+\[
+ \widetilde C=C+r_CG=(z+r_C)G+aH.
+\]
+A igualdade conserva o coeficiente \(a\) de \(H\), isto é, o
+montante. O ponto \(\widetilde C\) pode, assim, entrar na equação
+pública de equilíbrio sem publicar qual dos compromissos de
+\(\mathcal S\) foi consumido. A validação anterior das saídas
+estabelece as propriedades dos compromissos que entram no conjunto;
+a nova relação transporta o mesmo montante para o pseudo-compromisso.
+
+O núcleo da declaração de uma entrada pode agora ser escrito com
+precisão. Dados o conjunto público \(\mathcal S\), a imagem
+\(I\) e o pseudo-compromisso \(\widetilde C\), demonstra-se
+conhecimento de
+\((O,J,C)\) e \(x,y,r_C\) tais que
+\begin{equation}
+ \begin{gathered}
+  (O,J,C)\in\mathcal S,\qquad O=xG+yT,\\
+  I=xJ,\qquad \widetilde C=C+r_CG.
+ \end{gathered}
+ \label{eq:fcmp-composed-statement}
+\end{equation}
+A mensagem da transacção faz igualmente parte do contexto público
+ao qual a autorização fica ligada. A realização desta declaração
+acrescentará os compromissos e as mensagens das subprovas
+\cite{fcmp-composition-review}.
+
+Cada condição tem um destinatário concreto. A pertença situa a
+saída entre as admitidas. A abertura de \(O\) fornece a
+autorização. A igualdade \(I=xJ\) fixa a imagem que será
+comparada com as anteriores. A diferença \(r_CG\) liga o
+pseudo-compromisso ao montante daquela mesma saída. O índice secreto
+é comum às quatro condições: chave, base da imagem e compromisso
+provêm de um único registo.
+
+Para várias entradas, os pseudo-compromissos participam na equação
+de equilíbrio \eqref{eq:commitment-balance}. As provas de intervalo
+restringem os montantes das novas saídas ao intervalo permitido.
+O verificador reúne estas condições com a autorização e o teste das
+imagens. A relação \eqref{eq:fcmp-composed-statement} dá a ligação
+entre uma entrada e a saída que ela consome.
+
+\section{Os dados que unem pertença e autorização}
+\label{sec:fcmp-public-interface}
+
+As duas provas precisam de trabalhar sobre a mesma saída, conservando
+oculta a escolha do registo. Para isso, o provador publica uma
+apresentação mascarada. A máscara da chave actua na direcção de
+\(T\); a da base da imagem actua numa nova base pública \(U\);
+a do compromisso actua em \(G\), como acabámos de ver.
+
+A máscara da base da imagem terá ainda de ser usada pela autorização.
+Um quarto ponto, \(R\), compromete essa máscara numa base pública
+\(V\), acrescentando-lhe uma máscara própria em \(T\). Com os
+escalares \(r_O,r_J,r_R,r_C\), a apresentação é
+\begin{equation}
+ \begin{aligned}
+  \widetilde O&=O+r_OT,&
+  \widetilde J&=J+r_JU,\\
+  R&=r_JV+r_RT,&
+  \widetilde C&=C+r_CG.
+ \end{aligned}
+ \label{eq:fcmp-public-presentation}
+\end{equation}
+Os quatro pontos são públicos. A pertença demonstra que existem um
+mesmo registo de \(\mathcal S\) e máscaras que satisfazem estas
+igualdades. A chave secreta fica disponível para a autorização;
+a testemunha de pertença contém a escolha do registo, o caminho e
+as máscaras.
+
+A forma da chave mostra por que razão a direcção de ocultação foi
+escolhida assim:
+\[
+ \widetilde O=xG+(y+r_O)T.
+\]
+O coeficiente que determina a imagem continua a ser \(x\). Por
+outro lado, multiplicar a base mascarada por esse coeficiente dá
+\[
+ x\widetilde J=xJ+(xr_J)U.
+\]
+A autorização certifica o produto secreto \(xr_J\) e liga-o às
+aberturas necessárias para obter
+\begin{equation}
+ I=x\widetilde J-(xr_J)U=xJ.
+ \label{eq:fcmp-image-cancellation}
+\end{equation}
+O ponto \(R\) é a ligação entre a máscara usada na pertença e
+o produto usado na autorização. A prova completa tem de estabelecer
+a consistência dessas aberturas; desenvolveremos as relações que
+a asseguram antes de apresentar as respostas do provador.
 
 \begin{center}
-\begin{tikzpicture}[>=stealth]
- \node[draw,rounded corners,align=center] (a) at (0,0)
- {folha\\\(O,B,C\)};
- \node[draw,rounded corners,align=center] (b) at (4,0)
- {apresentação\\\(\widetilde O,\widetilde B,R,\widetilde C\)};
- \node[draw,rounded corners,align=center] (c) at (8.5,0)
- {imagem\\\(I=xB\)};
- \draw[->] (a)--node[above]{pertença}(b);
- \draw[->] (b)--node[above]{autorização}(c);
- \draw[->,bend right=23] (a) to node[below]{mesma chave, mesma base}(c);
+\begin{tikzpicture}[
+ font=\small,
+ data/.style={align=center,text width=3.8cm},
+ proof/.style={draw,rounded corners,align=center,text width=4.1cm,inner sep=6pt},
+ flow/.style={->,>=stealth,semithick}]
+ \node[data] (root) at (0,0) {raiz pública \(\rho\)};
+ \node[data] (tuple) at (4.5,0)
+  {\(\widetilde O,\widetilde J,R,\widetilde C\)\\apresentação comum};
+ \node[data] (message) at (9,0)
+  {mensagem da transacção\\e imagem \(I\)};
+ \node[proof] (membership) at (2,-1.8)
+  {FCMP\\pertença da saída};
+ \node[proof] (sal) at (7,-1.8)
+  {SAL\\autorização e ligação};
+ \node[proof,text width=6cm] (joined) at (4.5,-3.8)
+  {relação da entrada com a mesma saída\\
+   \(\eqref{eq:fcmp-composed-statement}\)};
+ \draw[flow] (root) -- (membership);
+ \draw[flow] (tuple) -- (membership);
+ \draw[flow] (tuple) -- (sal);
+ \draw[flow] (message) -- (sal);
+ \draw[flow] (membership.south) -- (joined.north west);
+ \draw[flow] (sal.south) -- (joined.north east);
 \end{tikzpicture}
 \end{center}
 
-Podemos mudar as máscaras e obter outra apresentação \(Q\). O
-cancelamento volta a deixar \(xB\). A forma pública do gasto muda, mas
-a marca da saída permanece. Essa permanência permite detectar uma segunda
-utilização sem descobrir qual a folha na primeira.
+As setas indicam os dados públicos que alimentam as provas e a
+conclusão da sua composição. A testemunha permanece nas aberturas
+secretas. Em particular, a imagem \(I\) é pública, enquanto a
+identidade do registo que lhe deu origem fica oculta.
 
-A equação é determinística; a possibilidade de construir uma prova falsa
-é controlada pelas hipóteses computacionais e pela solidez dos argumentos.
-A álgebra do cancelamento e a segurança que obriga a utilizar os mesmos
-coeficientes têm papéis distintos na conclusão.
+Cada sistema de prova mantém o seu transcrito: a declaração e as
+mensagens já produzidas determinam os desafios de Fiat--Shamir.
+Em SAL, o contexto inclui a mensagem assinável da transacção, a
+apresentação comum e a imagem. Essa mensagem vincula os dados da
+transacção e os seus pseudo-compromissos. Assim, as respostas
+autorizam aquele gasto concreto. A pertença tem o seu próprio
+transcrito, ligado à raiz e às apresentações das entradas. Os
+objectos comuns fazem a ligação entre os dois sistemas.
 
-\newpage
-\section{Autorizar a transacção inteira}
+\section{Onde entram os produtos internos}
+\label{sec:fcmp-proof-map}
 
-Conhecer a chave de uma saída não equivale a autorizar qualquer mensagem
-que outra pessoa decida juntar à prova. A transacção concreta tem de
-participar no desafio. Designemos por \(m\) a declaração autorizada da
-transacção, incluindo os campos que determinam o gasto e os seus destinos.
+A prova de pertença exprime a abertura dos caminhos como relações
+aritméticas. \emph{Generalized Bulletproofs} permite demonstrar
+essas relações sobre vectores vinculados a compromissos públicos.
+Os dados dos ramos e as testemunhas auxiliares ficam, assim,
+abrangidos pelas mesmas condições. Esta extensão das Bulletproofs
+é a peça que liga os compromissos da árvore ao argumento aritmético
+\cite{generalized-bulletproofs-fixed,curve-trees}.
 
-Uma forma esquemática do desafio de SAL é
-\[
- e=H_\ell\bigl(m,Q,I,\Pi,A_1,A_0,S_O,S_D,S_I\bigr).
-\]
-A codificação é não ambígua e o contexto distingue esta prova de outras
-utilizações da função hash. O provador fixa os pontos antes de calcular
-\(e\); o verificador reconstitui o mesmo desafio a partir da declaração
-recebida.
+Os compromissos dos ramos da árvore alternam entre duas curvas,
+Selene e Helios. As relações de cada família de camadas são reunidas num
+circuito, e cada circuito recebe uma Generalized Bulletproof.
+As entradas que partilham a mesma raiz são agregadas nesses dois
+circuitos. A profundidade e a quantidade de entradas alteram as
+dimensões; a construção conserva duas provas de circuito, cada
+uma terminando num argumento de produto interno, ou IPA, de
+\emph{inner-product argument}.
 
-Mudar \(m\) muda o desafio, com a probabilidade de colisão adequada à
-função. As respostas preparadas para o desafio antigo deixam de satisfazer
-as equações para o novo, salvo uma quebra das propriedades da prova. A
-assinatura autoriza, pois, a transacção representada por \(m\), e não
-apenas a existência abstracta da chave.
+Os certificados do capítulo~\ref{chapter:divisors} aparecem dentro
+dessas relações aritméticas. Demonstram as multiplicações por
+escalares secretos que produzem as máscaras de pontos e de ramos.
+Os coeficientes das funções e as representações dos escalares entram
+na testemunha dos circuitos. Generalized Bulletproofs prova as suas
+condições juntamente com as condições de selecção e de pertença.
 
-A apresentação \(Q\) também está incluída. Alterar
-\(\widetilde C\), mesmo que esse ponto não apareça nas bases das quatro
-equações, altera a transcrição autorizada. A pertença recebe exactamente
-essa apresentação. Assim, o compromisso usado no equilíbrio fica ligado
-aos pontos cuja autorização foi demonstrada.
+SAL, por sua vez, usa um argumento de produto de Bulletproofs+ para
+o termo \(xr_J\), conjugado com relações de Schnorr que o ligam
+à chave apresentada e à imagem. É o caso de dimensão um do argumento
+de produto interno ponderado, com peso um: os dois vectores têm
+uma única entrada. A prova de intervalo usa a maquinaria de
+Bulletproofs+ sobre vectores que codificam os montantes e as suas
+restrições, conforme a secção~\ref{sec:bulletproof_plus}.
 
-Cada transacção pode ter várias entradas. A declaração fixa as respectivas
-apresentações e imagens, a prova de pertença demonstra caminhos coerentes
-e cada autorização liga a imagem à chave da sua entrada. O equilíbrio
-reúne os compromissos de todas elas. As imagens têm de ser distintas entre
-si e de todas as que já foram aceites.
-
-A transformada de Fiat--Shamir substitui a escolha interactiva do desafio
-por essa derivação pública. O seu argumento de segurança trata a função
- de desafio no modelo apropriado; não basta escrever um símbolo \(H_\ell\)
-para obter automaticamente solidez. O conteúdo essencial da declaração
-fica, porém, à vista: a folha, a apresentação, a imagem e a transacção
-pertencem a uma única cadeia de relações verificadas.
-
-\newpage
-\section{Uma entrada completa, com todos os coeficientes à vista}
-
-Tomemos uma folha com aberturas conhecidas
-\[
- O=7G+3T,\qquad C=23G+29H,
-\]
-e base associada \(B\). Os números são pequenos para deixar ver o
-cancelamento; as contas reais fazem-se módulo \(\ell\). Escolhamos
-\(r_o=5,r_b=11,r_r=13,r_c=17\). A apresentação é
-\[
- \widetilde O=7G+8T,\quad \widetilde B=B+11U,
- \quad R=11V+13T,\quad\widetilde C=40G+29H.
-\]
-O montante continua a ser \(29\). O produto secreto é \(z=7\cdot11=77\).
-Com \(\rho=19\), temos
-\[
- \Pi=7G+11V+77U+19T,\qquad D=77U-2T,
- \qquad I=7\widetilde B-77U=7B.
-\]
-Aqui, \(d=19-8-13=-2\). Escolhamos os nonces
-\(\alpha=3,\beta=5,\delta=7,\mu=11,\eta=13,\zeta=17,\theta=19\).
-Os pontos da prova ficam
-\begin{align*}
- A_1&=3G+5V+68U+7T,&A_0&=15U+11T,\\
- S_O&=3G+13T,&S_D&=17U+19T,\\
- S_I&=3\widetilde B-17U.&&
-\end{align*}
-Para o desafio ilustrativo \(e=2\), as respostas são
-\[
- (u_x,u_b,u_\rho,u_y,u_z,u_d)=(17,27,101,29,171,15).
-\]
-A primeira verificação tem, nos dois lados, os coeficientes
-\[
- 34G+54V+459U+101T,
-\]
-pois \(4\cdot77+2\cdot68+15=459=17\cdot27\).
-A segunda dá \(17G+29T\), e a terceira \(171U+15T\).
-Na última, ambos os lados reduzem-se a \(17B+16U\):
-\[
- 3(B+11U)-17U+2(7B)=17B+16U.
-\]
-Todas as contas estão feitas. Os pontos publicamente apresentados mudaram
-com as máscaras, mas o compromisso continua a transportar \(29\) e a
-imagem continua a ser \(7B\). A prova de pertença fornece a folha de
-onde esses dois objectos vieram; SAL fornece a autorização que os utiliza.
-
-\newpage
-\section{A raiz e os limites da declaração}
-
-A relação de pertença diz que a folha está no conjunto fixado pela raiz.
-Não diz que todas as folhas são igualmente plausíveis para um observador.
-Se informações externas eliminarem possibilidades, a prova não torna
-essas informações falsas. A propriedade de conhecimento zero impede que
-a prova revele a testemunha para além da declaração pública; a dimensão
-do conjunto útil depende também do que já é conhecido fora dela.
-
-Uma raiz aceite pode representar muitas saídas, incluindo saídas que já
-foram consumidas. A imagem de chave é que permite rejeitar a nova tentativa
-de gasto de uma delas. Não é necessário que a árvore remova uma folha
-para que a não repetição seja verificada.
-
-As condições de admissibilidade pertencem à definição do conjunto. Uma
-folha com pontos inválidos, uma base de imagem mal formada ou um
-compromisso que nunca recebeu validação não adquire legitimidade por
-ser inserida numa lista. A construção pública do conjunto e as condições
-do gasto são ambas necessárias.
-
-A segurança que atribuímos às provas é igualmente precisa. A completude
-faz uma testemunha verdadeira passar pelos testes definidos. A solidez
- de conhecimento impede convencer o verificador sem conhecer uma
- testemunha, excepto com a probabilidade permitida e sob as hipóteses
-fixadas. O conhecimento zero esconde a testemunha na distribuição da
-prova. A vinculação dos compromissos depende da dificuldade das relações
- de logaritmo discreto entre bases.
-
-Estas propriedades não afirmam que a chave resiste a quem consegue resolver
-logaritmos discretos, nem que toda a informação de uma transacção fica
-oculta. A raiz, as apresentações, as imagens, o número de entradas e os
- demais campos públicos continuam públicos. A afirmação provada tem
-fronteiras matemáticas bem definidas.
-
-A vantagem de uma prova sobre o conjunto completo é deixar de exigir que
-a declaração escolha uma pequena lista pública de candidatos para cada
-entrada. A folha pode estar em qualquer posição admissível da raiz
-escolhida, e o caminho não precisa de ser revelado. A privacidade resulta
- dessa liberdade escondida, juntamente com as restantes condições do
-protocolo.
-
-\newpage
-\section{A relação que permanece depois de remover as máscaras}
-
-O percurso inteiro termina numa declaração de conhecimento: existe uma
-folha \((O,B,C)\) no conjunto representado pela raiz aceite e existem
-escalares \(x,y,r_c\) tais que
-\begin{equation}
- (O,B,C)\in\mathcal S_{\mathcal R},\qquad
- O=xG+yT,\qquad I=xB,\qquad\widetilde C=C+r_cG.
- \label{eq:fcmp-new-final-relation}
-\end{equation}
-A abertura de montante de \(C\) pertence às relações de validade e de
-intervalo da saída. A declaração acima liga o seu ponto à entrada; não
-pretende extrair essa abertura apenas da pertença e de SAL.
-
-Todas as apresentações auxiliares serviram para alcançar esta relação.
-As máscaras ocultaram a folha. Os compromissos ligaram as variáveis aos
-ramos. A selecção transportou um caminho até à raiz. As curvas permitiram
-verificar as coordenadas nos corpos apropriados. Os divisores certificaram
-as multiplicações ocultas. SAL ligou a chave e a imagem à mesma apresentação.
-
+Podemos agora contar os argumentos sem confundir os seus papéis.
+Se \(n\) entradas partilham uma prova de pertença agregada e a
+transacção contém \(r\) provas de intervalo, a distribuição é
 \begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{8.6cm}}
-\textbf{Relação conservada} & \textbf{Razão matemática}\\
-A saída existe. & Um caminho conhecido abre a raiz fixada.\\
-A chave é conhecida. & Uma abertura conhecida de \(\widetilde O\) recupera \(O=xG+yT\).\\
-A máscara é a mesma. & A abertura de \(R\) e a diferença \(D\) vinculam os coeficientes.\\
-A imagem é correcta. & \(x(B+r_bU)-(xr_b)U=xB\).\\
-O montante é o mesmo. & \(C+r_cG=(a+r_c)G+vH\).\\
-A transacção é autorizada. & A sua declaração participa no desafio das provas.\\
-A saída não é repetida. & A imagem determinística ainda não foi utilizada.
+\begin{tabular}{>{\raggedright\arraybackslash}p{7.4cm} c}
+\textbf{Componente} & \textbf{Argumentos de produto interno}\\[1mm]
+Pertença: circuito sobre Selene & \(1\)\\
+Pertença: circuito sobre Helios & \(1\)\\
+SAL: um produto por entrada & \(n\)\\
+Provas de intervalo das novas saídas & \(r\)
 \end{tabular}
 \end{center}
+O total é, portanto,
+\begin{equation}
+ N_{\rm PI}=2+n+r.
+ \label{eq:fcmp-inner-product-count}
+\end{equation}
+Com duas entradas, FCMP++ contém quatro: dois na pertença e dois
+em SAL. Uma prova de intervalo agregada acrescenta um quinto.
+Com uma entrada e uma prova de intervalo, o total é quatro,
+já incluindo a prova de intervalo. Uma prova agregada que abranja
+várias saídas contribui uma vez para \(r\)
+\cite{monero-oxide-fcmp-source}.
 
-A equação de equilíbrio e as provas de intervalo completam a conservação
-dos montantes. O conjunto das imagens aceites completa a condição de não
-repetição. Nenhuma destas verificações substitui as outras; todas se
-referem às entradas vinculadas pela mesma declaração.
+Há ainda relações de Schnorr, incluindo o fecho da abertura mascarada
+da raiz; a sua função será explicitada ao completar a árvore.
+A contagem \eqref{eq:fcmp-inner-product-count} identifica os
+argumentos de produto interno dentro da composição, enquanto as
+igualdades de compromisso, os desafios e as verificações de
+transacção completam as garantias do gasto.
 
-O que se conserva pode ser dito com poucas palavras, agora inteiramente
-sustentadas pelas relações: a apresentação muda, a saída não; a máscara
-muda, o montante não; a transcrição muda, a imagem da mesma chave sobre a
-mesma base não. A folha continua escondida, mas cada utilização válida
-carrega a marca exacta daquilo que foi autorizado.
+O mapa permite abrir a construção por partes. Começaremos pela
+autorização: a apresentação já está definida, e o produto \(xr_J\)
+é a nova relação a ligar às respostas de Schnorr. Depois, os
+compromissos vectoriais, o ciclo de curvas e os certificados de
+divisores permitirão construir a prova de que essa apresentação
+provém de uma saída do conjunto fixado pela raiz.
+
+\section{Um compromisso para o produto secreto}
+\label{sec:fcmp-sal-product}
+
+A autorização trabalha com os pontos públicos
+\(\widetilde O,\widetilde J,R,I\) e com a apresentação de
+\(\widetilde C\) já fixada pela entrada. O provador conhece a
+abertura da chave e as máscaras. Abreviemos os dois escalares que
+vão entrar nas relações de Schnorr:
+\[
+ \bar y=y+r_O,\qquad w=xr_J.
+\]
+O primeiro é a máscara da chave apresentada; o segundo é o produto
+que permite retirar da imagem a contribuição da máscara de
+\(\widetilde J\). Assim, as relações a ligar são
+\[
+ \widetilde O=xG+\bar yT,\qquad
+ I=x\widetilde J-wU,\qquad w=xr_J.
+\]
+As duas primeiras são lineares nos segredos. A terceira multiplica
+dois deles. SAL reúne estas duas espécies de relação através de
+um compromisso comum.
+
+O provador escolhe uma máscara uniforme \(r_P\in\mathbb Z_\ell\)
+e publica
+\begin{equation}
+ P=xG+r_JV+wU+r_PT.
+ \label{eq:fcmp-sal-P}
+\end{equation}
+As direcções \(G,V,U\) guardam, por esta ordem, os dois factores
+e o produto; \(T\) guarda a máscara. O argumento de produto
+certificará que o coeficiente de \(U\) é o produto dos coeficientes
+de \(G\) e \(V\). Como \(T\) tem ordem \(\ell\), a máscara
+uniforme torna \(P\) uniforme no grupo para quaisquer valores
+fixos desses três coeficientes.
+
+O mesmo ponto fornece uma ligação às aberturas da entrada. O
+verificador pode calcular a diferença pública
+\(D=P-\widetilde O-R\). Substituindo as aberturas, obtemos
+\begin{align*}
+ D&=(xG+r_JV+wU+r_PT)
+       -(xG+\bar yT)-(r_JV+r_RT)\\
+  &=wU+(r_P-\bar y-r_R)T.
+\end{align*}
+Definindo \(\eta=r_P-\bar y-r_R\), basta ligar as três relações
+\begin{equation}
+ \widetilde O=xG+\bar yT,\qquad
+ D=wU+\eta T,\qquad
+ I=x\widetilde J-wU.
+ \label{eq:fcmp-sal-linear-relations}
+\end{equation}
+O escalar \(x\) reaparece na chave e na imagem; \(w\) reaparece
+na diferença e na imagem. Esta partilha permite que as respostas
+de Schnorr liguem os mesmos segredos a todos os pontos pertinentes.
+A abertura de \(R\), fornecida pela pertença, completará a
+ligação ao produto~\cite{fcmp-composition-review}.
+
+\section{Do produto escondido às quatro verificações}
+\label{sec:fcmp-sal-protocol}
+
+Comecemos pelo produto. Como em Schnorr, o provador oculta os
+segredos por escalares aleatórios antes de conhecer o desafio.
+Escolhe \(\alpha,\beta\) independentemente e uniformemente em
+\(\mathbb Z_\ell\), para ocultar os factores \(x,r_J\).
+Para um desafio escalar \(e\), as respostas serão
+\[
+ s_x=\alpha+ex,\qquad s_J=\beta+er_J.
+\]
+Multiplicá-las dá uma expressão quadrática no desafio:
+\begin{equation}
+ s_xs_J=\alpha\beta
+       +e(\alpha r_J+\beta x)+e^2xr_J.
+ \label{eq:fcmp-sal-quadratic}
+\end{equation}
+O termo constante depende das duas máscaras; o termo de grau um
+cruza máscaras e segredos; o de grau dois contém precisamente o
+produto a provar. Os pontos enviados antes do desafio vão
+comprometer esses três coeficientes.
+
+O coeficiente de grau dois já está em \(P\). O provador escolhe
+duas novas máscaras uniformes \(\delta,\mu\) e prepara
+\begin{equation}
+ \begin{aligned}
+  A&=\alpha G+\beta V+(\alpha r_J+\beta x)U+\delta T,\\
+  B&=(\alpha\beta)U+\mu T.
+ \end{aligned}
+ \label{eq:fcmp-sal-AB}
+\end{equation}
+No ponto \(A\), os coeficientes de \(G,V\) são as máscaras
+dos factores e o coeficiente de \(U\) é o termo cruzado.
+O ponto \(B\) guarda o termo constante em \(U\). Ambos recebem
+uma máscara própria em \(T\). A combinação pública
+\(e^2P+eA+B\) alinha, assim, os graus do polinómio.
+
+As relações lineares usam a mesma máscara \(\alpha\) para
+\(x\). O provador escolhe, independentemente, escalares
+uniformes \(k_y,k_w,k_\eta\), e prepara
+\begin{equation}
+ \begin{aligned}
+  R_O&=\alpha G+k_yT,\\
+  R_P&=k_wU+k_\eta T,\\
+  R_I&=\alpha\widetilde J-k_wU.
+ \end{aligned}
+ \label{eq:fcmp-sal-first-messages}
+\end{equation}
+São as três relações \eqref{eq:fcmp-sal-linear-relations}
+calculadas sobre máscaras: \(\alpha\) ocupa o lugar de \(x\),
+\(k_y\) o de \(\bar y\), \(k_w\) o de \(w\) e
+\(k_\eta\) o de \(\eta\). A repetição de \(\alpha\) e
+\(k_w\) acompanha a repetição dos respectivos segredos.
+
+Neste momento estão fixados os seis pontos
+\(P,A,B,R_O,R_P,R_I\). Obtido o desafio comum \(e\), o
+provador calcula as seis respostas
+\begin{equation}
+ \begin{aligned}
+  s_x&=\alpha+ex,&
+  s_J&=\beta+er_J,\\
+  s_P&=\mu+e\delta+e^2r_P,&
+  s_y&=k_y+e\bar y,\\
+  s_w&=k_w+ew,&
+  s_\eta&=k_\eta+e\eta.
+ \end{aligned}
+ \label{eq:fcmp-sal-responses}
+\end{equation}
+A resposta \(s_P\) combina as três máscaras em \(T\) com
+os graus que lhes correspondem. As restantes têm a forma de
+Schnorr: máscara mais desafio vezes segredo. A partilha de
+\(s_x\) serve simultaneamente o argumento de produto e as
+relações da chave e da imagem.
+
+O verificador confere as quatro igualdades
+\begin{subequations}
+\label{eq:fcmp-sal-verification}
+\begin{align}
+ e^2P+eA+B
+   &=e s_xG+e s_JV+s_xs_JU+s_PT,
+       \label{eq:fcmp-sal-product-check}\\
+ R_O+e\widetilde O
+   &=s_xG+s_yT,
+       \label{eq:fcmp-sal-key-check}\\
+ R_P+e(P-\widetilde O-R)
+   &=s_wU+s_\eta T,
+       \label{eq:fcmp-sal-difference-check}\\
+ R_I+eI
+   &=s_x\widetilde J-s_wU.
+       \label{eq:fcmp-sal-image-check}
+\end{align}
+\end{subequations}
+A primeira verifica o argumento de produto; as três seguintes
+verificam a conjunção de Schnorr. A prova contém os seis pontos
+e os seis escalares, além dos dados públicos da entrada aos quais
+se refere~\cite{fcmp-composition-review,monero-oxide-fcmp-source}.
+
+Vejamos por que razão uma testemunha correcta satisfaz cada
+igualdade. Na primeira, a expansão do lado esquerdo dá
+\[
+ \begin{aligned}
+ &(e^2x+e\alpha)G+(e^2r_J+e\beta)V\\
+ &\quad+\bigl(e^2xr_J+e(\alpha r_J+\beta x)+\alpha\beta\bigr)U
+       +(e^2r_P+e\delta+\mu)T.
+ \end{aligned}
+\]
+Os quatro coeficientes são \(es_x,es_J,s_xs_J,s_P\),
+respectivamente. A identidade quadrática
+\eqref{eq:fcmp-sal-quadratic} explica o terceiro. Nas relações
+lineares, a mesma substituição fornece
+\[
+ \begin{aligned}
+ R_O+e\widetilde O
+   &=(\alpha+ex)G+(k_y+e\bar y)T,\\
+ R_P+eD
+   &=(k_w+ew)U+(k_\eta+e\eta)T,\\
+ R_I+eI
+   &=(\alpha+ex)\widetilde J-(k_w+ew)U.
+ \end{aligned}
+\]
+São exactamente os lados direitos das três verificações.
+Estas contas estabelecem a completude: a construção aceita
+a prova feita com uma abertura correcta.
+
+O argumento de produto aqui utilizado é o caso de dimensão um
+de Bulletproofs+, com vectores \((x)\), \((r_J)\) e peso um.
+O produto interno reduz-se a \(xr_J\), pelo que já se está no
+caso final do argumento, onde se enviam respostas escalares.
+A passagem a vectores maiores acrescenta as rondas de redução
+da dimensão. Em SAL, o trabalho essencial é ligar este produto
+único às três relações lineares da entrada
+\cite{bulletproofs-plus-paper}.
+
+\section{O desafio que autoriza a transacção}
+\label{sec:fcmp-sal-transcript}
+
+Na versão interactiva, o verificador escolheria \(e\) depois
+de receber os seis pontos. Fiat--Shamir determina-o pelo contexto
+público e por esses pontos, numa ordem fixada. Seja \(m_{\rm tx}\)
+o resumo assinável da transacção, que vincula os seus dados e os
+pseudo-compromissos. Escrevendo \(\operatorname{enc}\) para a
+codificação canónica dos pontos, a sequência a resumir é
+\[
+ \begin{aligned}
+ \tau={}&m_{\rm tx}
+   \mathbin\Vert\operatorname{enc}(\widetilde O)
+   \mathbin\Vert\operatorname{enc}(\widetilde J)
+   \mathbin\Vert\operatorname{enc}(\widetilde C)
+   \mathbin\Vert\operatorname{enc}(R)
+   \mathbin\Vert\operatorname{enc}(I)\\
+  &\mathbin\Vert\operatorname{enc}(P)
+   \mathbin\Vert\operatorname{enc}(A)
+   \mathbin\Vert\operatorname{enc}(B)
+   \mathbin\Vert\operatorname{enc}(R_O)
+   \mathbin\Vert\operatorname{enc}(R_P)
+   \mathbin\Vert\operatorname{enc}(R_I).
+ \end{aligned}
+\]
+A concatenação \(\Vert\) junta campos de comprimento fixo.
+A função de hash para escalares própria desta prova determina
+\begin{equation}
+ e=\mathcal H_{\rm SAL}(\tau)\in\mathbb Z_\ell.
+ \label{eq:fcmp-sal-challenge}
+\end{equation}
+O verificador recompõe a mesma sequência e calcula o mesmo
+desafio. Os pontos têm de representar elementos válidos do
+subgrupo primo, e as respostas têm de representar escalares
+canónicos~\cite{monero-oxide-fcmp-source}.
+
+A inclusão de \(\widetilde C\) no desafio liga a autorização
+ao pseudo-compromisso daquela entrada. A inclusão de
+\(m_{\rm tx}\) liga-a ao gasto concreto. Os seis pontos
+fixam as mensagens da prova antes do desafio, e a apresentação
+comum fixa os dados aos quais as respostas se aplicam. O teste
+exterior \(I\ne\mathcal O\), já exigido para a imagem de
+chave, assegura ainda que a última verificação tem uma
+dependência efectiva de \(e\).
+
+Esta ordem dá a Fiat--Shamir a sua força: o provador prepara
+as mensagens, obtém o desafio que lhes corresponde e calcula
+as respostas. A análise de conhecimento da versão não
+interactiva modela a função de hash como um oráculo aleatório
+e conserva a ligação de toda a declaração ao transcrito
+\cite{fcmp-composition-review}.
+
+\section{Como as provas recuperam a mesma abertura}
+\label{sec:fcmp-sal-knowledge}
+
+A completude verifica as contas do provador que conhece os
+segredos. A propriedade de conhecimento estabelece outra
+afirmação: a partir de um provador eficiente que consegue a
+aceitação com probabilidade não negligenciável, um extractor
+pode obter testemunhas das relações demonstradas. A análise
+permite-lhe voltar ao mesmo estado do provador e obter
+respostas a desafios diferentes. Este acesso é uma ferramenta
+da demonstração de segurança; o verificador ordinário continua
+a receber apenas a prova.
+
+Nas três relações de Schnorr, a extracção pode ser vista
+directamente. Fixem-se os pontos enviados antes do desafio e
+considerem-se respostas aceites para \(e\ne e'\). Designemos
+as segundas respostas por uma plica. Subtrair
+\eqref{eq:fcmp-sal-key-check} para os dois desafios elimina
+\(R_O\):
+\[
+ (e-e')\widetilde O
+       =(s_x-s_x')G+(s_y-s_y')T.
+\]
+A diferença \(e-e'\) tem inversa no corpo. As três verificações
+lineares fornecem, assim, os escalares
+\[
+ \begin{aligned}
+ x_2&=\frac{s_x-s_x'}{e-e'},&
+ y_2&=\frac{s_y-s_y'}{e-e'},\\
+ w_2&=\frac{s_w-s_w'}{e-e'},&
+ \eta_2&=\frac{s_\eta-s_\eta'}{e-e'},
+ \end{aligned}
+\]
+que satisfazem
+\begin{equation}
+ \widetilde O=x_2G+y_2T,\qquad
+ D=w_2U+\eta_2T,\qquad
+ I=x_2\widetilde J-w_2U.
+ \label{eq:fcmp-sal-extracted-linear}
+\end{equation}
+A propriedade de conhecimento do argumento de produto fornece,
+por seu turno, escalares \(x_1,b_1,p_1\) tais que
+\begin{equation}
+ P=x_1G+b_1V+(x_1b_1)U+p_1T.
+ \label{eq:fcmp-sal-extracted-product}
+\end{equation}
+Esta é a garantia do argumento de produto de Bulletproofs+
+usado na conjunção; a sua extracção faz parte da análise
+desse argumento~\cite{bulletproofs-plus-paper,fcmp-composition-review}.
+
+Os índices distinguem as testemunhas extraídas de cada
+componente. A ligação entre elas torna-se explícita quando a
+pertença fornece a sua testemunha: o registo \((O,J,C)\) e
+as máscaras da apresentação \eqref{eq:fcmp-public-presentation}.
+Temos então duas expressões para \(D\): a de
+\eqref{eq:fcmp-sal-extracted-linear} e a que resulta de
+subtrair a \eqref{eq:fcmp-sal-extracted-product} as aberturas
+de \(\widetilde O\) e \(R\). A sua igualdade dá
+\begin{equation}
+ \begin{aligned}
+ &(x_1-x_2)G+(b_1-r_J)V+(x_1b_1-w_2)U\\
+ &\hspace{30mm}+(p_1-y_2-r_R-\eta_2)T=\mathcal O.
+ \end{aligned}
+ \label{eq:fcmp-sal-binding-relation}
+\end{equation}
+Todos os coeficientes desta igualdade ficam disponíveis ao
+extractor. Pela hipótese de dificuldade de encontrar uma
+relação não trivial de logaritmo discreto entre as bases,
+os coeficientes obtidos têm de ser nulos, salvo probabilidade
+negligenciável. Em particular,
+\[
+ x_1=x_2,\qquad b_1=r_J,\qquad w_2=x_1r_J.
+\]
+Esta é uma vinculação computacional das aberturas: a hipótese
+aplica-se a quem conhece os coeficientes da relação.
+
+Substituir estas igualdades na imagem extraída conclui a conta:
+\[
+ I=x_1\widetilde J-(x_1r_J)U
+   =x_1(J+r_JU)-(x_1r_J)U=x_1J.
+\]
+Da mesma maneira,
+\[
+ O=\widetilde O-r_OT=x_1G+(y_2-r_O)T.
+\]
+Recuperámos uma abertura da chave da saída pertencente ao
+conjunto e a imagem correspondente ao mesmo coeficiente
+\(x_1\). A pertença fornece também
+\(\widetilde C=C+r_CG\). As quatro condições da relação
+\eqref{eq:fcmp-composed-statement} ficam, deste modo, ligadas
+ao mesmo registo. A testemunha de \(R\) entrou pela pertença;
+SAL forneceu as aberturas de \(P,\widetilde O,D\) e a relação
+da imagem que permitem esta conclusão.
+
+Podemos igualmente ver como as respostas conservam os segredos.
+Fixados os dados públicos de SAL, incluindo \(P\), e um
+desafio \(e\), um simulador escolhe uniformemente um ponto
+\(A\) e os seis escalares de resposta.
+Calcula depois
+\[
+ \begin{aligned}
+ B&=es_xG+es_JV+s_xs_JU+s_PT-e^2P-eA,\\
+ R_O&=s_xG+s_yT-e\widetilde O,\\
+ R_P&=s_wU+s_\eta T-eD,\\
+ R_I&=s_x\widetilde J-s_wU-eI.
+ \end{aligned}
+\]
+O transcrito assim construído satisfaz as quatro verificações
+usando apenas os dados públicos e o desafio fixado.
+
+Para a construção que acabámos de dar, com o mesmo \(x\) no
+produto e nas relações lineares, a distribuição coincide com
+a do protocolo interactivo. Com efeito, fixados a testemunha,
+\(e\), \(A\) e as respostas, \(s_x,s_J\) determinam
+unicamente \(\alpha,\beta\). Existe depois uma única
+\(\delta\) que dá aquele \(A\), pois \(T\) gera o grupo;
+\(s_P\) determina \(\mu\), e as três respostas restantes
+determinam \(k_y,k_w,k_\eta\). Esta correspondência biunívoca
+transporta a distribuição uniforme das sete máscaras para a
+distribuição uniforme de \(A\) e das seis respostas. Estabelece
+o conhecimento zero perante um desafio aleatório honesto.
+A passagem a Fiat--Shamir usa a simulação no modelo de oráculo
+aleatório~\cite{fcmp-composition-review}.
+
+A autorização está agora ligada à apresentação pública e à
+imagem, mantendo ocultas as aberturas. Resta construir a
+testemunha de pertença de que a composição depende. Para isso,
+abriremos os compromissos vectoriais e os circuitos que
+certificam o caminho até à raiz.
+
+\Needspace{9\baselineskip}
+\section{Usar dentro do circuito valores já comprometidos}
+\label{sec:fcmp-gbp-statement}
+
+Um ramo da árvore reúne vários dados num compromisso vectorial.
+A prova de pertença precisa de calcular com esses dados: seleccionar
+uma coordenada, relacioná-la com um ponto e conferir as máscaras.
+A ligação decisiva é esta: as variáveis usadas nas contas têm de
+ser as coordenadas guardadas nos compromissos públicos. Generalized
+Bulletproofs estabelece essa ligação juntamente com a satisfação
+das contas do circuito.
+
+Fixemos um dos grupos de prova, \(\mathcal G\), de ordem prima,
+e o seu corpo de escalares \(\mathbb F\). Todas as contas do
+circuito decorrem em \(\mathbb F\). Os pontos de compromisso
+pertencem a \(\mathcal G\); a equação da curva que os representa
+tem o seu próprio corpo de coordenadas. A relação entre estes
+dois corpos terá papel central ao passar de uma curva à outra.
+
+Nesta construção, \(g,h\) são dois pontos públicos, e
+\(\boldsymbol g=(g_1,\ldots,g_m)\),
+\(\boldsymbol h=(h_1,\ldots,h_m)\) são vectores de pontos
+públicos. A dimensão \(m\) é uma potência de dois, suficiente
+para todos os vectores que vamos usar. As bases satisfazem a
+hipótese habitual de dificuldade de encontrar relações não
+triviais de logaritmo discreto. Um compromisso vectorial tem
+a forma
+\[
+ K_k=\langle\boldsymbol c_k,\boldsymbol g\rangle+\gamma_kh
+     =\sum_{i=1}^{m}c_{k,i}g_i+\gamma_kh.
+\]
+O ponto \(K_k\) é público; as suas coordenadas escalares
+\(\boldsymbol c_k\) e a máscara \(\gamma_k\) pertencem à
+testemunha. Cada coordenada tem uma base própria, o que permite
+referi-la separadamente nas condições do circuito.
+
+Consideremos uma conta pequena. O provador conhece uma abertura
+\(K_1=ug_1+vg_2+\gamma_1h\) e quer demonstrar
+\(v=u^2+3u\). Um circuito aritmético organiza esta conta em
+produtos e condições lineares. Atribui a um produto dois
+operandos, \(a_L,a_R\), e um resultado, \(a_O\); exige
+\[
+ a_La_R=a_O,\qquad
+ a_L-c_{1,1}=0,\qquad
+ a_R-c_{1,1}=0,\qquad
+ a_O+3c_{1,1}-c_{1,2}=0.
+\]
+As duas condições intermédias ligam os operandos à primeira
+coordenada de \(K_1\). A última liga o resultado à segunda.
+Para \(u=2,v=10\), o produto recebe \(2,2,4\), e a condição
+final lê-se \(4+6-10=0\). As coordenadas comprometidas e os
+valores calculados pertencem, assim, à mesma declaração.
+
+Num circuito maior, os operandos e resultados formam vectores
+\(\boldsymbol a_L,\boldsymbol a_R,\boldsymbol a_O\).
+O produto coordenada a coordenada impõe todos os produtos
+secretos:
+\[
+ \boldsymbol a_L\circ\boldsymbol a_R=\boldsymbol a_O.
+\]
+As restantes condições são combinações lineares. Com \(s\)
+compromissos vectoriais e \(q\) condições, escrevemo-las
+\begin{equation}
+ W_L\boldsymbol a_L+W_R\boldsymbol a_R+W_O\boldsymbol a_O
+       +\sum_{k=1}^{s}W_k\boldsymbol c_k=\boldsymbol b.
+ \label{eq:fcmp-gbp-linear}
+\end{equation}
+Cada \(W\) é uma matriz pública de \(q\) linhas e \(m\)
+colunas; cada linha descreve uma condição. O vector público
+\(\boldsymbol b\in\mathbb F^q\) guarda os termos constantes.
+Posições adicionais recebem zeros até perfazer a dimensão
+\(m\). No exemplo, basta \(m=2\), embora haja um único
+produto efectivo: o compromisso guarda duas coordenadas.
+
+O argumento de produto interno usa as duas famílias
+\(\boldsymbol g,\boldsymbol h\). A sua declaração de conhecimento
+admite, por isso, a abertura mais geral
+\begin{equation}
+ K_k=\langle\boldsymbol c_k,\boldsymbol g\rangle
+       +\langle\boldsymbol d_k,\boldsymbol h\rangle+\gamma_kh.
+ \label{eq:fcmp-gbp-vector-opening}
+\end{equation}
+As condições \eqref{eq:fcmp-gbp-linear} referem-se às
+coordenadas \(\boldsymbol c_k\); \(\boldsymbol d_k\) participa
+na abertura do compromisso. A construção das testemunhas de
+FCMP++ usa \(\boldsymbol d_k=\boldsymbol0\). Ao compor as provas,
+a vinculação às aberturas dos ramos estabelece a consistência
+necessária entre os compromissos da árvore e esta declaração.
+Conservaremos a forma geral ao deduzir o protocolo
+\cite{generalized-bulletproofs-fixed}.
+
+A declaração pública reúne os compromissos \(K_k\), as bases,
+as matrizes e \(\boldsymbol b\). A testemunha reúne os três
+vectores do circuito e as aberturas
+\((\boldsymbol c_k,\boldsymbol d_k,\gamma_k)\).
+Esta é a especialização usada na pertença: as coordenadas
+externas chegam através de compromissos vectoriais.
+
+\section{Reunir as condições num coeficiente}
+\label{sec:fcmp-gbp-polynomial}
+
+Precisamos de verificar muitos produtos e muitas condições
+lineares, conservando a testemunha oculta. A estratégia das
+Bulletproofs é reunir essas condições num coeficiente de um
+produto de polinómios vectoriais. A posição desse coeficiente
+será pública; os outros coeficientes receberão compromissos
+próprios. Uma avaliação desafiada ligará tudo.
+
+Primeiro, o provador fixa os valores do circuito. Escolhe
+máscaras uniformes \(\alpha,\beta,\rho_S\in\mathbb F\) e
+vectores uniformes \(\boldsymbol s_L,\boldsymbol s_R\in\mathbb F^m\).
+Publica
+\[
+ \begin{aligned}
+ A_I&=\langle\boldsymbol a_L,\boldsymbol g\rangle
+       +\langle\boldsymbol a_R,\boldsymbol h\rangle+\alpha h,\\
+ A_O&=\langle\boldsymbol a_O,\boldsymbol g\rangle+\beta h,\\
+ S&=\langle\boldsymbol s_L,\boldsymbol g\rangle
+       +\langle\boldsymbol s_R,\boldsymbol h\rangle+\rho_S h.
+ \end{aligned}
+\]
+Os compromissos \(K_k\) já pertencem ao transcrito. Depois de
+\(A_I,A_O,S\), obtêm-se dois desafios não nulos,
+\(\lambda,\zeta\in\mathbb F^*\). O primeiro atribui pesos aos
+produtos; o segundo atribui pesos às condições lineares:
+\[
+ \boldsymbol y=(1,\lambda,\ldots,\lambda^{m-1}),\qquad
+ \boldsymbol z=(\zeta,\zeta^2,\ldots,\zeta^q).
+\]
+O verificador pode calcular os vectores públicos
+\[
+ \boldsymbol w_L=W_L^\top\boldsymbol z,\quad
+ \boldsymbol w_R=W_R^\top\boldsymbol z,\quad
+ \boldsymbol w_O=W_O^\top\boldsymbol z,\quad
+ \boldsymbol w_k=W_k^\top\boldsymbol z,
+\]
+e o escalar \(b_\zeta=\langle\boldsymbol z,\boldsymbol b\rangle\).
+Por exemplo,
+\(\langle\boldsymbol w_L,\boldsymbol a_L\rangle
+ =\langle\boldsymbol z,W_L\boldsymbol a_L\rangle\):
+as colunas de \(W_L\) acumulam o peso que cada variável recebe
+nas diferentes condições.
+
+Introduzamos a diferença escalar
+\[
+ \begin{aligned}
+ E(\lambda,\zeta)={}&
+ \langle\boldsymbol y,
+       \boldsymbol a_L\circ\boldsymbol a_R-\boldsymbol a_O\rangle\\
+ &+\langle\boldsymbol w_L,\boldsymbol a_L\rangle
+  +\langle\boldsymbol w_R,\boldsymbol a_R\rangle
+  +\langle\boldsymbol w_O,\boldsymbol a_O\rangle
+  +\sum_{k=1}^{s}\langle\boldsymbol w_k,\boldsymbol c_k\rangle
+  -b_\zeta.
+ \end{aligned}
+\]
+Uma testemunha correcta dá \(E=0\). Com os valores previamente
+fixados, as potências de \(\lambda\) separam os produtos e
+as potências positivas de \(\zeta\) separam as condições
+lineares. Se alguma condição falha, esta expressão é um
+polinómio não nulo nos desafios; a contagem das suas raízes
+limita a probabilidade de uma avaliação acidentalmente nula.
+Para desafios uniformes em \(\mathbb F^*\), esse limite é
+\[
+ \Pr[E(\lambda,\zeta)=0]\leq
+ \min\left(1,\frac{\max(m-1,q)}{|\mathbb F|-1}\right).
+\]
+Com efeito, se a expressão depende de \(\lambda\), cada
+\(\zeta\) fixo deixa no máximo \(m-1\) raízes nessa variável.
+Se depende apenas de \(\zeta\), há no máximo \(q\) raízes;
+uma constante não nula tem zero raízes.
+
+Para colocar esta expressão dentro de um único produto interno,
+fixamos o índice
+\[
+ d=2s+2.
+\]
+As coordenadas do compromisso \(K_k\) ocuparão o grau \(d-k\);
+os respectivos pesos ocuparão o grau \(k\). A soma desses graus
+é sempre \(d\). Os operandos ocuparão ambos o grau \(s+1\),
+e os resultados ocuparão o grau \(d\). Esta distribuição faz
+as condições encontrarem-se no mesmo coeficiente.
+
+Escrevendo \(\boldsymbol y^{-1}\) para as inversas coordenada
+a coordenada, definimos os polinómios vectoriais
+\begin{equation}
+ \begin{aligned}
+ \boldsymbol l(X)={}&
+  (\boldsymbol a_L+\boldsymbol y^{-1}\circ\boldsymbol w_R)X^{s+1}
+  +\sum_{k=1}^{s}\boldsymbol c_kX^{d-k}
+  +\boldsymbol a_OX^d+\boldsymbol s_LX^{d+1},\\
+ \boldsymbol r(X)={}&
+  \boldsymbol w_O-\boldsymbol y
+  +(\boldsymbol y\circ\boldsymbol a_R+\boldsymbol w_L)X^{s+1}
+  +\sum_{k=1}^{s}\boldsymbol w_kX^k\\
+ &+\sum_{k=1}^{s}(\boldsymbol y\circ\boldsymbol d_k)X^{d-k}
+  +(\boldsymbol y\circ\boldsymbol s_R)X^{d+1}.
+ \end{aligned}
+ \label{eq:fcmp-gbp-vector-polynomials}
+\end{equation}
+Cada coordenada é um polinómio escalar. Avaliar em \(X=\xi\)
+produzirá dois vectores de \(\mathbb F^m\). O produto interno
+\(t(X)=\langle\boldsymbol l(X),\boldsymbol r(X)\rangle\)
+é, por sua vez, um polinómio escalar, de grau até \(2d+2\).
+
+Calculemos o coeficiente \(t_d\). Contribuem o par de graus
+\((s+1,s+1)\), o par \((d,0)\) e os pares \((d-k,k)\).
+As parcelas com \(\boldsymbol d_k\) começam acima desse grau:
+o menor grau de \(\boldsymbol l\) é \(s+1\), e
+\(d-k\geq s+2\). Logo,
+\[
+ \begin{aligned}
+ t_d={}&
+ \langle\boldsymbol a_L+\boldsymbol y^{-1}\circ\boldsymbol w_R,
+        \boldsymbol y\circ\boldsymbol a_R+\boldsymbol w_L\rangle\\
+ &+\langle\boldsymbol a_O,\boldsymbol w_O-\boldsymbol y\rangle
+  +\sum_{k=1}^{s}\langle\boldsymbol c_k,\boldsymbol w_k\rangle.
+ \end{aligned}
+\]
+A expansão do primeiro produto dá os produtos do circuito,
+os dois termos lineares e uma parcela inteiramente pública:
+\[
+ \delta=\langle\boldsymbol y^{-1}\circ\boldsymbol w_R,
+                    \boldsymbol w_L\rangle.
+\]
+Comparando com \(E\), obtemos
+\begin{equation}
+ t_d=E(\lambda,\zeta)+b_\zeta+\delta.
+ \label{eq:fcmp-gbp-distinguished-coefficient}
+\end{equation}
+Para uma testemunha válida, o coeficiente tem o valor público
+\(t_d=b_\zeta+\delta\). É esta igualdade que o protocolo vai
+certificar.
+
+Voltemos a \(v=u^2+3u\). Temos \(s=1\), \(d=4\),
+\(\boldsymbol a_L=\boldsymbol a_R=(u,0)\),
+\(\boldsymbol a_O=(u^2,0)\) e \(\boldsymbol c_1=(u,v)\).
+As três condições lineares dão
+\[
+ \begin{gathered}
+ \boldsymbol w_L=(\zeta,0),\quad
+ \boldsymbol w_R=(\zeta^2,0),\quad
+ \boldsymbol w_O=(\zeta^3,0),\\
+ \boldsymbol w_1=(-\zeta-\zeta^2+3\zeta^3,-\zeta^3),
+ \qquad b_\zeta=0,\quad \delta=\zeta^3.
+ \end{gathered}
+\]
+O coeficiente escolhido calcula-se por inteiro:
+\[
+ \begin{aligned}
+ t_4&=(u+\zeta^2)(u+\zeta)
+       +u^2(\zeta^3-1)
+       +u(-\zeta-\zeta^2+3\zeta^3)-v\zeta^3\\
+    &=\zeta^3(1+u^2+3u-v).
+ \end{aligned}
+\]
+Com \(u=2,v=10\), o factor entre parênteses é
+\(1+4+6-10=1\), e fica \(t_4=\zeta^3=\delta\).
+A conta do circuito e as duas coordenadas de \(K_1\) chegaram
+ao coeficiente que o verificador conhece.
+
+\section{Da avaliação à prova de produto interno}
+\label{sec:fcmp-gbp-ipa-reduction}
+
+Os termos de \(t\) começam no grau \(s+1\). O provador
+compromete cada coeficiente dos graus \(s+1,\ldots,2d+2\),
+exceptuando o grau \(d\), cujo valor já foi determinado.
+Com máscaras uniformes \(\tau_i\), envia
+\[
+ T_i=t_i g+\tau_i h
+ \qquad(s+1\leq i\leq2d+2,\ i\ne d).
+\]
+Depois destes pontos, obtém-se um novo desafio não nulo
+\(\xi\in\mathbb F^*\). O provador avalia
+\[
+ \boldsymbol l=\boldsymbol l(\xi),\qquad
+ \boldsymbol r=\boldsymbol r(\xi),\qquad
+ \widehat t=\langle\boldsymbol l,\boldsymbol r\rangle.
+\]
+Calcula ainda as máscaras agregadas
+\[
+ \begin{aligned}
+ \tau_\xi&=\sum_{\substack{i=s+1\\i\ne d}}^{2d+2}\tau_i\xi^i,\\
+ \mu&=\alpha\xi^{s+1}+\beta\xi^d+\rho_S\xi^{d+1}
+                    +\sum_{k=1}^{s}\gamma_k\xi^{d-k}.
+ \end{aligned}
+\]
+Envia os três escalares \(\tau_\xi,\mu,\widehat t\).
+O verificador pode então conferir
+\begin{equation}
+ \widehat t\,g+\tau_\xi h
+   =\xi^d(b_\zeta+\delta)g
+       +\sum_{\substack{i=s+1\\i\ne d}}^{2d+2}\xi^iT_i.
+ \label{eq:fcmp-gbp-polynomial-check}
+\end{equation}
+O lado direito é o compromisso da avaliação de \(t\), com o
+coeficiente decisivo fornecido pela declaração. O lado esquerdo
+abre essa avaliação com os escalares enviados.
+
+Falta ligar \(\widehat t\) aos vectores comprometidos. Para isso,
+o verificador muda os pesos das bases de direita,
+\(\boldsymbol h'=\boldsymbol y^{-1}\circ\boldsymbol h\),
+e calcula o ponto público
+\begin{equation}
+ \begin{aligned}
+ P_{\rm ar}={}&
+   \xi^{s+1}A_I+\xi^dA_O+\xi^{d+1}S
+   +\sum_{k=1}^{s}\xi^{d-k}K_k\\
+ &+\xi^{s+1}
+       \langle\boldsymbol y^{-1}\circ\boldsymbol w_R,\boldsymbol g\rangle\\
+ &+\left\langle
+       \boldsymbol w_O-\boldsymbol y
+       +\xi^{s+1}\boldsymbol w_L+\sum_{k=1}^{s}\xi^k\boldsymbol w_k,
+       \boldsymbol h'\right\rangle.
+ \end{aligned}
+ \label{eq:fcmp-gbp-public-point}
+\end{equation}
+As duas últimas linhas acrescentam as parcelas públicas dos
+polinómios. As primeiras reúnem os compromissos com os mesmos
+graus usados em \(\boldsymbol l,\boldsymbol r\). Ao substituir
+as aberturas de \(A_I,A_O,S,K_k\), os coeficientes das bases
+\(\boldsymbol g\) tornam-se \(\boldsymbol l(\xi)\), os das bases
+\(\boldsymbol h'\) tornam-se \(\boldsymbol r(\xi)\), e o
+coeficiente de \(h\) é \(\mu\). Assim,
+\[
+ P_{\rm ar}-\mu h
+   =\langle\boldsymbol l,\boldsymbol g\rangle
+       +\langle\boldsymbol r,\boldsymbol h'\rangle.
+\]
+Esta conta explica a presença de todos os compromissos
+externos no ponto que será verificado.
+
+Depois dos três escalares, o transcrito fornece um desafio
+não nulo \(\omega\). Define-se \(u_{\rm PI}=\omega g\).
+O argumento de produto interno certifica a relação
+\begin{equation}
+ \begin{aligned}
+ P_{\rm ar}-\mu h+\widehat t\,u_{\rm PI}
+   ={}&\langle\boldsymbol l,\boldsymbol g\rangle
+      +\langle\boldsymbol r,\boldsymbol h'\rangle\\
+     &+\langle\boldsymbol l,\boldsymbol r\rangle u_{\rm PI}.
+ \end{aligned}
+ \label{eq:fcmp-gbp-ipa-statement}
+\end{equation}
+A escolha de \(\omega\) depois de \(\widehat t\) liga o valor
+anunciado ao produto dos vectores. Aplica-se então a redução
+por metades estudada nas Bulletproofs, cujos pesos de bases
+foram calculados em \eqref{eq:bp-g-arrow}. Cada ronda envia
+dois pontos, recebe um desafio e reduz a dimensão a metade.
+Após \(\log_2m\) rondas, ficam dois escalares e uma igualdade
+de pontos. Os vectores de dimensão \(m\) permanecem na
+testemunha~\cite{monero-oxide-fcmp-source}.
+
+As duas verificações têm papéis complementares.
+A igualdade \eqref{eq:fcmp-gbp-polynomial-check} compara a
+avaliação comprometida com a avaliação que usa
+\(b_\zeta+\delta\) no grau \(d\).
+O argumento \eqref{eq:fcmp-gbp-ipa-statement} liga a avaliação
+aos vectores e às aberturas dos compromissos. Por isso,
+há um único IPA para este circuito, mesmo quando ele reúne
+muitos ramos e muitas condições.
+
+\section{O que a árvore recebe desta prova}
+\label{sec:fcmp-gbp-security-interface}
+
+A ordem dos desafios é parte da construção. A declaração
+e os compromissos \(K_k\) ficam vinculados ao contexto;
+\(A_I,A_O,S\) precedem \(\lambda,\zeta\); os pontos \(T_i\)
+precedem \(\xi\); os três escalares precedem \(\omega\).
+Cada par de pontos do IPA precede o desafio da sua ronda.
+Fiat--Shamir realiza esta sequência a partir do transcrito.
+As bases e as condições do circuito devem ser determinadas
+pelo contexto público ou incluídas explicitamente nele.
+
+As máscaras têm funções distintas. \(\gamma_k,\alpha,\beta,\rho_S\)
+ocultam aberturas de compromissos; os vectores
+\(\boldsymbol s_L,\boldsymbol s_R\) ocultam as avaliações
+usadas no IPA; as máscaras \(\tau_i\) ocultam os coeficientes
+do polinómio. Para desafios fixos e não nulos, cada avaliação
+recebe um vector uniforme multiplicado pelo factor invertível
+\(\xi^{d+1}\). A demonstração de conhecimento zero conserva
+esta ocultação na distribuição conjunta das mensagens.
+
+A demonstração de conhecimento combina a extracção do IPA
+com a interpolação das respostas em desafios diferentes.
+Os graus distintos de \eqref{eq:fcmp-gbp-vector-polynomials}
+separam as aberturas de \(A_I,A_O,S\) e de cada \(K_k\).
+A igualdade do coeficiente \(t_d\), variando os desafios
+\(\lambda,\zeta\), recupera os produtos e as condições lineares.
+As comparações de aberturas usam a hipótese de dificuldade
+das relações de logaritmo discreto. Para a versão interactiva,
+estas propriedades são estabelecidas para desafios não nulos;
+a transformação de Fiat--Shamir usa o modelo de oráculo
+aleatório~\cite{generalized-bulletproofs-fixed}.
+
+Em FCMP++, os compromissos dos ramos e dos dados auxiliares
+fornecem os \(K_k\). O transcrito fixa-os antes dos desafios
+que determinam certas condições do circuito. O provador
+calcula então os auxiliares dependentes desses desafios e
+produz, em sequência no mesmo transcrito de pertença, as duas
+provas de circuito, uma por curva. Cada prova termina no seu IPA.
+
+A construção da árvore explicará como as coordenadas dos
+pontos de uma curva se usam como escalares na outra e como
+estas relações ligam a folha à raiz.
+
+\section{Curvas que trocam coordenadas e escalares}
+\label{sec:fcmp-curve-cycle}
+
+Um compromisso de ramo é um ponto. Para conferir a relação
+entre esse ponto e os seus filhos, o circuito calcula com as
+suas coordenadas. Para efectuar directamente estas contas,
+o corpo dessas coordenadas deve coincidir com o corpo
+escalar em que trabalha a prova aritmética. Helios e Selene
+organizam essa coincidência em ambas as direcções.
+
+Fixemos os primos
+\[
+ p_{\rm E}=2^{255}-19,\qquad
+ p_{\rm S}=2^{255}-11686397589588510723982429389243424941.
+\]
+O primeiro é o módulo das coordenadas de Edwards25519.
+As curvas do ciclo têm equações
+\[
+ \begin{aligned}
+ {\rm Helios}:&\quad Y^2=X^3-3X+b_{\rm H}
+                     &&\text{sobre }\mathbb F_{p_{\rm E}},\\
+ {\rm Selene}:&\quad Y^2=X^3-3X+b_{\rm S}
+                     &&\text{sobre }\mathbb F_{p_{\rm S}},
+ \end{aligned}
+\]
+com os coeficientes
+\[
+ \begin{aligned}
+ b_{\rm H}&=17523451383230374900436292617863907649717438939964238673872692863501483215968,\\
+ b_{\rm S}&=25675911719867737339625140396204798989996478324626569376465022644547366285284.
+ \end{aligned}
+\]
+As ordens dos grupos são precisamente os primos trocados:
+\[
+ \# {\rm Helios}(\mathbb F_{p_{\rm E}})=p_{\rm S},
+ \qquad
+ \# {\rm Selene}(\mathbb F_{p_{\rm S}})=p_{\rm E}.
+\]
+Ambas têm cofactor um. O subgrupo usado para as saídas
+conserva a ordem \(\ell\) de Edwards25519. A tabela reúne
+os tipos que interessam ao circuito:
+\begin{center}
+\begin{tabular}{lccc}
+ & \textbf{Coordenadas} & \textbf{Ordem usada} & \textbf{Escalares}\\[1mm]
+Edwards25519 / Wei25519 & \(\mathbb F_{p_{\rm E}}\) & \(\ell\) & \(\mathbb F_\ell\)\\
+Helios & \(\mathbb F_{p_{\rm E}}\) & \(p_{\rm S}\) & \(\mathbb F_{p_{\rm S}}\)\\
+Selene & \(\mathbb F_{p_{\rm S}}\) & \(p_{\rm E}\) & \(\mathbb F_{p_{\rm E}}\)
+\end{tabular}
+\end{center}
+A denominação Wei25519 refere-se à apresentação de Weierstrass
+dos pontos das saídas, que calcularemos a seguir
+\cite{monero-oxide-fcmp-source,helioselene-parameters}.
+
+Uma prova sobre Selene trabalha, portanto, com escalares em
+\(\mathbb F_{p_{\rm E}}\). Pode verificar directamente contas
+sobre as coordenadas de Edwards25519 e de Helios. Os pontos
+que essa prova compromete em Selene têm coordenadas em
+\(\mathbb F_{p_{\rm S}}\); estas entram no circuito da prova
+sobre Helios. Os pontos de Helios devolvem coordenadas em
+\(\mathbb F_{p_{\rm E}}\), prontas para o circuito de Selene.
+A alternância pode prolongar-se por tantos níveis quantos
+a árvore exigir.
+
+Em cada passagem, usam-se elementos de um mesmo corpo com
+dois papéis: coordenadas do ponto anterior e escalares da
+prova seguinte. As somas, produtos e inversas conservam
+exactamente o seu significado. Os pontos dos dois grupos
+continuam a ter as respectivas leis e ordens. É esta
+compatibilidade aritmética que permite reunir as camadas
+ímpares num circuito e as pares no outro.
+
+\section{Das saídas aos seis valores de uma folha}
+\label{sec:fcmp-leaf-construction}
+
+A folha começa com a chave e o compromisso registados para
+a saída. Seja \(b_O\) a sequência de bytes da chave original,
+\(O_{\rm reg}\) o ponto que ela representa e \(C_{\rm reg}\)
+o compromisso registado. A base da imagem é
+\[
+ J=\mathcal H_p(b_O),
+\]
+usando a regra de hash para pontos correspondente à classe
+da saída. A sequência originalmente registada fixa, assim,
+a base da etiqueta de gasto.
+
+Para colocar chave e compromisso no subgrupo primo, define-se
+a projecção
+\[
+ \pi(P)=[8]\,[8^{-1}\bmod\ell]P.
+\]
+Se \(P=P_\ell+\Theta\), onde \(P_\ell\) pertence ao subgrupo
+de ordem \(\ell\) e \([8]\Theta=\mathcal O\), então
+\[
+ \pi(P)=[8(8^{-1}\bmod\ell)]P_\ell
+             +[8(8^{-1}\bmod\ell)]\Theta=P_\ell.
+\]
+O primeiro termo conserva o ponto, porque o multiplicador
+vale um módulo \(\ell\); o segundo elimina a torção.
+A folha utiliza
+\[
+ O=\pi(O_{\rm reg}),\qquad C=\pi(C_{\rm reg}),
+\]
+e conserva o \(J\) já calculado sobre \(b_O\).
+Esta ordem mantém a imagem associada à chave original.
+Os três pontos admitidos são válidos e diferentes da
+identidade~\cite{monero-source-current-fcmp-tree}.
+
+Os dispositivos de divisores usam a forma de Weierstrass
+estudada no capítulo~\ref{chapter:divisors}. Para um ponto de
+Edwards com coordenadas \((x_{\rm E},y_{\rm E})\), a equação é
+\[
+ -x_{\rm E}^2+y_{\rm E}^2
+    =1+d_{\rm E}x_{\rm E}^2y_{\rm E}^2,
+ \qquad d_{\rm E}=-\frac{121665}{121666}.
+\]
+Todas as operações seguintes decorrem em \(\mathbb F_{p_{\rm E}}\).
+Fixemos \(a_{\rm M}=486662\). A raiz quadrada seleccionada
+de \(-486664\) é
+\[
+ \kappa=
+ 51042569399160536130206135233146329284152202253034631822681833788666877215207.
+\]
+A mudança intermédia é
+\[
+ u=\frac{1+y_{\rm E}}{1-y_{\rm E}},\qquad
+ v=\frac{\kappa u}{x_{\rm E}}.
+\]
+Para um ponto não neutro do subgrupo primo, os denominadores
+são não nulos: \(x_{\rm E}=0\) daria os pontos de coordenada
+\(y_{\rm E}=\pm1\), de ordens um e dois; \(y_{\rm E}=1\)
+identifica o elemento neutro.
+
+A equação de Edwards permite substituir
+\(x_{\rm E}^2=(y_{\rm E}^2-1)/(d_{\rm E}y_{\rm E}^2+1)\).
+Como \(u+1=2/(1-y_{\rm E})\ne0\), podemos usar
+\(y_{\rm E}=(u-1)/(u+1)\), obtendo
+\[
+ \begin{aligned}
+ v^2
+ &=u\bigl[-121665(u-1)^2+121666(u+1)^2\bigr]\\
+ &=u(u^2+486662u+1)=u^3+a_{\rm M}u^2+u.
+ \end{aligned}
+\]
+Temos a forma de Montgomery. A translação
+\[
+ X=u+\frac{a_{\rm M}}3,\qquad Y=v
+\]
+elimina o termo quadrático e dá
+\begin{equation}
+ Y^2=X^3+a_{\rm W}X+b_{\rm W},\qquad
+ a_{\rm W}=1-\frac{a_{\rm M}^2}{3},\quad
+ b_{\rm W}=\frac{2a_{\rm M}^3}{27}-\frac{a_{\rm M}}3.
+ \label{eq:fcmp-wei-model}
+\end{equation}
+As fracções representam inversões no corpo. Esta mudança de
+coordenadas representa os mesmos elementos do grupo no
+modelo Wei25519, conservando a soma e a multiplicação por
+escalares módulo \(\ell\).
+
+Aplicada a \(O,J,C\), fornece o sextuplo
+\begin{equation}
+ \operatorname{folha}(O,J,C)
+   =(X_O,Y_O,X_J,Y_J,X_C,Y_C)
+       \in\mathbb F_{p_{\rm E}}^6.
+ \label{eq:fcmp-leaf-six-coordinates}
+\end{equation}
+São seis escalares para a prova sobre Selene.
+A selecção de pertença escolhe o sextuplo inteiro: chave,
+base da imagem e compromisso mantêm a ligação ao mesmo
+registo~\cite{monero-oxide-fcmp-source}.
+
+\section{Dos ramos à raiz}
+\label{sec:fcmp-tree-nodes}
+
+Para cada curva do ciclo, fixam-se bases vectoriais
+\(\boldsymbol g_{\rm S},\boldsymbol g_{\rm H}\), bases de
+máscara \(h_{\rm S},h_{\rm H}\) e pontos públicos
+\(B_{\rm S},B_{\rm H}\). Estes últimos inicializam os resumos
+dos ramos. A hipótese de vinculação abrange as relações entre
+o inicializador e todas as bases da prova, incluindo a segunda
+família vectorial de Generalized Bulletproofs.
+
+Se \(\boldsymbol v\) é o vector de um ramo na curva
+\(\mathcal E\), o seu nó público é
+\begin{equation}
+ Q_{\mathcal E}(\boldsymbol v)
+       =B_{\mathcal E}
+          +\langle\boldsymbol v,\boldsymbol g_{\mathcal E}\rangle.
+ \label{eq:fcmp-tree-node}
+\end{equation}
+O inicializador e as bases são fixos; os dados públicos
+determinam o ponto. A formação da árvore usa esta soma
+afim. As máscaras que ocultam o caminho serão acrescentadas
+quando se construir a prova.
+
+Na configuração seleccionada, o primeiro ramo reúne até
+38 saídas: concatena os seus sextuplos pela ordem
+\eqref{eq:fcmp-leaf-six-coordinates}, obtendo 228 escalares
+em \(\mathbb F_{p_{\rm E}}\), e calcula um ponto de Selene.
+O ramo seguinte reúne até 18 abscissas de pontos de Selene;
+estas pertencem a \(\mathbb F_{p_{\rm S}}\) e produzem um
+ponto de Helios. O terceiro reúne até 38 abscissas de
+pontos de Helios e produz um ponto de Selene. Daí em diante,
+alternam-se as larguras 18 e 38 e as duas curvas
+\cite{monero-oxide-fcmp-source}.
+
+As posições por preencher recebem zeros. No primeiro nível,
+o sextuplo nulo fica fora dos registos válidos, pois
+\((X,Y)=(0,0)\) exige \(b_{\rm W}=0\), enquanto o parâmetro
+fixado em \eqref{eq:fcmp-wei-model} é não nulo.
+Nos níveis seguintes, \(b_{\rm S}\) e \(b_{\rm H}\) são
+não quadrados nos respectivos corpos; por isso, \(X=0\)
+exigiria uma solução inexistente de \(Y^2=b\).
+Os zeros marcam, assim, posições vazias. Os nós cujas
+coordenadas entram no nível seguinte são diferentes da
+identidade e têm coordenadas afins.
+
+A raiz é o único nó do último nível necessário.
+Se houver 700 saídas, os grupos de 38 formam 19 nós
+de Selene; os grupos seguintes de 18 formam dois nós
+de Helios; estes cabem num ramo de Selene, que dá a raiz.
+\begin{center}
+\begin{tikzpicture}[
+ font=\small,
+ box/.style={draw,rounded corners,align=center,text width=2.7cm,
+             inner sep=6pt},
+ flow/.style={->,>=stealth,semithick}]
+ \node[box] (leaves) at (0,0)
+   {700 saídas\\sextuplos em \(\mathbb F_{p_{\rm E}}\)};
+ \node[box] (selene) at (3.8,0)
+   {19 nós\\Selene};
+ \node[box] (helios) at (7.6,0)
+   {2 nós\\Helios};
+ \node[box] (root) at (11.4,0)
+   {1 raiz\\Selene};
+ \draw[flow] (leaves) -- node[above]{38} (selene);
+ \draw[flow] (selene) -- node[above]{18} (helios);
+ \draw[flow] (helios) -- node[above]{38} (root);
+\end{tikzpicture}
+\end{center}
+
+Numeremos as saídas a partir de zero. A saída 699 ocupa a
+posição 15 do ramo 18, porque \(699=18\cdot38+15\).
+O nó desse ramo ocupa a posição zero do ramo 1 de Helios,
+porque \(18=1\cdot18+0\). Este último ocupa a posição 1
+do ramo da raiz. O caminho guarda estes índices e os
+vectores completos dos três ramos. Permite reconstruir
+cada resumo até à raiz, conhecendo em cada nível qual
+das coordenadas conduz ao nível anterior.
+
+Em geral, o número de níveis e a paridade determinam a curva
+da raiz: Selene nos níveis ímpares, Helios nos pares.
+A raiz admitida, a sua curva e a profundidade esperada fixam
+o contexto de pertença. A prova conserva secretos os ramos
+escolhidos e as posições dentro deles.
+
+\section{Ocultar o caminho e conservar a sua ligação}
+\label{sec:fcmp-masked-path}
+
+Para um ramo \(\boldsymbol v_j\), o provador publica o
+compromisso mascarado
+\[
+ K_j=\langle\boldsymbol v_j,\boldsymbol g_{\mathcal E_j}\rangle
+                +\beta_jh_{\mathcal E_j}.
+\]
+O nó público daquele ramo, a sua apresentação mascarada e
+o compromisso distinguem-se pelas relações
+\begin{equation}
+ Q_j=B_{\mathcal E_j}
+         +\langle\boldsymbol v_j,\boldsymbol g_{\mathcal E_j}\rangle,
+ \qquad
+ \widetilde Q_j=B_{\mathcal E_j}+K_j
+               =Q_j+\beta_jh_{\mathcal E_j}.
+ \label{eq:fcmp-branch-masking}
+\end{equation}
+O ponto \(\widetilde Q_j\) pode ser calculado a partir de
+dados da prova. A máscara \(\beta_j\) e o vector do ramo
+pertencem à testemunha. Nos níveis anteriores à raiz,
+a escolha de \(Q_j\) permanece secreta; no último,
+\(Q_j\) é a própria raiz pública.
+
+O circuito seguinte conhece publicamente as coordenadas de
+\(\widetilde Q_j\). Certifica a multiplicação
+\(\beta_jh_{\mathcal E_j}\), a relação
+\(Q_j=\widetilde Q_j-\beta_jh_{\mathcal E_j}\) e a pertença
+de \(X(Q_j)\) ao vector comprometido do ramo seguinte.
+A máscara é um escalar da curva \(\mathcal E_j\); as contas
+com coordenadas decorrem no corpo escalar da outra curva.
+Os certificados de divisores fazem a ponte entre esses
+dois papéis do escalar. O primeiro nível usa, em lugar
+de uma abscissa de nó, o sextuplo da saída e as relações
+da apresentação \eqref{eq:fcmp-public-presentation}.
+
+A utilização de abscissas pede uma justificação de segurança.
+Em Weierstrass, dois pontos afins com a mesma abscissa são
+iguais ou inversos. O inicializador
+\(B_{\mathcal E}\) vincula esta escolha de sinal à abertura
+do ramo. Seja
+\[
+ Q=B+\langle\boldsymbol v,\boldsymbol g\rangle
+\]
+o nó verdadeiro, com abertura pública conhecida. Completamos
+\(\boldsymbol v\) com zeros até à dimensão do compromisso.
+A composição extrai uma abertura ampliada
+\[
+ K=\langle\boldsymbol c,\boldsymbol g\rangle
+       +\langle\boldsymbol d,\boldsymbol h\rangle+\gamma h
+\]
+e um ponto \(Q'=B+K-\beta h\), com \(X(Q')=X(Q)\).
+As duas possibilidades dão relações precisas entre as bases.
+Se \(Q'=Q\), temos
+\[
+ \langle\boldsymbol c-\boldsymbol v,\boldsymbol g\rangle
+       +\langle\boldsymbol d,\boldsymbol h\rangle
+       +(\gamma-\beta)h=\mathcal O.
+\]
+Pela vinculação computacional, os coeficientes extraídos
+coincidem: \(\boldsymbol c=\boldsymbol v\),
+\(\boldsymbol d=\boldsymbol0\) e \(\gamma=\beta\), salvo
+probabilidade negligenciável.
+Se \(Q'=-Q\), teríamos
+\[
+ 2B+\langle\boldsymbol c+\boldsymbol v,\boldsymbol g\rangle
+       +\langle\boldsymbol d,\boldsymbol h\rangle
+       +(\gamma-\beta)h=\mathcal O.
+\]
+O coeficiente conhecido de \(B\) é dois, não nulo no corpo.
+Obter esta relação contraria a hipótese de dificuldade das
+relações de logaritmo discreto entre o inicializador e
+as bases. Assim, a comparação das aberturas fixa também
+o sinal do nó~\cite{fcmp-plus-plus-paper}.
+
+Esta conclusão aplica-se ao caminho a partir da raiz.
+No último nível, o provador demonstra conhecimento da
+máscara que satisfaz
+\[
+ B_{\mathcal E_L}+K_L-\rho=\beta_Lh_{\mathcal E_L},
+\]
+onde \(L\) é a profundidade e \(\rho\) é a raiz pública
+admitida. Usa-se a prova de Schnorr para esta diferença.
+O provador escolhe uma máscara uniforme \(\nu\), envia
+\(A_{\rm raiz}=\nu h_{\mathcal E_L}\) e obtém o desafio
+\(c_{\rm raiz}\) do transcrito que já vincula a raiz,
+as apresentações das entradas, \(A_{\rm raiz}\) e os
+compromissos. A resposta é
+\[
+ s_{\rm raiz}=\nu+c_{\rm raiz}\beta_L.
+\]
+O verificador confere
+\begin{equation}
+ A_{\rm raiz}+c_{\rm raiz}(B_{\mathcal E_L}+K_L-\rho)
+       =s_{\rm raiz}h_{\mathcal E_L}.
+ \label{eq:fcmp-root-closure}
+\end{equation}
+Com a diferença correcta, o primeiro membro é
+\((\nu+c_{\rm raiz}\beta_L)h_{\mathcal E_L}\).
+A propriedade de conhecimento de Schnorr fornece a máscara
+\(\beta_L\); a comparação com a abertura pública da raiz
+fixa o vector do último ramo. A selecção de um filho nesse
+ramo e a ligação demonstrada acima fixam o ramo anterior.
+Repetindo o argumento, chega-se ao sextuplo de uma saída.
+Várias entradas partilham o mesmo ramo e o mesmo fecho
+da raiz~\cite{monero-oxide-fcmp-source}.
+
+A pertença oculta, deste modo, um caminho inteiro e liga-o
+à apresentação usada por SAL. As relações que repetidamente
+retiram máscaras a pontos contêm multiplicações por
+escalares secretos. A necessidade dos certificados de
+divisores e os seus custos tornam-se agora concretos:
+são essas multiplicações que precisamos de certificar
+dentro dos dois circuitos aritméticos.
+
+\section{Certificar as máscaras dentro dos circuitos}
+\label{sec:fcmp-divisor-purpose}
+
+Ao retirar a máscara de um nó, o circuito precisa de ligar
+um escalar secreto às coordenadas secretas do ponto que ele
+produz. Essas coordenadas entram depois na soma de pontos e
+na selecção de um filho. A prova de conhecimento deve abranger
+toda esta ligação, conservando ocultos os valores intermédios.
+Os certificados de divisores permitem escrevê-la com poucas
+relações multiplicativas entre variáveis do circuito.
+
+Há dois módulos em presença. Para uma base \(A\) de ordem
+prima \(\ell_A\), o escalar de \(W=s_AA\) pertence a
+\(\mathbb F_{\ell_A}\), enquanto as coordenadas de \(W\)
+pertencem ao corpo da curva. É neste segundo corpo que o
+circuito efectua as contas. A representação por multiplicidades,
+estabelecida no capítulo~\ref{chapter:divisors}, fornece os
+valores com que ele trabalhará: os inteiros \(m_i\) representam
+\(s_A\) pela soma ponderada \(\sum_i m_i2^i\), módulo
+\(\ell_A\); as suas imagens \(u_i\) no corpo das coordenadas
+entram nas condições aritméticas. A demonstração de solidez
+recupera um levantamento inteiro destas entradas e devolve
+o mesmo escalar módulo \(\ell_A\).
+
+Na primeira camada, são precisos cinco pontos de máscara.
+Escolhamos os sinais que permitem somá-los às apresentações
+públicas:
+\[
+ \begin{aligned}
+ D_O&=-r_OT,& D_U&=-r_JU,& D_V&=-r_JV,\\
+ D_R&=r_RT,& D_C&=-r_CG.
+ \end{aligned}
+\]
+As relações da apresentação passam a escrever-se
+\begin{equation}
+ \begin{aligned}
+ O&=\widetilde O+D_O,& J&=\widetilde J+D_U,\\
+ D_R&=R+D_V,& C&=\widetilde C+D_C.
+ \end{aligned}
+ \label{eq:fcmp-mask-certificate-relations}
+\end{equation}
+Cada multiplicação recebe a sua função testemunha. As duas
+que usam \(U\) e \(V\) recebem o mesmo vector de representação
+de \(-r_J\). Como as bases têm a mesma ordem \(\ell\), o
+levantamento desse vector produz o mesmo escalar nas duas
+relações. Assim se estabelece a consistência da máscara da
+base da imagem com o termo que aparece em \(R\).
+São cinco funções e quatro vectores de escalares. Em cada
+passagem posterior entre níveis, um certificado adicional
+liga \(-\beta_j\) ao ponto
+\(D_j=-\beta_jh_{\mathcal E_j}\), usado em
+\(Q_j=\widetilde Q_j+D_j\). O fecho da raiz é a prova de
+Schnorr já descrita em \eqref{eq:fcmp-root-closure}.
+
+Para cada uma destas multiplicações, a tabela pública é
+\(A_i=2^iA\), com \(L_A\) posições. A construção da
+testemunha escolhe multiplicidades de soma \(L_A\) e forma
+uma função cujo divisor é
+\begin{equation}
+ \operatorname{div}(f_A)
+   =\sum_{i=0}^{L_A-1}m_i[A_i]+[-W]
+          -(L_A+1)[\mathcal O_\infty].
+ \label{eq:fcmp-mask-divisor}
+\end{equation}
+A soma dos lugares com essas multiplicidades dá
+\(s_AA-W=\mathcal O\), precisamente a relação pretendida.
+A função conserva-a nos seus zeros. Fixar o coeficiente de
+\(x\) em um escolhe uma representação não nula, para a
+família de funções em que esse coeficiente é diferente de
+zero. A testemunha usa pontos de máscara não neutros e
+desafios que permitem as inversões necessárias.
+
+Os coeficientes de \(f_A\), as coordenadas de \(W\) e o
+vector \((u_i)\) entram nos compromissos de Generalized
+Bulletproofs antes do desafio. A recta desafiada fornece os
+três pontos de avaliação; o circuito impõe as relações
+\eqref{eq:fcmp-divisor-cross-multiplication}--\eqref{eq:divisors-final-linear-check}
+sobre esses mesmos dados. A reciprocidade e a derivada
+logarítmica, já demonstradas, justificam a passagem do divisor
+à comparação de avaliações. A extracção aritmética conserva
+a representação comum quando a multiplicação se repete com
+outra base. A prova exterior oculta os coeficientes da função
+e os pontos que ela certifica~\cite{fcmp-plus-plus-paper,monero-oxide-fcmp-source}.
+
+\section{O preço da função e a economia do circuito}
+\label{sec:fcmp-divisor-costs}
+
+A contagem começa pelo espaço da função. Na construção
+seleccionada, \(L_A=253\) para as bases de Edwards25519
+e \(L_A=255\) para as bases de Helios e Selene. O limite
+do pólo é \(d_A=L_A+1\). Pelo cálculo da
+secção~\ref{sec:divisors-function-bound}, o espaço tem
+\(d_A\) coeficientes; a normalização fixa um, deixando
+\(L_A\) coeficientes secretos. Juntando as \(L_A\) entradas
+da representação e as duas coordenadas de \(W\), obtém-se
+\[
+ \underbrace{L_A}_{\text{representação}}
+ +\underbrace{L_A}_{\text{função}}
+ +\underbrace{2}_{\text{ponto}}
+ =2L_A+2.
+\]
+São dados a comprometer antes do desafio, aos quais se
+juntam depois os auxiliares das avaliações.
+\begin{center}
+\begin{tabular}{lrrrr}
+\textbf{Curva de \(A\)} & \(L_A\) & \(d_A\) &
+ \textbf{Coeficientes livres} & \textbf{Dados}\\[1mm]
+Edwards25519 / Wei25519 & 253 & 254 & 253 & 508\\
+Helios ou Selene & 255 & 256 & 255 & 512
+\end{tabular}
+\end{center}
+Na primeira camada, a representação partilhada por \(U\)
+e \(V\) faz a conta passar a
+\[
+ 4\cdot253+5\cdot253+5\cdot2=2287.
+\]
+As seis coordenadas da saída elevam estes dados a 2293
+elementos do corpo. Os vectores dos ramos e os certificados
+dos níveis seguintes acrescentam os seus próprios valores.
+A acomodação aos comprimentos dos compromissos pode ainda
+exigir posições de preenchimento.
+
+A conta das multiplicações do circuito mede outra coisa.
+Cada certificado usa três produtos para verificar que
+\(W\) pertence à curva, três para as razões nos encontros
+e um para a inversa da parcela de \(-W\): sete ao todo,
+como se calculou na secção~\ref{sec:divisors-cost-and-composition}.
+Logo, os cinco certificados da folha ocupam
+\(5\cdot7=35\) relações multiplicativas. Cada nível
+adicional acrescenta sete desta espécie. No exemplo de
+700 saídas, o caminho tem três níveis: cinco certificados
+na folha e dois nas passagens dão sete certificados, com
+\(7\cdot7=49\) relações multiplicativas. A selecção dos
+membros e as somas de pontos acrescentam as relações que
+completarão o circuito.
+
+Esta contagem usa a verificação por multiplicação cruzada
+das três razões. A variante que demonstra expressamente
+as três inversas \(f_A(B_r)^{-1}\) acrescenta três produtos
+por certificado. Na construção aqui usada, a preparação da
+testemunha calcula essas inversas para obter as razões; as
+condições de regularidade dos encontros e os acontecimentos
+excepcionais pertencem à análise dos desafios.
+
+O trabalho do provador começa com a multiplicação \(s_AA\)
+e a construção de \(f_A\). A representação determina uma
+lista de \(L_A\) pontos da tabela, contados com repetição,
+à qual se junta \(-W\). As operações com rectas e funções
+combinam estes lugares; a redução à forma
+\(f_{A,0}(x)+yf_{A,1}(x)\) e a recuperação dos coeficientes
+produzem a testemunha que será comprometida. Cada base
+usada requer a sua função. A partilha do vector entre
+\(U\) e \(V\) conserva duas funções, porque os pontos
+das respectivas tabelas são diferentes.
+
+Podemos medir a recuperação dos coeficientes por interpolação
+directa. Numa grelha de \(t\) valores públicos distintos
+\(z_0,\ldots,z_{t-1}\), os polinómios
+\[
+ \Lambda_j(X)=\prod_{\substack{0\leq k<t\\k\ne j}}
+                    \frac{X-z_k}{z_j-z_k}
+\]
+valem um em \(z_j\) e zero nos restantes pontos da grelha.
+Se \(\deg f_{A,k}<t\), segue-se
+\[
+ f_{A,k}(X)=\sum_{j=0}^{t-1}f_{A,k}(z_j)\Lambda_j(X),
+ \qquad k\in\{0,1\}.
+\]
+Os dois membros têm grau inferior a \(t\) e coincidem nos
+\(t\) pontos; a sua diferença é, por isso, o polinómio zero.
+Os coeficientes de cada \(\Lambda_j\) podem ficar preparados.
+Recuperar os \(t\) coeficientes de cada um dos dois polinómios
+pela execução directa destas somas efectua \(2t^2\) multiplicações de elementos
+do corpo, com as respectivas acumulações. As grelhas
+seleccionadas têm 129 posições para Wei25519 e 131 para
+Helios e Selene: só esta etapa efectua, respectivamente,
+\(2\cdot129^2=33\,282\) e \(2\cdot131^2=34\,322\)
+multiplicações. É o custo desta interpolação directa;
+acrescem as operações que formam as avaliações e as
+operações de grupo. A normalização acrescenta uma inversão
+e a multiplicação dos coeficientes pelo factor obtido.
+O provador usa esta grelha na preparação secreta da
+testemunha; os três encontros de verificação serão depois
+determinados pelo transcrito~\cite{monero-oxide-fcmp-source}.
+
+Há trabalho público que se pode preparar uma vez. Uma
+tabela de \(L_A\) posições custa \(L_A-1\) duplicações.
+As quatro tabelas de \(T,U,V,G\) e as duas de
+\(h_{\rm S},h_{\rm H}\) exigem, em conjunto,
+\(4\cdot252+2\cdot254=1516\) duplicações para a sua
+formação. Permanecem disponíveis para todas as provas
+que usem essas bases. Depois do desafio, calculam-se as
+potências, os pesos das derivadas e os denominadores
+da tabela. Estas quantidades podem ser reutilizadas nas
+relações que partilhem a base e o desafio.
+
+As avaliações nos pontos públicos são combinações lineares
+dos coeficientes secretos. Por exemplo, avaliar uma função
+normalizada de Edwards nos três encontros envolve três
+combinações das suas 253 coordenadas variáveis. Esse
+processamento acompanha o comprimento da função. Os
+sete produtos contam apenas as relações multiplicativas
+secretas; a construção dos compromissos e a preparação
+das combinações lineares percorrem igualmente os dados.
+
+Generalized Bulletproofs reúne estes custos em duas
+dimensões distintas: os \(K_k\) guardam os vectores
+comprometidos, enquanto a dimensão \(m\) do IPA acomoda
+os produtos do circuito e o comprimento necessário a cada
+abertura. O número de compromissos também entra na
+prova, e a redução do IPA acrescenta uma ronda por cada
+duplicação de \(m\). A economia dos divisores consiste
+em certificar cada multiplicação de um ponto por um escalar com sete
+produtos secretos, conservando o trabalho de dimensão
+\(L_A\) nas funções, nos compromissos e nas condições
+lineares~\cite{monero-oxide-fcmp-source,generalized-bulletproofs-fixed}.
+Podemos agora juntar estes certificados às somas de pontos
+e à selecção dos membros, para escrever os dois circuitos
+completos de pertença.
+
+\section{Somas de pontos como condições aritméticas}
+\label{sec:fcmp-circuit-addition}
+
+Os certificados fornecem os pontos de máscara. Falta ligá-los
+às apresentações públicas e às coordenadas escolhidas nos
+ramos. Uma soma da curva passa, para esse efeito, a ser uma
+pequena colecção de produtos e igualdades no corpo das
+coordenadas. São estas condições que Generalized Bulletproofs
+recebe nas matrizes da secção~\ref{sec:fcmp-gbp-statement}.
+
+Trabalhemos na curva de Weierstrass
+\(Y^2=X^3+a_{\mathbb E}X+b_{\mathbb E}\), sobre o corpo
+do circuito. A condição de pertença à curva usa os três
+produtos já contados nos divisores: calcular \(X^2\),
+\(X^3\) e \(Y^2\), e igualar linearmente
+\(Y^2-X^3-a_{\mathbb E}X-b_{\mathbb E}\) a zero.
+Assim se estabelece que duas coordenadas secretas representam
+um ponto afim da curva fixada.
+
+Considere-se agora um ponto público válido
+\(P_0=(X_0,Y_0)\) e dois pontos secretos
+\(P_1=(X_1,Y_1)\), \(P_2=(X_2,Y_2)\), já sujeitos à
+equação da curva. Queremos certificar \(P_2=P_0+P_1\).
+A relação seleccionada usa a secante que passa por
+\(P_0,P_1\), no domínio \(X_1\ne X_0\).
+Introduzimos a inversa \(\iota_{\rm a}\) dessa diferença
+e o declive \(\sigma_{\rm a}\). O circuito impõe
+\begin{equation}
+ \begin{aligned}
+ \iota_{\rm a}(X_1-X_0)&=1,\\
+ \sigma_{\rm a}(X_1-X_0)&=Y_1-Y_0,\\
+ \sigma_{\rm a}(X_2-X_0)&=-Y_2-Y_0,\\
+ \sigma_{\rm a}^2&=X_0+X_1+X_2.
+ \end{aligned}
+ \label{eq:fcmp-circuit-addition}
+\end{equation}
+A primeira igualdade garante a diferença não nula e fixa
+a inversa. A segunda determina o declive. A terceira coloca
+\(-P_2\) na mesma recta. A última expressa a soma das
+abscissas dos três encontros com a curva. Resolvidas para
+as coordenadas do resultado, as duas últimas dão
+\[
+ X_2=\sigma_{\rm a}^2-X_0-X_1,\qquad
+ Y_2=\sigma_{\rm a}(X_0-X_2)-Y_0,
+\]
+as fórmulas da soma que já conhecemos. São quatro produtos
+entre expressões secretas, além das condições de pertença
+à curva. O domínio afim e a diferença de abscissas fazem
+parte desta relação~\cite{monero-oxide-fcmp-source}.
+
+Na curva do exemplo sobre \(\mathbb F_{17}\), tomemos
+\(P_0=(6,3)\) e \(P_1=(10,6)\). A diferença das
+abscissas é quatro, cuja inversa é treze; o declive é
+\(3\cdot13=39\equiv5\). Logo,
+\[
+ X_2=25-6-10=9,\qquad
+ Y_2=5(6-9)-3=-18\equiv16.
+\]
+As quatro verificações lêem-se
+\(13\cdot4\equiv1\), \(5\cdot4\equiv3\),
+\(5\cdot3=15\equiv-16-3\) e
+\(5^2=25=6+10+9\). Fica conferida a soma
+\((6,3)+(10,6)=(9,16)\) inteiramente por contas no corpo.
+
+\section{Escolher um membro mantendo a posição secreta}
+\label{sec:fcmp-circuit-membership}
+
+Um ramo guarda uma lista de valores. A pertença exige que
+o valor escolhido coincida com pelo menos um deles. Os valores
+secretos determinam uma posição admissível. Para uma lista não vazia
+\((v_0,\ldots,v_{w-1})\) e um valor \(u\), todos no
+mesmo corpo, a condição é
+\begin{equation}
+ \prod_{i=0}^{w-1}(v_i-u)=0.
+ \label{eq:fcmp-list-membership}
+\end{equation}
+Num corpo, um produto é zero precisamente quando algum
+factor é zero. Cada factor representa uma possível igualdade
+\(u=v_i\). O circuito calcula o produto por acumulação:
+\[
+ p_0=v_0-u,\qquad
+ p_i=p_{i-1}(v_i-u)\quad(1\leq i<w),\qquad
+ p_{w-1}=0.
+\]
+São \(w-1\) produtos e uma condição linear final. Para
+uma lista de um só valor, basta a igualdade linear.
+As listas com valores repetidos conservam o mesmo significado
+existencial.
+
+Na folha, cada candidato é um sextuplo. Precisamos de
+seleccionar conjuntamente as coordenadas de \(O,J,C\).
+A construção fixa primeiro, nos compromissos, o sextuplo
+escolhido \(\boldsymbol t\) e todos os sextuplos candidatos
+\(\boldsymbol t_i\). Obtém depois seis desafios separados
+\(\chi_0,\ldots,\chi_5\) e usa os mesmos pesos em todas
+as linhas. Definimos a combinação linear
+\[
+ \Phi_{\boldsymbol\chi}(t_0,\ldots,t_5)
+       =\sum_{j=0}^{5}\chi_jt_j.
+\]
+A pertença aplica-se aos valores combinados:
+\begin{equation}
+ \prod_{i=0}^{w-1}
+   \bigl(\Phi_{\boldsymbol\chi}(\boldsymbol t_i)
+        -\Phi_{\boldsymbol\chi}(\boldsymbol t)\bigr)=0.
+ \label{eq:fcmp-tuple-membership}
+\end{equation}
+Cada combinação é linear nos dados secretos, porque os
+pesos são públicos. O total continua a ser \(w-1\)
+produtos. Cada candidato combinado provém de uma linha
+completa do ramo; a análise de colisões justifica a
+selecção conjunta das coordenadas.
+
+Vejamos a conta em \(\mathbb F_{17}\), com os pesos
+\((1,2,3,4,5,6)\) e três candidatos:
+\[
+ \begin{aligned}
+ \boldsymbol t_0&=(5,1,6,3,10,6),\\
+ \boldsymbol t_1&=(3,1,9,16,16,13),\\
+ \boldsymbol t_2&=(0,6,13,7,7,6).
+ \end{aligned}
+\]
+As combinações calculam-se por inteiro:
+\[
+ \begin{aligned}
+ \Phi(\boldsymbol t_0)&=5+2+18+12+50+36=123\equiv4,\\
+ \Phi(\boldsymbol t_1)&=3+2+27+64+80+78=254\equiv16,\\
+ \Phi(\boldsymbol t_2)&=0+12+39+28+35+36=150\equiv14.
+ \end{aligned}
+\]
+Escolhendo o terceiro sextuplo, os factores são
+\((4-14,16-14,14-14)=(7,2,0)\). A acumulação dá
+\(7\cdot2=14\) e \(14\cdot0=0\): dois produtos para
+três candidatos. O resultado verificado é a pertença;
+os valores e a posição ficam ocultos pela prova exterior.
+
+A compressão tem um erro algébrico que se pode limitar.
+Para dois sextuplos distintos, fixados antes dos desafios,
+uma igualdade das combinações exige
+\[
+ \sum_{j=0}^{5}\chi_j(t_{i,j}-t_j)=0.
+\]
+Pelo menos uma diferença é não nula. Fixando os outros
+cinco pesos, essa igualdade determina no máximo um valor
+para o peso correspondente. No modelo ideal de desafios
+independentes e uniformes em \(\mathbb F^*\), a probabilidade
+é, portanto, no máximo \(1/(|\mathbb F|-1)\).
+Para um sextuplo exterior a uma lista de largura \(w\),
+a união dos acontecimentos dá
+\begin{equation}
+ \varepsilon_{\rm sext}
+     \leq\min\!\left\{1,\frac{w}{|\mathbb F|-1}\right\}.
+ \label{eq:fcmp-tuple-error}
+\end{equation}
+Na folha, o limite é \(38/(p_{\rm E}-1)\).
+A vinculação anterior aos desafios conserva fixas as
+diferenças a que esta conta se aplica. Os seis pesos são
+amostrados separadamente para cada entrada. A passagem
+deste limite algébrico à prova completa incluirá a extracção
+e o transcrito de Fiat--Shamir~\cite{monero-oxide-fcmp-source}.
+
+\section{A folha e as passagens entre níveis}
+\label{sec:fcmp-circuit-layers}
+
+Podemos reunir as condições numa declaração única. Para
+abreviar, escrevamos
+\(\mathsf{Mult}_A(W;\boldsymbol u,f)\) para as relações
+do certificado de multiplicação pela base \(A\): os sete
+produtos e as condições lineares da
+secção~\ref{sec:divisors-arithmetic-certificate}, com a
+função normalizada e os dados vinculados antes do desafio.
+O ponto \(W\), o vector \(\boldsymbol u\) e a função
+\(f\) são testemunhas; a base e os pesos desafiados são
+públicos.
+
+A primeira camada recebe publicamente
+\(\widetilde O,\widetilde J,R,\widetilde C\) e os
+compromissos dos seus dados. Para os pontos de máscara
+da secção~\ref{sec:fcmp-divisor-purpose}, impõe
+\[
+ \begin{aligned}
+ &\mathsf{Mult}_T(D_O;\boldsymbol u^{O},f_O),\qquad
+   \mathsf{Mult}_U(D_U;\boldsymbol u^{J},f_U),\\
+ &\mathsf{Mult}_V(D_V;\boldsymbol u^{J},f_V),\qquad
+   \mathsf{Mult}_T(D_R;\boldsymbol u^{R},f_R),\\
+ &\mathsf{Mult}_G(D_C;\boldsymbol u^{C},f_C).
+ \end{aligned}
+\]
+As duas ocorrências de \(\boldsymbol u^{J}\) referem-se
+às mesmas coordenadas comprometidas. Os certificados já
+estabelecem a pertença dos cinco resultados à curva.
+O circuito acrescenta a pertença à curva de \(O,J,C\)
+e as quatro somas
+\eqref{eq:fcmp-mask-certificate-relations}, cada uma
+realizada por \eqref{eq:fcmp-circuit-addition}.
+Finalmente, forma
+\(\boldsymbol t=(X_O,Y_O,X_J,Y_J,X_C,Y_C)\) e impõe
+\eqref{eq:fcmp-tuple-membership} sobre os 38 sextuplos
+do ramo. Todas as utilizações de uma coordenada remetem
+para a mesma variável da abertura.
+
+Esta declaração é calculada em \(\mathbb F_{p_{\rm E}}\)
+e provada sobre Selene. A sua contagem de produtos é
+\begin{equation}
+ 5\cdot7+3\cdot3+4\cdot4+(38-1)
+       =35+9+16+37=97.
+ \label{eq:fcmp-leaf-rows}
+\end{equation}
+As parcelas correspondem, pela ordem, aos certificados,
+aos três pontos da saída, às quatro somas e à pertença.
+As relações lineares ligam esses produtos aos dados
+dos compromissos~\cite{monero-oxide-fcmp-source}.
+
+Uma passagem posterior recebe o ponto público
+\(\widetilde Q_j=B_{\mathcal E_j}+K_j\) e o compromisso
+do ramo seguinte. As suas relações principais são
+\begin{equation}
+ \begin{aligned}
+ &\mathsf{Mult}_{h_{\mathcal E_j}}
+       (D_j;\boldsymbol u^{j},f_j),\\
+ &Q_j\in\mathcal E_j,\qquad
+       Q_j=\widetilde Q_j+D_j,\\
+ &\prod_{i=0}^{w-1}\bigl(v_i-X(Q_j)\bigr)=0,
+ \end{aligned}
+ \label{eq:fcmp-additional-layer}
+\end{equation}
+onde \((v_0,\ldots,v_{w-1})\) é o vector comprometido
+do ramo seguinte. A primeira relação certifica a máscara;
+a segunda linha reconstrói um ponto válido; a última
+selecciona a sua abscissa no ramo. A vinculação do sinal
+foi demonstrada na secção~\ref{sec:fcmp-masked-path}.
+
+Na disposição de variáveis aqui fixada, as duas coordenadas
+de \(Q_j\) ocupam os operandos de uma linha de produtos,
+com resultado \(X(Q_j)Y(Q_j)\). Esta linha aloja as
+coordenadas na forma normal do circuito. Seguem-se sete
+produtos para o certificado, três para \(Q_j\), quatro
+para a soma e \(w-1\) para a pertença:
+\[
+ 1+7+3+4+(w-1)=w+14.
+\]
+A passagem verificada em Selene tem \(w=38\) e ocupa
+52 linhas; a verificada em Helios tem \(w=18\) e ocupa
+32. Os zeros de preenchimento conservam as larguras
+definidas na secção~\ref{sec:fcmp-tree-nodes}.
+Cada passagem estabelece, assim, a abertura do nó anterior
+e a sua pertença ao ramo seguinte.
+
+\section{Reunir as camadas em dois argumentos}
+\label{sec:fcmp-circuit-dimensions}
+
+As camadas ímpares entram no circuito provado sobre Selene;
+as pares, no circuito provado sobre Helios. Os compromissos
+dos ramos e dos dados auxiliares são os \(K_k\) da prova
+aritmética. O provador conhece as suas aberturas; o verificador
+usa os pontos públicos e as condições que acabámos de definir.
+As mesmas bases, larguras, tipos de coordenadas e desafios
+determinam as matrizes para ambos.
+
+Se há \(n\geq1\) entradas e \(L\geq1\) níveis,
+incluindo o ramo das folhas e o ramo da raiz, o número
+de linhas usadas por estas relações é
+\begin{equation}
+ \begin{aligned}
+ N_{\rm S}&=n\left(97+52\left\lfloor\frac{L-1}{2}\right\rfloor\right),\\
+ N_{\rm H}&=32n\left\lfloor\frac L2\right\rfloor.
+ \end{aligned}
+ \label{eq:fcmp-circuit-row-counts}
+\end{equation}
+O ramo da raiz é partilhado pelas entradas. Cada entrada
+conserva a sua relação de pertença nesse ramo, que se conta
+no respectivo circuito.
+
+O argumento de produto interno usa uma dimensão em potência
+de dois. Chamemos \(\operatorname{pot}_2(v)\) à menor
+potência de dois maior ou igual a \(v>0\). A acomodação
+seleccionada fixa
+\begin{equation}
+ \begin{aligned}
+ m_{\rm S}&=\operatorname{pot}_2\!\left(\max\{256,N_{\rm S}\}\right),\\
+ m_{\rm H}&=\operatorname{pot}_2\!\left(\max\{128,n,N_{\rm H}\}\right).
+ \end{aligned}
+ \label{eq:fcmp-ipa-dimensions}
+\end{equation}
+As posições restantes recebem zeros. Os limites inferiores
+256 e 128 dão uma capacidade mínima aos compromissos;
+cada um dispõe de \(m_{\rm S}\) ou \(m_{\rm H}\) posições,
+conforme a curva. Os dados auxiliares repartem-se por tantos
+compromissos quantos forem necessários. O termo \(n\)
+na segunda fórmula conserva a regra de dimensão para
+\(L=1\), quando a raiz pertence à primeira camada
+\cite{monero-oxide-fcmp-source}.
+
+No exemplo da árvore de 700 saídas, \(L=3\). Para uma
+entrada, os circuitos usam
+\(N_{\rm S}=97+52=149\) e \(N_{\rm H}=32\).
+As dimensões são 256 e 128, dando oito e sete rondas de
+redução. Com duas entradas, as contagens passam a 298 e
+64; as dimensões passam a 512 e 128, dando nove e sete
+rondas. A agregação reúne mais relações nos mesmos dois
+argumentos, com os compromissos adicionais necessários
+para guardar os seus dados.
+
+Cada produto descrito fornece uma posição dos vectores
+\(\boldsymbol a_L,\boldsymbol a_R,\boldsymbol a_O\).
+Cada igualdade linear fornece uma linha das matrizes de
+\eqref{eq:fcmp-gbp-linear}. Estas matrizes incorporam os
+pesos públicos já determinados pelo transcrito; as provas
+de Generalized Bulletproofs ligam as condições às aberturas
+dos \(K_k\). O fecho de Schnorr liga o último ramo à raiz
+admitida. Fica estabelecido o percurso aritmético da saída
+à raiz, com os pontos de máscara e as escolhas ocultos.
+A ordem completa dos desafios explicará agora como se
+fixam estes dados e como se articulam as duas provas.

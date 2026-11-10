@@ -1,12 +1,12 @@
 # Ponto de retoma
 
-Estado verificado em 11 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F6 concluída até às condições dos dois circuitos, em 27 das 38 páginas previstas. O livro compilado tem 295 páginas. A revisão integral continua activa.
+Estado verificado em 11 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F7 concluída até ao transcrito e à análise da amostragem, em 32 das 38 páginas previstas. O livro compilado tem 300 páginas. A revisão integral continua activa. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 constitui uma unidade própria.
 
 ## Próxima unidade
 
-F7: transcrito e ordem dos desafios, a partir das fontes já conferidas. Desenvolver o contexto, os compromissos das duas curvas, o desafio da raiz, os desafios dos divisores, os seis pesos por entrada e as provas GBP sequenciais. O par de Schnorr da raiz é serializado à parte; a sua resposta não é absorvida pelo transcrito. Na primeira entrada, os desafios de divisores seguem Wei, Helios se L≥3, Selene se L≥2; os dois últimos são reutilizados nas entradas seguintes. A análise dos desafios excepcionais deve conservar a distinção face ao modelo regular de D5.
+F8: composição final de segurança e custos completos. Reunir as garantias de pertença, autorização, vinculação ao gasto, imagem de chave e ocultação, com as hipóteses exactas das fontes primárias. Desenvolver a extracção descendente desde a raiz e a ligação a SAL sem repetir os cálculos já demonstrados. Deduzir o tamanho da prova a partir dos compromissos e dimensões de F6; as contagens preparatórias estão no registo de versões. O capítulo tem seis páginas de margem até às 38 previstas; a última página de F7 pode receber a continuação natural.
 
-Depois, concluir a composição de segurança, ajustar FCMP++ a 38 páginas de texto e construir o poster novo. O poster antigo permanece fora da composição; o capítulo antigo é recuperável pelo Git.
+F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. Depois de F8, ajustar FCMP++ a 38 páginas de texto e construir o poster novo. O poster antigo permanece fora da composição; o capítulo antigo é recuperável pelo Git.
 
 ## Restante âmbito autorizado
 
@@ -25,6 +25,6 @@ Os números de página dos pedidos referem-se ao exemplar impresso anterior; as 
 
 ## Verificação e composição
 
-As contas reproduzíveis estão em `editorial/checks/`. Os cinco programas usam apenas Python 3 e a biblioteca padrão. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
+As contas reproduzíveis estão em `editorial/checks/`. Os seis programas usam apenas Python 3 e a biblioteca padrão. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
 
 Nesta sessão, `python3 /tmp/ztm-build-pt.py` compila o livro; `python3 /tmp/ztm-export-chapters.py` actualiza e confere os três PDFs. Os auxiliares, os padrões portugueses do TeX e as imagens de inspecção estão em `/tmp/ztm-editorial-build` e `/tmp/ztm-latex-deps`; são recursos temporários. O registo de versões documenta a preparação do ambiente. As fontes definitivas são `translations/pt/main.tex`, os ficheiros de conteúdo e a bibliografia; a composição normal usa pdflatex e bibtex, com as passagens necessárias para estabilizar as remissões.

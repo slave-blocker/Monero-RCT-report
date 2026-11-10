@@ -185,6 +185,14 @@ A compilação integral estabilizou sem remissões ou citações por resolver e 
 
 ## Unidade F7 — transcrito e desafios
 
-Estado: preparação das fontes iniciada; texto por escrever.
+Estado: concluída e verificada em 11 de Novembro de 2026.
 
 Fixar a sequência integral do transcrito, distinguindo os dados comprometidos antes dos desafios dos auxiliares calculados depois. Desenvolver o contexto, o fecho da raiz, os desafios de divisores e os seis pesos de cada entrada, e as duas provas GBP em sequência. Explicar a amostragem dos pontos e o domínio das avaliações, com as excepções pertinentes. Conferir o modelo probabilístico efectivo face ao modelo regular de D5; conservar as condições das garantias. Visar cinco a seis páginas contínuas, compilar e inspeccionar antes de prosseguir para a composição final e o poster.
+
+Resultado: três secções contínuas acrescentam cinco páginas. A primeira fixa o contexto, a codificação dos tipos e contagens, o desafio da raiz, os desafios partilhados dos dispositivos e as duas provas GBP sequenciais. A segunda deriva o domínio das avaliações e distingue a construção das razões honestas da verificação por multiplicação cruzada. A terceira transporta a contagem de D5 para o amostrador de abscissas e sinais, contando explicitamente os pares excepcionais e conservando a probabilidade incondicional.
+
+Duas revisões independentes conferiram o contexto, a ordem dos desafios, os domínios e a demonstração do limite. Precisaram-se a raiz quadrada zero, os dados fixados na experiência probabilística e as remissões para o capítulo dos divisores. A fonte usa os escalares finais do IPA de Selene antes de iniciar a prova de Helios; a resposta de Schnorr da raiz acompanha a verificação separada. A hipótese de normalização permanece expressa. Os desvios da redução de hashes e as consultas adaptativas de Fiat–Shamir são identificados como componentes da redução de segurança completa.
+
+Validação: `editorial/checks/sampling-F7.py` enumera 4152 pares em treze curvas pequenas; confere as massas, a dominação dos abortos, os encontros repetidos, a contagem de no máximo 4N pares excepcionais e as seis representações de cada secante regular. Oito curvas incluem pontos admissíveis de ordenada zero. Estes testes verificam as contas geométricas e probabilísticas; o limite geral é demonstrado no texto.
+
+A compilação integral estabilizou com remissões e citações resolvidas e os mesmos 164 avisos tipográficos preexistentes. Inspeccionaram-se as páginas físicas 217–222. O prefixo F1–F6, os divisores, o preâmbulo e a bibliografia foram preservados. Os excertos foram conferidos contra o livro: 300 páginas no total, trinta em divisores e 32 em FCMP++. Restam a composição final, os custos completos e o poster, além das restantes alterações do livro registadas em `retoma.md`.

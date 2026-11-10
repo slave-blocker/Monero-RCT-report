@@ -1990,3 +1990,361 @@ admitida. Fica estabelecido o percurso aritmético da saída
 à raiz, com os pontos de máscara e as escolhas ocultos.
 A ordem completa dos desafios explicará agora como se
 fixam estes dados e como se articulam as duas provas.
+
+\section{Fixar os dados antes dos desafios}
+\label{sec:fcmp-membership-transcript}
+
+A prova de pertença faz perguntas sucessivas a dados já
+comprometidos. Primeiro fixa os ramos, as coordenadas dos
+pontos, as representações dos escalares e os coeficientes
+das funções. Depois escolhe os encontros em que essas funções
+serão avaliadas e os pesos que condensam os sextuplos.
+Finalmente, prova as relações aritméticas assim determinadas.
+Esta ordem dá conteúdo à palavra «desafio»: a escolha pública
+chega quando os objectos que deve examinar já têm uma abertura
+vinculada aos compromissos.
+
+O transcrito conserva essa ordem num estado de hash comum.
+Provador e verificador alimentam-no com os mesmos dados,
+nas mesmas representações e pela mesma sequência; obtêm,
+por isso, os mesmos desafios. As bases, as larguras dos ramos,
+a profundidade e as regras dos circuitos pertencem à declaração
+fixada. A raiz e as apresentações das entradas identificam
+a instância a demonstrar.
+
+Escrevamos \(\operatorname{enc}(P)\) para a representação
+canónica de um ponto e \(\operatorname{xy}(P)\) para a
+concatenação das representações das suas duas coordenadas
+afins, primeiro a abscissa. Nesta última operação, os pontos
+da apresentação usam as coordenadas Wei25519 já definidas.
+Se \(\Vert\) indica concatenação de bytes, o contexto inicial é
+\begin{equation}
+ \begin{aligned}
+ \mathsf{ctx}=\operatorname{BLAKE2b}_{256}\bigl(&
+ t_\rho\Vert\operatorname{enc}(\rho)\Vert
+            \operatorname{LE}_{32}(n)\\
+ &\Vert\mathop{\Vert}_{i=1}^{n}
+   \bigl(\operatorname{xy}(\widetilde O_i)
+    \Vert\operatorname{xy}(\widetilde J_i)
+    \Vert\operatorname{xy}(R_i)
+    \Vert\operatorname{xy}(\widetilde C_i)\bigr)\\
+ &\Vert\operatorname{enc}(A_{\rm raiz})\bigr).
+ \end{aligned}
+ \label{eq:fcmp-membership-context}
+\end{equation}
+A etiqueta \(t_\rho\) é um byte: zero para uma raiz em
+Selene, um para uma raiz em Helios. A expressão
+\(\operatorname{LE}_{32}(n)\) representa o número de
+entradas em quatro bytes, começando pelos menos significativos.
+O resultado tem 32 bytes e inicia o estado de BLAKE2b com
+saída de 64 bytes usado nas etapas seguintes
+\cite{monero-oxide-fcmp-source}.
+
+O primeiro conjunto de mensagens contém todos os compromissos
+vectoriais de Selene, pela ordem em que os circuitos os usam;
+segue-se o conjunto de Helios. Cada conjunto leva no estado
+de hash a sua quantidade, em oito bytes começando pelos menos
+significativos, seguida dos pontos,
+e depois a quantidade zero de compromissos escalares externos.
+Esta quantidade corresponde à especialização de Generalized
+Bulletproofs apresentada na secção~\ref{sec:fcmp-gbp-statement}.
+As contagens permitem interpretar os limites de cada conjunto.
+
+Para acrescentar um escalar ao estado, antepõe-se o byte zero
+à sua representação; para um ponto, antepõe-se o byte um.
+Para obter um desafio, acrescenta-se o byte dois e calcula-se
+o resumo do estado assim prolongado. Uma nova consulta acrescenta
+outro byte dois: duas consultas consecutivas têm, portanto,
+prefixos distintos. Quando se pretende um escalar, os 64 bytes
+do resumo são reduzidos ao corpo apropriado. A construção
+exige um resultado não nulo; o resultado zero interrompe
+essa execução. As etiquetas e as contagens são reconstruídas
+pelo verificador a partir da declaração e da ordem das mensagens.
+O ficheiro da prova guarda as mensagens necessárias para
+reproduzir esse percurso.
+
+Depois dos compromissos das duas curvas obtém-se
+\(c_{\rm raiz}\), no corpo de escalares da curva da raiz.
+O par \((A_{\rm raiz},s_{\rm raiz})\) acompanha a prova,
+e a igualdade~\eqref{eq:fcmp-root-closure} verifica-o.
+O primeiro ponto já pertence ao contexto; a resposta
+\(s_{\rm raiz}\) é usada nessa igualdade separada.
+O estado que produz os desafios seguintes conserva o prefixo
+atingido na obtenção de \(c_{\rm raiz}\).
+
+Chamemos \(\mathcal D_{\rm Wei}^{(i)}\) ao desafio de
+divisores da primeira camada da entrada \(i\). Ele fornece
+os mesmos três encontros aos seus cinco certificados e
+prepara os pesos das quatro tabelas de bases \(T,U,V,G\).
+Seguem-se os seis desafios
+\(\boldsymbol\chi^{(i)}=(\chi_0^{(i)},\ldots,\chi_5^{(i)})\)
+da selecção do sextuplo. São seis consultas separadas ao
+transcrito. Cada entrada recebe o seu próprio conjunto.
+
+Na primeira entrada preparam-se ainda os desafios para os
+níveis superiores. Havendo pelo menos três níveis, obtém-se
+\(\mathcal D_{\rm H}\), para os certificados de pontos
+de Helios verificados no circuito de Selene. Havendo pelo
+menos dois, obtém-se depois \(\mathcal D_{\rm S}\), para
+os pontos de Selene verificados em Helios. O índice identifica
+a curva dos pontos certificados. Estes dois desafios são
+reutilizados em todas as passagens pertinentes, incluindo
+as das entradas seguintes. A ordem é, assim,
+\[
+ \begin{gathered}
+ \mathsf{ctx}\ \longrightarrow\
+ (K_k)_{\rm S}\ \longrightarrow\ (K_k)_{\rm H}
+ \ \longrightarrow\ c_{\rm raiz},\\
+ \mathcal D_{\rm Wei}^{(1)}\ \longrightarrow\
+ \boldsymbol\chi^{(1)}\ \longrightarrow\
+ [\mathcal D_{\rm H}]_{L\geq3}\ \longrightarrow\
+ [\mathcal D_{\rm S}]_{L\geq2},\\
+ \mathcal D_{\rm Wei}^{(2)}\ \longrightarrow\
+ \boldsymbol\chi^{(2)}\ \longrightarrow\ \cdots
+ \ \longrightarrow\ \mathcal D_{\rm Wei}^{(n)}
+ \ \longrightarrow\ \boldsymbol\chi^{(n)}.
+ \end{gathered}
+\]
+A última linha só ocorre quando há entradas adicionais.
+Todos os ramos e dados a examinar estavam comprometidos antes
+da primeira destas consultas. Partilhar os encontros permite
+reaproveitar os pesos públicos das avaliações.
+
+Com os desafios dos dispositivos fixados, o provador calcula
+as razões das avaliações, as inversas, os produtos acumulados
+da pertença e os restantes auxiliares. As somas ligam as
+coordenadas reconstruídas aos pontos já comprometidos.
+As matrizes das duas declarações aritméticas ficam determinadas.
+Executa-se então toda a prova de Generalized Bulletproofs
+de Selene e, depois, toda a de Helios, conservando o mesmo
+estado de hash.
+
+Em cada curva, a sequência desenvolve a construção de
+\ref{sec:fcmp-gbp-polynomial}--\ref{sec:fcmp-gbp-ipa-reduction}:
+\begin{equation}
+ \begin{gathered}
+ A_I,A_O,S\ \longrightarrow\ \lambda,\zeta
+ \ \longrightarrow\ (T_i)_{i=s+1,\ldots,2d+2; i\ne d}
+ \ \longrightarrow\ \xi,\\
+ \tau_\xi,\mu,\widehat t\ \longrightarrow\ \omega
+ \ \longrightarrow\ (L_1^{\rm PI},R_1^{\rm PI})
+ \ \longrightarrow\ e_1\ \longrightarrow\ \cdots
+ \ \longrightarrow\ (L_k^{\rm PI},R_k^{\rm PI})
+ \ \longrightarrow\ e_k,\\
+ a_{\rm fim},b_{\rm fim}.
+ \end{gathered}
+ \label{eq:fcmp-complete-gbp-transcript}
+\end{equation}
+Aqui \(s\) é o número de compromissos dessa curva,
+\(d=2s+2\), e os \(T_i\) entram por índice crescente.
+Os pares marcados com PI são as mensagens das \(k=\log_2m\)
+rondas do argumento de produto interno. Os dois escalares
+finais também entram no estado. A prova de Helios começa,
+portanto, depois de absorvida a prova inteira de Selene.
+Cada desafio vê as mensagens anteriores que deverá vincular
+\cite{monero-oxide-fcmp-source,generalized-bulletproofs-fixed}.
+
+\section{Os encontros e o domínio das avaliações}
+\label{sec:fcmp-challenge-domain}
+
+Cada desafio \(\mathcal D\) precisa de uma recta e dos
+seus três encontros com a curva. O capítulo dos divisores
+explicou a identidade que se verifica nesses encontros;
+podemos agora fixar a maneira de os obter. Para uma curva
+\(Y^2=X^3+a_{\mathbb E}X+b_{\mathbb E}\), uma consulta
+de 64 bytes fornece dois bits de sinal. As consultas seguintes
+fornecem abscissas. Para cada uma calcula-se
+\[
+ v=X^3+a_{\mathbb E}X+b_{\mathbb E}.
+\]
+Se \(v\) admite raiz quadrada não nula, escolhe-se a ordenada
+cuja representação canónica tem a paridade pedida pelo bit.
+Para a raiz zero, ambos os sinais produzem zero.
+Se \(v\) é um não-resíduo quadrático, uma nova consulta
+fornece outra abscissa. Obtêm-se deste modo \(B_0,B_1\).
+Os pontos pertencem ao conjunto dos pontos afins da curva sobre o corpo
+de coordenadas; a identidade de reciprocidade aplica-se
+nesse domínio.
+
+Com abscissas distintas, a secante determina
+\[
+ c_{\rm declive}
+   =\frac{y_{B_1}-y_{B_0}}{x_{B_1}-x_{B_0}},\qquad
+ c_{\rm corte}=y_{B_0}-c_{\rm declive}x_{B_0},\qquad
+ B_2=-(B_0+B_1).
+\]
+O terceiro ponto é determinado pelos dois primeiros.
+A escolha por dois sinais e duas abscissas admissíveis
+estabelece uma distribuição concreta sobre as secantes.
+É essa distribuição que usaremos na conta probabilística.
+
+Para compreender o domínio das razões, escrevamos
+\[
+ \Delta_r=3x_{B_r}^{\,2}+a_{\mathbb E}
+                  -2c_{\rm declive}y_{B_r}.
+\]
+Substituir a equação da recta na da curva dá um polinómio
+cúbico em \(X\), cuja derivada no encontro \(B_r\)
+é \(\Delta_r\). Logo \(\Delta_r\ne0\) significa
+que esse encontro é simples. No domínio regular, a parcela
+da função \(f_A\) é
+\begin{equation}
+ o_r=
+ \frac{2y_{B_r}(f_A)_x(B_r)
+       +(3x_{B_r}^{\,2}+a_{\mathbb E})(f_A)_y(B_r)}
+      {f_A(B_r)\Delta_r}.
+ \label{eq:fcmp-challenge-ratio}
+\end{equation}
+Os coeficientes de \(f_A\) são os que já estavam
+comprometidos; os encontros e os pesos das derivadas são
+públicos. Assim, numerador e denominador são expressões
+lineares nesses coeficientes, com pesos conhecidos.
+
+A preparação pública dos pesos requer abscissas iniciais
+distintas, \(2y_{B_r}\ne0\) e uma recta que evite os
+pontos das tabelas utilizadas. Quando uma destas condições
+falha, essa execução interrompe-se. Os encontros simples
+constituem, adicionalmente, o domínio matemático da razão
+\eqref{eq:fcmp-challenge-ratio}. Na análise incluiremos
+todos os pares que produzem encontros repetidos no conjunto
+excepcional. Esta separação conserva a relação exacta entre
+a amostragem, os testes públicos e a identidade provada.
+
+Para a testemunha honesta, conhecemos todos os zeros afins:
+\eqref{eq:fcmp-mask-divisor} coloca-os nos pontos da tabela
+e em \(-W\), com as multiplicidades prescritas. Uma recta
+que evita esses lugares dá \(f_A(B_r)\ne0\) em todos
+os encontros. Com \(\Delta_r\ne0\), o provador pode
+calcular as três razões. A parcela correspondente a
+\(-W\) tem a inversa imposta por
+\eqref{eq:fcmp-output-denominator-inverse}. A validade da
+testemunha conserva ainda a condição de normalização da
+função e os domínios afins das somas já estabelecidos.
+
+A verificação com sete produtos impõe cada razão por
+\(p_{\rm den}^{(r)}o_r=p_{\rm num}^{(r)}\).
+Para denominador não nulo, esta equação determina
+exactamente \(o_r\). Quando o denominador vale zero,
+ela exige numerador zero; se ambos valem zero, deixa
+\(o_r\) livre nessa equação. Esta é a razão para incluir
+na análise de solidez as rectas que atravessam zeros de
+uma função comprometida arbitrária. A demonstração da
+secção~\ref{sec:divisors-arithmetic-certificate} conta
+esses casos juntamente com as colisões dos lugares e as
+coincidências fortuitas da identidade racional. O limite
+seguinte transporta essa contagem para a amostragem aqui
+definida.
+
+\section{Da amostragem à garantia algébrica}
+\label{sec:fcmp-sampling-security}
+
+Fixemos uma curva \(\mathbb E\) sobre
+\(\mathbb F_{q_{\mathbb E}}\), uma tabela de comprimento
+\(L_A\), o ponto certificado, o vector de representação
+\((u_i)\) e a função já comprometidos.
+Conservamos as hipóteses da
+secção~\ref{sec:divisors-arithmetic-certificate} e da extracção
+\eqref{eq:divisors-extracted-scalar}: função normalizada
+não nula, pólo de ordem no máximo \(d_A\) e
+\(d_A+1<\operatorname{char}\mathbb F_{q_{\mathbb E}}\).
+O objectivo é limitar a probabilidade de os desafios
+aceitarem dados fixados que contrariem a relação certificada.
+Comecemos pelo modelo ideal, com abscissas uniformes
+independentes e bits de sinal uniformes independentes.
+
+Seja \(N_{\rm aff}=\#\mathbb E(\mathbb F_{q_{\mathbb E}})-1>2\)
+o número de pontos afins racionais, e seja \(n_x\) o
+número de abscissas não nulas que admitem uma ordenada.
+Sobre \(X=0\) há no máximo dois pontos, e sobre cada
+outra abscissa há no máximo dois. Portanto,
+\[
+ n_x\geq\frac{N_{\rm aff}-2}{2}.
+\]
+Consideremos primeiro o amostrador que escolhe directamente
+abscissas não nulas e repete as que produzem não-resíduos.
+Cada uma das \(n_x\) abscissas admissíveis tem a mesma
+probabilidade final. Um ponto com ordenada não nula recebe
+massa \(1/(2n_x)\); um ponto com ordenada zero recebe
+\(1/n_x\), pois os dois sinais coincidem. Em ambos os
+casos, a massa é no máximo \(2/(N_{\rm aff}-2)\).
+As duas amostras independentes dão, para qualquer par,
+\begin{equation}
+ \Pr[(B_0,B_1)=(P,Q)]
+       \leq\frac{4}{(N_{\rm aff}-2)^2}.
+ \label{eq:fcmp-sampler-pair-bound}
+\end{equation}
+A execução que se interrompe ao obter abscissa zero tem
+menos oportunidades de chegar à aceitação. A majoração
+continua, por isso, válida para essa execução, antes de
+qualquer condicionamento à passagem dos testes posteriores.
+
+Contemos agora os pares a abranger. Há no máximo
+\(2N_{\rm aff}\) pares ordenados com abscissas iguais.
+Uma tangente com dois encontros distintos fornece dois
+pares ordenados; os seus pontos de tangência racionais
+são no máximo \(N_{\rm aff}\). Assim, os pares que
+produzem uma vertical ou um encontro repetido são no
+máximo \(4N_{\rm aff}\).
+
+Para os restantes, reutilizamos a contagem demonstrada
+no capítulo dos divisores. O suporte relevante tem tamanho
+no máximo \(s_{\rm div}=d_A+L_A+1\). As rectas em
+que dados inválidos podem satisfazer as relações são no
+máximo
+\[
+ q_{\mathbb E}
+       \left(\binom{s_{\rm div}}2+2s_{\rm div}-1\right).
+\]
+Esta quantidade reúne declives que confundem lugares,
+rectas que passam por algum lugar e raízes do numerador
+da diferença racional. Cada recta com três encontros
+distintos fornece seis pares ordenados. Somando os pares
+excepcionais e multiplicando pela massa máxima
+\eqref{eq:fcmp-sampler-pair-bound}, obtemos
+\begin{equation}
+ \varepsilon_A\leq
+ \min\left\{1,
+ \frac{4\left[4N_{\rm aff}+6q_{\mathbb E}
+       \left(\binom{s_{\rm div}}2+2s_{\rm div}-1\right)\right]}
+      {(N_{\rm aff}-2)^2}\right\}.
+ \label{eq:fcmp-sampler-error}
+\end{equation}
+É um limite incondicional de falsa aceitação de dados
+previamente fixados, no modelo ideal indicado. Cada
+rejeição pública retira uma possível aceitação.
+Como \(N_{\rm aff}\) é da ordem de \(q_{\mathbb E}\),
+o limite conserva a ordem
+\(O(s_{\rm div}^{\,2}/q_{\mathbb E})\).
+
+Vários certificados podem usar a mesma recta. Para contar
+a possibilidade de pelo menos um aceitar dados inválidos,
+somamos os limites dos acontecimentos respectivos.
+Esta desigualdade de união vale também para acontecimentos
+dependentes. É assim que se trata a partilha dos encontros
+entre os cinco certificados de uma folha ou entre várias
+camadas. A mesma organização acomoda os limites de colisão
+dos sextuplos de \eqref{eq:fcmp-tuple-error}.
+
+A passagem destes limites locais à prova não interactiva
+usa duas ligações adicionais. A primeira relaciona a redução
+dos resumos de 64 bytes com a amostragem uniforme ideal:
+o desvio estatístico da distribuição deve acompanhar a
+análise dos desafios. A segunda trata a escolha adaptativa
+de mensagens através de consultas ao hash. No modelo de
+oráculo aleatório, uma consulta nova dá um valor imprevisível
+para o prefixo já fixado; a redução de segurança contabiliza
+as consultas e as tentativas do adversário. Os limites
+\eqref{eq:fcmp-sampler-error} e \eqref{eq:fcmp-tuple-error}
+descrevem a experiência algébrica com dados fixados.
+A garantia criptográfica da composição incorpora ainda
+a extracção das provas exteriores e as hipóteses sobre
+os grupos e o hash.
+
+Fica assim determinado o papel de cada etapa. Os compromissos
+fixam os objectos secretos; os desafios seleccionam as
+verificações; os dois argumentos aritméticos demonstram
+as suas relações; o fecho da raiz prende o caminho ao
+conjunto admitido. SAL liga depois a apresentação comum
+à chave de gasto, à imagem e à mensagem da transacção.
+A composição reúne estas garantias sob as condições que
+acabámos de explicitar.

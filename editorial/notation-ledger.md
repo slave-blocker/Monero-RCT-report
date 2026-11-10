@@ -107,3 +107,13 @@ Preservar I como imagem de chave, conforme bLSAG e CLSAG. Usar J para a base da 
 | \(N_{\rm S},N_{\rm H},m_{\rm S},m_{\rm H},\operatorname{pot}_2\) | Linhas dos circuitos, dimensões dos IPA e arredondamento à potência de dois seguinte | N_S = n(97+52⌊(L−1)/2⌋); N_H = 32n⌊L/2⌋. m_S = pot₂(max(256,N_S)); m_H = pot₂(max(128,n,N_H)). |
 
 As etiquetas existentes são mantidas durante as unidades locais para preservar as referências a jusante. A estrutura definitiva será reconciliada quando cada capítulo ficar integralmente reescrito.
+
+## Transcrito e amostragem
+
+| Símbolo | Significado e domínio | Regra de utilização |
+|---|---|---|
+| ctx, enc, xy, LE | Contexto, codificação canónica de ponto, coordenadas afins e inteiro em bytes menos significativos primeiro | A raiz leva etiqueta de curva; as apresentações usam Wei25519. |
+| D caligráfico com índices Wei, H, S | Conjunto de encontros e pesos de um desafio de divisores | D_H refere pontos de Helios, verificados em Selene; evitar confusão com os pontos secretos D_O,... |
+| L_r^PI,R_r^PI,e_r,a_fim,b_fim | Mensagens, desafios e escalares finais do IPA | Os pares diferem do ponto R da apresentação e do número L de níveis. |
+| Δ_r | Derivada da cúbica de intersecção no encontro B_r | Δ_r ≠ 0 equivale a encontro simples. |
+| q_E,N_aff,n_x,s_div,ε_A | Cardinal do corpo, pontos afins, abscissas admissíveis, limite do suporte e erro local do certificado | s_div=d_A+L_A+1; limite incondicional para dados previamente fixados e amostragem ideal. |

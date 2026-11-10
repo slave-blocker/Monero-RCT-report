@@ -117,6 +117,16 @@ Para a futura contagem de tamanho: com a=⌊(L−1)/2⌋, b=⌊L/2⌋, ε=L mod2
 
 Verificação em `editorial/checks/circuits-F6.py`: enumeração de 288 somas afins sobre F₁₇, cada uma com resultado único entre os pontos da curva; dezoito casos têm X_2=X_0. Conferiram-se 12 920 casos de pertença escalar, o exemplo dos sextuplos e todos os 46 656 vectores de seis pesos não nulos sobre F₇ para o limite de colisão. Verificaram-se ainda 2048 configurações de profundidade/entradas para as contagens e dimensões. Os scripts anteriores de F2–F5 foram conservados no mesmo directório para reprodução das contas.
 
+## Transcrito e amostragem — F7
+
+Fontes fixas conferidas directamente: Rust `crypto/fcmps/src/lib.rs:305–341,615–655,676–740,990–1002`; `src/circuit.rs:111–148`; `src/gadgets/interactive.rs`; `crypto/generalized-bulletproofs/src/transcript.rs`; mensagens do circuito aritmético e `src/inner_product.rs:208–248`; `crypto/fcmps/ec-gadgets/src/dlog.rs:388–497`. O contexto é BLAKE2b-256, com etiqueta da curva da raiz, raiz, n em LE32, oito coordenadas por entrada e A_raiz. Inicializa BLAKE2b-512. As contagens de compromissos são LE64; tipos escalar/ponto/desafio usam bytes 0/1/2. O desafio acrescenta a etiqueta ao estado e calcula um resumo, sem absorver novamente o resultado. Zero escalar provoca interrupção, sem repetição própria.
+
+A ordem é compromissos Selene, compromissos Helios, desafio da raiz, Wei/χ da primeira entrada, Helios se L≥3, Selene se L≥2, depois Wei/χ de cada entrada seguinte. Os desafios superiores são partilhados. As GBP completas seguem Selene→Helios, incluindo os dois escalares finais do primeiro IPA. s_raiz é verificado separadamente e não entra no hash.
+
+O amostrador dos divisores obtém dois sinais e procura abscissas com raiz quadrada; repete apenas os não-resíduos. A raiz zero é a mesma para ambos os sinais. A preparação interrompe para abscissas iniciais iguais, ordenadas zero e denominadores nulos das tabelas. Δ_r≠0 não é um teste público explícito separado. A testemunha honesta usa f(B_r)Δ_r invertível; as restrições de sete produtos mantêm a multiplicação cruzada. O limite de F7 cobre os pares excepcionais e os zeros secretos, sem condicionar à passagem dos testes públicos.
+
+Duas revisões independentes confirmaram a majoração 4[4N_aff+6q_E(binom(s_div,2)+2s_div−1)]/(N_aff−2)². Usa dados fixados (incluindo u_i), função normalizada não nula, grau limitado, condição da característica e as hipóteses de D5. A massa máxima por par resulta do número de abscissas admissíveis, mesmo com ordenadas zero. Não se atribui este limite local à transformação completa de Fiat–Shamir. `sampling-F7.py` confere 4152 pares em treze curvas pequenas; oito incluem ordenada zero admissível.
+
 ## Ambiente de composição
 
 `pdflatex`, `bibtex`, `makeindex`, `pdftotext`, `pdftoppm`, `pdfinfo` e `mutool` estão disponíveis. A tentativa inicial encontrou falta de `portuguese.ldf` e dos padrões de hifenização portugueses no formato instalado.

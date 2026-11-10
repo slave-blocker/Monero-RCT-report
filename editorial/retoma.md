@@ -1,10 +1,12 @@
 # Ponto de retoma
 
-Estado verificado em 11 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F7 concluída até ao transcrito e à análise da amostragem, em 32 das 38 páginas previstas. O livro compilado tem 300 páginas. A revisão integral continua activa. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 constitui uma unidade própria.
+Estado verificado em 11 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F7 concluída até ao transcrito e à análise da amostragem, em 32 das 38 páginas previstas. O livro compilado tem 300 páginas. O trabalho ficou em pausa a pedido do utilizador, com o âmbito integral preservado. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`.
 
 ## Próxima unidade
 
 F8: composição final de segurança e custos completos. Reunir as garantias de pertença, autorização, vinculação ao gasto, imagem de chave e ocultação, com as hipóteses exactas das fontes primárias. Desenvolver a extracção descendente desde a raiz e a ligação a SAL sem repetir os cálculos já demonstrados. Deduzir o tamanho da prova a partir dos compromissos e dimensões de F6; as contagens preparatórias estão no registo de versões. O capítulo tem seis páginas de margem até às 38 previstas; a última página de F7 pode receber a continuação natural.
+
+A preparação de F8 ficou guardada em `editorial/fcmp-F8-preparation.md`: hipóteses e limites da composição, tratamento da simulação com enunciado fixo, fórmulas exactas do tamanho e exemplos conferidos. O texto TeX de F8 ainda não foi iniciado. A pausa conserva os três PDFs verificados de F7.
 
 F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. Depois de F8, ajustar FCMP++ a 38 páginas de texto e construir o poster novo. O poster antigo permanece fora da composição; o capítulo antigo é recuperável pelo Git.
 

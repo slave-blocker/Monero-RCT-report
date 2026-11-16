@@ -18,8 +18,8 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] Página 62: «Especialização usada por Monero»; acrescentar duas páginas de explicação de CLSAG.
 - [x] Página 91: simplificar a apresentação das duas verificações de Bulletproofs; retirar do percurso principal os resíduos e a combinação ponderada, preservando as duas condições matemáticas.
 - [x] Página 109: eliminar a página redundante sobre o tamanho da prova de intervalo, conservando a exposição útil na secção de espaço.
-- [ ] Página 111: desenvolver a representação uniforme dos membros do anel e a posição secreta por entrada.
-- [ ] Acrescentar três páginas sobre índices absolutos, key_offsets, reconstrução dos anéis e estrutura de tx_extra. Explicitar que key_offsets pertence a vin.
+- [x] Página 111: desenvolver a representação uniforme dos membros do anel e a posição secreta por entrada.
+- [x] Acrescentar três páginas sobre índices absolutos, key_offsets, reconstrução dos anéis e estrutura de tx_extra. Explicitar que key_offsets pertence a vin.
 - [ ] Índice remissivo alfabético no fim, incluindo símbolos, siglas, sinónimos e páginas de explicação.
 - [ ] Uniformizar «de/por/em Monero» e «lista de blocos» na prosa portuguesa.
 - [x] Nota de rodapé em FCMP++ sobre «cadeia» e «lista de blocos», no tom pedido.
@@ -263,3 +263,15 @@ A antiga página impressa 109 foi localizada no PDF de referência 24b7ee6, pág
 Validação: bulletproof-checks.py verifica 120 provas algébricas sobre dois corpos, com dimensões de 2 a 64, e 384 dobras. Confere separadamente as duas igualdades, os geradores reconstruídos, os pesos inversos, a passagem de H' a H e perturbações independentes das condições. Os testes usam bases formais independentes e verificam identidades; não constituem uma análise da segurança criptográfica. As condições foram também confrontadas com os termos de verificação da fonte C++.
 
 A compilação produz 312 páginas, resolve referências e citações e conserva os 164 avisos de caixas. Inspeccionaram-se as páginas alteradas e as transições. FCMP++ mantém 38 páginas de texto e o poster, nas páginas físicas 196–234; divisores mantém trinta páginas, em 42–71. Os excertos foram conferidos por texto e imagem.
+
+## Transacções — índices, anéis e extra
+
+Estado: concluída em 16 de Novembro de 2026. O capítulo passa de catorze a dezassete páginas, acrescentando as três páginas pedidas. A lista ordenada do anel apresenta todos os membros pelo mesmo par chave/compromisso; o lugar i, a entrada j e a posição secreta pi_j têm papéis distintos. A nova exposição relaciona os índices locais, globais e relativos, deriva a soma acumulada, explica os varints e reconstrói a consulta aos pares públicos.
+
+A classe de montante zero inclui as saídas RingCT e as saídas de mineiro de versão 2, cujo compromisso é G+bH. As referências são relativas ao prefixo fixado da lista de blocos. A codificação normal por diferenças usa índices inteiros estritamente crescentes; o primeiro deslocamento pode ser zero. O texto não atribui à rotina isolada uma verificação geral de ausência de overflow.
+
+O campo extra recebe uma descrição da sua posição no prefixo, das etiquetas e dos comprimentos interiores. O exemplo com chave principal, duas adicionais e identificador cifrado ocupa 110 bytes, ou 111 com o comprimento exterior. A pertença de key_offsets a vin e a correspondência das chaves adicionais com os índices locais ficam explícitas. Retiraram-se duas quebras de página que deixavam espaços extensos no resumo conceptual. A notação da assinatura usa J para a base e I para a imagem primária; o transcrito refere D/8 conforme a especialização CLSAG.
+
+Validação: transaction-indices.py confere 512 anéis, 1055 valores de varint, a reconstrução por entrada e os comprimentos do exemplo de extra. A opção --source compila directamente o cabeçalho C++ original num directório temporário; escrita, leitura e comprimentos coincidem nos 1055 casos. A verificação cobre codificação e contas, não executa uma transacção criptográfica nem uma consulta à rede.
+
+A compilação produz 315 páginas, com referências e citações resolvidas e os mesmos 164 avisos de caixas. O capítulo ocupa as páginas físicas 131–147. A conferência visual abrange as novas explicações e a transição para o resumo. FCMP++ conserva as 38 páginas de texto e o poster, e divisores conserva trinta páginas.

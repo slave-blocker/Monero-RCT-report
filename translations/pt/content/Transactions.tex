@@ -230,14 +230,23 @@ Depois de converter os \emph{offsets} relativos em índices absolutos, o nó
 obtém o anel público
 \begin{align}
  \mathcal R_j=
- \bigl\{(P_{i,j},C^a_{i,j})\bigr\}_{i=0}^{15}.
+ \bigl((P_{0,j},C^a_{0,j}),\ldots,(P_{15,j},C^a_{15,j})\bigr).
  \label{eq:transaction-ring}
 \end{align}
-Um desses pares, no índice secreto \(\pi_j\), é a saída que o remetente
-possui; os outros quinze são desvios. Os índices absolutos aparecem por
-ordem crescente e só o primeiro é guardado em absoluto. Por exemplo,
-\(\{7,11,15,20\}\) torna-se \(\{7,4,4,5\}\). A repetição de um índice dentro
-do mesmo anel produz um \emph{offset} relativo zero e é rejeitada.
+Cada membro tem a mesma representação pública: uma chave de utilização
+única \(P_{i,j}\) e o compromisso \(C^a_{i,j}\) da saída correspondente.
+O índice \(i\) indica o lugar no anel ordenado. O remetente conhece a
+abertura e a chave privada de um desses pares, no lugar secreto
+\(\pi_j\); os outros quinze servem de desvios. Assim, \(P_{\pi_j,j}\)
+é a própria chave pública que aparece na posição \(\pi_j\) da lista.
+A informação adicional do dono está nos seus segredos.
+
+O segundo índice, \(j\), identifica a entrada. Duas entradas têm anéis
+próprios e podem ter posições secretas distintas, por exemplo
+\(\pi_1=3\) e \(\pi_2=11\). A CLSAG de cada entrada relaciona a chave
+de gasto e a diferença de máscaras na sua posição \(\pi_j\). Esta
+coincidência é exigida dentro de cada anel; a transacção reúne as
+autorizações de todos eles.
 
 Na versão 16 todas as entradas RingCT têm exactamente quinze desvios, isto
 é, dezasseis membros, e todas têm o mesmo tamanho de anel. Isto é consenso.
@@ -257,6 +266,134 @@ Quem verifica conhece todos os pares de \(\mathcal R_j\), mas não recebe
 esses pontos repetidos dentro da assinatura. Recebe os \emph{offsets} e vai
 buscá-los à cadeia. Antes de verificar a CLSAG confirma que as referências
 existem, têm tipos admissíveis, já maturaram e estão desbloqueadas.
+
+\subsubsection{Dos índices globais aos deslocamentos relativos}
+\label{subsec:global-output-indices}
+
+Fixemos um prefixo da lista de blocos já aceite. As saídas são registadas
+pela ordem dos blocos, das transacções em cada bloco e das saídas em cada
+transacção. A numeração começa em zero. Nas referências RingCT, o campo
+de montante visível da entrada é zero e selecciona a lista comum das
+saídas registadas nessa classe. Cada saída recebe aí um \emph{índice
+global}, também chamado índice absoluto. A numeração pertence à lista
+inteira, atravessando as fronteiras entre transacções.
+
+Esta lista inclui as saídas de mineiro de transacções de versão 2,
+registadas com o compromisso \(G+bH\), de montante público \(b\) e
+máscara igual a um. As antigas classes de montante visível
+têm numerações próprias. Por isso, a identificação completa de uma
+referência é o par formado pela classe de montante e pelo índice; nas
+entradas RingCT aqui estudadas, a primeira componente vale sempre zero.
+
+Há também o índice local \(t\) de uma saída dentro da transacção que a
+criou. É esse \(t\), já usado na derivação do endereço oculto, que
+acompanha o segredo partilhado no cálculo de \(h_t\). O índice global
+é atribuído quando a saída entra na lista de blocos. Por exemplo, uma
+saída com índice local \(t=1\) pode receber o índice global \(150\) e
+ocupar depois o lugar \(i=2\) num anel. Os três números descrevem três
+posições do mesmo objecto. Um nó pode recuperar a transacção de origem e
+o índice local a partir do registo global. A correspondência é relativa
+ao prefixo fixado; uma reorganização exige reconstruir a parte afectada.
+
+Para uma entrada \(j\), sejam
+\[
+ 0\leq g_{0,j}<g_{1,j}<\cdots<g_{15,j}
+\]
+os índices globais escolhidos. A sua codificação por deslocamentos é
+\begin{equation}
+ d_{0,j}=g_{0,j},\qquad
+ d_{i,j}=g_{i,j}-g_{i-1,j}\quad(1\leq i<16).
+ \label{eq:relative-output-indices}
+\end{equation}
+O vector \(\texttt{key\_offsets}=(d_{0,j},\ldots,d_{15,j})\) pertence
+à entrada \(j\) de \texttt{vin}. O primeiro termo mede a distância à
+origem; cada termo seguinte mede a distância ao membro anterior.
+A operação inversa é a soma acumulada
+\begin{equation}
+ g_{i,j}=\sum_{r=0}^{i}d_{r,j}.
+ \label{eq:absolute-output-indices}
+\end{equation}
+De facto, as diferenças intermédias cancelam-se:
+\(g_{0,j}+(g_{1,j}-g_{0,j})+\cdots+(g_{i,j}-g_{i-1,j})=g_{i,j}\).
+As contas são feitas com índices inteiros não negativos, representáveis
+em 64 bits. Para a lista estritamente crescente,
+\(d_{i,j}>0\) quando \(i>0\); o primeiro deslocamento pode ser zero,
+referindo a primeira saída da classe. O teste de repetição aplica-se
+aos deslocamentos posteriores ao primeiro.
+
+Consideremos quatro posições para acompanhar a conta, conservando em
+mente que o anel completo desta construção tem dezasseis membros:
+\[
+ (7,130,150,400)\ \longmapsto\ (7,123,20,250).
+\]
+A leitura inversa dá, sucessivamente, \(7\), \(7+123=130\),
+\(130+20=150\) e \(150+250=400\). Cada entrada começa uma nova soma
+acumulada. A ordenação das próprias entradas pelas imagens de chave,
+já estabelecida acima, conserva dentro de cada uma o anel e a sua
+assinatura associados.
+
+\subsubsection{Dos bytes aos membros do anel}
+\label{subsec:ring-reconstruction}
+
+Cada deslocamento é escrito como um inteiro de comprimento variável,
+ou \emph{varint}. Para \(n>0\), escreva-se
+\[
+ n=a_0+2^7a_1+\cdots+2^{7k}a_k,
+ \qquad 0\leq a_r<128,\quad a_k>0.
+\]
+Os bytes surgem pela ordem \(a_0,\ldots,a_k\). Nos primeiros \(k\),
+o bit superior vale um para indicar continuação; no último vale zero.
+O inteiro zero escreve-se com um único byte zero. Esta é a representação
+canónica: o último grupo de uma codificação com vários bytes contém
+um algarismo não nulo. O comprimento é um para zero e
+\(1+\lfloor\log_{128}n\rfloor\) para \(n>0\).
+
+Assim, \(250=122+128\cdot1\). O primeiro byte contém
+\(122+128=250=\texttt{FA}_{16}\), e o segundo contém
+\(1=\texttt{01}_{16}\). No exemplo anterior, o vector completo,
+incluindo o seu comprimento, é
+\[
+ \underbrace{\texttt{04}}_{\text{quatro termos}}\quad
+ \underbrace{\texttt{07}}_{7}\quad
+ \underbrace{\texttt{7B}}_{123}\quad
+ \underbrace{\texttt{14}}_{20}\quad
+ \underbrace{\texttt{FA 01}}_{250}.
+\]
+São seis bytes. Codificar directamente os quatro índices absolutos
+exigiria oito bytes, incluindo o mesmo comprimento. A economia resulta
+de muitos intervalos entre saídas caberem em menos grupos de sete bits
+do que os índices acumulados. Para dezasseis membros, o prefixo do
+vector é \texttt{10}, a representação hexadecimal do inteiro dezasseis.
+
+Dentro de \texttt{vin}, uma entrada desta espécie segue a disposição
+\[
+ \underbrace{\texttt{02}}_{\text{tipo de entrada}}\ \|
+ \underbrace{\texttt{00}}_{\text{classe de montante}}\ \|
+ \operatorname{varint}(16)\ \|
+ \operatorname{varint}(d_{0,j})\ \|\ \cdots\ \|
+ \operatorname{varint}(d_{15,j})\ \|\ \operatorname{enc}(I_j).
+\]
+Os 32 bytes finais são a imagem de chave. A marca \texttt{02} identifica
+o tipo de entrada; a versão da transacção é outro campo do prefixo.
+O pseudo-compromisso e a CLSAG aparecem mais adiante, na parte RingCT.
+
+O nó lê os dezasseis deslocamentos, calcula os índices absolutos e,
+para cada \(g_{i,j}\), consulta o registo da classe zero. Este fornece
+o par \((P_{i,j},C^a_{i,j})\), acompanhado dos dados necessários à
+verificação do desbloqueio e da maturidade. A consulta conserva a
+ordem dos índices; obtém-se assim exactamente a lista ordenada
+\(\mathcal R_j\) da Equação~\eqref{eq:transaction-ring}.
+Subtrair \(\widetilde C^a_j\) a cada compromisso prepara então a
+segunda fila da CLSAG.
+
+Toda esta reconstrução usa dados públicos. A posição secreta
+\(\pi_j\) pertence à testemunha da assinatura: o verificador dispõe
+do mesmo tipo de par em todas as posições. Os índices e os pontos
+recuperados determinam a declaração pública à qual a CLSAG fica
+vinculada. A imagem \(I_j\) fornece, separadamente, o marcador de
+gastos repetidos. Uma saída pode figurar como desvio em vários anéis;
+esse reaparecimento é compatível com a função pública da lista de
+candidatos.
 
 
 \subsection{Assinatura}
@@ -284,10 +421,11 @@ mesma coluna secreta:
  z_j&=\log_G(Q_{\pi_j,j})=x_j-x'_j\pmod l.
 \end{align*}
 A CLSAG comprime estas duas relações numa só assinatura, sem revelar
-\(\pi_j\). As imagens ligáveis são
+\(\pi_j\). Com \(J_{i,j}=\mathcal H_p^{(1)}(P_{i,j})\), as duas
+imagens usadas na agregação são
 \begin{align*}
- I_j&=p_j\mathcal H_p(P_{\pi_j,j}),\\
- D_j&=z_j\mathcal H_p(P_{\pi_j,j}).
+ I_j&=p_jJ_{\pi_j,j},\\
+ D_j&=z_jJ_{\pi_j,j}.
 \end{align*}
 \(I_j\) é guardada na entrada, antes da parte RingCT. A assinatura CLSAG
 serializa, para um anel v16, dezasseis respostas
@@ -348,7 +486,7 @@ Os corpos CLSAG ficam necessariamente de fora, pois ainda estão a ser
 calculados. Há uma subtileza menos óbvia: os pseudo-compromissos também não
 entram em \(h_0,h_1,h_2\). Em vez disso, a transcrição de cada CLSAG inclui
 explicitamente o seu próprio \(\widetilde C^a_j\), juntamente com
-\(\mathfrak m\), os \(P_{i,j}\), os \(C^a_{i,j}\), \(I_j\) e \(D_j\). Logo,
+\(\mathfrak m\), os \(P_{i,j}\), os \(C^a_{i,j}\), \(I_j\) e \(\bar D_j\). Logo,
 mudar um pseudo-compromisso invalida a assinatura correspondente; não é, porém,
 verdade literal que exista um único \emph{hash} de todos os bytes excepto as
 assinaturas.\footnote{A construção está em
@@ -669,7 +807,6 @@ gamma da \texttt{gamma\_picker} escolhe idades de desvios. E os símbolos
 \(\gamma_j\) usados por vezes na literatura de Bulletproofs para máscaras de
 compromissos são apenas escalares escolhidos pelo provador.
 
-\newpage
 \section{Resumo conceptual}
 \label{sec:transaction_summary}
 
@@ -714,7 +851,6 @@ antiga; as diferenças estão assinaladas no próprio apêndice.
     relações secretas pretendidas pela carteira.
 \end{itemize}
 
-\newpage
 Numa transacção com uma entrada e duas saídas, a validade segundo o consenso e
 a utilização pelos destinatários dependem das condições seguintes:
 \begin{itemize}
@@ -789,14 +925,71 @@ a relação com o peso dinâmico do bloco é explicada na secção
 \path{src/cryptonote_basic/cryptonote_format_utils.cpp}, e o limite em
 \path{src/cryptonote_core/tx_verification_utils.cpp}.}
 
-\subsubsection*{O campo \texttt{extra}: conteúdo, limite e fronteira}
+\subsection{O campo \texttt{extra}: leitura e significado}
+\label{subsec:tx-extra-structure}
 
-\texttt{extra} é um vector de bytes do prefixo. As convenções conhecidas
-começam cada campo por uma etiqueta: por exemplo, \texttt{0x01} para a chave
-pública principal, \texttt{0x02} para um \emph{nonce} com comprimento e
-\texttt{0x04} para chaves públicas adicionais; \texttt{0x00} representa
-enchimento. Portanto, não é verdade que as etiquetas tenham ``todos os bits
-a um''.
+O prefixo termina com \texttt{extra}, um vector de bytes que contém
+informação auxiliar para as carteiras. A expressão habitual
+\texttt{tx\_extra} designa este campo da transacção. O seu comprimento
+\(e\) é escrito como \emph{varint}, seguido de exactamente \(e\) bytes.
+Fica, portanto, depois de \texttt{vin} e \texttt{vout}. Os
+\texttt{key\_offsets}, já lidos dentro de cada entrada de \texttt{vin},
+localizam os membros dos anéis. As chaves em \texttt{extra} ajudam o
+destinatário a reconhecer e decifrar as novas saídas.
+
+As convenções de leitura distinguem os campos interiores por uma etiqueta
+de um byte. A etiqueta determina a forma do conteúdo que se segue:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+Etiqueta & Conteúdo & Bytes após a etiqueta\\
+\hline
+\texttt{01} & Chave principal \(R\) & \(\operatorname{enc}(R)\), 32 bytes\\
+\texttt{04} & \(q\) chaves adicionais & \(\operatorname{varint}(q)\), depois \(32q\) bytes\\
+\texttt{02} & \emph{Nonce} de \(u\) bytes & \(\operatorname{varint}(u)\), depois \(u\) bytes\\
+\texttt{00} & Enchimento & Sequência de zeros\\
+\hline
+\end{tabular}
+\end{center}
+As marcas estão escritas em hexadecimal. A chave principal tem comprimento
+fixo. Para as chaves adicionais, o inteiro conta pontos; para o
+\emph{nonce}, conta bytes. O leitor avança segundo essa regra, de modo
+que um byte \texttt{01} no interior de uma chave continua a pertencer
+à chave. O enchimento reconhecido ocupa o final do vector, com até 255
+bytes zero, incluindo a etiqueta. O \emph{nonce} admite até 255 bytes
+de conteúdo.
+
+Considere-se uma transacção com duas saídas que publica a chave principal
+\(R\), duas chaves adicionais \(R_0,R_1\) e um identificador cifrado de
+oito bytes no \emph{nonce}. A organização do conteúdo é
+\begin{align*}
+ &\texttt{01}\ \|\ \operatorname{enc}(R)\\
+ &\texttt{04}\ \|\ \texttt{02}\ \|\
+       \operatorname{enc}(R_0)\ \|\ \operatorname{enc}(R_1)\\
+ &\texttt{02}\ \|\ \texttt{09}\ \|\
+       \texttt{01}\ \|\ \text{oito bytes cifrados}.
+\end{align*}
+Na segunda linha, \texttt{02} conta as duas chaves. Na terceira,
+\texttt{09} conta nove bytes de conteúdo: a marca interior \texttt{01},
+que identifica esta convenção de identificador cifrado, e os oito bytes
+seguintes. O total é
+\[
+ (1+32)+(1+1+64)+(1+1+9)=33+66+11=110.
+\]
+O vector recebe, por isso, o prefixo exterior \texttt{6E}, pois
+\(110=\texttt{6E}_{16}\). Incluindo esse prefixo, ocupa 111 bytes.
+Já um \texttt{extra} que contenha apenas a chave principal ocupa 33
+bytes de conteúdo e começa exteriormente por \texttt{21}.
+
+A presença das chaves adicionais segue os casos de destinatários e
+sub-endereços da secção~\ref{sec:multi_out_transactions}. Quando se
+publica uma chave por saída, a posição na lista corresponde ao índice
+local dessa saída. A carteira usa a chave pertinente na derivação
+partilhada, confere a etiqueta de vista, reconstrói o endereço oculto e
+verifica o compromisso do montante decifrado. Obtém assim uma ligação
+operacional entre os bytes auxiliares e os objectos matemáticos da
+saída. O exemplo de \emph{nonce} descreve uma convenção de leitura;
+a autorização do gasto é fornecida pelas assinaturas.
 
 A carteira de referência ordena campos que consegue analisar e recusa criar
 \texttt{extra} com mais de 1060 bytes. Um nó recusa normalmente propagar pela
@@ -805,21 +998,13 @@ política, não uma regra de consenso do bloco: no consenso, \texttt{extra}
 continua limitado indirectamente pelo tamanho e pelo peso de toda a
 transacção.
 
-Também aqui ``não é verificado'' precisa de tradução. O vector e o seu
-comprimento têm de ser serializáveis, e os bytes exactos entram em \(h_0\),
-logo não podem ser alterados depois da assinatura. Mas a validação de um
-bloco não exige que esses bytes formem todos campos reconhecidos, que haja
-uma só chave de cada espécie, nem que uma chave de transacção corresponda a
-um segredo usado pelo remetente. Essas são convenções que permitem às
-carteiras encontrar e decifrar saídas. Bytes mal formados podem tornar uma
-saída invisível ou inutilizável sem, por essa razão isolada, tornar inválido
-o bloco.\footnote{As etiquetas e formatos estão em
-\path{src/cryptonote_basic/tx_extra.h}; a análise e ordenação, em
-\path{src/cryptonote_basic/cryptonote_format_utils.cpp}; os limites de
-construção e propagação, em \path{cryptonote_tx_utils.cpp} e
-\path{tx_pool.cpp}.}
-
-É uma fronteira característica de Monero: o consenso protege a integridade
-dos bytes e as equações monetárias; a carteira dá significado operacional a
-alguns desses bytes. Confundir as duas coisas faz o protocolo parecer ao
-mesmo tempo mais rígido e menos seguro do que realmente é.
+O vector e o seu comprimento pertencem à serialização do prefixo, cujos
+bytes exactos entram em \(h_0\). A autorização vincula, portanto, esse
+conteúdo. A validação de consenso trata-o como uma sequência de bytes;
+a interpretação dos campos reconhecidos e a correspondência entre
+chaves públicas, segredos partilhados e destinatários pertencem à
+carteira. A utilização de uma saída exige ambas as camadas: uma
+transacção admitida e dados que o destinatário consiga reconhecer e
+abrir. Esta separação explica por que a integridade assinada de
+\texttt{extra} e a correcção das suas relações de derivação são
+propriedades distintas~\cite{monero-source-v16}.

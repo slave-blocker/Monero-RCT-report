@@ -130,3 +130,7 @@ As etiquetas existentes são mantidas durante as unidades locais para preservar 
 ## Receitas de pontos
 
 M(u) designa o mapa algébrico de um elemento do corpo das coordenadas para Edwards25519, com sinal determinado pelo ramo. H_p^(1) usa Keccak, leitura integral dos 256 bits, redução, mapa e cofactor; H_p^(2) usa duas metades do BLAKE2b personalizado, soma as imagens e limpa o cofactor. Nos capítulos das assinaturas em anel, H_p abrevia a primeira receita aplicada aos bytes da chave. H mantém o significado de gerador fixo dos montantes e obtém-se por descompressão do resumo de G, seguida de três duplicações.
+
+## CLSAG
+
+J_i=H_p(K_i,1) é a base comum das imagens da coluna i; I_j são imagens, com I_1 como marcador primário. W_i é a chave agregada e Wtilde a imagem agregada; w_pi é a combinação escalar extraível. Na aplicação de duas linhas, I=pJ_pi e D=zJ_pi, com Dbar=[8^-1 mod l]D. c_P,i e c_C,i designam os representantes canónicos de c_i mu_P e c_i mu_C, necessários para formular a verificação também perante membros com torção. O domínio primo permite recuperar a factorização por c_i. A harmonização do capítulo das relações de logaritmo discreto continua pendente.

@@ -15,7 +15,7 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
 - [x] Página 59: ensinar a pergunta decisional de Diffie–Hellman antes de a nomear.
 - [ ] Explicar «canónico» na primeira utilização relevante e incluir o termo no índice.
-- [ ] Página 62: «Especialização usada por Monero»; acrescentar duas páginas de explicação de CLSAG.
+- [x] Página 62: «Especialização usada por Monero»; acrescentar duas páginas de explicação de CLSAG.
 - [ ] Página 91: simplificar a apresentação das duas verificações de Bulletproofs; retirar do percurso principal os resíduos e a combinação ponderada, preservando as duas condições matemáticas.
 - [ ] Página 109: eliminar a página redundante sobre o tamanho da prova de intervalo, conservando a exposição útil na secção de espaço.
 - [ ] Página 111: desenvolver a representação uniforme dos membros do anel e a posição secreta por entrada.
@@ -241,3 +241,15 @@ A pergunta DDH é apresentada através de quatro pontos e das duas distribuiçõ
 Validação: key-image-domain.py constrói 24 assinaturas válidas no grupo Z_19 x Z_8, três posições de signatário com oito imagens cada, em 93 tentativas; confere todas as 152 decomposições e a contagem dos múltiplos dos desafios. Sobre Edwards25519, verifica as oito variantes, as projecções e 56 reconstruções, incluindo representantes próximos da ordem do subgrupo. O teste de domínio rejeita exactamente as sete variantes alteradas. As contas não substituem as hipóteses criptográficas nem constituem uma auditoria do histórico da rede.
 
 A compilação conserva 312 páginas, 164 avisos anteriores e todas as remissões resolvidas. Inspeccionaram-se as páginas físicas 80–86, incluindo a transição para MLSAG. Uma reserva condicional de espaço mantém o início da discussão de torção junto do título. FCMP++ conserva 38 páginas de texto e o poster, nas páginas físicas 196–234; divisores conserva as páginas 42–71. Os excertos foram novamente conferidos por texto e imagem.
+
+## CLSAG — duas páginas adicionais
+
+Estado: concluído em 16 de Novembro de 2026. A secção aumenta de cinco para sete páginas físicas atravessadas, conservando o início na página 86 e passando o capítulo seguinte de 91 para 93. Duas novas subseções desenvolvem as testemunhas partilhadas, um exemplo completo em ordem 19 e o papel dos pesos. O exemplo calcula p=5, z=9, pesos 3 e 4, testemunha agregada 13 e resposta 9, e verifica ambos os pontos reconstruídos.
+
+O texto distingue a extracção da combinação escalar das hipóteses sobre as suas componentes. A segurança remete para a variante one-more de logaritmos de combinações, a resistência da agregação e RO-DDH, no modelo e nos jogos primários. A base da imagem passa a J_i, conservando I para imagens. Corrigiu-se o título «Especialização usada por Monero», precisaram-se as etiquetas de 32 bytes e desenvolveu-se a contagem de 576 bytes, ou 608 incluindo a imagem que acompanha a entrada.
+
+A conferência da fonte revelou a importância da redução de c_i mu_P e c_i mu_C antes de multiplicar os pontos. A especialização explicita essa regra para o grupo completo e conserva a factorização compacta no domínio primo da análise abstracta. Apenas a coluna verdadeira é apresentada com testemunhas conhecidas P_pi=pG e C_pi=zG; os membros registados podem incluir componente de torção. A validação da imagem primária mantém o seu teste próprio.
+
+Validação: clsag-aggregation.py confere o exemplo, 2280 reconstruções e extracções sobre a curva de ordem 19, todas as 360 diferenças não nulas e a proporção exacta 19/361 de pesos que as anulam. Compara ainda 361 produtos de coeficientes no grupo Z_19 x Z_8; 247 casos distinguem a redução prévia da factorização na componente de torção, enquanto todos coincidem no subgrupo primo. Conferiram-se a serialização e os domínios directamente no C++.
+
+A compilação produz 314 páginas, conserva os 164 avisos anteriores e resolve referências e citações. Inspeccionaram-se as páginas físicas 86–92. FCMP++ mantém 38 páginas de texto e o poster, em 198–236; divisores mantém trinta páginas, em 42–71. Os excertos foram conferidos por texto e imagem antes de serem actualizados. O teste das imagens de chave passou também a evitar a criação de bytecode no directório de trabalho.

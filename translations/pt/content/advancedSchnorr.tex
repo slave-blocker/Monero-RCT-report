@@ -881,14 +881,10 @@ cresce, portanto, com o produto das linhas pelas colunas. CLSAG conservará um
 \label{sec:CLSAG}
 
 CLSAG, de \emph{concise linkable spontaneous anonymous group signature},
-conserva a coluna secreta de MLSAG mas agrega as relações dessa coluna antes
-de percorrer o anel \cite{MRL-0011-CLSAG}. Em vez de publicar uma resposta
-por linha e por coluna, publica uma resposta por coluna. É esta a assinatura
-em anel usada pelas transacções activas na versão 16 do Monero.
-\footnote{No código consultado, CLSAG é admitida desde a
-versão 13 do protocolo e obrigatória para novas transacções RingCT desde a
-versão 14. MLSAG continua necessária para interpretar formatos históricos,
-mas não é válida para uma nova transacção v16.}
+conserva a coluna secreta de MLSAG e agrega as relações dessa coluna antes
+de percorrer o anel \cite{MRL-0011-CLSAG}. Publica uma resposta por coluna,
+partilhada pelas relações agregadas. É esta a assinatura em anel da
+construção de Monero aqui considerada.
 
 \subsection*{Chaves primárias e auxiliares}
 
@@ -909,33 +905,31 @@ independentes.
 
 Para cada coluna, define-se uma única base de imagem
 \[
-H_i=\mathcal H_p(K_{i,1}).
+J_i=\mathcal H_p(K_{i,1}).
 \]
 As imagens da coluna verdadeira são
 \[
-I_j=k_{\pi,j}H_\pi,\qquad j=1,\ldots,m.
+I_j=k_{\pi,j}J_\pi,\qquad j=1,\ldots,m.
 \]
 \(I_1\) é a imagem primária e será usada no teste de ligação; \(I_2,\ldots,I_m\)
 são imagens auxiliares necessárias à agregação.
 
-Todos os escalares, pontos, dimensões e codificações são validados como nas
-secções anteriores. Em particular, a imagem primária deve ser não nula e
-pertencer ao subgrupo de ordem \(l\). O caso \(n=1\) é algebricamente válido,
-mas não oferece anonimidade; nas transacções v16 o anel tem exactamente
-16 membros.
+O esquema abstracto mantém os pontos no subgrupo de ordem \(l\), os
+escalares canónicos e as dimensões coerentes. A imagem primária é não nula.
+O caso \(n=1\) permite verificar as relações de uma única coluna; o conjunto
+de anonimidade cresce com o número de colunas. Na aplicação de Monero
+considerada, cada anel tem 16 membros.
 
 \subsection*{Pesos de agregação}
 
-Não podemos somar as linhas com coeficientes fixos. Um atacante poderia
-escolher uma chave ou imagem auxiliar que cancelasse outra e obter um
-agregado legítimo a partir de componentes ilegítimos. Por isso, CLSAG deriva
-um peso independente para cada linha:
+CLSAG vincula a combinação das linhas à matriz pública e às imagens.
+Para isso, deriva um peso por linha, com domínios distintos:
 \[
 \mu_j=\mathcal H_n(T_j,m,n,\mathcal R,I_1,\ldots,I_m),
 \qquad j=1,\ldots,m.
 \]
-Os rótulos \(T_j\) separam os domínios e toda a declaração, incluindo as
-imagens, fica presa a cada peso \cite{MRL-0011-CLSAG}. Definem-se então
+Os rótulos \(T_j\) separam os domínios; a matriz, as dimensões e todas as
+imagens ficam presas a cada peso \cite{MRL-0011-CLSAG}. Definem-se então
 \begin{align*}
 W_i&=\sum_{j=1}^{m}\mu_jK_{i,j},\\
 \widetilde W&=\sum_{j=1}^{m}\mu_jI_j,\\
@@ -944,10 +938,110 @@ w_\pi&=\sum_{j=1}^{m}\mu_jk_{\pi,j}.
 Na coluna verdadeira,
 \begin{align*}
 W_\pi&=w_\pi G,&
-\widetilde W&=w_\pi H_\pi.
+\widetilde W&=w_\pi J_\pi.
 \end{align*}
-Assim, muitas relações transformam-se numa só relação bLSAG, sem perder a
-vinculação às componentes.
+Estas duas igualdades têm a forma usada em bLSAG: uma só testemunha
+\(w_\pi\) actua sobre as bases \(G\) e \(J_\pi\). A segurança da
+passagem das componentes para esta combinação depende das hipóteses de
+agregação que precisaremos adiante.
+
+\subsection*{Duas testemunhas na mesma resposta}
+
+Consideremos duas linhas e abreviemos as testemunhas da coluna verdadeira
+por \(p=k_{\pi,1}\) e \(z=k_{\pi,2}\). As relações são
+\[
+ K_{\pi,1}=pG,\qquad K_{\pi,2}=zG,
+ \qquad I_1=pJ_\pi,\qquad I_2=zJ_\pi.
+\]
+A mesma base \(J_\pi\), derivada da chave primária, aparece nas duas
+imagens. É essa partilha que permite factorizar os mesmos escalares
+nos dois grupos de termos:
+\begin{align*}
+ \mu_1K_{\pi,1}+\mu_2K_{\pi,2}
+    &=(\mu_1p+\mu_2z)G,\\
+ \mu_1I_1+\mu_2I_2
+    &=(\mu_1p+\mu_2z)J_\pi.
+\end{align*}
+O peso de uma linha é igual para todas as colunas; a posição \(\pi\)
+continua a ser a escolha secreta entre as colunas. A agregação reúne
+as relações verticais, e o percurso circular conserva as alternativas
+do anel.
+
+Uma conta num grupo de ordem \(19\) torna visível cada passagem.
+Escolhamos \(p=5\), \(z=9\) e, para exibir a aritmética do exemplo,
+\(J_\pi=7G\). Suponhamos que os pesos obtidos são
+\(\mu_1=3\), \(\mu_2=4\). As quatro relações dão
+\[
+ K_{\pi,1}=5G,\qquad K_{\pi,2}=9G,\qquad
+ I_1=35G=16G,\qquad I_2=63G=6G.
+\]
+Todas as igualdades de escalares seguintes são módulo \(19\). A
+testemunha agregada é
+\[
+ w_\pi=3\cdot5+4\cdot9=51\equiv13.
+\]
+Do lado público, chega-se ao mesmo resultado:
+\[
+ W_\pi=3(5G)+4(9G)=13G,\qquad
+ \widetilde W=3(16G)+4(6G)=72G=15G.
+\]
+E \(w_\pi J_\pi=13(7G)=91G=15G\), como a segunda relação exige.
+O exemplo exibe os logaritmos para tornar as contas transparentes;
+as hipóteses criptográficas dizem respeito ao grupo grande e às bases
+derivadas pelo hash.
+
+Tomemos agora \(\alpha=11\) e suponhamos que, depois de percorrer as
+outras colunas, o desafio recebido na coluna verdadeira é \(c_\pi=6\).
+A única resposta necessária é
+\[
+ r_\pi=11-6\cdot13=-67\equiv9.
+\]
+O verificador reconstrói
+\begin{align*}
+ r_\pi G+c_\pi W_\pi
+    &=9G+6(13G)=87G=11G,\\
+ r_\pi J_\pi+c_\pi\widetilde W
+    &=9(7G)+6(15G)=153G=G.
+\end{align*}
+O primeiro ponto é \(\alpha G\); o segundo é
+\(\alpha J_\pi=11(7G)=77G=G\). Assim, a resposta \(9\) fecha
+simultaneamente as duas relações agregadas.
+
+O signatário produz esta resposta usando \(p\) e \(z\). Nas outras
+colunas, escolhe respostas aleatórias e calcula os pontos públicos que
+elas determinam, exactamente segundo o percurso já conhecido de bLSAG.
+O verificador aplica a mesma fórmula a todas as colunas. A posição que
+usa a testemunha fica incorporada num ciclo de aspecto uniforme.
+
+\subsection*{O que os pesos preservam}
+
+Fixemos duas propostas de testemunhas e escrevamos a diferença entre
+elas como \((e_1,e_2)\ne(0,0)\). As suas combinações coincidiriam se
+\[
+ \mu_1e_1+\mu_2e_2=0.
+\]
+Para pesos uniformes e independentes em \(\mathbb Z_l\), esta
+igualdade tem probabilidade exactamente \(1/l\). Se \(e_2\ne0\),
+cada escolha de \(\mu_1\) determina uma única escolha possível,
+\(\mu_2=-\mu_1e_1/e_2\), entre os \(l\) valores do segundo peso.
+Se \(e_2=0\), então \(e_1\ne0\), e a condição reduz-se a
+\(\mu_1=0\), com a mesma probabilidade.
+
+Esta conta refere-se a diferenças fixadas antes dos pesos. Na
+assinatura, os pesos resultam do hash da matriz e das imagens: alterar
+uma chave, uma imagem ou a ordem das colunas muda o argumento que
+os determina. A análise criptográfica acompanha as consultas
+adaptativas a esse hash e a dificuldade de obter os logaritmos das
+combinações. O limite \(1/l\) explica a função de uma combinação
+desafiada; as hipóteses e a redução de segurança tratam a execução
+completa \cite{MRL-0011-CLSAG}.
+
+A imagem primária conserva ainda uma função própria. Para a mesma
+chave \(pG\), o valor \(I_1=p\mathcal H_p(pG)\) permanece fixo,
+mesmo quando se escolhem outro anel e outras testemunhas auxiliares.
+Os pesos e a imagem agregada acompanham a declaração de cada
+assinatura. O teste de ligação compara \(I_1\), cuja estabilidade
+atravessa essas escolhas.
 
 \subsection*{Assinatura}
 
@@ -959,7 +1053,7 @@ o prefixo das rondas, com um domínio \(T_c\) distinto dos domínios de
 agregação. Convencionamos \(c_{n+1}=c_1\).
 
 \begin{enumerate}
-    \item Calculam-se \(H_i\), as imagens \(I_j\), os pesos \(\mu_j\), as
+    \item Calculam-se \(J_i\), as imagens \(I_j\), os pesos \(\mu_j\), as
     chaves agregadas \(W_i\), a imagem agregada \(\widetilde W\) e a
     testemunha agregada \(w_\pi\).
 
@@ -969,14 +1063,14 @@ agregação. Convencionamos \(c_{n+1}=c_1\).
     \item Inicia-se a ronda seguinte à coluna signatária:
     \[
     c_{\pi+1}
-      =\mathcal H_n(\Psi,[\alpha G],[\alpha H_\pi]).
+      =\mathcal H_n(\Psi,[\alpha G],[\alpha J_\pi]).
     \]
 
     \item Para
     \(i=\pi+1,\ldots,n,1,\ldots,\pi-1\), calculam-se
     \begin{align*}
     L_i&=r_iG+c_iW_i,\\
-    R_i&=r_iH_i+c_i\widetilde W,\\
+    R_i&=r_iJ_i+c_i\widetilde W,\\
     c_{i+1}&=\mathcal H_n(\Psi,[L_i],[R_i]).
     \end{align*}
 
@@ -997,7 +1091,7 @@ O verificador recompõe os mesmos pesos, \(W_i\) e \(\widetilde W\). Depois
 põe \(\widehat c_1=c_1\) e, para \(i=1,\ldots,n\), calcula
 \begin{align*}
 \widehat L_i&=r_iG+\widehat c_iW_i,\\
-\widehat R_i&=r_iH_i+\widehat c_i\widetilde W,\\
+\widehat R_i&=r_iJ_i+\widehat c_i\widetilde W,\\
 \widehat c_{i+1}
  &=\mathcal H_n(\Psi,[\widehat L_i],[\widehat R_i]).
 \end{align*}
@@ -1018,41 +1112,37 @@ Na coluna verdadeira, a resposta agregada reconstrói ambos os compromissos:
  &=(\alpha-c_\pi w_\pi)G+c_\pi(w_\pi G)
   =\alpha G,\\
 \widehat R_\pi
- &=r_\pi H_\pi+c_\pi\widetilde W\\
- &=(\alpha-c_\pi w_\pi)H_\pi+c_\pi(w_\pi H_\pi)
-  =\alpha H_\pi.
+ &=r_\pi J_\pi+c_\pi\widetilde W\\
+ &=(\alpha-c_\pi w_\pi)J_\pi+c_\pi(w_\pi J_\pi)
+  =\alpha J_\pi.
 \end{align*}
 As rondas simuladas coincidem por construção; portanto o desafio volta ao
 \(c_1\) publicado.
 
-Os pesos são parte da correcção, não apenas uma compressão. Como cada
-\(\mu_j\) depende de todas as chaves e imagens, escolher uma componente para
-cancelar outra altera os próprios coeficientes. No modelo do oráculo
-aleatório, encontrar o ponto fixo necessário para esse ataque tem
-probabilidade desprezável.
+O mesmo escalar agregado surge nas duas reconstruções porque as chaves
+e as imagens usam os mesmos pesos. A ligação às componentes permanece
+no argumento dos hashes que determinaram esses pesos.
 
-\subsection*{Especialização usada pelo Monero}
+\subsection*{Especialização usada por Monero}
 
 \marginnote{\raggedright\tiny
 \nolinkurl{src/ringct/rctSigs.cpp}\\
 {\tt CLSAG\_Gen()}\\
 {\tt verRctCLSAG\allowbreak Simple()}}
-Nas transacções Monero há duas linhas. A primeira contém chaves públicas de
-uso único
-\[
-P_i=p_iG.
-\]
-A segunda contém diferenças entre o compromisso candidato
+Na especialização de CLSAG em Monero há duas linhas. A primeira contém as
+chaves públicas de uso único \(P_i\). A segunda contém diferenças entre
+o compromisso candidato
 \(C_i^{\mathrm{nz}}\) e um compromisso de compensação comum
 \(C_{\mathrm{off}}\):
 \[
-C_i=C_i^{\mathrm{nz}}-C_{\mathrm{off}}=z_iG.
+C_i=C_i^{\mathrm{nz}}-C_{\mathrm{off}}.
 \]
-Na coluna verdadeira, o signatário conhece \(p=p_\pi\) e \(z=z_\pi\). Com
-\(H_i=\mathcal H_p(P_i)\), calcula
+Na coluna verdadeira, o signatário conhece \(p\) e \(z\) tais que
+\(P_\pi=pG\) e \(C_\pi=zG\). Com
+\(J_i=\mathcal H_p(P_i)\), calcula
 \begin{align*}
-I&=pH_\pi,\\
-D&=zH_\pi.
+I&=pJ_\pi,\\
+D&=zJ_\pi.
 \end{align*}
 \(I\) é a imagem primária. A assinatura serializa a imagem auxiliar como
 \(\overline D=8^{-1}D\); o verificador recupera \(D=8\overline D\). Esta
@@ -1060,7 +1150,8 @@ multiplicação pelo cofactor coloca a imagem auxiliar no subgrupo primo e o
 verificador rejeita \(D=0\). A imagem \(I\), que determina a ligação, é
 rejeitada se for nula ou se \(lI\neq0\).
 
-Na implementação consultada, os pesos são exactamente
+As etiquetas de domínio são os caracteres ASCII indicados, completados
+com bytes nulos até perfazerem 32 bytes. Os pesos são
 \begin{align*}
 \mu_P&=\mathcal H_n(
  \texttt{CLSAG\_agg\_0},
@@ -1085,15 +1176,27 @@ O hash de cada ronda usa o domínio \texttt{CLSAG\_round} e liga, pela ordem
 serializada, todas as \(P_i\), todos os \(C_i^{\mathrm{nz}}\),
 \(C_{\mathrm{off}}\), a mensagem da transacção e os dois compromissos
 \(L_i,R_i\). \(I\) e \(\overline D\) ficam ligados às rondas através dos pesos
-\(\mu_P,\mu_C\). Em notação compacta:
+\(\mu_P,\mu_C\). A regra aritmética calcula primeiro os representantes
+\[
+ c_{P,i}=(c_i\mu_P)\bmod l,\qquad
+ c_{C,i}=(c_i\mu_C)\bmod l
+\]
+e usa-os nas multiplicações:
 \begin{align*}
-L_i&=r_iG+c_i\{\mu_PP_i+\mu_C(C_i^{\mathrm{nz}}-C_{\mathrm{off}})\},\\
-R_i&=r_iH_i+c_i(\mu_PI+\mu_CD).
+L_i&=r_iG+c_{P,i}P_i+c_{C,i}(C_i^{\mathrm{nz}}-C_{\mathrm{off}}),\\
+R_i&=r_iJ_i+c_{P,i}I+c_{C,i}D.
 \end{align*}
+No subgrupo de ordem \(l\), estas expressões coincidem com
+\(r_iG+c_iW_i\) e \(r_iJ_i+c_i\widetilde W\).
+A regra com os produtos previamente reduzidos especifica também o
+tratamento de membros registados com componente de torção: nesses pontos,
+reduzir um multiplicador módulo \(l\) faz parte da definição da operação.
+O domínio primo usado na análise abstracta e a validação particular da
+imagem \(I\) conservam os seus papéis distintos.
 A assinatura serializada contém \(r_1,\ldots,r_n\), \(c_1\) e
 \(\overline D\). \(I\) já aparece como imagem da entrada da transacção e é
 reposto na estrutura antes da verificação; não é duplicado no corpo CLSAG.
-O verificador da revisão consultada rejeita anéis vazios, números errados de
+A verificação exige pontos descodificáveis e rejeita anéis vazios, números errados de
 respostas, \(c_1\) ou respostas não canónicos, \(I=0\), \(8\overline D=0\) e
 codificações de pontos inválidas; a validação da transacção exige ainda
 \(lI=0\). Cada desafio de ronda reconstruído tem também de ser não nulo.
@@ -1109,14 +1212,33 @@ auxiliares não entram nesse teste: existem para provar a consistência da
 agregação, e tratá-las como marcadores poderia criar ligações que o protocolo
 não pretende.
 
-A infalsificabilidade e o conhecimento da coluna dependem da dificuldade do
-PLD, da segurança Fiat--Shamir no modelo do oráculo aleatório e de os pesos
-impedirem cancelamentos de chaves. A impossibilidade de calcular uma imagem
-a partir de \(G,K,H\) sem a testemunha é uma hipótese do tipo PCDH; esconder a
-qual chave \(K_i\) corresponde a \((H_i,I)\) exige a dificuldade do problema
-decisional de Diffie--Hellman. Resolver o PLD permitiria resolver os dois
-problemas Diffie--Hellman; o inverso, e a equivalência entre as respectivas
-dificuldades, não se seguem sem uma redução para o grupo usado.
+A extracção de Schnorr identifica primeiro a testemunha agregada.
+Se duas respostas \(r,r'\), para desafios distintos \(c,c'\), reconstituírem
+os mesmos pontos com os mesmos pesos e na mesma coluna, então
+\[
+ w_\pi=\frac{r-r'}{c'-c}.
+\]
+Esta igualdade fornece o logaritmo de \(W_\pi\) na base \(G\) e de
+\(\widetilde W\) na base \(J_\pi\). O escalar obtido é a combinação
+\(\sum_j\mu_jk_{\pi,j}\).
+
+A garantia de infalsificabilidade, incluindo a resistência a atribuir
+uma assinatura à imagem de outra chave, usa uma hipótese sobre
+logaritmos de combinações com acesso limitado a chaves secretas.
+Na formulação primária, o adversário recebe chaves públicas de desafio
+e pode pedir alguns dos seus segredos; a hipótese impede que obtenha
+um logaritmo não nulo de uma combinação, com coeficientes não nulos, de mais chaves
+de desafio do que as que abriu. É a variante \emph{one-more} do problema de
+logaritmo de combinações. A redução usa ainda o modelo de oráculo
+aleatório e o argumento de bifurcação \cite{MRL-0011-CLSAG}.
+
+A ligação conserva as hipóteses de resistência da agregação a colisões
+e a inversão. A anonimidade usa a variante decisional com hash para
+pontos: distinguir triplos de chaves, bases e imagens legítimas,
+\((kG,\mathcal H_p(kG),k\mathcal H_p(kG))\), dos triplos em que o
+último ponto é independente. Estas são hipóteses específicas sobre
+as distribuições e as consultas permitidas; a extracção do escalar
+agregado é a relação algébrica que as acompanha.
 
 A unicidade útil de \(I\) exige ainda uma função hash para ponto resistente a
 colisões, bases no subgrupo correcto e rejeição de identidade e torção. Uma
@@ -1124,7 +1246,8 @@ imagem repetida só estabelece ligação entre assinaturas válidas; não prova,
 isoladamente, que uma saída pertencia a alguém nem que todas as regras de
 valor de uma transacção foram cumpridas.
 
-Reutilizar \(\alpha\) em dois desafios revela a testemunha agregada
+Reutilizar \(\alpha\) em dois desafios, com os pesos fixos, revela a
+testemunha agregada
 \(w_\pi\). Se a reutilização ocorrer sob conjuntos de pesos independentes,
 várias equações lineares podem ainda revelar as testemunhas individuais.
 Respostas previsíveis ou não uniformes podem denunciar \(\pi\). Por isso,
@@ -1138,3 +1261,15 @@ Na forma geral, CLSAG guarda \(n+1\) escalares e \(m\) imagens, usando
 vantagem concisa em relação a MLSAG. Na especialização Monero, a imagem
 primária acompanha a entrada e a assinatura serializa apenas a imagem
 auxiliar, além desses \(n+1\) escalares.
+
+Com 16 membros, há dezasseis respostas, um desafio inicial e um ponto
+auxiliar. A parcela serializada ocupa
+\[
+ 16\cdot32+32+32=576\text{ bytes}.
+\]
+Os 32 bytes de \(I\) acompanham a entrada, pelo que a assinatura e o seu
+marcador de ligação somam \(608\) bytes. As chaves e os compromissos dos
+dezasseis candidatos são obtidos a partir das referências da entrada,
+como veremos no capítulo das transacções. Cada novo membro acrescenta
+uma resposta de 32 bytes e uma ronda de verificação; a concisão decorre
+da partilha dessa resposta por todas as relações da coluna.

@@ -9,6 +9,9 @@ import importlib.util
 from math import gcd
 from pathlib import Path
 import random
+import sys
+
+sys.dont_write_bytecode = True
 
 
 spec = importlib.util.spec_from_file_location(

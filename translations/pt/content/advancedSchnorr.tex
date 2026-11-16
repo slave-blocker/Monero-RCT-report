@@ -18,6 +18,8 @@ diferentes.
 
 \section{Igualdade do logaritmo discreto em várias bases}
 \label{sec:proofs-discrete-logarithm-multiple-bases}
+\index{logaritmo discreto@logaritmo discreto!igualdade em varias bases@igualdade em várias bases}
+\index{dleq@DLEQ|see{logaritmo discreto, igualdade em várias bases}}
 
 Suponhamos que Alice publica \(K_1=kJ_1\) e \(K_2=kJ_2\). O primeiro ponto
 pode ser uma chave pública \(kG\), enquanto o segundo pode ser o segredo
@@ -27,6 +29,9 @@ mesmo nas duas bases. Uma resposta Schnorr comum às duas relações faz
 precisamente esse trabalho.
 
 \subsection*{Declaração e testemunha}
+\index{declaracao publica@declaração pública}
+\index{testemunha@testemunha}
+\index{h n@\(\mathcal H_n\), hash para escalar}
 
 Seja \(d\geq 1\). A declaração pública, escrita como listas ordenadas, é
 \begin{align*}
@@ -122,6 +127,7 @@ presa a todo o contexto e a todas as chaves públicas.
 
 \section{Uma prova com múltiplas chaves privadas}
 \label{sec:multiple_private_keys_in_one_proof}
+\index{prova de representacao@prova de representação}
 
 A construção anterior reutilizava uma testemunha em várias bases. Podemos
 fazer o complemento: provar simultaneamente várias relações, cada qual com a
@@ -216,6 +222,9 @@ desafio: reutilizar apenas um deles basta para revelar o respectivo \(k_i\).
 declaração; por isso, dimensões e ordem são parte do que se autentica.
 
 \section{Assinaturas espontâneas anónimas de grupo}
+\index{sag@SAG}
+\index{assinatura em anel@assinatura em anel!sag@SAG}
+\index{anonimato@anonimato!do signatario@do signatário}
 \label{SAG_section}
 
 As assinaturas de grupo de Chaum e van Heyst recorriam a uma entidade de
@@ -344,6 +353,7 @@ o verificador obtém sucessivamente
 \end{align*}
 
 \subsection*{O que a assinatura garante}
+\index{infalsificabilidade@infalsificabilidade}
 
 Sob a dificuldade do logaritmo discreto e no modelo do oráculo aleatório, a
 cadeia prova conhecimento de uma das chaves privadas sem revelar qual. A
@@ -364,6 +374,9 @@ mesma chave. A imagem de chave da próxima secção acrescentará essa
 propriedade.
 
 \section{Assinaturas em anel ligáveis de Adam Back}
+\index{blsag@bLSAG}
+\index{assinatura em anel@assinatura em anel!blsag@bLSAG}
+\index{ligacao entre assinaturas@ligação entre assinaturas}
 \label{blsag_note}
 
 SAG esconde qual membro assinou, mas permite repetir a mesma chave sem deixar
@@ -409,6 +422,8 @@ sozinha, propriedade civil, intenção nem validade de um gasto: é preciso
 validar a assinatura e todas as restantes regras do protocolo.
 
 \subsection*{Hash para ponto e imagem de chave}
+\index{imagem de chave@imagem de chave}
+\index{i@\(I\), imagem de chave}
 
 Usaremos a primeira receita da secção~\ref{subsec:hash-to-point},
 abreviando \(\mathcal H_p^{(1)}\) por
@@ -525,6 +540,10 @@ a cadeia fecha no \(c_1\) publicado.
 \subsection*{A componente de torção e a ligação}
 \phantomsection
 \label{subsec:key-image-torsion}
+\index{imagem de chave@imagem de chave!validacao do subgrupo@validação do subgrupo}
+\index{torcao@torção}
+\index{subgrupo primo@subgrupo primo!validacao@validação}
+\index{gasto duplo@gasto duplo!imagem malformada@imagem malformada}
 
 A curva tem \(8l\) pontos, enquanto as chaves e as bases das imagens vivem
 no subgrupo de ordem \(l\). A diferença entre estes dois domínios é
@@ -652,6 +671,10 @@ colisões e logaritmos discretos e de todos os pontos terem sido validados.
 
 Para compreender a ambiguidade, coloquemos primeiro uma pergunta sobre
 quatro pontos públicos. Recebemos
+\index{ddh@DDH}
+\index{diffie--hellman@Diffie--Hellman!problema decisional@problema decisional}
+\index{diffie--hellman@Diffie--Hellman!problema computacional@problema computacional}
+\index{cdh@CDH|see{Diffie--Hellman, problema computacional}}
 \[
  G,\qquad A=aG,\qquad J=bG,\qquad Z,
 \]
@@ -706,6 +729,8 @@ posição verdadeira das respostas simuladas. A assinatura guarda
 
 \section{Assinaturas em anel ligáveis com múltiplas camadas}
 \label{sec:MLSAG}
+\index{mlsag@MLSAG}
+\index{assinatura em anel@assinatura em anel!mlsag@MLSAG}
 
 MLSAG generaliza bLSAG a uma matriz de chaves
 \cite{MRL-0005-ringct}. Foi uma peça central das primeiras transacções
@@ -879,6 +904,8 @@ cresce, portanto, com o produto das linhas pelas colunas. CLSAG conservará um
 
 \section{Assinaturas em anel ligáveis concisas}
 \label{sec:CLSAG}
+\index{clsag@CLSAG}
+\index{assinatura em anel@assinatura em anel!clsag@CLSAG}
 
 CLSAG, de \emph{concise linkable spontaneous anonymous group signature},
 conserva a coluna secreta de MLSAG e agrega as relações dessa coluna antes
@@ -904,6 +931,7 @@ auxiliares têm de ser provadas, mas não devem criar marcadores de gasto
 independentes.
 
 Para cada coluna, define-se uma única base de imagem
+\index{j@\(J\), base da imagem de chave}
 \[
 J_i=\mathcal H_p(K_{i,1}).
 \]
@@ -921,6 +949,7 @@ de anonimidade cresce com o número de colunas. Na aplicação de Monero
 considerada, cada anel tem 16 membros.
 
 \subsection*{Pesos de agregação}
+\index{clsag@CLSAG!pesos de agregacao@pesos de agregação}
 
 CLSAG vincula a combinação das linhas à matriz pública e às imagens.
 Para isso, deriva um peso por linha, com domínios distintos:
@@ -946,6 +975,7 @@ passagem das componentes para esta combinação depende das hipóteses de
 agregação que precisaremos adiante.
 
 \subsection*{Duas testemunhas na mesma resposta}
+\index{clsag@CLSAG!testemunhas agregadas@testemunhas agregadas}
 
 Consideremos duas linhas e abreviemos as testemunhas da coluna verdadeira
 por \(p=k_{\pi,1}\) e \(z=k_{\pi,2}\). As relações são
@@ -1124,6 +1154,8 @@ e as imagens usam os mesmos pesos. A ligação às componentes permanece
 no argumento dos hashes que determinaram esses pesos.
 
 \subsection*{Especialização usada por Monero}
+\index{clsag@CLSAG!especializacao ringct@especialização RingCT}
+\index{d clsag@\(D\), imagem auxiliar CLSAG}
 
 \marginnote{\raggedright\tiny
 \nolinkurl{src/ringct/rctSigs.cpp}\\

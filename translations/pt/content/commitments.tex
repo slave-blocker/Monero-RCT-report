@@ -18,6 +18,9 @@ dizem respeito à revisão do código Monero identificada no resumo inicial.
 
 \section{Compromissos}
 \label{sec:commitments}
+\index{compromisso@compromisso}
+\index{ocultacao@ocultação}
+\index{vinculacao@vinculação}
 
 Um esquema de compromisso permite a Alice fixar uma mensagem sem a revelar de
 imediato. Mais tarde, Alice apresenta uma \emph{abertura}; Bob verifica que é
@@ -43,6 +46,9 @@ preserva a adição das mensagens comprometidas.
 
 \section{Compromissos de Pedersen}
 \label{pedersen_section}
+\index{compromisso@compromisso!de pedersen@de Pedersen}
+\index{pedersen, compromisso de@Pedersen, compromisso de}
+\index{homomorfismo dos compromissos@homomorfismo dos compromissos}
 
 Para somar montantes ocultos, empregamos um compromisso de Pedersen
 \cite{Pedersen1992}. Sejam \(G\) e \(H\) pontos não nulos do subgrupo de ordem
@@ -107,6 +113,8 @@ preciso também ligar ou cancelar as máscaras de maneira verificável.
 
 \subsection{A construção do gerador de montantes}
 \label{subsec:pedersen-fixed-generator}
+\index{h@\(H\), gerador de montantes}
+\index{gerador@gerador!de montantes@de montantes}
 
 O ponto fixo \(H\) obtém-se a partir da codificação convencional de \(G\).
 Se \(\operatorname{dec}\) designar a descompressão de Edwards da
@@ -156,6 +164,8 @@ todos os argumentos de \(\mathcal H_p^{(1)}\).
 
 \section{Montantes ocultos}
 \label{sec:pedersen_monero}
+\index{montante oculto@montante oculto}
+\index{mascara@máscara!de um compromisso@de um compromisso}
 
 Consideremos a saída \(t\), de montante \(b_t\), enviada a Bob. A Secção
 \ref{sec:one-time-addresses} definiu a derivação partilhada \(\mathcal D_B\)
@@ -234,6 +244,8 @@ rctTypes.h,
 
 \section{Introdução a RingCT}
 \label{sec:ringct-introduction}
+\index{ringct@RingCT}
+\index{pseudo-compromisso@pseudo-compromisso}
 
 Uma saída reúne objectos com funções diferentes. A chave de saída de
 utilização única liga a saída à autorização de gasto; \(C_t^b\) oculta o
@@ -299,6 +311,9 @@ modulares ilegítimos.
 
 \section{Provas de intervalo}
 \label{sec:range_proofs}
+\index{prova de intervalo@prova de intervalo}
+\index{prova de dominio@prova de domínio|see{prova de intervalo}}
+\index{intervalo de 64 bits@intervalo de 64 bits}
 
 A Equação~\eqref{eq:commitment-balance} é uma igualdade no subgrupo de
 ordem~\(l\). Sem outra condição, ela aceita escalares que não são montantes
@@ -333,6 +348,8 @@ com as assinaturas das entradas.
 
 \section{Assinaturas em anel Borromean}
 \label{sec:borromean}
+\index{borromean, assinatura@Borromean, assinatura}
+\index{assinatura em anel@assinatura em anel!borromean@Borromean}
 
 As primeiras transacções RingCT provaram a
 Equação~\eqref{eq:range-statement} com assinaturas em anel Borromean
@@ -641,6 +658,10 @@ agregar vários montantes.
 
 \section{Bulletproofs}
 \label{sec:bullet_proofs}
+\index{bulletproofs@Bulletproofs}
+\index{produto interno@produto interno}
+\index{argumento de produto interno@argumento de produto interno}
+\index{ipa@IPA|see{argumento de produto interno}}
 
 \centerline{{\it Sou mais rápido quando me mexo.}}
 \centerline{\quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad {\it Sundance}}
@@ -932,6 +953,7 @@ dois vectores terão de atravessar a rede.
 
 \subsection{Verificação}
 \label{sec:bullet_ver}
+\index{bulletproofs@Bulletproofs!duas condicoes de verificacao@duas condições de verificação}
 
 As duas igualdades seguintes ligam o compromisso ao valor e o compromisso
 aos vectores. O verificador confere a primeira com os dados públicos; o
@@ -1005,6 +1027,7 @@ ganhar velocidade.
 
 \subsubsection{Mais detalhes do provador}
 \label{sec:bullet_detalhes}
+\index{argumento de produto interno@argumento de produto interno!dobras@dobras}
 
 Aqui continua o processo do provador no protocolo do produto interno IP.
 Começa-se com vectores de dimensão \(2^k\), onde \(k=6\), e com
@@ -1145,6 +1168,7 @@ finais que o verificador consegue reconstruir. A Equação
 \newpage
 \subsubsection{O verificador e o fim da batalha}
 \label{sec:bullet_fim}
+\index{argumento de produto interno@argumento de produto interno!geradores finais@geradores finais}
 
 Os escalares finais \(a,b\) têm de ser transmitidos. Os pontos finais
 \(\ce{^{0}_{\ }\underline G}\) e
@@ -1360,6 +1384,9 @@ os desafios recompostos e os dois escalares finais.
 
 \section{Bulletproof+}
 \label{sec:bulletproof_plus}
+\index{bulletproofs+@Bulletproofs+}
+\index{bulletproof+@Bulletproof+|see{Bulletproofs+}}
+\index{produto interno@produto interno!ponderado@ponderado}
 
 A Bulletproof clássica já teve o seu palco, as suas setas e o seu fim da
 batalha. Bulletproof+ não apaga nada disso. É a batalha seguinte: prova a mesma
@@ -1715,6 +1742,7 @@ uma consequência da ocultação perfeita por si só.
 
 \subsection{Verificação}
 \label{sec:bpp_ver}
+\index{bulletproofs+@Bulletproofs+!verificacao@verificação}
 
 O verificador não recebe os bits nem as máscaras. Recompõe \(V_j\) e todos os
 desafios do traslado das Equações~\eqref{eq:bpp-transcript-start}--

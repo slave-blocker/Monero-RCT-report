@@ -23,6 +23,9 @@ são convenções das carteiras para que remetentes e destinatários se entendam
 
 \section{Chaves}
 \label{sec:user-keys}
+\index{chave@chave!de gasto@de gasto}
+\index{chave@chave!de vista@de vista}
+\index{endereco@endereço!principal@principal}
 
 Bob escolhe dois escalares privados não nulos do corpo escalar,
 \(k_B^s,k_B^v\in\mathbb{Z}_l^*\), e publica os pontos
@@ -53,6 +56,9 @@ devem ser escalares canónicos e os pontos públicos esperados pertencem ao
 subgrupo gerado por \(G\).
 
 \subsection*{Codificação de um endereço principal}
+\index{base58@Base58}
+\index{endereco@endereço!codificacao@codificação}
+\index{soma de controlo@soma de controlo}
 
 Para comunicar o par numa representação textual, Monero usa uma variante
 própria de Base58 \cite{base-58-encoding,luigi-address}. Na rede principal, a entrada
@@ -84,6 +90,9 @@ normal satisfazem-nas por construção.
 
 \section{Endereços ocultos}
 \label{sec:one-time-addresses}
+\index{endereco@endereço!oculto@oculto}
+\index{chave@chave!de utilizacao unica@de utilização única}
+\index{stealth address@stealth address|see{endereço, oculto}}
 
 Alice não escreve o endereço principal de Bob numa saída. Aplica-lhe antes uma
 troca semelhante a Diffie--Hellman e cria uma chave pública nova para cada
@@ -192,6 +201,8 @@ consenso e, ainda assim, criar uma saída que a carteira pretendida não
 consiga encontrar ou gastar.
 
 \subsection*{Etiquetas de vista}
+\index{etiqueta de vista@etiqueta de vista}
+\index{view tag@view tag|see{etiqueta de vista}}
 
 Testar \(K_t^o-h_tG\) contra uma grande tabela de chaves públicas custa mais do
 que comparar um byte. Para cada derivação e índice, o remetente da
@@ -238,6 +249,9 @@ sem entregar essa chave, recorreremos ao Capítulo
 
 \subsection{Transacções de múltiplas saídas}
 \label{sec:multi_out_transactions}
+\index{r transaccao@\(R\), chave pública de transacção}
+\index{chave@chave!de transaccao@de transacção}
+\index{saida@saída!multiplas saidas@múltiplas saídas}
 
 A transacção corrente costuma pagar ao destinatário e devolver troco ao
 remetente. Para transacções RingCT não mineiras, a versão~16 exige por
@@ -279,6 +293,8 @@ segredos efémeros mudam; veremos já esse caso na Secção
 
 \section{Sub-endereços}
 \label{sec:subaddresses}
+\index{sub-endereco@sub-endereço}
+\index{endereco@endereço!sub-endereco@sub-endereço}
 
 Um endereço principal pode originar muitos sub-endereços. Todos conduzem à
 mesma carteira, mas Bob pode entregar um diferente a cada cliente, factura ou
@@ -477,6 +493,9 @@ exactamente o que verifica e como trata transacções antigas.
 
 \section{Endereços integrados}
 \label{sec:integrated-addresses}
+\index{endereco@endereço!integrado@integrado}
+\index{identificador de pagamento@identificador de pagamento}
+\index{payment id@payment ID|see{identificador de pagamento}}
 
 Um endereço integrado junta um endereço \emph{principal} a um ID de pagamento
 curto escolhido pelo destinatário. Serve, por exemplo, para Bob atribuir um
@@ -553,6 +572,7 @@ não de uma regra de consenso; ao descodificá-lo obtêm-se oito bytes nulos.
 
 \section{Endereços de multi-assinatura}
 \label{sec:multisignature-addresses}
+\index{endereco@endereço!de multi-assinatura@de multi-assinatura}
 
 Uma carteira de multi-assinatura faz várias partes cooperarem para controlar
 as chaves descritas neste capítulo. Não existe, no entanto, um prefixo Base58,

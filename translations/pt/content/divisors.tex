@@ -26,6 +26,8 @@ que cada passagem possa ser acompanhada até ao seu resultado.
 
 \section{Uma função sobre a curva}
 \label{sec:divisors-functions}
+\index{funcao@função!sobre uma curva@sobre uma curva}
+\index{fecho algebrico@fecho algébrico}
 
 Retomemos o corpo finito do capítulo \ref{chapter:basicConcepts}. Os seus
 elementos podem ser somados, multiplicados e, quando são não nulos,
@@ -123,6 +125,8 @@ curva que determinarão os certificados.
 
 \section{Os encontros têm multiplicidade}
 \label{sec:divisors-multiplicity}
+\index{multiplicidade@multiplicidade}
+\index{zero de uma funcao@zero de uma função}
 
 Na apresentação de Weierstrass, a regra geométrica da adição começa por
 uma recta. A recta que passa por \(A\) e \(B\) encontra a curva num
@@ -228,6 +232,12 @@ adequada ao ponto.
 \begin{samepage}
 \section{Fracções, pólos e o ponto no infinito}
 \label{sec:divisors-poles}
+\index{ord a@\(\operatorname{ord}_A(f)\), ordem de uma função}
+\index{polo@pólo}
+\index{parametro local@parâmetro local}
+\index{ponto no infinito@ponto no infinito}
+\index{o infinito@\(\mathcal O_\infty\), ponto no infinito}
+\index{funcao@função!racional@racional}
 
 Os zeros podem combinar-se por multiplicação. Se duas funções começam
 localmente por \(t^2u\) e \(tv\), o seu produto começa por
@@ -339,6 +349,9 @@ num objecto que podemos somar, subtrair e relacionar com a lei do grupo.
 
 \section{O registo dos zeros e dos pólos}
 \label{sec:divisors-ledger}
+\index{divisor@divisor}
+\index{lugar de um divisor@lugar de um divisor}
+\index{a lugar@\([A]\), lugar formal}
 
 A função da tangente já nos deu um registo completo: um zero duplo em
 \(P\), um zero simples em \(-2P\) e um pólo triplo em
@@ -382,7 +395,11 @@ coeficientes. As relações da lei do grupo entrarão por uma operação
 adicional, que definiremos adiante.
 
 O \emph{suporte} é o conjunto dos lugares com coeficiente não nulo.
+\index{divisor@divisor!suporte@suporte}
+\index{suporte de um divisor@suporte de um divisor}
 O \emph{grau} é a soma inteira dos coeficientes:
+\index{divisor@divisor!grau@grau}
+\index{deg d@\(\deg D\), grau de um divisor}
 \[
  \deg D=\sum_{A\in\mathcal S}m_A.
 \]
@@ -395,6 +412,8 @@ em cada lugar a sua ordem:
 \begin{equation}
  \operatorname{div}(f)=\sum_A\operatorname{ord}_A(f)[A].
  \label{eq:fcmp-rational-function-divisor}
+\index{divisor@divisor!principal@principal}
+\index{div f@\(\operatorname{div}(f)\), divisor de uma função}
 \end{equation}
 Um divisor que resulta desta construção chama-se \emph{principal};
 a função \(f\) testemunha que ele é principal. Uma constante não nula
@@ -475,6 +494,8 @@ aproveitar \cite{eagen-divisors}.
 
 \section{Quando o registo pertence a uma função}
 \label{sec:divisors-principal-criterion}
+\index{divisor@divisor!criterio de principalidade@critério de principalidade}
+\index{equivalencia linear@equivalência linear}
 
 Para transformar a construção anterior numa garantia, precisamos de
 reconhecer quais os divisores que podem provir de funções. Interessa-nos
@@ -561,6 +582,7 @@ As transformações anteriores conduzem a
 \begin{equation}
  D\sim[\sigma(D)]-[\mathcal O_\infty].
  \label{eq:divisors-reduced-class}
+\index{sigma d@\(\sigma(D)\), soma de pontos de um divisor}
 \end{equation}
 Em particular, se \(\sigma(D)=\mathcal O_\infty\), o divisor final
 é zero. O produto e o quociente das funções usadas na transformação
@@ -622,6 +644,8 @@ verticais usa coeficientes do próprio corpo \(\mathbb F\).
 
 As classes de equivalência dos divisores de grau zero formam o
 \emph{grupo de Picard de grau zero}, \(\operatorname{Pic}^0(\mathbb E)\).
+\index{pic@\(\operatorname{Pic}^0(\mathbb E)\), grupo de Picard}
+\index{picard, grupo de@Picard, grupo de}
 A soma de classes é induzida pela soma de divisores. A correspondência
 que associa a \(S\) a classe de \([S]-[\mathcal O_\infty]\)
 é bijectiva e respeita a adição: é um isomorfismo entre o grupo da
@@ -630,6 +654,8 @@ de usar mostram concretamente como se faz essa passagem.
 
 \section{O certificado de uma multiplicação}
 \label{sec:divisors-multiplication-certificate}
+\index{certificado de multiplicacao@certificado de multiplicação}
+\index{divisor@divisor!certificado de multiplicacao@certificado de multiplicação}
 
 Voltemos aos pontos \(P,Q\) e ao inteiro \(n\geq1\). Queremos
 certificar \(Q=nP\). O registo adequado é
@@ -759,6 +785,8 @@ dígitos do escalar e de uma tabela pública de pontos.
 
 \section{Da escrita binária ao registo de pontos}
 \label{sec:divisors-scalar-table}
+\index{decomposicao de escalares@decomposição de escalares}
+\index{tabela de duplicacoes@tabela de duplicações}
 
 O certificado anterior colocou \(n\) ocorrências no ponto \(P\).
 Para um número de algumas centenas de bits, essa multiplicidade faria
@@ -849,6 +877,7 @@ permite trabalhar inteiramente com coordenadas afins.
 \Needspace{8\baselineskip}
 \section{Uma multiplicidade total fixa}
 \label{sec:divisors-fixed-multiplicity}
+\index{multiplicidade@multiplicidade!total fixa@total fixa}
 
 A decomposição binária fez o tamanho depender do número de bits. O
 total \(N\), porém, ainda acompanha a quantidade de bits iguais a
@@ -973,6 +1002,8 @@ serão desenvolvidas adiante \cite{monero-oxide-fcmp-source}.
 \Needspace{8\baselineskip}
 \section{O espaço da função e a garantia do certificado}
 \label{sec:divisors-function-bound}
+\index{normalizacao@normalização!da funcao testemunha@da função testemunha}
+\index{grau ponderado@grau ponderado}
 
 O tamanho público tem de fixar precisamente o espaço onde a função
 pode viver. Se pretendemos registar \(d\) ocorrências afins, o
@@ -1121,6 +1152,9 @@ muitos coeficientes por avaliações de uma função simples.
 
 \section{Um produto que guarda os lugares do divisor}
 \label{sec:divisors-evaluation}
+\index{divisor@divisor!avaliacao de uma funcao@avaliação de uma função}
+\index{f d@\(f(D)\), avaliação num divisor}
+\index{weil, reciprocidade de@Weil, reciprocidade de}
 
 A função testemunha está construída. Para verificar a lista dos seus
 zeros, podemos reunir as avaliações num produto: cada lugar entra
@@ -1201,6 +1235,8 @@ contribuição desse lugar comum.
 
 \section{A contribuição do ponto no infinito}
 \label{sec:divisors-reciprocity-infinity}
+\index{simbolo local@símbolo local}
+\index{weil, reciprocidade de@Weil, reciprocidade de!ponto no infinito@ponto no infinito}
 
 As ordens locais permitem tratar zeros e pólos das duas funções no
 mesmo lugar. Escrevamos, junto de \(A\),
@@ -1308,6 +1344,7 @@ se conservam nas avaliações.
 
 \section{Três avaliações da função}
 \label{sec:divisors-line-product}
+\index{divisor@divisor!avaliacoes numa recta@avaliações numa recta}
 
 Fixemos o declive \(c_{\rm declive}\) e a ordenada na origem
 \(c_{\rm corte}\) de uma recta. Definimos
@@ -1429,6 +1466,8 @@ nos certificados de divisores \cite{eagen-divisors}.
 
 \section{A recta como desafio público}
 \label{sec:divisors-line-challenge}
+\index{norma de uma funcao@norma de uma função}
+\index{desafio@desafio!recta publica@recta pública}
 
 A identidade anterior vale para a função e o seu divisor verdadeiro.
 Numa prova, o provador apresenta uma testemunha oculta e afirma que
@@ -1534,6 +1573,7 @@ nas condições aritméticas.
 
 \section{Dos produtos às somas: a derivada logarítmica}
 \label{sec:divisors-logarithmic-derivative}
+\index{derivada logaritmica@derivada logarítmica}
 
 A identidade \eqref{eq:divisors-line-product} reúne os zeros num
 produto. Para a prova, interessa uma expressão em que cada multiplicidade
@@ -1620,6 +1660,7 @@ identidade~\cite{eagen-divisors}.
 
 \section{Calcular as três parcelas na curva}
 \label{sec:divisors-curve-derivative}
+\index{derivada@derivada!ao longo da curva@ao longo da curva}
 
 Uma parcela da soma da esquerda acompanha um ponto que pertence à curva
 e à recta ao mesmo tempo. Escrevamos \(B(z)=(x(z),y(z))\) e
@@ -1709,6 +1750,9 @@ Ficam assim ligadas as três maneiras de calcular a mesma quantidade.
 
 \section{Da identidade à multiplicação certificada}
 \label{sec:divisors-arithmetic-certificate}
+\index{certificado de multiplicacao@certificado de multiplicação!condicoes aritmeticas@condições aritméticas}
+\index{extraccao de testemunhas@extracção de testemunhas!divisores@divisores}
+\index{residuo de uma funcao racional@resíduo de uma função racional}
 
 Podemos agora escrever as condições da prova. A base \(A\), a sua
 ordem \(\ell\), a tabela \(A_i=2^iA\) e o limite \(d\) são
@@ -1872,6 +1916,8 @@ efectivas e incluir os desafios excepcionais na análise.
 
 \section{O custo e a função da prova exterior}
 \label{sec:divisors-cost-and-composition}
+\index{certificado de multiplicacao@certificado de multiplicação!custo@custo}
+\index{circuito aritmetico@circuito aritmético!produtos secretos@produtos secretos}
 
 A economia pode agora ser contada. Uma \emph{restrição linear} é
 uma igualdade entre somas de variáveis multiplicadas por constantes

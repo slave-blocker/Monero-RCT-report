@@ -60,6 +60,17 @@ def reference_state(build):
             for p in paths if p.exists()]
 
 
+def build_index(build, env):
+    index = build / "main.idx"
+    if not index.exists():
+        return
+    command = ["makeindex", "-s", str(SOURCE / "back/index.ist"), "main.idx"]
+    run(command, cwd=build, env=env, log=build / "makeindex.log")
+    transcript = (build / "main.ilg").read_text(errors="replace")
+    if re.search(r"!!|\b[1-9][0-9]* (?:entries )?rejected\b|\b[1-9][0-9]* warnings\b", transcript):
+        raise SystemExit(f"Índice com entradas rejeitadas ou avisos: {build / 'main.ilg'}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-dir", type=Path, default=Path("/tmp/ztm-editorial-build"))
@@ -85,14 +96,11 @@ def main():
              f"-output-directory={build}", "main.tex"]
     run(latex, cwd=SOURCE, env=env, log=build / "pass-1.log")
     run(["bibtex", "main"], cwd=build, env=env, log=build / "bibtex.log")
-    if (build / "main.idx").exists():
-        run(["makeindex", "main.idx"], cwd=build, env=env, log=build / "makeindex.log")
+    build_index(build, env)
     for number in range(2, 8):
         before = reference_state(build)
         run(latex, cwd=SOURCE, env=env, log=build / f"pass-{number}.log")
-        if (build / "main.idx").exists():
-            run(["makeindex", "main.idx"], cwd=build, env=env,
-                log=build / "makeindex.log")
+        build_index(build, env)
         if before == reference_state(build):
             break
     else:

@@ -82,6 +82,9 @@ fornecida pelo projecto Monero.
 
 \section{Modelo formal}
 \label{sec:escrow-formal-model}
+\index{deposito sob garantia@depósito sob garantia}
+\index{escrow@escrow|see{depósito sob garantia}}
+\index{arbitro@árbitro}
 
 Sejam \(B\), \(V\) e \(M\) o comprador, o vendedor e o moderador. A política
 de autorização é
@@ -282,6 +285,7 @@ consequência, nova sincronização e nova proposta.
 
 \section{Registo autenticado das mensagens}
 \label{sec:escrow-authenticated-log}
+\index{registo autenticado de mensagens@registo autenticado de mensagens}
 
 A decisão do moderador depende de dados que não estão na lista de blocos. A
 aplicação deve produzir um registo verificável. Seja a mensagem \(j\)
@@ -363,6 +367,7 @@ concorrentes não devem partilhar valores aleatórios privados.
 
 \section{Disputa e decisão}
 \label{sec:escrow-dispute}
+\index{deposito sob garantia@depósito sob garantia!disputa@disputa}
 
 Uma disputa começa com uma mensagem assinada que contém \(h_{\rm ord}\), o
 resultado pedido e a hash do registo apresentado. O moderador verifica:
@@ -428,6 +433,7 @@ profundidade exigida pela política da ordem.
 
 \section{Prazos e disponibilidade}
 \label{sec:escrow-timeouts}
+\index{deposito sob garantia@depósito sob garantia!prazos e disponibilidade@prazos e disponibilidade}
 
 Um prazo comercial não altera \(\mathcal A\). Depois da data indicada na
 ordem, o comprador continua sem poder reembolsar sozinho e o vendedor

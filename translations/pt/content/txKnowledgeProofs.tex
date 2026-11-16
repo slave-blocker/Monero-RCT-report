@@ -1,5 +1,6 @@
 \chapter{Provas sobre transacções}
 \label{chapter:tx-knowledge-proofs}
+\index{prova@prova!sobre transaccoes@sobre transacções}
 % Original draft by Sarang Noether, Ph.D.; implementation review for this
 % edition against Monero revision 3646f648db57f60cca86430e25a635d19fa9b92a.
 
@@ -135,6 +136,8 @@ recuperá-las da lista de blocos.
 
 \section{Prova de saída: \texttt{OutProofV2}}
 \label{subsec:proofs-output-creator-outproof}
+\index{outproofv2@OutProofV2}
+\index{prova@prova!de saida@de saída}
 
 Uma prova de saída demonstra a relação entre a chave pública de transacção, o
 endereço indicado e o segredo partilhado, sem revelar a chave privada de
@@ -166,6 +169,8 @@ mesma classe de prova.
 
 \section{Prova de entrada: \texttt{InProofV2}}
 \label{subsec:proofs-output-ownership-inproof}
+\index{inproofv2@InProofV2}
+\index{prova@prova!de entrada@de entrada}
 
 Quando o endereço apresentado pertence à carteira, \texttt{get\_tx\_proof}
 gera uma prova de entrada. Para um endereço principal, sejam \(R=rG\) a chave
@@ -226,6 +231,7 @@ gasto dessas imagens.
 
 \subsection{Âmbitos de vista previstos no Carrot}
 \label{subsec:proofs-carrot-view-tiers}
+\index{carrot@Carrot!ambitos de vista@âmbitos de vista}
 
 O protocolo de endereçamento Carrot, previsto para a actualização FCMP++,
 separa capacidades que a hierarquia anterior concentra ou não oferece
@@ -251,6 +257,8 @@ adaptação.
 
 \section{Prova de gasto: \texttt{SpendProofV1}}
 \label{subsec:proofs-input-creation-spendproof}
+\index{spendproofv1@SpendProofV1}
+\index{prova@prova!de gasto@de gasto}
 
 Uma prova de gasto contém uma nova assinatura em anel para cada entrada de
 gasto; no código, estas entradas têm o tipo \texttt{txin\_to\_key}. A carteira
@@ -297,6 +305,8 @@ para uma carteira que disponha das chaves de todas as entradas.
 
 \section{Prova de reserva: \texttt{ReserveProofV2}}
 \label{subsec:proofs-minimum-balance-reserveproof}
+\index{reserveproofv2@ReserveProofV2}
+\index{prova@prova!de reserva@de reserva}
 
 Uma prova de reserva associa um endereço principal a saídas controladas pela
 carteira. Pode abranger todas as saídas elegíveis ou apenas as saídas
@@ -451,6 +461,7 @@ sub-endereço à chave de vista principal sem divulgar \(k^v\). Esta
 
 \subsection{Limite de uma auditoria completa}
 \label{subsec:audit-framework}
+\index{auditoria@auditoria!alcance das provas@alcance das provas}
 \label{sec:proofs-monero-audit-framework}
 
 Com provas de relação de sub-endereços e provas de não-gasto implementadas,

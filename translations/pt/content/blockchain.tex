@@ -69,6 +69,7 @@ as regras a qualquer altura ou ser censurado por terceiros poderosos.
 
 \subsection{Versão de eventos comuns e distribuídos}
 \label{subsec:shared-version-events}
+\index{consenso@consenso}
 
 No dinheiro digital ``comum'', muitos computadores possuem o registo de cada
 transacção. Quando um deles recebe uma nova transacção, transmite-a à rede, que
@@ -160,6 +161,8 @@ bifurcação, cuja resolução é descrita a seguir.
 %If different blocks referencing the same previous block are published at the same time, then the network of nodes will fork as each node receives one of the new blocks before the other (for simplicity, imagine about half the nodes end up with each side of the fork).
 \section{Dificuldade}
 \label{sec:difficulty}
+\index{dificuldade@dificuldade!ajustamento@ajustamento}
+\index{trabalho acumulado@trabalho acumulado}
 
 Se os nós pudessem publicar blocos quando quisessem, a rede poderia divergir em
 listas igualmente legítimas. E, se um bloco demora 30 segundos a propagar-se,
@@ -412,6 +415,7 @@ etapa seguinte.
 %\marginnote{src/crypto- note\_basic/ cryptonote\_ tx\_utils.cpp {\tt get\_block\_ longhash()}} has used a few different proof of work hash algorithms (with 32 byte outputs) in different protocol versions. The original, known as Cryptonight, was designed to be relatively inefficient on GPU, FPGA, and ASIC architectures \cite{CryptoNight} compared to standard hash functions like SHA256. In April 2018 (v7 of the protocol), new blocks were required to begin using a slightly modified variant that countered the advent of Cryptonight ASICs \cite{cryptonight7}. Another slight variant, named Cryptonight V2, was implemented in October 2018 (v8) \cite{berylliumbullet-v8}, and Cryptonight-R (based on Cryptonight but with more substantial changes than just a tweak) started being used for new blocks in March 2019 (v10) \cite{boronbutterfly-v10}. A\marginnote{src/crypto/ rx-slow-hash.c} radical new proof of work called RandomX \cite{randomx-pr-5549} was designed and made mandatory for new blocks in November 2019 (v12) with the intention of long-term ASIC resistance \cite{randomx}.
 \section{Quantidade monetária}
 \label{sec:money-supply}
+\index{quantidade monetaria@quantidade monetária}
 
 Há dois mecanismos básicos para criar dinheiro numa criptomoeda baseada numa
 lista de blocos.
@@ -431,7 +435,8 @@ quantidade absoluta cresce indefinidamente, mas a inflação percentual tende
 para zero; a subvenção continua, entretanto, a incentivar os mineiros.
 %Monero is based on a currency known as Bytecoin that had a sizeable pre-mine, followed by block rewards \cite{monero-history}. Monero had no pre-mine, and as we will see, its block rewards slowly decline to a small amount after which all new blocks reward that same amount, making Monero inflationary.
 \subsection{Recompensa de bloco}
-\label{subsec:block-reward} %get_block_reward
+\label{subsec:block-reward}
+\index{recompensa de bloco@recompensa de bloco} %get_block_reward
 
 Antes de procurar o argumento, o mineiro constrói uma transacção de mineiro.
 Ela tem uma única entrada especial, que declara a altura, e pelo menos uma
@@ -531,6 +536,8 @@ decrescente fica abaixo desse piso, a recompensa base permanece constante.
 
 \subsection{Peso dinâmico de bloco}
 \label{subsec:dynamic-block-weight}
+\index{peso@peso!de bloco@de bloco}
+\index{mediana@mediana!peso de blocos@peso de blocos}
 
 Incluir imediatamente cada nova transacção permitiria a um atacante aumentar
 rapidamente a lista de blocos por meio de um grande volume de submissões.
@@ -630,6 +637,7 @@ prazo; v12 tornou activa a mediana efectiva. V15 alterou os limites de longo
 termo para a escala $1{,}7$.}
 \subsection{Recompensa de bloco com multa}
 \label{subsec:penalty}
+\index{recompensa de bloco@recompensa de bloco!penalizacao@penalização}
 
 Para minerar blocos maiores do que $M_N$, os mineiros pagam uma penalização na
 forma de uma subvenção reduzida. Existem portanto duas zonas: até $M_N$, a zona
@@ -681,7 +689,8 @@ modelo de bloco, não uma condição de validade.
 
 
 \subsection{Taxas dinâmicas: política, não consenso}
-\label{subsec:dynamic-minimum-fee} %get_dynamic_per_kb_fee
+\label{subsec:dynamic-minimum-fee}
+\index{taxa de transaccao@taxa de transacção!politica de propagacao@política de propagação} %get_dynamic_per_kb_fee
 
 Actores maliciosos podem inundar a rede com transacções e fazer crescer a
 lista de blocos. Para desencorajar esse comportamento, os nós aplicam uma taxa
@@ -875,6 +884,8 @@ Este laço de realimentação é uma boa defesa contra a ameaça do
 
 \subsection{Cauda de emissão}
 \label{subsec:emission-tail}
+\index{cauda de emissao@cauda de emissão}
+\index{tail emission@tail emission|see{cauda de emissão}}
 
 Suponha-se uma criptomoeda com quantidade monetária fixa e peso de bloco
 dinâmico. Depois de algum tempo, as recompensas declinam para zero. Sem uma
@@ -927,7 +938,9 @@ provas de intervalo.}
 %This corresponds with about 0.9\% yearly inflation to begin with, steadily declining thereafter.
 
 \subsection{Transacção de mineiro: {\tt RCTTypeNull}}
-\label{subsec:miner-transaction} %-fees -> summed into block reward and spent in the miner tx (construct_miner_tx function)
+\label{subsec:miner-transaction}
+\index{transaccao@transacção!de mineiro@de mineiro}
+\index{coinbase@coinbase|see{transacção, de mineiro}} %-fees -> summed into block reward and spent in the miner tx (construct_miner_tx function)
 
 O mineiro reclama a subvenção e as taxas através da transacção de
 mineiro\marginnote{src/crypto- note\_core/ cryptonote\_ tx\_utils.cpp
@@ -993,6 +1006,8 @@ e a máscara é conhecida; este compromisso não pretende ocultar a recompensa.
 \section{A estrutura da lista de blocos}
 
 \label{sec:blockchain-structure}
+\index{lista de blocos@lista de blocos}
+\index{blockchain@blockchain|see{lista de blocos}}
 
 O estilo da lista de blocos de Monero é simples.
 %Monero's blockchain style is simple.
@@ -1045,7 +1060,8 @@ avaliação do hash de prova de trabalho e uma multiplicação de precisão
 suficiente; a mineração repete tentativas até obter um resultado válido.
 
 \subsection{ID de transacção}
-\label{subsec:transaction-id} %calculate_transaction_hash
+\label{subsec:transaction-id}
+\index{transaccao@transacção!identificador@identificador} %calculate_transaction_hash
         %each arrow is a hash
 Consideremos as transacções de versão 2. O seu ID não é simplesmente a hash de um
 único objecto monolítico: separa deliberadamente os dados que um nó podado tem
@@ -1105,7 +1121,9 @@ lista vazia de assinaturas.
 
 
 \subsection{Árvore de Merkle}
-\label{subsec:merkle-tree} %tree_hash
+\label{subsec:merkle-tree}
+\index{arvore de merkle@árvore de Merkle}
+\index{merkle, arvore de@Merkle, árvore de} %tree_hash
 
 Uma raiz de Merkle \cite{merkle-tree} organiza os IDs das transacções do bloco
 numa árvore binária de hashes. Ela compromete o mineiro com a lista e com a
@@ -1175,7 +1193,9 @@ verificar essa prova são operações diferentes.
 
 \newpage
 \subsection{Blocos}
-\label{subsec:blocks} 
+\label{subsec:blocks}
+\index{bloco@bloco}
+\index{nonce@nonce!prova de trabalho@prova de trabalho}
 
 %https://monero.stackexchange.com/questions/3958/what-is-the-format-of-a-block-in-the-monero-blockchain/6461#6461
 
@@ -1265,6 +1285,8 @@ destes testes de consenso.
 
 \section{Poda e sincronização da lista de blocos}
 \label{sec:node-pruning}
+\index{poda da lista de blocos@poda da lista de blocos}
+\index{no@nó!podado@podado}
 
 Um nó podado acompanha toda a lista de blocos, desde a origem até à ponta.
 Conserva os cabeçalhos e os dados de todas as transacções necessários para
@@ -1335,6 +1357,7 @@ conservados, abstraindo de espaço livre e de sobrecustos do ficheiro da base.
 
 \subsection{Faixas, semente e janela recente}
 \label{subsec:pruning-stripes}
+\index{poda da lista de blocos@poda da lista de blocos!faixas@faixas}
 
 Fixemos a política de retenção com oito faixas, troços de 4096 blocos e uma
 janela recente de 5500 blocos \cite{monero-source-v16}. Fora dessa janela,
@@ -1420,6 +1443,7 @@ rede, mas não garantida pelo consenso.
 
 \subsection{Modos de sincronização}
 \label{subsec:pruned-sync-modes}
+\index{sincronizacao@sincronização}
 
 A expressão «sincronização podada» pode designar três procedimentos distintos.
 

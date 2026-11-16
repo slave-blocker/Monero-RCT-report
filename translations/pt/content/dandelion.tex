@@ -1,5 +1,7 @@
 \chapter{Dandelion++ e propagação de transacções}
 \label{chapter:dandelion}
+\index{dandelion++@Dandelion++}
+\index{privacidade@privacidade!de rede@de rede}
 \label{page:dandelion-start}
 
 Quando uma carteira entrega uma transacção ao seu daemon, a transacção ainda
@@ -23,6 +25,8 @@ prazos necessários ao seu funcionamento \cite{monero-source-v16}.
 
 \section{Propagação por inundação e exposição temporal}
 \label{sec:dandelion-flooding}
+\index{inundacao, propagacao por@inundação, propagação por}
+\index{first-spy@first-spy|see{observador, primeiro a receber}}
 
 Uma maneira simples de propagar uma transacção é a inundação
 (\emph{flooding}). O nó que a recebe pela primeira vez envia-a a muitos
@@ -96,6 +100,9 @@ sucessor antes de iniciar a difusão ampla.
 
 \section{Fases de encaminhamento e difusão}
 \label{sec:dandelion-stem-fluff}
+\index{dandelion++@Dandelion++!encaminhamento e difusao@encaminhamento e difusão}
+\index{stem@stem|see{Dandelion++, encaminhamento e difusão}}
+\index{fluff@fluff|see{Dandelion++, encaminhamento e difusão}}
 
 Dandelion++ divide a propagação em duas fases
 \cite{dandelion-plus-plus}. Os nomes \emph{stem} e \emph{fluff} pertencem à
@@ -184,6 +191,7 @@ transacção por um nó malicioso ou indisponível:
 
 \section{Subgrafo de anonimato por época}
 \label{sec:dandelion-stem-graph}
+\index{dandelion++@Dandelion++!subgrafo por epoca@subgrafo por época}
 
 A haste percorre um subgrafo das ligações entre nós. Em cada época,
 cada nó escolhe uniformemente, sem reposição, até duas das ligações que ele
@@ -275,6 +283,7 @@ um observador capaz de correlacionar horários e direcções.
 
 \subsection{Temporizadores de difusão e embargo}
 \label{subsec:dandelion-timers}
+\index{embargo, temporizador de@embargo, temporizador de}
 
 Os atrasos da penugem são amostras de Poisson numa grelha de um quarto de
 segundo. Para uma ligação que entrou no nó, a média é cinco segundos; para uma
@@ -333,6 +342,8 @@ da transição de segurança Dandelion++ após o embargo de 39 segundos.
 
 \section{Relação com Tor e I2P}
 \label{sec:dandelion-anonymity-networks}
+\index{tor@Tor}
+\index{i2p@I2P}
 
 Quando o operador configura uma rede de anonimato para transacções locais,
 Monero trata-a como uma zona própria. A política considerada suporta Tor e I2P
@@ -378,6 +389,8 @@ ao modelo operacional de cada rede.
 
 \section{Modelo do adversário e limites}
 \label{sec:dandelion-adversaries}
+\index{observador@observador!primeiro a receber@primeiro a receber}
+\index{adversario@adversário!de rede@de rede}
 
 Considere-se um adversário honesto-curioso que controla uma fracção
 \(a\in[0,1]\) dos

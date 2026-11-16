@@ -1,5 +1,7 @@
 \chapter{Multi-assinaturas}
 \label{chapter:multisignatures}
+\index{multi-assinatura@multi-assinatura}
+\index{multisig@multisig|see{multi-assinatura}}
 % Implementação revista para esta edição contra a revisão Monero
 % 3646f648db57f60cca86430e25a635d19fa9b92a.
 
@@ -171,6 +173,8 @@ corrigem esta relação algébrica. Este é um ataque de cancelamento de chaves.
 
 \subsection{Coeficientes de agregação}
 \label{sec:robust-key-aggregation}
+\index{multi-assinatura@multi-assinatura!agregacao de chaves@agregação de chaves}
+\index{chave@chave!ataque por cancelamento@ataque por cancelamento}
 
 A defesa usada pela implementação associa um coeficiente a cada chave e ao
 conjunto completo de chaves \cite{MRL-0009-multisig}. Sejam
@@ -201,6 +205,8 @@ as mesmas chaves poderiam calcular agregados diferentes.
 
 \section{Construção de uma política M-de-N}
 \label{sec:m-of-n}
+\index{limiar m-de-n@limiar M-de-N}
+\index{multi-assinatura@multi-assinatura!politica de limiar@política de limiar}
 
 A implementação actual obtém o limiar através de trocas Diffie--Hellman.
 Definamos
@@ -344,6 +350,7 @@ se esse limite algum dia tiver de crescer.
 
 \section{Recepção de saídas e imagens de chave}
 \label{sec:recalculating-key-images-multisig}
+\index{imagem de chave@imagem de chave!partilhada@partilhada}
 
 Como todos conhecem \(k^v\), todas as carteiras conseguem detectar uma saída
 recebida. Para uma saída pública \(P\), escrevamos a respectiva chave privada
@@ -387,6 +394,8 @@ responde numa testemunha honesta da lista de blocos.
 
 \section{Assinaturas de Schnorr com limiar}
 \label{sec:threshold-schnorr}
+\index{schnorr, assinatura de@Schnorr, assinatura de!com limiar@com limiar}
+\index{nonce@nonce!assinatura@assinatura}
 
 O mecanismo de resposta é mais fácil de ver numa assinatura de Schnorr sem
 anel. Suponhamos que a chave privada de uma saída está repartida como
@@ -469,6 +478,7 @@ determina.
 
 \section{Assinatura CLSAG distribuída}
 \label{sec:rcttypebulletproof2-multisig}
+\index{clsag@CLSAG!distribuida@distribuída}
 
 Uma transacção corrente usa CLSAG para provar que a entrada real está numa
 posição desconhecida de um anel e que os compromissos de montante se
@@ -598,6 +608,8 @@ co-signatários.
 
 \subsection{Comunicação simplificada}
 \label{sec:simplified-communication}
+\index{mms@MMS}
+\index{multi-assinatura@multi-assinatura!comunicacao@comunicação}
 
 Em termos operacionais, uma sessão correcta segue esta sequência:
 \begin{enumerate}
@@ -726,6 +738,7 @@ disso está presente no código consultado.
 \clearpage
 \section{Nota sobre multi-assinatura com FCMP++}
 \label{sec:multisig-fcmp-note}
+\index{multi-assinatura@multi-assinatura!relacao com fcmp++@relação com FCMP++}
 
 \textbf{Resposta curta: ainda não está disponível na carteira Monero, mas já
 existem primitivas experimentais no ramo de referência consultado.} FCMP++

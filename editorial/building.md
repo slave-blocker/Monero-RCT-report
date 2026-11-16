@@ -22,3 +22,9 @@ dpkg-deb -x texlive-lang-portuguese_2023.20240207-1_all.deb portuguese
 O programa prepara depois um formato pdflatex com os padrões portugueses em `/tmp/ztm-latex-deps`, usando fmtutil-user e variáveis TEXMF dirigidas a esse directório. Mantém a instalação geral intacta. Se a distribuição fornecer outra versão do pacote, ajustar o nome do ficheiro `.deb` ao descarregado.
 
 Os registos de cada passagem ficam no directório de compilação. Os ficheiros de conteúdo, a bibliografia e os programas em `editorial/` são os elementos duradouros; os directórios de `/tmp` podem ser reconstruídos.
+
+## Índice remissivo
+
+As chamadas `\index{chave@texto}` estão junto das definições e explicações nos capítulos. As chaves de ordenação são explícitas, sem acentos e em minúsculas; o texto conserva a ortografia portuguesa, as maiúsculas próprias e a notação matemática. O carácter `!` introduz subentradas, e `|see{destino}` cria uma remissão para o termo principal. Evitar indexar simples ocorrências sem conteúdo explicativo.
+
+O índice é impresso por `back/index.tex`, depois dos apêndices e antes da imagem de contracapa. `back/index.ist` introduz separadores alfabéticos. O programa de compilação executa makeindex em cada passagem e termina se o respectivo registo contiver entradas rejeitadas ou avisos. Os números de página são ligações internas. Ao acrescentar uma remissão, conferir que a entrada de destino existe e que a página de origem aponta para uma explicação efectiva.

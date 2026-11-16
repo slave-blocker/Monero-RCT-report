@@ -14,13 +14,13 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] Página impressa 55: desenvolver a falha de validação das imagens de chave e a investigação publicada sobre a ausência de exploração.
 - [x] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
 - [x] Página 59: ensinar a pergunta decisional de Diffie–Hellman antes de a nomear.
-- [ ] Explicar «canónico» na primeira utilização relevante e incluir o termo no índice.
+- [x] Explicar «canónico» na primeira utilização relevante e incluir o termo no índice.
 - [x] Página 62: «Especialização usada por Monero»; acrescentar duas páginas de explicação de CLSAG.
 - [x] Página 91: simplificar a apresentação das duas verificações de Bulletproofs; retirar do percurso principal os resíduos e a combinação ponderada, preservando as duas condições matemáticas.
 - [x] Página 109: eliminar a página redundante sobre o tamanho da prova de intervalo, conservando a exposição útil na secção de espaço.
 - [x] Página 111: desenvolver a representação uniforme dos membros do anel e a posição secreta por entrada.
 - [x] Acrescentar três páginas sobre índices absolutos, key_offsets, reconstrução dos anéis e estrutura de tx_extra. Explicitar que key_offsets pertence a vin.
-- [ ] Índice remissivo alfabético no fim, incluindo símbolos, siglas, sinónimos e páginas de explicação.
+- [x] Índice remissivo alfabético no fim, incluindo símbolos, siglas, sinónimos e páginas de explicação.
 - [ ] Uniformizar «de/por/em Monero» e «lista de blocos» na prosa portuguesa.
 - [x] Nota de rodapé em FCMP++ sobre «cadeia» e «lista de blocos», no tom pedido.
 - [ ] Rever a exposição afirmativa ao longo do livro, conservando condições e hipóteses matemáticas.
@@ -275,3 +275,11 @@ O campo extra recebe uma descrição da sua posição no prefixo, das etiquetas 
 Validação: transaction-indices.py confere 512 anéis, 1055 valores de varint, a reconstrução por entrada e os comprimentos do exemplo de extra. A opção --source compila directamente o cabeçalho C++ original num directório temporário; escrita, leitura e comprimentos coincidem nos 1055 casos. A verificação cobre codificação e contas, não executa uma transacção criptográfica nem uma consulta à rede.
 
 A compilação produz 315 páginas, com referências e citações resolvidas e os mesmos 164 avisos de caixas. O capítulo ocupa as páginas físicas 131–147. A conferência visual abrange as novas explicações e a transição para o resumo. FCMP++ conserva as 38 páginas de texto e o poster, e divisores conserva trinta páginas.
+
+## Índice remissivo
+
+Estado: composto em 16 de Novembro de 2026. Foram introduzidas 371 chamadas de índice, correspondentes a 368 rubricas distintas, junto das definições e explicações. O índice alfabético inclui símbolos, siglas, subentradas, termos ingleses com remissão e páginas clicáveis. Os conceitos elementares remetem para a sua primeira explicação; os desenvolvimentos posteriores recebem subentradas próprias. O índice fica depois dos apêndices, antes da contracapa.
+
+A ordenação usa chaves explícitas sem acentos, conservando no texto a grafia portuguesa. O programa de compilação estabiliza main.idx/main.ind e termina se makeindex rejeitar entradas ou emitir avisos. Conferiram-se todos os destinos das remissões e inspeccionaram-se as páginas, incluindo as entradas matemáticas. O índice ocupa seis páginas, físicas 315–320, e o livro tem 321 páginas. FCMP++ conserva as 38 páginas de texto e o poster, em 199–237; divisores conserva trinta páginas, em 42–71. Os excertos continuam conferidos por texto e imagem.
+
+A passagem final aceita as 371 entradas, sem rejeições nem avisos de makeindex; o livro conserva os 164 avisos de caixas anteriores. A marca de índice do pseudo-compromisso protege a expansão de \widetilde durante a escrita do auxiliar.

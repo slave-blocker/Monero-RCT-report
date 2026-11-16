@@ -45,7 +45,9 @@ para codificar os pontos que nos interessam. Sempre que contarmos bytes,
 assumiremos essa compressão.
 
 As funções hash serão por vezes usadas sem declarar um algoritmo específico.
-Nas receitas de Monero que indicarem Keccak--256, o resultado tem 32 bytes
+Nas receitas de Monero que indicarem Keccak--256,
+\index{keccak--256@Keccak--256}
+\index{sha3--256@SHA3--256} o resultado tem 32 bytes
 e usa o preenchimento original de Keccak. SHA3--256, normalizada pelo NIST,
 usa uma separação de domínio diferente e constitui outra função, embora
 ambas partilhem a permutação interna\footnote{\label{kekkak_note}O algoritmo
@@ -55,7 +57,11 @@ indicada.}.
 %The Keccak hashing algorithm forms the basis for the NIST standard {\em SHA-3} \cite{nist-sha3}.}
 
 Chamaremos simplesmente {\em função hash} a uma função de dispersão
-criptográfica. Ela recebe uma mensagem \(\mathfrak{m}\) de comprimento variável
+criptográfica.
+\index{hash@hash}
+\index{funcao de dispersao@função de dispersão|see{hash}}
+\index{colisao de hash@colisão de hash}
+\index{pre-imagem@pré-imagem} Ela recebe uma mensagem \(\mathfrak{m}\) de comprimento variável
 e devolve uma sequência \(h\) de comprimento fixo. É determinística: a mesma
 entrada dá sempre a mesma saída. Pretende-se, contudo, que as saídas se pareçam
 com escolhas uniformes e imprevisíveis, que seja computacionalmente difícil
@@ -73,6 +79,9 @@ indicaremos quando for relevante.
 %----------MODULAR ARITHMETIC
 \section{Aritmética modular}
 \label{sec:modular-arithmetic}
+\index{aritmetica modular@aritmética modular}
+\index{congruencia@congruência}
+\index{modulo@módulo}
 
 A maior parte da criptografia moderna começa com aritmética modular. Fixemos
 um módulo \(n>1\). Para qualquer inteiro \(a\), a operação
@@ -88,6 +97,8 @@ queremos afirmar que dois inteiros deixam o mesmo resto, escrevemos antes a
 congruência \(a\equiv c\pmod n\).
 
 \label{sec:canonical-representation}
+\index{canonico, representante@canónico, representante}
+\index{representante canonico@representante canónico}
 O resto \(c\) é o \emph{representante canónico} dessa classe de congruência:
 uma regra fixa escolhe exactamente um dos inteiros equivalentes. Módulo 17,
 por exemplo, \(-14\), \(3\) e \(20\) pertencem à mesma classe; a regra
@@ -106,6 +117,7 @@ Os restos nunca são negativos. Em particular, se \(0<a<n\), então
 
 \subsection{Adição e multiplicação modular}
 \label{subsec:modular-addition-multiplication}
+\index{aritmetica modular@aritmética modular!adicao e multiplicacao@adição e multiplicação}
 
 Ao implementar estas operações, reduzir resultados intermédios evita inteiros
 desnecessariamente grandes. Suponhamos, por exemplo, que queremos calcular
@@ -188,6 +200,7 @@ Para \((7\cdot 8)\bmod 9\), a sequência é:
 
 
 \subsection{Exponenciação modular}
+\index{aritmetica modular@aritmética modular!exponenciacao@exponenciação}
 
 Tal como a multiplicação é adição repetida, a exponenciação é multiplicação
 repetida. Por exemplo,
@@ -214,6 +227,8 @@ multiplicação do acumulador e o resultado é \(1\bmod n\).
 
 
 \subsection{Inversa multiplicativa modular}
+\index{inversa multiplicativa@inversa multiplicativa}
+\index{algoritmo de euclides@algoritmo de Euclides}
 
 Por vezes precisamos de dividir por \(a\) em aritmética modular. Isso significa
 procurar uma inversa multiplicativa \(a^{-1}\), isto é, um resto que, ao ser
@@ -276,6 +291,7 @@ inversa não existe.
 
 \subsection{Equações modulares}
 \label{subsec:modular-equations}
+\index{equacao modular@equação modular}
 
 As reduções modulares podem ser feitas antes ou depois de adições,
 subtracções e multiplicações. Mais precisamente, se
@@ -334,9 +350,13 @@ corpo finito.
 
 \subsection{O que são curvas elípticas?}
 \label{elliptic_curves_section}
+\index{curva eliptica@curva elíptica}
+\index{weierstrass, forma de@Weierstrass, forma de}
 
 Quando \(q\) é primo, podemos representar o corpo
-finito\marginnote{{\tt fe}: field element} \(\mathbb{F}_q\) pelo conjunto de
+finito\marginnote{{\tt fe}: field element} \(\mathbb{F}_q\)
+\index{corpo finito@corpo finito}
+\index{f q@\(\mathbb F_q\), corpo finito} pelo conjunto de
 restos \(\{0,1,\ldots,q-1\}\). A soma, a subtracção e a multiplicação são
 seguidas de redução módulo \(q\); cada elemento não nulo tem ainda uma inversa
 multiplicativa. É precisamente esta última propriedade que faz do conjunto um
@@ -361,7 +381,8 @@ singular; nesta forma, isso equivale a
 \(\mathbb{F}\).}
 
 Monero trabalha com uma curva na forma de Edwards torcida ({\em Twisted
-Edwards}) \cite{Bernstein2008}. Para parâmetros não nulos e distintos
+Edwards}) \cite{Bernstein2008}.
+\index{edwards, forma torcida@Edwards, forma torcida} Para parâmetros não nulos e distintos
 \(a,d\in\mathbb{F}_q\), esta forma é
 %The cryptocurrency Monero uses a special curve belonging to the category of so-called {\em Twisted Edwards} curves \cite{Bernstein2008}, which are commonly expressed as (for a given $(a,d)$ pair):\vspace{.175cm}
 \[
@@ -391,9 +412,12 @@ um ponto quando \(P_1=P_2\). O inverso aditivo de \(P=(x,y)\) é
 naturalmente, \((-x)\bmod q\).
 
 A soma permanece na curva. Com esta operação, os pontos formam um grupo
-abeliano: há um elemento de identidade, cada ponto tem um inverso, a soma é
+abeliano:
+\index{grupo abeliano@grupo abeliano} há um elemento de identidade, cada ponto tem um inverso, a soma é
 associativa e a ordem das parcelas não importa. Na forma de Edwards, a
 identidade é o ponto afim
+\index{identidade do grupo@identidade do grupo}
+\index{o@\(\mathcal O\), identidade do grupo}
 \[
 0=(0,1).
 \]
@@ -403,6 +427,8 @@ infinito.\footnote{Uma definição concisa de grupo abeliano encontra-se em
 
 %Whenever two curve points are added together $P_3$ is a point on the `original' elliptic curve, or in other words all $x_3,y_3 \in \mathbb{F}_q$ and satisfy the EC equation.
 Somando um ponto \(P\) repetidamente, obtemos o subgrupo cíclico que ele gera,
+\index{subgrupo ciclico@subgrupo cíclico}
+\index{ordem@ordem!de um ponto@de um ponto}
 \[
 \langle P\rangle=\{0,P,2P,\ldots,(u-1)P\}.
 \]
@@ -430,6 +456,8 @@ logo \(2P\) gera apenas um subgrupo de ordem \(3\).
 %Here $2P$ has order 3. Since 6 is not prime, not all of its member points recreate the original subgroup.
 
 À quantidade total de pontos do grupo chamamos a {\em ordem da curva}, \(N\).
+\index{ordem@ordem!da curva@da curva}
+\index{lagrange, teorema de@Lagrange, teorema de}
 O elemento de identidade está incluído nessa contagem. Pelo teorema de
 Lagrange, a ordem de qualquer subgrupo divide \(N\). No exemplo anterior,
 \(3\) divide \(6\), como seria necessário.
@@ -447,12 +475,17 @@ Conhecendo \(N\), podemos encontrar a ordem \(u\) de um ponto \(P\):
 
 As curvas escolhidas para criptografia têm frequentemente \(N=hl\), onde
 \(l\) é um primo grande e \(h=N/l\) é um pequeno {\em cofactor}.
+\index{cofactor@cofactor}
+\index{l@\(l\), ordem do subgrupo}
 %ECs\marginnote{{\tt ge}: group element} selected for cryptography typically have $N = hl$, where $l$ is some sufficiently large (such as 160 bits) prime number and $h$ is the so-called {\em cofactor} which could be as small as 1 or 2.
 \footnote{Um cofactor pequeno simplifica o controlo dos pequenos subgrupos,
 mas não permite ignorá-los; as verificações de subgrupo continuam a fazer
 parte da segurança de muitos protocolos \cite{Bernstein2008}.}
 %EC with small cofactors allow relatively faster point addition, etc. \cite{Bernstein2008}.} 
 Escolhe-se então um ponto \(G\) de ordem \(l\) como gerador do subgrupo primo.
+\index{gerador@gerador}
+\index{escalar@escalar}
+\index{g@\(G\), gerador do subgrupo}
 Cada ponto \(P\) desse subgrupo tem uma representação \(P=nG\) para um único
 escalar \(n\in\{0,1,\ldots,l-1\}\); o valor \(n=0\) corresponde à identidade.
 
@@ -491,7 +524,9 @@ ponto \(P_1\), pretende-se encontrar \(n\) tal que
 \[
 P_1=nP_2.
 \]
-Este é o {\em problema do logaritmo discreto} (PLD) em curvas elípticas. Para
+Este é o {\em problema do logaritmo discreto} (PLD) em curvas elípticas.
+\index{pld@PLD|see{logaritmo discreto, problema}}
+\index{logaritmo discreto@logaritmo discreto!problema@problema} Para
 curvas e parâmetros bem escolhidos, não se conhece um algoritmo clássico que
 o resolva eficientemente. Nesse sentido, a multiplicação escalar funciona como
 uma operação de sentido único: fácil de calcular, mas impraticável de inverter
@@ -533,6 +568,8 @@ do livro.
 
 \subsection{Criptografia de chave pública com curvas elípticas}
 \label{ec:keys}
+\index{chave@chave!privada@privada}
+\index{chave@chave!publica@pública}
 %Algoritmos de criptografia de chave pública, são comparáveis a aritmética modular.   
 %Public key cryptography algorithms can be devised in a way analogous to modular arithmetic.
 
@@ -555,6 +592,8 @@ publicar o segredo que a controla.
 
 \subsection{A troca de chaves tipo Diffie-Hellman com curvas elípticas}
 \label{DH_exchange_section}
+\index{diffie--hellman@Diffie--Hellman!troca de chaves@troca de chaves}
+\index{ecdh@ECDH|see{Diffie--Hellman, troca de chaves}}
 
 Alice e Bob podem usar uma troca de chaves de tipo {\em Diffie--Hellman}
 \cite{Diffie-Hellman} para obter o mesmo segredo sem enviarem esse segredo pela
@@ -608,6 +647,10 @@ de ser autenticadas, por exemplo com assinaturas.
 
 \subsection{Assinaturas tipo Schnorr e a transformada Fiat-Shamir} 
 \label{sec:schnorr-fiat-shamir}
+\index{prova de conhecimento@prova de conhecimento}
+\index{desafio@desafio}
+\index{h l@\(\mathcal H_l\), hash para escalar}
+\index{schnorr, prova de conhecimento@Schnorr, prova de conhecimento}
 
 Na CRYPTO '89, Claus-Peter Schnorr apresentou um protocolo interactivo de
 identificação que se tornou fundamental \cite{schnorr-signatures}; Maurer
@@ -666,11 +709,14 @@ $R \stackrel{?}{=} R'$.
 \end{tikzpicture}
 
 Um provador honesto é sempre aceite, porque
+\index{completude@completude}
 \[
 rG=(\alpha+ck)G=\alpha G+cK=A+cK.
 \]
 O desafio só é escolhido depois de o compromisso \(A\) ficar fixo. O registo
 completo da interacção (o {\em transcript}) contém as três mensagens
+\index{transcrito@transcrito}
+\index{transcript@transcript|see{transcrito}}
 \((A,c,r)\); sem \(A\), a equação de verificação nem sequer fica determinada.
 Responder apenas com o ponto \(rG\) seria inútil, pois qualquer pessoa poderia
 copiar o ponto já calculável \(A+cK\). O trabalho do provador consiste em dar o
@@ -680,7 +726,10 @@ seu logaritmo discreto \(r\).
 Se \(\alpha\) for uniforme, então, para valores fixos de \(c\) e \(k\), a
 resposta \(r\) também é uniforme \cite{SCOZZAFAVA1993313}. Mais ainda, no caso
 de um verificador que escolhe honestamente um desafio uniforme, podemos simular
-um registo sem conhecer \(k\): escolhemos \(c,r\in_R\mathbb{F}_l\) e pomos
+um registo sem conhecer \(k\):
+\index{simulacao@simulação}
+\index{conhecimento zero@conhecimento zero}
+\index{zero knowledge@zero knowledge|see{conhecimento zero}} escolhemos \(c,r\in_R\mathbb{F}_l\) e pomos
 \(A=rG-cK\). O resultado tem a mesma distribuição que uma execução real. Esta
 é a propriedade de que a interacção não revela informação adicional sobre
 \(k\) além da que já estava na chave pública \(K\).
@@ -690,6 +739,8 @@ Há, porém, uma condição decisiva: o provador não pode reutilizar \(\alpha\)
 Se o mesmo compromisso \(A\) receber desafios distintos \(c\ne c'\) e produzir
 respostas válidas
 \(r=\alpha+ck\) e \(r'=\alpha+c'k\), qualquer observador extrai a chave:
+\index{extraccao de testemunhas@extracção de testemunhas!Schnorr@Schnorr}
+\index{nonce@nonce!reutilizacao@reutilização}
 \footnote{Numa prova de segurança, um extractor pode executar o provador duas
 vezes a partir do mesmo estado posterior à escolha de \(\alpha\), fornecendo um
 desafio diferente em cada execução. Esta técnica é designada por
@@ -711,6 +762,7 @@ conhecimento, salvo a probabilidade negligível de adivinhar o desafio.
 O atraso do desafio é essencial. Se conhecesse \(c\) antes de fixar \(A\), um
 impostor poderia escolher \(r\) ao acaso e definir \(A=rG-cK\); a verificação
 passaria sem que ele conhecesse \(k\). A transformada de Fiat--Shamir
+\index{fiat--shamir, transformada@Fiat--Shamir, transformada}
 \cite{fiat-shamir-transform} substitui o verificador por uma função hash que só
 pode ser avaliada depois de \(A\) estar determinado. No modelo do oráculo
 aleatório, isso torna a prova não interactiva e publicamente verificável
@@ -718,6 +770,7 @@ aleatório, isso torna a prova não interactiva e publicamente verificável
 %In his role as challenger, the verifier spits out a random number after receiving $\alpha G$, making him equivalent to a {\em random function}. Random functions, such as hash functions, are known as random oracles because computing one is like requesting a random number from someone \cite{Signatures2015BorromeanRS}.
 \footnote{Em criptografia, um oráculo é uma abstracção que responde a consultas
 segundo uma regra especificada. Um oráculo aleatório conserva uma resposta
+\index{oraculo aleatorio@oráculo aleatório}
 uniforme e independente para cada entrada nova \cite{cryptographic-oracle}.}
 %More generally, ``[i]n cryptography... an oracle is any system which can give some extra information on a system, which otherwise would not be available."\cite{cryptographic-oracle}}
 %Using a hash function, instead of the verifier, to generate challenges is known as a {\em Fiat-Shamir transform} \cite{fiat-shamir-transform}, because it makes an interactive proof non-interactive and publicly verifiable \cite{Signatures2015BorromeanRS}.
@@ -791,6 +844,8 @@ verificação exige uma hash e multiplicações escalares da curva.
 
 \subsection{Assinar mensagens}
 \label{sec:signing-messages}
+\index{assinatura digital@assinatura digital}
+\index{schnorr, assinatura de@Schnorr, assinatura de}
 
 Um esquema de assinatura recebe uma mensagem de comprimento arbitrário e
 incorpora-a numa hash de comprimento fixo. Representaremos por
@@ -915,6 +970,8 @@ necessários a mensagem, a chave pública de curva e os parâmetros do protocolo
 %----------CURVE ED25519
 \section{Curva Edwards25519}
 \label{Ed25519_section}
+\index{edwards25519@Edwards25519}
+\index{ed25519@Ed25519|see{Edwards25519}}
 
 Monero usa a curva de Edwards torcida {\em Edwards25519}, que é birracionalmente
 equivalente à curva de Montgomery {\em Curve25519}.
@@ -996,6 +1053,9 @@ sua vez, é um inteiro de 256 bits e tem 77 algarismos decimais.
 
 \subsection{Representação binária}
 \label{binary_note}
+\index{representacao binaria@representação binária}
+\index{little-endian@little-endian}
+\index{ordem dos bytes@ordem dos bytes}
 O representante canónico de um elemento de
 \(\mathbb{F}_{2^{255}-19}\) está entre \(0\) e \(q-1\), pelo que cabe em 255
 bits. A codificação usada por Edwards25519 ocupa 32 bytes em ordem
@@ -1017,6 +1077,9 @@ determinados pelos módulos respectivos.
 
 \subsection{Compressão de ponto elíptico}
 \label{point_compression_section}
+\index{compressao de pontos@compressão de pontos}
+\index{codificacao@codificação!de pontos@de pontos}
+\index{canonico, representante@canónico, representante!codificacao binaria@codificação binária}
 
 Um ponto de Edwards25519 pode ser codificado nos mesmos 32 bytes que uma única
 coordenada. A ideia geral de compressão de pontos é anterior a esta curva
@@ -1095,6 +1158,8 @@ codificação usa \(y=4/5\bmod q\) e bit de sinal zero.
 
 \subsection{De uma sequência de bytes a um ponto}
 \label{subsec:hash-to-point}
+\index{hash@hash!para ponto@para ponto}
+\index{h p@\(\mathcal H_p\), hash para ponto}
 
 Uma função hash para pontos precisa de transformar uma sequência de bytes
 num ponto do subgrupo de ordem \(l\). Conservemos a codificação de pontos
@@ -1176,6 +1241,7 @@ A primeira função hash para pontos fica definida por
    =[8]M\!\left(\operatorname{LE}(\operatorname{Keccak256}(b))
                                       \bmod q\right).
  \label{eq:hash-to-point-one}
+\index{h p 1@\(\mathcal H_p^{(1)}\), receita por Keccak}
 \end{equation}
 Para uma chave pública \(K\), o argumento é a sequência
 \(b=\operatorname{enc}(K)\). O factor oito leva o ponto ao subgrupo:
@@ -1209,6 +1275,8 @@ Separando o resultado nas metades consecutivas \(h_0,h_1\), define-se
        M(\operatorname{LE}(h_0)\bmod q)
        +M(\operatorname{LE}(h_1)\bmod q)\right).
  \label{eq:hash-to-point-two}
+\index{blake2b@BLAKE2b}
+\index{h p 2@\(\mathcal H_p^{(2)}\), receita por BLAKE2b}
 \end{equation}
 Para a mesma codificação de \(G\), o resultado é
 \begin{center}
@@ -1231,6 +1299,7 @@ sobre o hash e o mapa que utiliza.
 
 \subsection{Algoritmo de assinatura EdDSA}
 \label{EdDSA_section}
+\index{eddsa@EdDSA}
 
 %Bernstein and his team have developed a number of basic algorithms based on curve Ed25519.\footnote{\label{group_ops_twisted_edwards_note}See\marginnote{src/crypto/ crypto\_ops\_ builder/ ref10Comm- entedComb- ined/} \cite{Bernstein2007} for efficient group operations in Twisted Edwards EC (i.e. point addition, doubling, mixed addition, etc). See \cite{curve25519} for efficient modular arithmetic.}
 %!!!2
@@ -1339,6 +1408,8 @@ transmitida.
 
 \section{Operador binário XOR}
 \label{sec:XOR_section}
+\index{xor@XOR}
+\index{ou exclusivo@ou exclusivo|see{XOR}}
 
 O operador binário XOR será útil nas secções \ref{sec:integrated-addresses} e
 \ref{sec:pedersen_monero}.

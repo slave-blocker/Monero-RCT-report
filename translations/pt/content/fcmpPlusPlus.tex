@@ -29,6 +29,9 @@ conservam as funções estudadas nos capítulos anteriores
 
 \section{O conjunto público e a escolha secreta}
 \label{sec:fcmp-set-and-choice}
+\index{fcmp++@FCMP++}
+\index{pertenca@pertença!conjunto publico@conjunto público}
+\index{raiz@raiz!autenticada@autenticada}
 
 Fixemos o conjunto \(\mathcal S\) de saídas admitido para a prova.
 Cada registo reúne três pontos: a chave da saída, a base usada na
@@ -80,6 +83,7 @@ uma ainda pode ser usada segundo o estado admitido.
 
 \section{A relação que uma entrada demonstra}
 \label{sec:fcmp-input-relation}
+\index{fcmp++@FCMP++!relacao demonstrada@relação demonstrada}
 
 Os pontos de saída pertencem ao grupo de ordem prima \(\ell\),
 e os escalares pertencem a \(\mathbb Z_\ell\). Conservamos as
@@ -146,6 +150,9 @@ entre uma entrada e a saída que ela consome.
 
 \section{Os dados que unem pertença e autorização}
 \label{sec:fcmp-public-interface}
+\index{r sal@\(R\), compromisso auxiliar SAL}
+\index{fcmp++@FCMP++!apresentacao mascarada@apresentação mascarada}
+\index{mascara@máscara!apresentacao fcmp++@apresentação FCMP++}
 
 As duas provas precisam de trabalhar sobre a mesma saída, conservando
 oculta a escolha do registo. Para isso, o provador publica uma
@@ -236,6 +243,8 @@ objectos comuns fazem a ligação entre os dois sistemas.
 
 \section{Onde entram os produtos internos}
 \label{sec:fcmp-proof-map}
+\index{argumento de produto interno@argumento de produto interno!contagem em fcmp++@contagem em FCMP++}
+\index{wip@WIP|see{produto interno, ponderado}}
 
 A prova de pertença exprime a abertura dos caminhos como relações
 aritméticas. \emph{Generalized Bulletproofs} permite demonstrar
@@ -309,6 +318,9 @@ provém de uma saída do conjunto fixado pela raiz.
 
 \section{Um compromisso para o produto secreto}
 \label{sec:fcmp-sal-product}
+\index{sal@SAL}
+\index{produto interno@produto interno!ponderado@ponderado}
+\index{p sal@\(P\), compromisso de produto SAL}
 
 A autorização trabalha com os pontos públicos
 \(\widetilde O,\widetilde J,R,I\) e com a apresentação de
@@ -365,6 +377,7 @@ ligação ao produto~\cite{fcmp-composition-review}.
 
 \section{Do produto escondido às quatro verificações}
 \label{sec:fcmp-sal-protocol}
+\index{sal@SAL!quatro verificacoes@quatro verificações}
 
 Comecemos pelo produto. Como em Schnorr, o provador oculta os
 segredos por escalares aleatórios antes de conhecer o desafio.
@@ -498,6 +511,8 @@ da dimensão. Em SAL, o trabalho essencial é ligar este produto
 
 \section{O desafio que autoriza a transacção}
 \label{sec:fcmp-sal-transcript}
+\index{sal@SAL!transcrito@transcrito}
+\index{transcrito@transcrito}
 
 Na versão interactiva, o verificador escolheria \(e\) depois
 de receber os seis pontos. Fiat--Shamir determina-o pelo contexto
@@ -550,6 +565,9 @@ e conserva a ligação de toda a declaração ao transcrito
 
 \section{Como as provas recuperam a mesma abertura}
 \label{sec:fcmp-sal-knowledge}
+\index{sal@SAL!extraccao@extracção}
+\index{extraccao de testemunhas@extracção de testemunhas!composicao@composição}
+\index{simulacao@simulação!sal@SAL}
 
 A completude verifica as contas do provador que conhece os
 segredos. A propriedade de conhecimento estabelece outra
@@ -681,6 +699,9 @@ certificam o caminho até à raiz.
 \Needspace{9\baselineskip}
 \section{Usar dentro do circuito valores já comprometidos}
 \label{sec:fcmp-gbp-statement}
+\index{generalized bulletproofs@Generalized Bulletproofs}
+\index{gbp@GBP|see{Generalized Bulletproofs}}
+\index{circuito aritmetico@circuito aritmético!valores comprometidos@valores comprometidos}
 
 Um ramo da árvore reúne vários dados num compromisso vectorial.
 A prova de pertença precisa de calcular com esses dados: seleccionar
@@ -778,6 +799,7 @@ externas chegam através de compromissos vectoriais.
 
 \section{Reunir as condições num coeficiente}
 \label{sec:fcmp-gbp-polynomial}
+\index{generalized bulletproofs@Generalized Bulletproofs!polinomios@polinómios}
 
 Precisamos de verificar muitos produtos e muitas condições
 lineares, conservando a testemunha oculta. A estratégia das
@@ -941,6 +963,7 @@ ao coeficiente que o verificador conhece.
 
 \section{Da avaliação à prova de produto interno}
 \label{sec:fcmp-gbp-ipa-reduction}
+\index{generalized bulletproofs@Generalized Bulletproofs!reducao ao produto interno@redução ao produto interno}
 
 Os termos de \(t\) começam no grau \(s+1\). O provador
 compromete cada coeficiente dos graus \(s+1,\ldots,2d+2\),
@@ -1086,6 +1109,9 @@ estas relações ligam a folha à raiz.
 
 \section{Curvas que trocam coordenadas e escalares}
 \label{sec:fcmp-curve-cycle}
+\index{ciclo de curvas@ciclo de curvas}
+\index{helios@Helios}
+\index{selene@Selene}
 
 Um compromisso de ramo é um ponto. Para conferir a relação
 entre esse ponto e os seus filhos, o circuito calcula com as
@@ -1157,6 +1183,9 @@ compatibilidade aritmética que permite reunir as camadas
 
 \section{Das saídas aos seis valores de uma folha}
 \label{sec:fcmp-leaf-construction}
+\index{wei25519@Wei25519}
+\index{fcmp++@FCMP++!folhas@folhas}
+\index{projeccao no subgrupo primo@projecção no subgrupo primo}
 
 A folha começa com a chave e o compromisso registados para
 a saída. Seja \(b_O\) a sequência de bytes da chave original,
@@ -1257,6 +1286,10 @@ registo~\cite{monero-oxide-fcmp-source}.
 
 \section{Dos ramos à raiz}
 \label{sec:fcmp-tree-nodes}
+\index{rho@\(\rho\), raiz da árvore}
+\index{curve trees@Curve Trees}
+\index{arvore@árvore!compromissos de ramos@compromissos de ramos}
+\index{raiz@raiz!arvore de compromissos@árvore de compromissos}
 
 Para cada curva do ciclo, fixam-se bases vectoriais
 \(\boldsymbol g_{\rm S},\boldsymbol g_{\rm H}\), bases de
@@ -1342,6 +1375,8 @@ escolhidos e as posições dentro deles.
 
 \section{Ocultar o caminho e conservar a sua ligação}
 \label{sec:fcmp-masked-path}
+\index{mascara@máscara!caminho da arvore@caminho da árvore}
+\index{raiz@raiz!fecho de schnorr@fecho de Schnorr}
 
 Para um ramo \(\boldsymbol v_j\), o provador publica o
 compromisso mascarado
@@ -1458,6 +1493,7 @@ dentro dos dois circuitos aritméticos.
 
 \section{Certificar as máscaras dentro dos circuitos}
 \label{sec:fcmp-divisor-purpose}
+\index{certificado de multiplicacao@certificado de multiplicação!mascaras fcmp++@máscaras FCMP++}
 
 Ao retirar a máscara de um nó, o circuito precisa de ligar
 um escalar secreto às coordenadas secretas do ponto que ele
@@ -1542,6 +1578,8 @@ e os pontos que ela certifica~\cite{fcmp-plus-plus-paper,monero-oxide-fcmp-sourc
 
 \section{O preço da função e a economia do circuito}
 \label{sec:fcmp-divisor-costs}
+\index{certificado de multiplicacao@certificado de multiplicação!custo@custo}
+\index{interpolacao@interpolação!de lagrange@de Lagrange}
 
 A contagem começa pelo espaço da função. Na construção
 seleccionada, \(L_A=253\) para as bases de Edwards25519
@@ -1678,6 +1716,7 @@ completos de pertença.
 
 \section{Somas de pontos como condições aritméticas}
 \label{sec:fcmp-circuit-addition}
+\index{circuito aritmetico@circuito aritmético!soma de pontos@soma de pontos}
 
 Os certificados fornecem os pontos de máscara. Falta ligá-los
 às apresentações públicas e às coordenadas escolhidas nos
@@ -1742,6 +1781,8 @@ As quatro verificações lêem-se
 
 \section{Escolher um membro mantendo a posição secreta}
 \label{sec:fcmp-circuit-membership}
+\index{pertenca@pertença!produto de diferencas@produto de diferenças}
+\index{pertenca@pertença!compressao de sextuplos@compressão de sextuplos}
 
 Um ramo guarda uma lista de valores. A pertença exige que
 o valor escolhido coincida com pelo menos um deles. Os valores
@@ -1926,6 +1967,7 @@ e a sua pertença ao ramo seguinte.
 
 \section{Reunir as camadas em dois argumentos}
 \label{sec:fcmp-circuit-dimensions}
+\index{fcmp++@FCMP++!dimensoes dos circuitos@dimensões dos circuitos}
 
 As camadas ímpares entram no circuito provado sobre Selene;
 as pares, no circuito provado sobre Helios. Os compromissos
@@ -1993,6 +2035,8 @@ fixam estes dados e como se articulam as duas provas.
 
 \section{Fixar os dados antes dos desafios}
 \label{sec:fcmp-membership-transcript}
+\index{fcmp++@FCMP++!transcrito@transcrito}
+\index{separacao de dominio@separação de domínio}
 
 A prova de pertença faz perguntas sucessivas a dados já
 comprometidos. Primeiro fixa os ramos, as coordenadas dos
@@ -2146,6 +2190,7 @@ Cada desafio vê as mensagens anteriores que deverá vincular
 
 \section{Os encontros e o domínio das avaliações}
 \label{sec:fcmp-challenge-domain}
+\index{desafio@desafio!dominio das avaliacoes@domínio das avaliações}
 
 Cada desafio \(\mathcal D\) precisa de uma recta e dos
 seus três encontros com a curva. O capítulo dos divisores
@@ -2237,6 +2282,7 @@ definida.
 
 \section{Da amostragem à garantia algébrica}
 \label{sec:fcmp-sampling-security}
+\index{erro de solidez@erro de solidez!amostragem@amostragem}
 
 Fixemos uma curva \(\mathbb E\) sobre
 \(\mathbb F_{q_{\mathbb E}}\), uma tabela de comprimento
@@ -2351,6 +2397,7 @@ acabámos de explicitar.
 
 \section{Da raiz admitida à testemunha do gasto}
 \label{sec:fcmp-composed-security}
+\index{fcmp++@FCMP++!extraccao descendente@extracção descendente}
 
 A composição começa por uma raiz cuja abertura é pública:
 os registos de saídas determinam todos os ramos da árvore.
@@ -2441,6 +2488,9 @@ e a análise das consultas adaptativas de Fiat--Shamir.
 
 \section{Autorização, repetição e ocultação}
 \label{sec:fcmp-authorization-and-privacy}
+\index{fcmp++@FCMP++!completude e privacidade@completude e privacidade}
+\index{simulacao@simulação!enunciado fixo@enunciado fixo}
+\index{imagem de chave@imagem de chave!estabilidade@estabilidade}
 
 A abertura extraída de \(O\) autoriza a mensagem vinculada
 ao desafio de SAL. Essa mensagem abrange os dados assináveis
@@ -2595,6 +2645,7 @@ a capacidade de cada compromisso e a quantidade a guardar.
 
 \section{Das mensagens aos bytes}
 \label{sec:fcmp-proof-size}
+\index{fcmp++@FCMP++!tamanho@tamanho}
 
 Consideremos uma das provas aritméticas, com \(s\)
 compromissos e dimensão \(m\). Além dos \(s\) pontos
@@ -2679,6 +2730,7 @@ contabiliza os dois efeitos, incluindo os seus limiares.
 
 \section{O trabalho que fica por detrás da prova}
 \label{sec:fcmp-total-work}
+\index{fcmp++@FCMP++!custo do provador@custo do provador}
 
 O tamanho curto resulta de comprometer os dados e provar
 as suas relações através dos dois IPA. O provador constrói

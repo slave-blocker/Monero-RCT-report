@@ -82,6 +82,9 @@ em novas transacções.}
 
 \subsection{Compromissos a montantes e taxas de transacção}
 \label{sec:commitments-and-fees}
+\index{equilibrio de montantes@equilíbrio de montantes}
+\index{pseudo-compromisso@pseudo-compromisso!mascaras@máscaras}
+\index{taxa de transaccao@taxa de transacção!equilibrio@equilíbrio}
 
 Um remetente recebeu \(m\) saídas com montantes
 \(a_1,\ldots,a_m\), endereços ocultos
@@ -132,6 +135,7 @@ Por homomorfismo dos compromissos, a equação
  \stackrel{?}{=}
  \sum_{t=0}^{p-1}C^b_t+fH
  \label{eq:transaction-commitment-balance}
+\index{c tilde@\(\protect\widetilde C\), pseudo-compromisso}
 \end{align}
 verifica ao mesmo tempo o equilíbrio dos montantes e o das máscaras, sem
 revelar nenhum \(a_j\) ou \(b_t\). A própria igualdade não prova que o autor
@@ -232,6 +236,9 @@ obtém o anel público
  \mathcal R_j=
  \bigl((P_{0,j},C^a_{0,j}),\ldots,(P_{15,j},C^a_{15,j})\bigr).
  \label{eq:transaction-ring}
+\index{pi@\(\pi_j\), posição secreta no anel}
+\index{anel@anel!lista ordenada@lista ordenada}
+\index{anel@anel!posicao secreta@posição secreta}
 \end{align}
 Cada membro tem a mesma representação pública: uma chave de utilização
 única \(P_{i,j}\) e o compromisso \(C^a_{i,j}\) da saída correspondente.
@@ -269,6 +276,12 @@ existem, têm tipos admissíveis, já maturaram e estão desbloqueadas.
 
 \subsubsection{Dos índices globais aos deslocamentos relativos}
 \label{subsec:global-output-indices}
+\index{indice@índice!global de saida@global de saída}
+\index{indice@índice!local de saida@local de saída}
+\index{indice@índice!relativo@relativo}
+\index{deslocamento relativo@deslocamento relativo}
+\index{key offsets@\texttt{key\_offsets}}
+\index{vin@\texttt{vin}}
 
 Fixemos um prefixo da lista de blocos já aceite. As saídas são registadas
 pela ordem dos blocos, das transacções em cada bloco e das saídas em cada
@@ -334,6 +347,9 @@ assinatura associados.
 
 \subsubsection{Dos bytes aos membros do anel}
 \label{subsec:ring-reconstruction}
+\index{anel@anel!reconstrucao@reconstrução}
+\index{varint@varint}
+\index{inteiro de comprimento variavel@inteiro de comprimento variável|see{varint}}
 
 Cada deslocamento é escrito como um inteiro de comprimento variável,
 ou \emph{varint}. Para \(n>0\), escreva-se
@@ -398,6 +414,7 @@ candidatos.
 
 \subsection{Assinatura}
 \label{full-signature}
+\index{clsag@CLSAG!autorizacao de uma entrada@autorização de uma entrada}
 
 O pseudo-compromisso da entrada \(j\) é subtraído a cada compromisso do
 anel:
@@ -464,6 +481,7 @@ bytes com precisão suficiente. Na revisão consultada, a mensagem anterior
 \begin{align}
  \mathfrak m=\mathcal H(h_0\,\|\,h_1\,\|\,h_2),
  \label{eq:transaction-pre-clsag-hash}
+\index{transaccao@transacção!mensagem assinada@mensagem assinada}
 \end{align}
 onde:
 
@@ -697,6 +715,9 @@ Podemos então isolar \(\gamma\):
  (y_{\mathrm{mau}}-y)
  (b-b_{\mathrm{mau}})^{-1}\pmod l.
  \label{eq:gamma-extraction}
+\index{gamma@\(\gamma=\log_GH\)}
+\index{compromisso@compromisso!duas aberturas@duas aberturas}
+\index{inflacao@inflação!relacao entre geradores@relação entre geradores}
 \end{align}
 O inverso existe: dois montantes distintos de 64 bits têm diferença não
 nula módulo o primo \(l\). Encontrar uma segunda abertura não trivial quebra,
@@ -876,6 +897,7 @@ intervalo dos montantes e do equilíbrio.
 
 \subsection{Requisitos de espaço}
 \label{subsec:space-and-ver-rcttypefull}
+\index{transaccao@transacção!tamanho e peso@tamanho e peso}
 
 Um anel v16 não repete no \emph{blob} os 16 endereços ocultos e os 16
 compromissos: os \emph{offsets} apontam para esses dados na cadeia. Por
@@ -927,6 +949,9 @@ a relação com o peso dinâmico do bloco é explicada na secção
 
 \subsection{O campo \texttt{extra}: leitura e significado}
 \label{subsec:tx-extra-structure}
+\index{extra@\texttt{extra}}
+\index{tx extra@\texttt{tx\_extra}|see{extra}}
+\index{nonce@nonce!campo auxiliar da transaccao@campo auxiliar da transacção}
 
 O prefixo termina com \texttt{extra}, um vector de bytes que contém
 informação auxiliar para as carteiras. A expressão habitual

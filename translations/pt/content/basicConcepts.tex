@@ -44,11 +44,14 @@ isso não obriga a transmiti-lo como dois inteiros completos. Na secção
 para codificar os pontos que nos interessam. Sempre que contarmos bytes,
 assumiremos essa compressão.
 
-As funções hash\marginnote{src/crypto/ {\tt keccak.c}} serão por vezes usadas
-sem declarar um algoritmo específico. Monero emprega uma variante de
-\(\mathit{Keccak}\), cuja construção interna não é necessária para a teoria
-deste capítulo\footnote{\label{kekkak_note}O algoritmo Keccak serve de base ao
-standard NIST {\em SHA-3} \cite{nist-sha3}.}.
+As funções hash serão por vezes usadas sem declarar um algoritmo específico.
+Nas receitas de Monero que indicarem Keccak--256, o resultado tem 32 bytes
+e usa o preenchimento original de Keccak. SHA3--256, normalizada pelo NIST,
+usa uma separação de domínio diferente e constitui outra função, embora
+ambas partilhem a permutação interna\footnote{\label{kekkak_note}O algoritmo
+Keccak serve de base ao standard NIST {\em SHA-3} \cite{nist-sha3}.
+Para reproduzir os valores das receitas, importa conservar a variante
+indicada.}.
 %The Keccak hashing algorithm forms the basis for the NIST standard {\em SHA-3} \cite{nist-sha3}.}
 
 Chamaremos simplesmente {\em função hash} a uma função de dispersão
@@ -83,6 +86,15 @@ a=qn+c,\qquad 0\leq c<n,
 para algum inteiro \(q\). O símbolo \(\bmod\) designa aqui uma operação. Quando
 queremos afirmar que dois inteiros deixam o mesmo resto, escrevemos antes a
 congruência \(a\equiv c\pmod n\).
+
+\label{sec:canonical-representation}
+O resto \(c\) é o \emph{representante canónico} dessa classe de congruência:
+uma regra fixa escolhe exactamente um dos inteiros equivalentes. Módulo 17,
+por exemplo, \(-14\), \(3\) e \(20\) pertencem à mesma classe; a regra
+\(0\leq c<17\) escolhe \(3\). A palavra «canónico» designa esta escolha
+única e convencionada. Mais adiante, uma codificação canónica acrescentará
+regras sobre o comprimento, a ordem dos bytes e os bits de sinal, para que
+um mesmo objecto tenha uma única sequência de bytes admitida.
 
 Os restos nunca são negativos. Em particular, se \(0<a<n\), então
 \((-a)\bmod n=n-a\). Nos casos de fronteira convém não abreviar: se
@@ -991,9 +1003,14 @@ bits. A codificação usada por Edwards25519 ocupa 32 bytes em ordem
 está livre. Duas coordenadas completas ocupariam, portanto, 64 bytes.
 
 Um escalar canónico em \(\mathbb{F}_l\) também é guardado em 32 bytes, mas
-obedece ao limite diferente \(0\leq s<l\). Não devemos confundir uma sequência
-arbitrária de 32 bytes, um elemento do corpo de coordenadas, um escalar reduzido
-e uma codificação canónica: têm o mesmo tamanho exterior, não o mesmo domínio.
+obedece ao limite \(0\leq s<l\). A regra escolhe uma única representação
+para cada escalar, conforme a noção da secção~\ref{sec:canonical-representation}.
+Por exemplo, os inteiros \(s\) e \(s+l\) dão o mesmo elemento do corpo,
+enquanto apenas o primeiro pertence ao intervalo canónico quando
+\(0\leq s<l\). Reduzir um resumo de hash módulo \(l\) constrói um escalar;
+validar uma codificação escalar recebida exige que o inteiro já esteja
+nesse intervalo. Os domínios das coordenadas e dos escalares ficam, assim,
+determinados pelos módulos respectivos.
 %Elements of \(\mathbb{F}_{2^{255} - 19} \) are encoded as 256-bit integers, so they can be represented using 32 bytes. Since each element only requires 255 bits, the most significant bit is always zero.
 
 %Consequently, any point in Ed25519 could be expressed using 64 bytes. By applying {\em point compression} techniques, described here below, however, it is possible to reduce this amount by half, to 32 bytes.
@@ -1075,6 +1092,142 @@ O gerador convencional do subgrupo de ordem \(l\) é
 codificação usa \(y=4/5\bmod q\) e bit de sinal zero.
 
 %Implementations of Ed25519 (such as Monero) typically use the generator $G = (x,4/5)$ \cite{Bernstein2012}, where x is the `even', or $b = 0$, variant based on point decompression of \(y = 4/5 \pmod q\).
+
+\subsection{De uma sequência de bytes a um ponto}
+\label{subsec:hash-to-point}
+
+Uma função hash para pontos precisa de transformar uma sequência de bytes
+num ponto do subgrupo de ordem \(l\). Conservemos a codificação de pontos
+acabada de definir e designemo-la por \(\operatorname{enc}\).
+Para bytes \(b_0,\ldots,b_{31}\), a leitura como inteiro
+\emph{little-endian} é
+\[
+ \operatorname{LE}(b_0,\ldots,b_{31})
+     =\sum_{i=0}^{31}b_i\,2^{8i}.
+\]
+Todos os 256 bits entram nesta leitura. A redução módulo \(q=2^{255}-19\)
+fornece um elemento do corpo das coordenadas, ao qual aplicaremos um mapa
+algébrico \(M\). O resultado é depois multiplicado por oito.
+
+Fixemos \(A=486662\), de modo que o coeficiente da curva se escreve
+\[
+ d=-\frac{A-2}{A+2}=-\frac{121665}{121666}.
+\]
+Para \(u\in\mathbb F_q\), calculemos no corpo
+\[
+ v=2u^2,\qquad w=v+1,\qquad t=w^2-A^2v,\qquad r=\frac wt.
+\]
+Um elemento não nulo é um \emph{quadrado}, ou resíduo quadrático, quando
+é o quadrado de outro elemento do corpo. Pode reconhecer-se esta
+propriedade pelo teste \(r^{(q-1)/2}=1\). Com efeito, os
+\((q-1)/2\) quadrados não nulos distintos satisfazem essa igualdade
+pelo pequeno teorema de Fermat, e o polinómio
+\(X^{(q-1)/2}-1\) tem no máximo esse número de raízes.
+Os outros elementos não nulos dão \(-1\) no teste.
+
+O mapa escolhe \(z\), o quadrado da abscissa e a sua paridade segundo
+duas alternativas:
+\begin{center}
+\begin{tabular}{c|c|c|c}
+Condição & \(z\) & \(x^2\) & Paridade de \(x\)\\[1mm]
+\(r\) quadrado & \(-Av\) & \(A(A+2)vr\) & par\\
+\(r\) não quadrado & \(-A\) & \(A(A+2)r\) & ímpar
+\end{tabular}
+\end{center}
+Extraímos a raiz de \(x^2\) pelo procedimento da compressão e escolhemos
+a que tem a paridade indicada. Por fim, definimos
+\begin{equation}
+ M(u)=\left(x,\frac{z-w}{z+w}\right).
+ \label{eq:hash-to-point-map}
+\end{equation}
+A paridade refere-se sempre ao representante entre \(0\) e \(q-1\).
+
+As operações estão definidas para todo o \(u\). Para estes parâmetros,
+\(2\) e \(A(A+2)\) são não-quadrados, enquanto \(2A(A+2)\) e \(A-1\)
+são quadrados não nulos. Assim, \(w=0\) exigiria
+\(u^2=-1/2\), um não-quadrado, pois \(-1\) é quadrado neste corpo.
+A igualdade \(t=0\), para \(u\ne0\), igualaria o quadrado \(w^2\)
+ao não-quadrado \(2A^2u^2\); para \(u=0\), temos \(t=1\).
+Logo \(r\) existe e é não nulo. A primeira alternativa da tabela
+produz um quadrado porque \(vr=2u^2r\); a segunda multiplica dois
+não-quadrados. Quanto a \(z+w=0\), exigiria
+\(u^2=1/[2(A-1)]\) na primeira alternativa, ou
+\(u^2=(A-1)/2\) na segunda. Ambos são não-quadrados.
+
+Verifiquemos agora a equação de Edwards. Se \(y=(z-w)/(z+w)\), então
+\[
+ y^2-1=\frac{-4zw}{(z+w)^2},\qquad
+ 1+dy^2=\frac{4(z^2+Azw+w^2)}{(A+2)(z+w)^2}.
+\]
+Em ambas as alternativas, \(z^2+Azw+w^2=t\). Por isso,
+\[
+ \frac{y^2-1}{1+dy^2}
+      =-\frac{(A+2)zw}{t}.
+\]
+Substituir \(z=-Av\) ou \(z=-A\) dá exactamente o \(x^2\) da
+respectiva linha da tabela. Fica demonstrado
+\(-x^2+y^2=1+dx^2y^2\). A receita fixa, portanto, um ponto e o
+seu sinal, usando apenas contas no corpo
+\cite{monero-point-maps,hashtopoint-writeup}.
+
+A primeira função hash para pontos fica definida por
+\begin{equation}
+ \mathcal H_p^{(1)}(b)
+   =[8]M\!\left(\operatorname{LE}(\operatorname{Keccak256}(b))
+                                      \bmod q\right).
+ \label{eq:hash-to-point-one}
+\end{equation}
+Para uma chave pública \(K\), o argumento é a sequência
+\(b=\operatorname{enc}(K)\). O factor oito leva o ponto ao subgrupo:
+\([l]([8]P)=[8l]P=\mathcal O\).
+Esta igualdade abrange a identidade. As construções que precisam de
+uma base não nula conservam essa condição nas suas regras de validade.
+Por exemplo, \(M(0)=(0,-1)\), que a multiplicação por oito leva à
+identidade.
+
+Um exemplo fixa a ordem das operações. A codificação de \(G\), o
+seu resumo e a codificação de \(\mathcal H_p^{(1)}(G)\) são,
+respectivamente,
+\begin{center}
+\small\ttfamily
+5866666666666666666666666666666666666666666666666666666666666666\\
+1e609dc09abbd7bca35029ffbf164d05496b441a97d9f13020d869762acd0ee1\\
+d6329b5b1f7c0805b5c345f4957554002a2f557845f64d7645dae0e051a6498a
+\end{center}
+Cada linha contém 32 bytes escritos em hexadecimal. A segunda linha
+é lida como inteiro completo, reduzida módulo \(q\) e transformada por
+\(M\); três duplicações do ponto produzem a última linha.
+
+Há também uma variante que soma duas imagens do mesmo mapa.
+Obtêm-se 64 bytes por BLAKE2b, com chave vazia, sal nulo e
+personalização formada pelos seis bytes ASCII de «Monero» seguidos
+de dez bytes nulos. O comprimento do resumo faz parte dos parâmetros.
+Separando o resultado nas metades consecutivas \(h_0,h_1\), define-se
+\begin{equation}
+ \mathcal H_p^{(2)}(b)
+   =[8]\left(
+       M(\operatorname{LE}(h_0)\bmod q)
+       +M(\operatorname{LE}(h_1)\bmod q)\right).
+ \label{eq:hash-to-point-two}
+\end{equation}
+Para a mesma codificação de \(G\), o resultado é
+\begin{center}
+\small\ttfamily
+aa542c6b29f67c68c8f747f808dd81b09f3265fdcb2595868a151d85c8dfe418
+\end{center}
+As assinaturas em anel aqui estudadas usam a primeira receita.
+Na construção de FCMP++, a classe da saída determina qual destas
+bases acompanha o registo: a primeira para as saídas da forma anterior
+e a segunda para as saídas Carrot da construção seleccionada
+\cite{monero-point-maps,monero-source-current-fcmp-tree}.
+A escolha e os bytes originalmente registados fixam a base da imagem
+de chave ao longo dos gastos.
+
+O mapa \(M\) satisfaz \(M(u)=M(-u)\), como se vê pelas fórmulas em
+\(u^2\) e pela regra de sinal. A pertença à curva, a passagem ao
+subgrupo e a distribuição dos resultados têm, assim, justificações
+próprias. A análise criptográfica de cada função conserva as hipóteses
+sobre o hash e o mapa que utiliza.
 
 \subsection{Algoritmo de assinatura EdDSA}
 \label{EdDSA_section}

@@ -72,7 +72,9 @@ def main():
         (build / part).mkdir(exist_ok=True)
     env = tex_environment(args.tex_deps.resolve(), build)
     poster_source = SOURCE / "posters/fcmp-composition"
-    if (poster_source / "poster.tex").exists():
+    poster_tex, poster_pdf = poster_source / "poster.tex", poster_source / "poster.pdf"
+    if poster_tex.exists() and (
+            not poster_pdf.exists() or poster_tex.stat().st_mtime > poster_pdf.stat().st_mtime):
         poster_build = build / "fcmp-poster"
         poster_build.mkdir(exist_ok=True)
         run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error",

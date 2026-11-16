@@ -51,16 +51,12 @@ prima \(l\). O grupo é cíclico, portanto existe matematicamente um escalar
 \[
  H=\gamma G.
 \]
-Aqui «geradores independentes» não quer dizer independência linear: quer dizer
-que ninguém conhece essa relação de logaritmo discreto. O valor fixo de \(H\)
-usado pelo Monero foi derivado historicamente pela interpretação de
-Keccak--256 da codificação de \(G\) como um ponto comprimido, seguida de
-multiplicação pelo cofactor~8. Essa construção específica não deve ser
-reutilizada como função hash-para-ponto genérica.
-\marginnote{src/ringct/
-rctTypes.h, {\tt H};
-tests/unit\_ tests/
-ringct.cpp, {\tt HPow2}}
+A expressão «geradores independentes» designa aqui a hipótese computacional
+de ser impraticável obter \(\gamma\) a partir dos pontos públicos.
+O gerador \(H\) usado por Monero tem a receita pública da
+secção~\ref{subsec:pedersen-fixed-generator}. Essa receita permite a todos
+reconstituir o mesmo ponto; a dificuldade de recuperar a relação entre os
+dois geradores é a hipótese que sustenta a vinculação.
 
 Para uma máscara \(x\in\mathbb Z_l\) e um montante escalar
 \(b\in\mathbb Z_l\), definimos
@@ -108,6 +104,55 @@ Isto deixa comparar somas ocultas. Não significa que a igualdade pública de
 dois compromissos revele a igualdade dos montantes: máscaras diferentes podem
 compensar montantes diferentes. Para provar uma relação entre montantes é
 preciso também ligar ou cancelar as máscaras de maneira verificável.
+
+\subsection{A construção do gerador de montantes}
+\label{subsec:pedersen-fixed-generator}
+
+O ponto fixo \(H\) obtém-se a partir da codificação convencional de \(G\).
+Se \(\operatorname{dec}\) designar a descompressão de Edwards da
+secção~\ref{point_compression_section}, a receita é
+\begin{equation}
+ Q=\operatorname{dec}\!\left(
+           \operatorname{Keccak256}(\operatorname{enc}(G))\right),
+ \qquad H=[8]Q.
+ \label{eq:pedersen-fixed-generator}
+\end{equation}
+Neste argumento concreto, os 32 bytes do resumo constituem uma codificação
+válida. O último byte é \texttt{e1}: o seu bit superior dá a paridade
+ímpar de \(x_Q\), e os restantes sete bits entram na ordenada. A sequência
+que representa \(y_Q\) termina, portanto, em \texttt{61}.
+Obtém-se \(x_Q\) pela raiz de
+\[
+ x_Q^2=\frac{y_Q^2-1}{dy_Q^2+1}
+\]
+com a paridade indicada. A descompressão determina assim \(Q\) sem qualquer
+escolha secreta.
+
+Três duplicações, efectuadas pela lei de adição da curva, dão os pontos
+seguintes. Cada linha apresenta a codificação comprimida do ponto à esquerda:
+\begin{center}
+\small
+\begin{tabular}{r@{\quad}l}
+\(Q\)&\texttt{1e609dc09abbd7bca35029ffbf164d05496b441a97d9f13020d869762acd0ee1}\\
+\([2]Q\)&\texttt{5e80078173851a4aeb1563aa6e0da45729dc453e7ca922bab939d011e57af412}\\
+\([4]Q\)&\texttt{1cdf7620c9ba31e2f191f689d1bfbec2ee5d111c126a289d8ded73da456f82a6}\\
+\([8]Q\)&\texttt{8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94}
+\end{tabular}
+\end{center}
+A última linha fixa \(H\) \cite{monero-point-maps}. Temos
+\([l]H=[8l]Q=\mathcal O\); a codificação distingue-o da identidade.
+Como \(l\) é primo, a ordem de \(H\) é exactamente \(l\).
+
+Esta construção e a função \(\mathcal H_p^{(1)}\) da
+Equação~\eqref{eq:hash-to-point-one} usam o mesmo resumo de \(G\) em
+operações diferentes. Aqui os bytes codificam directamente \(Q\).
+Na função hash para pontos, todos os bits são lidos como um inteiro,
+reduzidos módulo \(q\) e entregues ao mapa \(M\). Por isso, a base
+\(\mathcal H_p^{(1)}(G)\), cuja codificação começa por \texttt{d632},
+e o gerador \(H\), cuja codificação começa por \texttt{8b65}, são
+pontos distintos. A validade desta descompressão concreta basta para
+definir o gerador fixo; o mapa \(M\) fornece a operação definida para
+todos os argumentos de \(\mathcal H_p^{(1)}\).
 
 \section{Montantes ocultos}
 \label{sec:pedersen_monero}

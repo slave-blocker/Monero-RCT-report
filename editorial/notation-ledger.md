@@ -126,3 +126,7 @@ As etiquetas existentes são mantidas durante as unidades locais para preservar 
 | a, b, ε | Contagens locais de níveis: floor((L−1)/2), floor(L/2), L mod 2 | Notação local da contagem; distinta do montante a e do comprimento L_A de uma representação. |
 | s_S, s_H | Número total de compromissos vectoriais de cada curva | Ramos mais dados auxiliares. Os ramos somam n(L−1)+1; os auxiliares são no máximo 24+16. |
 | B_pert, B_FCMP++ | Tamanho em bytes da pertença e do objecto FCMP++ | B_FCMP++ = B_pert + 480n. Imagens, pseudo-compromissos, saídas e provas de intervalo pertencem aos restantes campos da transacção. |
+
+## Receitas de pontos
+
+M(u) designa o mapa algébrico de um elemento do corpo das coordenadas para Edwards25519, com sinal determinado pelo ramo. H_p^(1) usa Keccak, leitura integral dos 256 bits, redução, mapa e cofactor; H_p^(2) usa duas metades do BLAKE2b personalizado, soma as imagens e limpa o cofactor. Nos capítulos das assinaturas em anel, H_p abrevia a primeira receita aplicada aos bytes da chave. H mantém o significado de gerador fixo dos montantes e obtém-se por descompressão do resumo de G, seguida de três duplicações.

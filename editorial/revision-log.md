@@ -10,7 +10,7 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] FCMP++: reescrita integral a partir das fontes; mapa da composição antes das equações completas; paginação contínua; 38 páginas de texto.
 - [x] FCMP++: IPA, Generalized Bulletproofs, SAL e prova de intervalo; contagem condicionada de argumentos.
 - [x] FCMP++: construir e inspeccionar o novo poster.
-- [ ] Explicar a receita de \(H_p\) e reproduzir a obtenção do gerador fixo \(H\).
+- [x] Explicar a receita de \(H_p\) e reproduzir a obtenção do gerador fixo \(H\).
 - [ ] Página impressa 55: desenvolver a falha de validação das imagens de chave e a investigação publicada sobre a ausência de exploração.
 - [ ] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
 - [ ] Página 59: ensinar a pergunta decisional de Diffie–Hellman antes de a nomear.
@@ -221,3 +221,13 @@ Estado: concluído em 16 de Novembro de 2026, depois das 38 páginas de texto. U
 O poster foi criado de raiz em `translations/pt/posters/fcmp-composition/poster.tex`, com desenhos e texto vectoriais. Os dois conjuntos de figuras antigos deixaram o directório de trabalho e conservam-se no Git. O programa de compilação produz o poster antes de compor o livro. Inspeccionou-se a página e corrigiram-se sobreposições, uma acentuação em modo matemático e substituições de tamanho de fonte; o poster final não produz avisos de composição.
 
 O livro tem 307 páginas. FCMP++ ocupa 38 páginas de texto, físicas 191–228, e o poster ocupa a página física 229. O excerto contém estas 39 páginas. As páginas dos excertos de divisores e FCMP++ são conferidas por texto e imagem contra o livro antes de serem actualizadas.
+
+## Receitas de pontos e representações canónicas
+
+Estado: concluídas em 16 de Novembro de 2026. A explicação de «canónico» começa na aritmética modular e distingue a escolha de representantes das regras completas de codificação. O índice remissivo continua pendente e acolherá estes termos.
+
+A nova secção dos conceitos básicos define a leitura dos 256 bits, a redução no corpo, os dois ramos do mapa e a escolha do sinal. Demonstra a ausência de denominadores nulos e a equação da curva. Define as receitas por Keccak e por BLAKE2b personalizado, preserva a possibilidade matemática da identidade e relaciona a escolha com as classes de saídas da construção fixa. A passagem de bLSAG passa a usar esta definição cumulativamente.
+
+A secção dos compromissos deriva separadamente o gerador fixo H: descompressão do resumo de G e três duplicações, com todas as codificações intermédias. Explica a hipótese de dificuldade da relação entre geradores e a distinção entre descodificar bytes e aplicar o mapa algébrico. O texto contém as codificações de H, H_p^(1)(G) e H_p^(2)(G).
+
+Validação: hash-points.py verifica 522 argumentos, incluindo fronteiras da redução dos 256 bits, ambos os ramos, a simetria, os resíduos, a pertença à curva e os exemplos. A comparação facultativa compila directamente as funções C da fonte fixa em pasta temporária; as imagens antes e depois do cofactor, o BLAKE2b personalizado, o Keccak e H coincidem com as contas independentes. Nenhuma fonte externa foi modificada. A compilação produz 310 páginas, conserva os 164 avisos anteriores e resolve remissões e citações. Inspeccionaram-se as páginas físicas 22–23, 35–39, 79 e 100–102. FCMP++ mantém as 38 páginas de texto e o poster; divisores mantém trinta páginas.

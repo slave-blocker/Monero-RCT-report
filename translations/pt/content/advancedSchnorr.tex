@@ -410,20 +410,20 @@ validar a assinatura e todas as restantes regras do protocolo.
 
 \subsection*{Hash para ponto e imagem de chave}
 
-Além de \(\mathcal H_n\), que devolve escalares, precisamos de
+Usaremos a primeira receita da secção~\ref{subsec:hash-to-point},
+abreviando \(\mathcal H_p^{(1)}\) por
 \[
 \mathcal H_p:\{0,1\}^*\longrightarrow\mathbb G,
 \]
-onde \(\mathbb G\) é o subgrupo de ordem prima \(l\). O resultado deve ser um
-ponto não nulo e a sua relação de logaritmo discreto com \(G\) não deve ser
-conhecida. Não bastaria calcular \(\mathcal H_n(K)G\): como esse multiplicador
-é público, qualquer observador obteria
-\(\mathcal H_n(K)K\) sem conhecer a chave privada.
-\footnote{A família Monero historicamente mapeia a codificação da chave para
-um ponto e limpa o cofactor; veja-se a descrição em
-\cite{hashtopoint-writeup} e a origem citada em
-\cite{hashtopoint-original-paper}. Hash para ponto e hash para escalar não
-são operações permutáveis.}
+onde \(\mathbb G\) é o subgrupo de ordem prima \(l\), e
+\(\mathcal H_p(K)\) significa aplicar a função à codificação de \(K\).
+As regras de validade exigem uma imagem não nula; para uma chave secreta
+não nula, essa exigência implica que a base também seja não nula.
+A hipótese criptográfica sobre o hash para pontos conserva a dificuldade
+de obter a relação de logaritmo discreto entre esta base e \(G\).
+Essa dificuldade é essencial para ocultar o membro do anel: se a base
+fosse um múltiplo publicamente conhecido \(hG\), a imagem da chave
+\(K=kG\) seria \(k(hG)=hK\), calculável por qualquer observador.
 
 Para o membro verdadeiro \(K_\pi=k_\pi G\), define-se
 \[

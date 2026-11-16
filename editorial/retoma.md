@@ -1,10 +1,10 @@
 # Ponto de retoma
 
-Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 307 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`.
+Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 310 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`; o poster ficou em `8d85712`.
 
 ## Próxima unidade
 
-Receitas de H_p e H e explicação de representações canónicas: conferir a aplicação exacta do hash Keccak, o mapa para pontos e a obtenção do gerador fixo. Inserir as definições nos lugares adequados à progressão do livro. Prosseguir depois para a vulnerabilidade das imagens de chave, DDH, MLSAG/CLSAG, Bulletproofs, a estrutura das entradas e o índice, conservando todo o âmbito abaixo.
+Desenvolver a vulnerabilidade histórica das imagens de chave, com a componente de torção, a falha de ligação e o alcance da investigação publicada. As receitas de H_p e H estão redigidas e conferidas contra a fonte C; «canónico» está explicado na primeira utilização relevante. Prosseguir depois para DDH, MLSAG/CLSAG, Bulletproofs, a estrutura das entradas e o índice, conservando todo o âmbito abaixo.
 
 A preparação de F8 permanece em `editorial/fcmp-F8-preparation.md` como registo das fontes. O texto TeX já inclui a extracção descendente, a estabilidade da imagem, a simulação com enunciado fixo, as fórmulas exactas do tamanho e os custos. `editorial/checks/composition-costs-F8.py` verifica as contas e pode compará-las directamente com as funções Rust, compiladas isoladamente em /tmp.
 
@@ -13,7 +13,6 @@ F7 fixa a sequência completa e demonstra um limite incondicional para dados fix
 ## Restante âmbito autorizado
 
 - Índice remissivo no fim, incluindo símbolos, siglas e remissões entre termos.
-- Receitas exactas de H_p e do gerador H, com as distinções pertinentes.
 - Explicação aprofundada da vulnerabilidade histórica das imagens de chave e da verificação de subgrupo.
 - Remover a frase da variante ligável indicada na antiga página 57; explicar DDH e representações canónicas.
 - Rever a expressão da especialização de MLSAG; acrescentar duas páginas pedagógicas a CLSAG.
@@ -27,6 +26,6 @@ Os números de página dos pedidos referem-se ao exemplar impresso anterior; as 
 
 ## Verificação e composição
 
-As contas reproduzíveis estão em `editorial/checks/`. Os sete programas usam Python 3 e a biblioteca padrão; a comparação opcional de F8 com a fonte exige também rustc. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
+As contas reproduzíveis estão em `editorial/checks/`. Os programas usam Python 3 e a biblioteca padrão; a comparação opcional de F8 com a fonte exige rustc, e a comparação dos mapas com a fonte C exige gcc, libsodium e os cabeçalhos indicados no registo de versões. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
 
 `python3 editorial/build-pt.py` compila o livro; acrescentar `--export` actualiza o PDF principal e chama `editorial/export-chapters.py`, que confere texto e imagem de todas as páginas dos excertos antes de os substituir. Os auxiliares, os padrões portugueses do TeX e as imagens de inspecção estão em `/tmp/ztm-editorial-build` e `/tmp/ztm-latex-deps`; são recursos temporários. Os programas de compilação e exportação ficam agora no repositório. O registo de versões documenta a preparação do ambiente. As fontes definitivas são `translations/pt/main.tex`, os ficheiros de conteúdo e a bibliografia; a composição normal usa pdflatex e bibtex, com as passagens necessárias para estabilizar as remissões.

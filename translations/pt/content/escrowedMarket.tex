@@ -6,79 +6,32 @@ multi-assinatura. Qualquer par pode autorizar um gasto; nenhum participante
 pode fazê-lo sozinho. Esta propriedade permite liquidar uma compra por acordo
 directo ou por uma decisão apoiada pelo moderador.
 
-A garantia não é um contracto executado pelo consenso do Monero. O consenso
-verifica uma transacção RingCT e a respectiva assinatura. Não conhece a ordem
-de compra, a entrega, o prazo, as provas apresentadas numa disputa nem a
-identidade do moderador. Esses elementos pertencem ao software do mercado e
-ao protocolo de comunicação entre os participantes.
+A assinatura autoriza o movimento dos fundos. A ordem de compra, a entrega,
+o prazo e as provas de uma disputa pertencem ao acordo comercial e ao
+protocolo de comunicação entre os participantes. O consenso verifica a
+transacção RingCT resultante; a aplicação relaciona-a com esse acordo.
 
-A análise histórica de integração com OpenBazaar identificou os problemas
-operacionais que uma aplicação deste tipo teria de resolver
-\cite{openbazaar-rbrunner-investigation}. O código Monero consultado implementa
-as operações gerais de carteira multi-assinatura e o Sistema de Mensagens de
-Multi-assinatura, MMS \cite{monero-source-v16,mms-manual,mms-project-proposal}.
-Não implementa um mercado, um formato de ordem, um processo de arbitragem ou
-uma política automática de reembolso.
-
-\section{Estado da implementação}
+\section{Distribuição de responsabilidades}
 \label{sec:escrow-implementation-status}
 
-Na revisão de 14 de Agosto de 2026, a separação entre componentes
-implementados e componentes externos é a seguinte:
+A construção reúne três camadas. A carteira 2-de-3 conserva as parcelas,
+reconhece as saídas e produz contribuições para a assinatura, segundo o
+capítulo anterior. A comunicação autenticada transporta as mensagens e
+identifica a sessão a que pertencem. O acordo comercial define os bens, o
+preço, as condições de liquidação e a actuação do moderador
+\cite{openbazaar-rbrunner-investigation,monero-source-v16}.
 
-\begin{center}
-\small
-\begin{tabular}{|p{4.2cm}|p{3.0cm}|p{7.1cm}|}
-\hline
-\textbf{Componente} & \textbf{Estado} & \textbf{Consequência} \\
-\hline
-Carteira \(M\)-de-\(N\), incluindo 2-de-3 &
-Implementada, experimental &
-Os três participantes podem criar um endereço comum e quaisquer dois podem
-produzir uma transacção válida. \\
-\hline
-Exportação e importação de informação multi-assinatura &
-Implementada, experimental &
-As imagens de chave parciais e o material necessário à assinatura podem ser
-sincronizados entre carteiras independentes. \\
-\hline
-Proposta, assinatura e submissão de transacções &
-Implementada, experimental &
-Uma proposta pode receber contribuições até atingir o limiar e ser difundida
-como uma transacção RingCT comum. \\
-\hline
-MMS &
-Implementado &
-Organiza mensagens e estados da carteira; não decide disputas nem substitui a
-autenticação dos participantes. \\
-\hline
-Ordem de compra, prova de entrega e decisão do moderador &
-Não implementadas pelo Monero &
-A aplicação tem de definir formatos, assinaturas, armazenamento e regras de
-validação. \\
-\hline
-Reembolso unilateral após um prazo &
-Não implementado &
-Uma saída Monero não contém um ramo de script que altere o conjunto de
-signatários depois de uma data. \\
-\hline
-Acesso do moderador apenas durante uma disputa &
-Não implementado pela carteira multi-assinatura &
-Os participantes partilham a chave privada de vista comum; o moderador pode
-observar a carteira desde a configuração. \\
-\hline
-Multi-assinatura com FCMP++ &
-Primitivas de referência, sem integração na carteira &
-O ramo FCMP++ de \texttt{monero-oxide} contém algoritmos SAL com FROST; a
-construção da carteira Monero termina em CLSAG distribuída, como indicado na secção
-\ref{sec:multisig-fcmp-note}. \\
-\hline
-\end{tabular}
-\end{center}
+Cada camada fornece dados à seguinte. A ordem fixa um endereço comum e os
+papéis dos três participantes; o financiamento coloca os fundos nesse
+endereço; a decisão de liquidar determina os destinos e montantes de uma
+proposta. Os signatários verificam então se essa proposta corresponde ao
+acordo antes de fornecerem as respostas criptográficas.
 
-Consequentemente, este capítulo especifica uma utilização possível das
-operações implementadas. Não afirma que exista uma aplicação de mercado
-fornecida pelo projecto Monero.
+O Sistema de Mensagens de Multi-assinatura pode organizar o transporte e o
+estado das mensagens \cite{mms-manual,mms-project-proposal}. A decisão sobre
+uma entrega ou uma disputa continua a caber aos participantes. Descreveremos
+um protocolo de aplicação que torna explícita essa ligação entre os factos
+comerciais e a transacção que cada par pode autorizar.
 
 \section{Modelo formal}
 \label{sec:escrow-formal-model}
@@ -220,9 +173,9 @@ público
 \begin{align}
  (K_{\rm escrow}^s,K_{\rm escrow}^v).
 \end{align}
-A construção requer as rondas de troca de chaves da implementação. Publicar
-uma chave-base de produto ou pré-seleccionar um moderador não permite ao
-comprador calcular unilateralmente o endereço multi-assinatura actual.
+A construção requer a participação dos três membros nas rondas de troca de
+chaves. As chaves-base identificam as contribuições; o endereço comum resulta
+da agregação e da confirmação final das chaves de gasto e de vista.
 
 Cada participante deve:
 
@@ -355,7 +308,7 @@ Antes de assinar, cada participante verifica directamente na proposta:
  \item que a proposta ainda não foi substituída ou cancelada.
 \end{enumerate}
 
-A sequência de comandos é a da secção \ref{sec:multisig-cli}: sincronizar
+A sequência segue a secção \ref{sec:multisig-cli}: sincronizar
 informação multi-assinatura, criar uma proposta, adicionar duas contribuições
 e submeter a transacção completa. O ficheiro da proposta é parte da
 transcrição criptográfica de gasto, não uma descrição comercial da ordem.
@@ -488,12 +441,11 @@ Entre os participantes, a privacidade é menor:
  quando a lista de blocos não o faz.
 \end{itemize}
 
-A proposta histórica de entregar ao moderador a capacidade de vista apenas
-quando surge uma disputa não corresponde à carteira multi-assinatura
-implementada. Essa propriedade exigiria uma construção de chaves ou uma
-camada de custódia de dados diferente. Encriptar o registo comercial até à
-disputa pode limitar o acesso às mensagens, mas não retira ao moderador a
-chave de vista da carteira.
+O moderador recebe a chave de vista comum durante a configuração e pode
+acompanhar a carteira desde então. A confidencialidade do registo comercial
+pode ser regulada separadamente: uma cifragem cujas chaves só sejam entregues
+durante a disputa limita o acesso às mensagens. Condicionar também a
+capacidade de vista exigiria outra distribuição das chaves da carteira.
 
 Cada ordem deve usar novas chaves e novos endereços de destino. A reutilização
 de uma carteira 2-de-3 entre ordens permite aos três participantes relacionar
@@ -502,24 +454,26 @@ os respectivos financiamentos e liquidações.
 \section{Relação com FCMP++}
 \label{sec:escrow-fcmp}
 
-A política comercial \(\mathcal A\) não depende de CLSAG. Se a carteira
-multi-assinatura for adaptada a FCMP++, a configuração continua a distribuir
-o segredo de gasto e a liquidação continua a exigir duas contribuições. A
-diferença está na prova produzida para cada entrada:
+A política comercial \(\mathcal A\) exprime quais os pares autorizados.
+Pode ser associada a uma CLSAG distribuída ou a uma autorização SAL com
+segredos repartidos. Na segunda construção, as provas assumem a forma
+\[
+ \text{pertença FCMP agregada}
+ \quad+\quad
+ \text{uma SAL distribuída por entrada}.
+\]
 
-\begin{align*}
- \text{CLSAG distribuída}
- \quad\longrightarrow\quad
- \text{pertença FCMP}+\text{SAL distribuída}.
-\end{align*}
+O grupo constrói a imagem \(I\), o compromisso do produto \(w=xr_J\) e as
+respostas SAL de acordo com a distribuição de segredos da
+secção~\ref{sec:multisig-fcmp-note}. A chave de gasto permanece repartida
+pela componente que concede a autorização. A lista de blocos recebe as
+provas finais; os papéis \(B,V,M\) e o limiar pertencem ao protocolo
+comercial e à coordenação dos signatários.
 
-A lista de blocos continuaria sem publicar \(B,V,M\) ou o limiar. Contudo, a
-implementação precisa de construir conjuntamente o marcador de ligação, o
-produto \(z=xr_i\), os compromissos e as respostas SAL sem reconstruir a chave
-privada completa. O ramo de referência contém primitivas distribuídas para
-essa prova, mas a sua integração no fluxo da carteira Monero não existe na
-revisão consultada. A secção \ref{sec:multisig-fcmp-note} distingue esses dois
-níveis.
+A aplicação continua responsável por verificar que os destinos e montantes
+assinados executam a decisão acordada. A segurança de uma realização desta
+política exige, além das provas FCMP++, o protocolo distribuído e os canais
+autenticados sob as hipóteses descritas no capítulo anterior.
 
 \section{Requisitos mínimos de uma aplicação}
 \label{sec:escrow-application-requirements}
@@ -545,26 +499,25 @@ pelo menos:
  divergentes e participantes maliciosos.
 \end{enumerate}
 
-Estas funções não são acessórios de interface. São parte do modelo de
-segurança do mercado. A assinatura 2-de-3 limita quem pode autorizar a
+Estas funções integram o modelo de segurança do mercado. A assinatura 2-de-3 limita quem pode autorizar a
 transacção; a aplicação determina qual transacção cada participante deve
 autorizar.
 
 \section{Resumo}
 
-Uma garantia Monero 2-de-3 usa a política
+Uma garantia 2-de-3 em Monero usa a política
 \[
  \mathcal A
  =\{\{B,V\},\{B,M\},\{V,M\},\{B,V,M\}\}.
 \]
-A carteira multi-assinatura implementa o limiar e produz uma transacção RingCT
-comum. O mercado tem de implementar a ordem, a autenticação, o registo de
-provas, a decisão, os prazos e a verificação da proposta.
+O protocolo de multi-assinatura realiza o limiar e produz uma transacção
+RingCT comum. O protocolo comercial define a ordem, a autenticação, o registo
+de provas, a decisão, os prazos e a verificação da proposta.
 
 Qualquer par pode liquidar; um participante isolado não pode. Duas
 liquidações incompatíveis que gastem as mesmas saídas têm imagens de chave
-iguais, pelo que no máximo uma pode ser confirmada. Não existe reembolso
-unilateral por prazo, acesso condicional nativo do moderador nem fluxo de
-mercado fornecido pelo Monero. A segurança operacional depende de carteiras
+iguais, pelo que no máximo uma pode ser confirmada. A autorização continua a
+exigir duas contribuições depois de qualquer prazo comercial; a vista é
+partilhada desde a configuração. A segurança operacional depende de carteiras
 independentes, mensagens autenticadas, sincronização correcta e valores
 aleatórios de uso único.

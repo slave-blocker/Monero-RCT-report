@@ -24,13 +24,19 @@ def lin(*terms):
     return result
 
 
-def proof_checks(G, T, U, V, Ot, Jt, R, P, I, x, y, r, rP, w, eta):
+def proof_checks(G, T, U, V, Ot, Jt, R, P, I, x, y, r, rP, w, eta,
+                 shared=None):
     D = lin((1,P),(-1,Ot),(-1,R))
     assert P == lin((x,G),(r,V),(x*r,U),(rP,T))
     assert Ot == lin((x,G),(y,T))
     assert D == lin((w,U),(eta,T))
     assert I == lin((x,Jt),(-w,U))
     alpha,beta,delta,mu,ky,kw,ke = [rng.randrange(ell) for _ in range(7)]
+    kappa = rng.randrange(ell)
+    if shared == 'x':
+        kw = (r*alpha+kappa) % ell
+    if shared == 'y':
+        ke = (kappa-ky) % ell
     A = lin((alpha,G),(beta,V),(alpha*r+beta*x,U),(delta,T))
     B = lin((alpha*beta,U),(mu,T))
     RO = lin((alpha,G),(ky,T))
@@ -39,6 +45,12 @@ def proof_checks(G, T, U, V, Ot, Jt, R, P, I, x, y, r, rP, w, eta):
     for e in range(ell):
         sx,sJ,sP,sy,sw,se = ((alpha+e*x)%ell, (beta+e*r)%ell,
             (mu+e*delta+e*e*rP)%ell, (ky+e*y)%ell, (kw+e*w)%ell, (ke+e*eta)%ell)
+        if shared == 'x':
+            assert sw == (r*sx+kappa) % ell
+            sw = (r*sx+kappa) % ell
+        if shared == 'y':
+            assert se == (kappa-sy+e*(eta+y)) % ell
+            se = (kappa-sy+e*(eta+y)) % ell
         assert lin((e*e,P),(e,A),(1,B)) == lin((e*sx,G),(e*sJ,V),(sx*sJ,U),(sP,T))
         assert lin((1,RO),(e,Ot)) == lin((sx,G),(sy,T))
         assert lin((1,RP),(e,D)) == lin((sw,U),(se,T))
@@ -113,3 +125,23 @@ for _ in range(256):
 
 print('Testes SAL por relação:', counts)
 print('320 imagens alternativas não nulas; 6080 desafios; 256 somas parciais e fechos de raiz.')
+
+# As transformações de respostas têm de conservar todos os testes SAL,
+# incluindo o produto quadrático, para qualquer desafio. Os parâmetros do
+# grupo pequeno verificam identidades, sem uma hipótese de segurança sobre
+# estes geradores nem sobre a coordenação distribuída.
+distributed = {}
+for shared in ('x', 'y'):
+    checked = 0
+    for _ in range(80):
+        T,U,V,J = [mul(rng.randrange(1,ell),G) for _ in range(4)]
+        x,y,r,rR,rP = [rng.randrange(ell) for _ in range(5)]
+        w,eta = x*r%ell,(rP-y-rR)%ell
+        Ot=lin((x,G),(y,T))
+        Jt=lin((1,J),(r,U))
+        R=lin((r,V),(rR,T))
+        P=lin((x,G),(r,V),(w,U),(rP,T))
+        I=mul(x,J)
+        checked += proof_checks(G,T,U,V,Ot,Jt,R,P,I,x,y,r,rP,w,eta,shared)
+    distributed[shared]=checked
+print('Transformações das respostas partilhadas, todos os testes SAL:', distributed)

@@ -204,3 +204,10 @@ As etiquetas de extra são bytes, e as contagens são varints. O comentário ger
 Releram-se as relações do capítulo FCMP++ e sal/mod.rs (RerandomizedOutput, OpenedInputTuple), bem como as estruturas e bases FROST de sal/legacy_multisig.rs e sal/multisig.rs. A fonte chama I à base e L à imagem; o livro converte esses nomes para J/I em todos os capítulos. O código do caso legado partilha x e usa a resposta em G,U e I_tilde; o caso nativo partilha a componente em T. Esta inspecção de primitivas não estabelece disponibilidade de uma carteira nem estado de implantação da rede.
 
 O teste das quatro relações conhecidas constrói mensagens anteriores ao desafio que satisfazem os quatro testes SAL para qualquer desafio do grupo pequeno. Assim confere as transformações de aberturas e as fórmulas das imagens sem pressupor a segurança dos parâmetros deliberadamente relacionados. A pertença, os certificados de divisores e as regras exteriores de uma transacção mantêm o seu âmbito separado.
+
+
+## Distribuição das respostas SAL — 16-11-2026
+
+Fonte fixa Rust 31c26d96, sal/legacy_multisig.rs:181–322 e sal/multisig.rs:130–280. O caso legado usa uma resposta FROST comum em G, U e I_tilde (Jtilde no livro), pontos parciais de imagem e xU, e s_z = r_z + r_i s_alpha. O caso nativo partilha a abertura em T, já deslocada por r_o, e obtém s_r_p = r_r_p − s_y + e(r_p − r_r_i). O comentário intermédio do código nativo tem uma linha abreviada inconsistente; as fórmulas do texto seguem a expressão final e as operações efectivas, conferidas algebricamente. No livro, os nomes são s_w, s_x, s_eta, r_J e r_R. A transformação do valor aleatório é explicitada, sem atribuir segurança distribuída apenas à igualdade das respostas.
+
+O exemplo combinatório usa binom(16,9)=11440 e binom(15,8)=6435. A limitação de interface a 16 participantes é incidental e ficou nas notas. A sequência de comandos, os prefixos de troca, o estado experimental e a ausência de integração de carteira das primitivas SAL ficam em multisig-interface-snapshot.md. Estas observações pertencem às cópias fixas, não ao estado actual da rede.

@@ -5,7 +5,8 @@
 % Implementação revista para esta edição contra a revisão Monero
 % 3646f648db57f60cca86430e25a635d19fa9b92a.
 
-Uma carteira Monero normal tem uma chave privada de vista e uma chave privada
+Uma carteira de Monero com a hierarquia de chaves do capítulo
+\ref{chapter:addresses} tem uma chave privada de vista e uma chave privada
 de gasto. Quem conhece a chave de gasto inteira pode autorizar uma
 transacção. Numa carteira de multi-assinatura, essa autoridade é repartida:
 escolhem-se \(N\) participantes e um limiar \(M\), e pelo menos \(M\) deles
@@ -13,75 +14,33 @@ têm de cooperar para gastar. Um grupo 2-de-3, por exemplo, continua a operar
 se um participante estiver indisponível, mas nenhum participante decide
 sozinho.
 
-Este resultado não é obtido por um tipo especial de saída. Na lista de
-blocos, o endereço partilhado tem o formato de um endereço Monero e a
+O endereço partilhado conserva o formato dos endereços de Monero, e a
 transacção final tem o formato de uma transacção RingCT vulgar. A política
 \(M\)-de-\(N\) é aplicada pelas chaves, pelos dados conservados nas carteiras e
 pelo protocolo interactivo que
-produz a assinatura. A lista de blocos não anuncia se o dinheiro pertence a
-uma pessoa, a uma empresa ou a um grupo de co-signatários.
+produz a assinatura. Para os verificadores da lista de blocos, a autoridade
+do grupo apresenta-se sob uma única chave pública.
 
-As observações sobre a implementação neste capítulo referem-se à revisão do
-código Monero datada de 14 de Agosto de 2026
-\cite{monero-source-v16}. A descrição separa deliberadamente três coisas:
-o que essa revisão implementa, o que o consenso verifica e o que continua
-apenas conceptual. Quando dissermos que uma operação «existe», queremos dizer
-que há código e uma interface de carteira para a executar nessa revisão, não
-apenas uma construção plausível num artigo.
-
-\section{Estado da implementação}
+\section{Da chave repartida à assinatura comum}
 \label{sec:multisig-implementation-status}
 
-\begin{center}
-\small
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4.1cm}|
-  >{\raggedright\arraybackslash}p{3.0cm}|
-  >{\raggedright\arraybackslash}p{7.3cm}|}
-\hline
-\textbf{Componente} & \textbf{Estado} & \textbf{Significado} \\
-\hline
-Troca de chaves \(M\)-de-\(N\) & Implementada, experimental &
-A carteira constrói uma chave de vista comum e uma chave de gasto repartida,
-com um máximo de 16 participantes. \\
-\hline
-Recepção e sincronização & Implementadas, experimentais &
-Os participantes detectam as mesmas saídas e trocam imagens de chave parciais
-e valores aleatórios públicos. \\
-\hline
-Assinatura de despesas & Implementada, experimental &
-A carteira constrói assinaturas CLSAG distribuídas e transacções
-\texttt{RCTTypeBulletproofPlus}. \\
-\hline
-Verificação pelo consenso & Implementada como RingCT normal &
-Os nós verificam a transacção final; não verificam uma política
-\(M\)-de-\(N\) separada nem aprendem o número de signatários. \\
-\hline
-Sistema MMS & Implementado na carteira de linha de comandos &
-Organiza e transporta as mensagens do protocolo; não altera a criptografia
-nem o consenso. \\
-\hline
-Políticas em árvore & Não implementadas &
-São uma extensão conceptual conservada para explicar propostas de capítulos
-posteriores, não uma função da carteira Monero. \\
-\hline
-Multi-assinatura FCMP++ ou Carrot & Primitivas experimentais, sem integração &
-O ramo FCMP++ de \texttt{monero-oxide} contém algoritmos SAL com FROST; a
-carteira Monero examinada continua a assinar CLSAG e não oferece um fluxo
-FCMP++ multi-assinatura. \\
-\hline
-\end{tabular}
-\end{center}
+A construção que estudaremos obtém uma chave de vista comum e uma chave de
+gasto repartida mediante trocas Diffie--Hellman. A repartição determina quais
+os grupos capazes de reunir as contribuições necessárias; a assinatura
+distribuída transforma essas contribuições numa CLSAG verificável pelas
+equações já conhecidas \cite{MRL-0009-multisig,monero-source-v16}.
 
-A funcionalidade implementada continua marcada como \emph{experimental} e
-está desactivada por omissão. A carteira de linha de comandos exige
-\begin{verbatim}
-set enable-multisig-experimental 1
-\end{verbatim}
-antes das operações correspondentes. O aviso não é decorativo: um erro de
-protocolo, uma cópia de segurança inadequada ou um participante malicioso
-pode bloquear fundos; certas falhas podem ainda expor segredos. A
-multi-assinatura deve, por isso, ser tratada como um protocolo criptográfico
-interactivo, e não como autenticação convencional com várias palavras-passe.
+O percurso tem três etapas. Primeiro, os participantes formam a chave
+pública comum e conservam as parcelas privadas. Depois, reconhecem as saídas
+e somam imagens de chave parciais para acompanhar os gastos. Por fim,
+fixam uma transacção, vinculam a ela os pontos aleatórios e somam respostas
+parciais. A transacção publicada contém a assinatura completa; o limiar
+pertence ao protocolo que a produziu.
+
+Cada etapa depende de um estado partilhado coerente: identidade dos
+participantes, ordem das mensagens, proposta aceite e material aleatório já
+consumido. A segurança da repartição exige tanto as hipóteses criptográficas
+como a conservação desse estado ao longo das rondas.
 
 \section{Modelo e objectivos de segurança}
 
@@ -94,7 +53,7 @@ Qualquer subconjunto com pelo menos \(M\) participantes deve conseguir
 assinar; um subconjunto com menos de \(M\) não deve conseguir reconstruir a
 chave de gasto nem produzir uma assinatura válida.
 
-Há três propriedades diferentes que convém não confundir:
+O objectivo de segurança reúne três propriedades:
 \begin{itemize}
  \item \emph{confidencialidade}: menos de \(M\) participantes não aprendem a
  chave de gasto completa;
@@ -103,29 +62,28 @@ Há três propriedades diferentes que convém não confundir:
  \item \emph{disponibilidade}: a política tolera a ausência de até \(N-M\)
  participantes.
 \end{itemize}
-A última propriedade não obriga ninguém a colaborar. Um co-signatário pode
-recusar uma proposta, apagar os seus dados ou abandonar a sessão do protocolo.
-Multi-assinatura reduz o número de participantes indispensáveis; não garante
-a cooperação dos participantes disponíveis.
+A disponibilidade pressupõe que os participantes presentes cooperam e
+conservam dados válidos. Um co-signatário pode recusar uma proposta ou
+abandonar a sessão; o limiar determina quantas ausências o grupo tolera.
 
 Todos os membros aprendem a chave privada de vista comum. Conseguem, portanto,
 detectar as saídas recebidas pelo endereço, descodificar os respectivos
 montantes e observar as recepções da carteira. Depois de trocarem as imagens
 de chave parciais, conseguem também acompanhar quais dessas saídas foram
-gastas. O limiar protege a autoridade de \emph{gasto}, não a privacidade
-interna entre os membros do grupo.
+gastas. O limiar protege a autoridade de \emph{gasto}; a capacidade de vista
+é comum aos membros do grupo.
 
 \section{Comunicação entre co-signatários}
 \label{sec:communicating}
 
 A criação da carteira e a assinatura são protocolos com várias mensagens.
 Cada participante tem de saber quais mensagens pertencem à mesma sessão, quem
-as enviou e em que ronda devem ser usadas. As mensagens de troca de chaves da
-implementação têm assinaturas de autenticação, mas a primeira ronda contém um
-segredo auxiliar que será comum ao grupo. É, por isso, necessário um canal
+as enviou e em que ronda devem ser usadas. As mensagens de troca de chaves
+têm assinaturas de autenticação, e a primeira ronda contém um segredo
+auxiliar que será comum ao grupo. É, por isso, necessário um canal
 autenticado e confidencial para transportar os ficheiros ou cadeias de texto.
 
-Autenticar apenas o nome do contacto não basta. Antes de receber fundos, os
+Antes de receber fundos, os
 participantes devem comparar por um canal independente:
 \begin{itemize}
  \item a lista e a ordem canónica dos signatários;
@@ -135,14 +93,12 @@ participantes devem comparar por um canal independente:
 \end{itemize}
 Esta confirmação posterior à troca de chaves detecta mensagens omitidas ou
 substituídas e carteiras que acabaram, por engano, em contas diferentes. A
-implementação inclui uma ronda final precisamente para assinar e comparar as
+construção inclui uma ronda final para assinar e comparar as
 chaves públicas resultantes.
 
-Os formatos actuais começam por \texttt{MultisigxV2R1} na primeira ronda e
-\texttt{MultisigxV2Rn} nas rondas seguintes. O código consultado rejeita os
-formatos V1, considerados inseguros. Forçar a aceitação de um conjunto
-incompleto de mensagens pode produzir uma conta inconsistente ou tornar os
-restantes participantes dependentes de uma chave conhecida por um só membro.
+A conclusão de uma ronda exige o conjunto de mensagens previsto para ela.
+Aceitar um conjunto incompleto pode produzir contas inconsistentes ou tornar
+os participantes dependentes de uma chave conhecida por um só membro.
 
 \section{Agregação das chaves de gasto}
 \label{sec:key-aggregation}
@@ -176,7 +132,7 @@ corrigem esta relação algébrica. Este é um ataque de cancelamento de chaves.
 \index{multi-assinatura@multi-assinatura!agregacao de chaves@agregação de chaves}
 \index{chave@chave!ataque por cancelamento@ataque por cancelamento}
 
-A defesa usada pela implementação associa um coeficiente a cada chave e ao
+A agregação associa um coeficiente a cada chave e ao
 conjunto completo de chaves \cite{MRL-0009-multisig}. Sejam
 \begin{align*}
  \mathbb B=(B_1,\ldots,B_t)
@@ -208,7 +164,7 @@ as mesmas chaves poderiam calcular agregados diferentes.
 \index{limiar m-de-n@limiar M-de-N}
 \index{multi-assinatura@multi-assinatura!politica de limiar@política de limiar}
 
-A implementação actual obtém o limiar através de trocas Diffie--Hellman.
+As trocas Diffie--Hellman distribuem as parcelas que realizam o limiar.
 Definamos
 \begin{align}
  q=N-M+1.
@@ -246,9 +202,9 @@ contribuições, todos calculam a mesma chave privada de vista
  k^v=\mathcal H_n(u_1,\ldots,u_N),
  \qquad K^v=k^vG.
 \end{align*}
-A função hash inclui a serialização e a separação de domínio definidas pelo
-formato da implementação. A notação abrevia esses pormenores para mostrar a
-relação essencial.
+A notação \(\mathcal H_n\) inclui a codificação canónica das contribuições
+e uma etiqueta de domínio própria desta derivação. A ordenação acordada
+torna os argumentos idênticos em todas as carteiras.
 
 Partilhar \(k^v\) é deliberado. Cada carteira tem de reconhecer as mesmas
 saídas e calcular a parte comum das respectivas chaves privadas. Quem não
@@ -343,10 +299,11 @@ possui uma parcela exclusiva. Uma política 1-de-\(N\) tem \(q=N\): todos
 derivam a mesma parcela e qualquer um consegue usá-la. Portanto, a política
 1-de-\(N\) não oferece protecção contra um membro que decida gastar sozinho.
 
-O número combinatório de parcelas cresce depressa. O código limita \(N\) a
-16 participantes, um limite prático e não uma propriedade matemática do
-protocolo. A própria implementação recomenda uma construção do género FROST
-se esse limite algum dia tiver de crescer.
+O número combinatório de parcelas cresce depressa. Para um grupo 8-de-16,
+por exemplo, \(q=9\): há \(\binom{16}{9}=11\,440\) parcelas distintas, e
+cada membro conserva \(\binom{15}{8}=6\,435\). O custo desta repartição
+acompanha esses números; a escolha do limiar afecta tanto a disponibilidade
+como a quantidade de dados a guardar e trocar.
 
 \section{Recepção de saídas e imagens de chave}
 \label{sec:recalculating-key-images-multisig}
@@ -447,8 +404,8 @@ equação que revela a chave.
 Protocolos simples de duas rondas têm ainda ataques nos quais o último
 participante escolhe o seu ponto aleatório depois de observar os restantes e
 manipula muitos desafios relacionados \cite{cryptoeprint:2018:417}. Uma
-solução histórica é comprometer primeiro os pontos e revelá-los depois. A
-implementação actual segue uma solução do género MuSig2: usa dois valores
+solução é comprometer primeiro os pontos e revelá-los depois. A construção
+distribuída que adoptamos segue uma solução do género MuSig2: usa dois valores
 aleatórios independentes por participante e liga a combinação ao traslado
 completo \cite{musig2}.
 
@@ -480,10 +437,10 @@ determina.
 \label{sec:rcttypebulletproof2-multisig}
 \index{clsag@CLSAG!distribuida@distribuída}
 
-Uma transacção corrente usa CLSAG para provar que a entrada real está numa
+Uma transacção do formato RingCT aqui considerado usa CLSAG para provar que a entrada real está numa
 posição desconhecida de um anel e que os compromissos de montante se
-equilibram. A prova de intervalo Bulletproof+ trata os montantes das saídas;
-ela não substitui a CLSAG que autoriza cada entrada.
+equilibram. A prova de intervalo Bulletproofs+ trata os montantes das saídas;
+a CLSAG autoriza cada entrada.
 
 Para a posição real, escrevamos \(x\) para a chave privada da saída e \(z\)
 para o segredo do compromisso à diferença entre a entrada real e o
@@ -505,8 +462,9 @@ resposta:
  \item a sua componente aleatória combinada da
  equação \eqref{eq:multisig-two-nonce}.
 \end{itemize}
-Cada signatário posterior acrescenta apenas as parcelas de gasto que ainda não
-constam do conjunto \texttt{signing\_keys}, além da sua componente aleatória.
+Cada signatário posterior acrescenta as parcelas de gasto ainda ausentes,
+além da sua componente aleatória. Um registo comum identifica as parcelas
+já incluídas.
 Quando todas as parcelas distintas estão cobertas, a resposta da posição real
 é a mesma que seria obtida com o testemunho completo \(w\). O desafio inicial
 da volta CLSAG e a resposta real são então inseridos numa assinatura CLSAG
@@ -515,15 +473,8 @@ ordinária.
 O coeficiente \(b\) dos dois valores aleatórios inclui o anel, os
 compromissos, a compensação, a mensagem, as imagens \(I\) e \(D\), todas as
 componentes públicas aleatórias, as respostas falsas, a posição real e as
-dimensões do anel. A finalidade desta lista extensa é simples: não deixar um
-pormenor relevante da tentativa fora do compromisso criptográfico.
-
-Na revisão estudada, o construtor multi-assinatura aceita as versões RingCT
-activas que usam CLSAG. A saída produzida tem o tipo
-\texttt{RCTType}\allowbreak\texttt{BulletproofPlus}. O nome antigo
-\texttt{RCTType}\allowbreak\texttt{Bulletproof2}, conservado no rótulo desta
-secção para não quebrar referências de outras edições, já não descreve o
-resultado.
+dimensões do anel. Deste modo, a combinação dos valores aleatórios fica
+vinculada a todos os dados relevantes da tentativa.
 
 \section{Construção e assinatura da transacção}
 
@@ -630,199 +581,171 @@ estado desta troca de protocolo na carteira de linha de comandos
 mas não remove a necessidade de autenticar os contactos e confirmar a
 transacção.
 
-\section{Sequência mínima de comandos}
+\section{Estado da sessão e recuperação}
 \label{sec:multisig-cli}
 
-Os comandos seguintes não constituem um guia de instalação; fixam apenas a
-correspondência entre o protocolo matemático e a interface que realmente o
-executa. Cada participante começa com uma carteira nova e nunca usada. Em
-cada carteira:
-\begin{verbatim}
-set enable-multisig-experimental 1
-prepare_multisig
-make_multisig <M> <R1-P1> [<R1-P2> ...]
-exchange_multisig_keys <Rk-P1> [<Rk-P2> ...]
-\end{verbatim}
-O resultado de cada comando de troca é enviado aos restantes participantes.
-Repete-se o último comando enquanto a carteira disser que falta outra ronda.
-Matematicamente, esta sequência constrói \(k^v\), as parcelas \(x_S\) e
-\[
- K^s=\sum_{S:\,|S|=N-M+1}x_SG.
-\]
-Todos confirmam que a carteira terminou com o mesmo endereço antes de esse
-endereço receber fundos.
+A sequência operacional acompanha as equações anteriores: formar
+\(K^s\), reunir as imagens parciais e os pontos aleatórios, fixar o
+traslado, somar respostas e verificar a CLSAG resultante. Cada participante
+conserva a proposta aceite e o registo das parcelas incluídas. Uma resposta
+parcial consome os valores aleatórios que a produziram, mesmo quando a sessão
+termina antes da difusão.
 
-Para gastar uma saída, os signatários escolhidos actualizam primeiro as
-imagens de chave e os pares públicos de valores aleatórios:
-\begin{verbatim}
-export_multisig_info info-Pi
-import_multisig_info info-P1 [info-P2 ...]
-\end{verbatim}
-Os ficheiros exportados são trocados entre eles. O proponente fixa a mensagem
-da transacção, os anéis, os compromissos, os destinos e a taxa:
-\begin{verbatim}
-transfer <endereco-destino> <montante>
-\end{verbatim}
-Numa carteira multi-assinatura, \texttt{transfer} escreve a proposta no
-ficheiro \texttt{multisig\_monero\_tx}; não a difunde. Os co-signatários
-passam a versão actualizada desse mesmo ficheiro entre si e executam
-\begin{verbatim}
-sign_multisig multisig_monero_tx
-\end{verbatim}
-até uma tentativa conter as \(M\) contribuições necessárias. Cada chamada
-acrescenta as parcelas ainda ausentes à resposta CLSAG
-\[
- s=\sum_i\alpha_i-c\!
-   \left(\mu_P\left(d+\sum_i x_i\right)+\mu_Cz\right).
-\]
-Depois da última verificação, uma carteira difunde a transacção completa:
-\begin{verbatim}
-submit_multisig multisig_monero_tx
-\end{verbatim}
-Assim, a sequência operacional corresponde às equações anteriores:
-trocar chaves para obter \(K^s\), trocar dados para obter \(I\) e os pontos
-aleatórios, fixar o traslado, somar respostas e submeter a CLSAG resultante.
-O MMS automatiza o transporte e o estado destas mensagens
-\cite{mms-manual,mms-project-proposal}; não altera a matemática nem o
-consenso.
+Uma cópia da carteira conserva as mesmas parcelas e pode repetir material de
+assinatura que a original já consumiu. A recuperação deve, por isso,
+restabelecer o estado do mesmo participante, incluindo o registo de valores
+inutilizados. Contar a cópia como mais um membro do grupo duplicaria uma
+identidade criptográfica, sem acrescentar uma parcela independente.
 
-Na revisão consultada aplicam-se ainda os seguintes limites:
-\begin{itemize}
- \item a funcionalidade tem de ser activada explicitamente por ser
- experimental;
- \item o máximo é 16 signatários;
- \item as operações multi-assinatura indicadas não são suportadas por
- carteiras de hardware;
- \item mensagens de rondas antigas ou incompletas não devem ser forçadas;
- \item uma cópia de uma carteira já convertida não deve actuar como um novo
- participante independente.
-\end{itemize}
-
-Uma carteira clonada possui as mesmas parcelas e pode repetir material de
-assinatura que a original julgava consumido. As cópias de segurança devem ser
-entendidas como recuperação do mesmo participante, não como um participante
-adicional no limiar.
-
-\section{Políticas compostas não implementadas}
+\section{Políticas compostas}
 \label{sec:general-key-families}
 
-A construção implementada é plana: \(M\) de um conjunto fixo de \(N\)
-participantes. Não implementa políticas como «Alice e um de três auditores»
-ou «dois departamentos, cada um representado por uma de duas pessoas».
-Essas expressões formam árvores de limiares e pertencem, nesta edição, à
-análise conceptual.
+O limiar estudado aplica-se a um conjunto fixo de \(N\) participantes. Uma
+política como «Alice e um de três auditores» tem outra estrutura:
+\[
+ S\text{ autorizado}\quad\Longleftrightarrow\quad
+ A\in S\ \text{ e }\ S\cap\{B,C,D\}\ne\varnothing.
+\]
+Os grupos mínimos são \(\{A,B\},\{A,C\},\{A,D\}\). Um limiar
+2-de-4 autorizaria também \(\{B,C\}\), que a política exclui. Esta diferença
+pertence ao conjunto de grupos autorizados e tem de ser reflectida na
+repartição do segredo.
 
 \subsection{Agregação conceptual por conjuntos de chaves}
 \label{subsec:nesting-multisig-keys}
 
-Conceptualmente, cada folha de uma árvore teria uma chave pública. Um nó
-interno agregaria as chaves dos filhos segundo a sua própria regra de limiar,
-e a raiz forneceria a chave pública de gasto. Uma extensão possível permitiria que
-um «participante» de uma carteira exterior fosse ele próprio uma carteira
-interior.
+Uma árvore de limiares representa uma família mais geral de políticas. Cada
+folha corresponde a um participante; um nó interno é satisfeito quando se
+satisfaz o número prescrito dos seus filhos. A raiz determina a autorização
+final. Na política anterior, a raiz exige dois filhos: Alice e um nó 1-de-3
+com os auditores.
 
-Esta ideia é conservada porque capítulos posteriores a usam ao discutir
-serviços de garantia e grupos de moderadores. Não é, contudo, uma capacidade
-da implementação revista. A troca de chaves Monero aceita um único par
-\(M,N\) e uma lista plana de signatários; a interface não serializa uma
-árvore arbitrária, não coordena os seus valores aleatórios e não prova que os
-ramos interiores executaram as políticas anunciadas.
+Realizar tal árvore por assinaturas exige uma construção própria que ligue
+cada autorização interna à mesma mensagem e à chave pública final. As
+operações de agregação, os valores aleatórios e a recuperação de sessões têm
+de respeitar essa composição. A árvore descreve aqui a política; a
+segurança de uma assinatura que a execute dependerá do protocolo distribuído
+escolhido e da sua análise.
 
-Certas políticas podem ser simuladas distribuindo dispositivos ou escolhendo
-cuidadosamente as parcelas, mas isso altera os pressupostos de confiança e
-pode aumentar a probabilidade de reutilização de valores aleatórios. Uma
-implementação real de políticas compostas precisaria de um protocolo próprio,
-análise de segurança, formatos de mensagens e testes de recuperação. Nada
-disso está presente no código consultado.
-
-\clearpage
-\section{Nota sobre multi-assinatura com FCMP++}
+\section{Autorização partilhada com FCMP++}
 \label{sec:multisig-fcmp-note}
 \index{multi-assinatura@multi-assinatura!relacao com fcmp++@relação com FCMP++}
 
-\textbf{Resposta curta: ainda não está disponível na carteira Monero, mas já
-existem primitivas experimentais no ramo de referência consultado.} FCMP++
-separa a prova de pertença à cadeia da prova SAL de autorização e ligação
-\cite{fcmp-plus-plus-paper}. Um coordenador pode construir o caminho de
-pertença sem conhecer a chave de gasto inteira. A cooperação \(M\)-de-\(N\)
-concentra-se na imagem de chave e na SAL.
+FCMP++ separa a prova de pertença à lista de blocos da prova SAL de
+autorização e ligação \cite{fcmp-plus-plus-paper}. Um coordenador que conhece
+o caminho e as máscaras da apresentação pode preparar a pertença; o grupo
+produz a imagem e as respostas SAL segundo a repartição dos segredos. Para
+\(n\) entradas, a apresentação conjunta contém uma prova de pertença
+agregada e uma SAL e uma imagem por entrada.
 
-Para uma saída de uma carteira de hierarquia antiga, escrevamos
+\subsection{Repartir a componente da imagem}
+
+Para uma saída da hierarquia de chave de gasto única, escrevamos
 \begin{align*}
  x&=d+\sum_{j\in\mathcal A}x_j,&
  J&=\mathcal H_{\rm KI}(K_o),\\
  I=xJ&=dJ+\sum_{j\in\mathcal A}x_jJ.
 \end{align*}
-\(\mathcal A\) contém uma vez cada parcela coberta pelos signatários. A imagem
-\(I\) é, portanto, a soma de imagens parciais; \(\mathcal H_{\rm KI}\) denota
-a derivação de base exigida pela versão da saída. Não se inverte a chave
-repartida. Esta linearidade torna a multi-assinatura viável.
+\(\mathcal A\) contém uma vez cada parcela coberta pelos signatários.
+\(\mathcal H_{\rm KI}\) é a derivação de base própria da versão da saída.
+A soma das imagens parciais fornece \(I\), conservando \(x\) repartido.
 
-A SAL prova também conhecimento de \(x\), da outra abertura
-\(\bar y\) em \(\widetilde O=xG+\bar yT\), e do produto
-\(w=xr_J\). Fixado o mesmo re-randomizador \(r_J\), podem formar
+A mesma linearidade fornece o ponto
+\[
+ xU=dU+\sum_{j\in\mathcal A}x_jU.
+\]
+Fixadas as máscaras \(r_J,r_R,r_P\) e conhecida \(\bar y\), estes pontos
+permitem construir
+\[
+ P=xG+r_JV+r_J(xU)+r_PT,
+ \qquad w=xr_J.
+\]
+Para \(r_J\ne0\), divulgar o escalar \(r_Jx_j\) a quem conhece \(r_J\)
+revelaria \(x_j\). A construção usa as parcelas como pontos e conserva os
+escalares nas respostas mascaradas.
+
+\Needspace{6\baselineskip}
+Se a assinatura distribuída produz
+\[
+ s_x=\alpha+ex,
+\]
+com \(\alpha\) repartido e pontos públicos correspondentes nas bases
+\(G,U,\widetilde J\), a resposta do produto pode ser obtida por
+\[
+ k_w=r_J\alpha+\kappa,
+ \qquad s_w=r_Js_x+\kappa=k_w+ew.
+\]
+O escalar auxiliar \(\kappa\) é fixado antes do desafio, juntamente com o
+restante material aleatório. Para construir as primeiras mensagens basta
+formar
+\[
+ k_wU=r_J(\alpha U)+\kappa U,
+ \qquad R_I=\alpha\widetilde J-k_wU.
+\]
+O verificador recupera a relação habitual,
+\[
+ s_x\widetilde J-s_wU
+ =R_I+e(x\widetilde J-wU)=R_I+eI.
+\]
+Os pontos \(xU\) e \(\alpha U\) entram igualmente nas expressões de
+\(A\) e \(B\) da secção~\ref{sec:fcmp-sal-protocol}; as respostas partilhadas
+conservam, assim, as quatro relações SAL
+\cite{monero-oxide-fcmp-source}.
+
+\subsection{Repartir a componente de autorização em T}
+
+A decomposição \(O=xG+yT\) permite outra distribuição de poderes:
+\(x\) é conhecido pelos participantes que acompanham os gastos, e \(y\)
+é repartido pelo grupo autorizado. Conhecer \(x\) permite calcular
+\(I=xJ\); produzir a SAL exige ainda a abertura em \(T\). A
+re-randomização substitui \(y\) por \(\bar y=y+r_O\), pelo que as parcelas
+da autorização têm de incorporar esse deslocamento conhecido.
+
+Se a resposta partilhada é
+\[
+ s_y=k_y+e\bar y,
+\]
+a relação \(\eta=r_P-\bar y-r_R\) permite calcular, com um escalar auxiliar
+\(\kappa\) fixado antes do desafio,
+\[
+ k_\eta=\kappa-k_y,
+ \qquad
+ s_\eta=\kappa-s_y+e(r_P-r_R)=k_\eta+e\eta.
+\]
+O ponto \(k_\eta T=\kappa T-k_yT\) é construído a partir do compromisso
+público do valor aleatório partilhado. As duas verificações em que a
+componente secreta intervém ficam
 \begin{align*}
- w&=r_Jd+\sum_{j\in\mathcal A}r_Jx_j,&
- s_x&=\sum_j\alpha_j+ex,&
- s_w&=\sum_j\rho_j+ew.
+ R_O+e\widetilde O&=s_xG+s_yT,\\
+ R_P+e(P-\widetilde O-R)&=s_wU+s_\eta T.
 \end{align*}
-Para \(r_J\ne0\), divulgar \(r_Jx_j\) a quem conhece \(r_J\) revelaria
-\(x_j\), multiplicando por \(r_J^{-1}\). Cada signatário envia pontos
-públicos e respostas ocultas pelos valores
-aleatórios \(\alpha_j,\rho_j\), usados uma vez. Um protocolo completo tem
-ainda de construir conjuntamente \(P,A,B,R_O,R_P,R_I\), tratar a abertura em
-\(T\) e resistir a valores duplicados e abortos maliciosos. As somas acima são
-um esboço algébrico, não o protocolo distribuído da implementação de referência
-nem uma análise de segurança.
+As restantes respostas dependem de \(x\), das máscaras e dos valores
+aleatórios comuns. Esta transformação conserva a componente em \(T\)
+repartida \cite{monero-oxide-fcmp-source}.
 
-\subsection{As duas primitivas no ramo de referência}
+A hierarquia Carrot usa precisamente a distinção entre os poderes de imagem
+e de autorização na chave
+\[
+ K^s=k_{\rm gi}G+k_{\rm ps}T.
+\]
+Numa carteira de multi-assinatura com esta distribuição, a componente
+\(k_{\rm gi}\) permite acompanhar as imagens, enquanto
+\(k_{\rm ps}\) permanece repartida. A capacidade de vista completa pode,
+assim, acompanhar recepções e gastos sem reunir o segredo que autoriza a
+transacção \cite{carrot-specification}.
 
-Na revisão \texttt{31c26d96eaadbba910ffe3613ad8b4cf9c598a93} do ramo
-\texttt{fcmp++} de \texttt{monero-oxide}, o módulo SAL expõe, sob a
-funcionalidade opcional \texttt{multisig}, dois algoritmos baseados em FROST
-\cite{monero-oxide-fcmp-source}:
-\begin{itemize}
- \item \texttt{SalLegacyAlgorithm} recebe uma chave \(x\) repartida, como nas
- carteiras históricas, e uma abertura \(y\) conhecida. Cada participante
- acrescenta parcelas interpoladas da imagem de chave e de \(xU\); a resposta
- FROST comum produz simultaneamente as relações em \(G\), \(U\) e
- \(\widetilde J\).
+As identidades anteriores estabelecem a compatibilidade algébrica das
+respostas com SAL. Um protocolo distribuído seguro tem ainda de vincular os
+compromissos de todos os participantes ao mesmo traslado, verificar as
+contribuições e gerir os valores aleatórios e os abortos. Estes requisitos
+mantêm-se nas duas distribuições de segredos; as equações, por si sós, deixam
+por determinar a segurança da coordenação. O resultado final apresenta aos
+verificadores as mesmas relações SAL, independentemente do limiar que
+produziu as respostas.
 
- \item \texttt{SalAlgorithm} destina-se à decomposição nova
- \(O=xG+yT\). O escalar \(x\), necessário para gerar a imagem de chave, é
- conhecido, enquanto \(y\), a componente em \(T\) que autoriza o gasto, é
- repartido com FROST sobre a base \(T\). A resposta partilhada torna-se
- \(s_y\); as restantes respostas SAL são construídas a partir dos dados comuns
- e de valores aleatórios ligados ao traslado.
-\end{itemize}
-Os dois algoritmos têm testes unitários que agregam parcelas e verificam a SAL
-resultante. Isto é implementação de primitivas criptográficas, não integração
-na carteira Monero nem activação pelo consenso: o módulo está condicionado por
-uma opção de compilação e não define por si só criação de contas, transporte
-de mensagens, recuperação, selecção de entradas ou comandos de utilizador.
-
-Carrot acrescenta outra mudança. A hierarquia nova usa
-\begin{align*}
- K^s=k_{\rm gi}G+k_{\rm ps}T
-\end{align*}
-e especifica que o segredo mestre não existe numa carteira
-multi-assinatura \cite{carrot-specification}. A primitiva nativa acima conserva
-\(k_{\rm gi}\), necessário à imagem de chave, como componente conhecida e
-reparte \(k_{\rm ps}\), a componente de autorização em \(T\). Assim, uma vista
-completa pode actualizar o estado gasto e o saldo sem reconstruir a parcela
-privada que autoriza o gasto.
-
-Na cadeia ver-se-iam apenas uma prova de pertença, uma SAL e \(I\), nunca
-\(M\), \(N\) ou os signatários. No código Monero consultado, porém, o
-construtor multi-assinatura termina numa CLSAG: não há comandos nem mensagens
-que liguem a carteira às primitivas SAL distribuídas do ramo de referência.
-Logo, \emph{as primitivas existem, mas a funcionalidade ainda não está
-disponível na carteira}.
-
-\clearpage
 \section{Resumo}
 
-Uma carteira Monero \(M\)-de-\(N\) transforma a chave de gasto numa soma
+Uma carteira de Monero \(M\)-de-\(N\) transforma a chave de gasto numa soma
 ponderada de parcelas Diffie--Hellman. Cada parcela é conhecida por
 \(N-M+1\) participantes; por construção, qualquer grupo de \(M\) cobre todas
 as parcelas e um grupo menor não as cobre. Os coeficientes ligados ao conjunto
@@ -837,6 +760,6 @@ tem de ser usado uma única vez.
 O resultado publicado é uma transacção RingCT normal. A complexidade fica nas
 carteiras: rondas autenticadas e confidenciais, confirmação do endereço,
 sincronização, verificação independente da proposta, destruição segura dos
-valores aleatórios e cópias de segurança coerentes. É precisamente por essa
-complexidade que a implementação consultada continua assinalada como
-experimental.
+valores aleatórios e cópias de segurança coerentes. A autoridade partilhada
+conserva-se enquanto estas condições e as hipóteses criptográficas do
+protocolo se mantêm.

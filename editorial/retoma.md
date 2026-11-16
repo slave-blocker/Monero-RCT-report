@@ -1,10 +1,10 @@
 # Ponto de retoma
 
-Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 321 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`; o poster ficou em `8d85712`; as receitas de pontos e o gerador H ficaram em `ce00840`; as imagens de chave e DDH ficaram em `0e9b26c`; CLSAG ficou em `d5c4060`; Bulletproofs ficou em `d85fff7`; os índices das transacções ficaram em `268e951`; o índice remissivo ficou em `951f766`.
+Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 317 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`; o poster ficou em `8d85712`; as receitas de pontos e o gerador H ficaram em `ce00840`; as imagens de chave e DDH ficaram em `0e9b26c`; CLSAG ficou em `d5c4060`; Bulletproofs ficou em `d85fff7`; os índices das transacções ficaram em `268e951`; o índice remissivo ficou em `951f766`; a notação das relações SAL ficou em `bc897ab`.
 
 ## Próxima unidade
 
-Prosseguir a revisão global de terminologia, exposição afirmativa e composição. A notação I/J e as máscaras estão reconciliadas nos capítulos das relações entre geradores e das multi-assinaturas. O índice remissivo está composto no fim, com 371 entradas e seis páginas: símbolos, siglas, sinónimos, remissões e ligações para as páginas de explicação. A compilação estabiliza também o índice. As unidades locais de conteúdo estão concluídas; falta a revisão transversal e a inspecção integral.
+Prosseguir a revisão global de terminologia, exposição afirmativa e composição. A notação I/J e as máscaras estão reconciliadas nos capítulos das relações entre geradores e das multi-assinaturas. A exposição de multi-assinaturas e mercados já separa a matemática do estado das interfaces; as duas distribuições de segredos SAL estão derivadas e verificadas. O índice remissivo está composto no fim, com 371 entradas e seis páginas: símbolos, siglas, sinónimos, remissões e ligações para as páginas de explicação. A compilação estabiliza também o índice. As unidades locais de conteúdo estão concluídas; falta a revisão transversal e a inspecção integral.
 
 A preparação de F8 permanece em `editorial/fcmp-F8-preparation.md` como registo das fontes. O texto TeX já inclui a extracção descendente, a estabilidade da imagem, a simulação com enunciado fixo, as fórmulas exactas do tamanho e os custos. `editorial/checks/composition-costs-F8.py` verifica as contas e pode compará-las directamente com as funções Rust, compiladas isoladamente em /tmp.
 
@@ -12,7 +12,7 @@ F7 fixa a sequência completa e demonstra um limite incondicional para dados fix
 
 ## Restante âmbito autorizado
 
-- Revisão global de «de/por/em Monero», «lista de blocos» e exposição afirmativa; reconciliar a notação do capítulo das relações de logaritmo discreto com I como imagem e J como base.
+- Revisão global de «de/por/em Monero», «lista de blocos» e exposição afirmativa.
 - Compilar e inspeccionar o livro completo, os excertos e o índice; fechar as alterações restantes em commits verificados. Não foi pedido push.
 
 Os números de página dos pedidos referem-se ao exemplar impresso anterior; as localizações actuais devem ser identificadas pelo conteúdo. A nota terminológica solicitada já está em FCMP++, e as directivas de estilo estão em AGENTS.md.

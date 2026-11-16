@@ -7,17 +7,7 @@
 \label{page:dlog-relations-start}
 
 \begingroup
-\footnotesize
-\setstretch{1.0}
-\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{.7em}{}
-\titlespacing*{\section}{0pt}{1.1ex plus .3ex minus .2ex}{.55ex}
-\titleformat{\subsection}{\normalfont\footnotesize\bfseries}{}{0pt}{}
-\titlespacing*{\subsection}{0pt}{.52ex plus .15ex minus .1ex}{.18ex}
-\setlength{\parskip}{.62ex plus .2ex minus .15ex}
-\setlength{\abovedisplayskip}{3pt plus 2pt minus 1pt}
-\setlength{\belowdisplayskip}{3pt plus 2pt minus 1pt}
-\setlength{\abovedisplayshortskip}{2pt plus 1pt}
-\setlength{\belowdisplayshortskip}{2pt plus 1pt}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 Estas relações são por vezes designadas «chaves privadas dos geradores». É
 necessário distinguir dois casos. Uma
@@ -35,9 +25,10 @@ ou, com mais bases,
  a_1J_1+\cdots+a_nJ_n=\mathcal O.
 \]
 A segunda relação pode ser conhecida sem fornecer o logaritmo entre um par
-escolhido, porque os restantes termos continuam presentes. A hipótese
-certa é, pois, a \emph{vinculação por logaritmo discreto generalizado}, não
-uma colecção de «três gammas secretos».
+escolhido, porque os restantes termos continuam presentes. A hipótese de
+segurança pertinente é a \emph{vinculação por logaritmo discreto
+generalizado}: exige dificuldade de encontrar uma relação não
+trivial em toda a família de bases.
 
 Também importa \emph{quem} conhece a relação. Uma relação deliberadamente
 pública pode ser parte do protocolo; uma relação conservada em segredo pelo
@@ -118,7 +109,7 @@ O capítulo \ref{chapter:transactions} deriva esta transacção passo a passo.
 
 \subsection*{Se \(T=\tau G\)}
 
-A chave de saída compatível com formatos antigos e futuros é
+A chave de saída da relação FCMP++ é
 \[
  O=xG+yT=(x+y\tau)G.
 \]
@@ -129,8 +120,8 @@ De uma abertura sai uma família inteira:
 \]
 Mas um estranho diante de um \(O\) arbitrário ainda não conhece
 \(k=\log_GO=x+y\tau\). Portanto \(\tau\), sozinho, não rouba essa saída. O
-que desaparece é o significado independente das duas coordenadas: migrações
-e formatos futuros não podem atribuir poderes diferentes a \(x\) e \(y\), e
+que desaparece é a vinculação das duas coordenadas, necessária para lhes
+atribuir poderes distintos. Em particular,
 uma prova SAL de «conheço \(x,y\)» deixa de provar a abertura pretendida.
 
 Há uma consequência concreta para o próprio dono. Numa saída histórica
@@ -178,9 +169,7 @@ uma transacção e não faz \(I\) deixar de repetir.
 \textbf{Conclusão --- falha só de privacidade:} identificação retroactiva da
 saída gasta; sem roubo, quebra da autorização ou inflação demonstrada.
 
-\clearpage
 \section{Consequências de relações entre as bases da SAL}
-\scriptsize
 
 Retomemos os pontos da apresentação e o compromisso do produto secreto.
 Para \(\widetilde O=xG+\bar yT\), as relações são
@@ -232,6 +221,7 @@ pela máscara em \(T\) de \(P\). Resulta
 \textbf{Conclusão --- exploração algébrica directa:} perdeu-se a vinculação do compromisso a \(r_J\) que compunha pertença e SAL; o dono pode produzir
 marcadores diferentes.
 
+\Needspace{10\baselineskip}
 \subsection*{\(V=qU\): inconsistência entre produto e ligação}
 
 No ponto \(P\),
@@ -288,13 +278,16 @@ de aridade superior não deve ser promovida automaticamente a inflação, nem
 ignorada por não fornecer isoladamente \(\log_GT\).
 
 \begin{landscape}
+\hypersetup{pdfview=Fit}
 \section{Análise das dez relações por pares}
 
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.05}
+\begingroup
+\footnotesize
+\setstretch{1.0}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
 \begin{center}
-\begin{tabular}{|p{.72in}|p{1.80in}|p{2.48in}|p{1.38in}|p{1.36in}|}
+\begin{tabular}{|L{2.0cm}|L{5.3cm}|L{6.3cm}|L{4.6cm}|L{4.3cm}|}
 \hline
 \textbf{Relação conhecida} & \textbf{Equação pública e abertura alternativa}
 & \textbf{Quem a explora; saídas já existentes} & \textbf{Resultado isolado}
@@ -328,7 +321,7 @@ global invalidada, sem exploração concreta. & Sim: caminho de \(U\) até
 \(G\).\\ \hline
 \(H=qV\) & Mesma separação: \(H\) não aparece nas equações SAL. & Idem. & Sem
 exploração concreta demonstrada. & Sim: caminho de \(V\) até \(G\).\\ \hline
-\(U=qT\) & \(wU+pT=(w+\Delta)U+(p-q\Delta)T\). & Dono/provador autorizado;
+\(U=qT\) & \(wU+\eta T=(w+\Delta)U+(\eta-q\Delta)T\). & Dono/provador autorizado;
 sim, pode gastar a mesma folha existente com outro \(I\). & Coeficiente \(w\)
 da ligação difere do produto; gasto duplo. & Não.\\ \hline
 \(V=qT\) & \(R=r_JV+r_RT=(r_J+\Delta)V+(r_R-q\Delta)T\). & Dono/provador;
@@ -336,11 +329,12 @@ sim, FCMP e SAL podem abrir o mesmo \(R\) com \(r_J\) diferentes. & Compromisso
 a \(r_J\) perdido; \(I\) variável, gasto duplo. & Não.\\ \hline
 \(V=qU\) & \(r_JV+wU=(r_J+\Delta)V+(w-q\Delta)U\). & Dono/provador; sim,
 uma folha autorizada basta. & Produto e ligação recebem aberturas distintas;
-gasto duplo. & Não.\\ \hline
+gasto duplo para \(x\ne-q\). & Não.\\ \hline
 \end{tabular}
 \end{center}
 
-\footnotesize
+\endgroup
+\small
 «Existentes» não quer dizer que um estranho possa escolher uma saída de
 terceiro. Quer dizer que, depois da descoberta, o titular que ainda conserva a abertura
 consegue aplicá-la ao ponto já publicado. O criador malicioso dos parâmetros
@@ -349,10 +343,10 @@ todos os titulares e simultaneamente dá aos verificadores a oportunidade de
 parar, actualizar regras ou rejeitar a família comprometida. As provas antigas permanecem registadas.
 \end{landscape}
 
-\footnotesize
+\normalsize
 \section{Consequências para as provas de intervalo}
 
-As bases indexadas das Bulletproofs e Bulletproof+ formam compromissos do
+As bases indexadas das Bulletproofs e Bulletproofs+ formam compromissos do
 género
 \[
  Q=\rho G+\langle\boldsymbol a,\boldsymbol G\rangle
@@ -379,8 +373,11 @@ Isto não implica que qualquer relação vectorial permita criar valor. Uma
 relação pode cair numa direcção que não altera a coordenada constrangida, ou
 invalidar apenas a redução sem oferecer uma transcrição falsa. Se a direcção
 permite trocar um vector inválido por uma abertura que satisfaz as equações da
-prova, porém, a solidez de intervalo desaparece: um compromisso fora de
-\([0,2^{64}-1]\) pode receber uma prova aceite.
+prova, porém, perde-se a garantia que liga a prova ao montante: o provador
+pode apresentar uma prova aceite para um compromisso cuja abertura usada
+no balanço tem um montante fora de \([0,2^{64}-1]\). O intervalo restringe
+o representante inteiro do escalar do montante, associado à abertura; o
+ponto do compromisso pertence ao grupo elíptico.
 
 \begin{center}
 \begin{tikzpicture}[>=stealth,node distance=8mm,
@@ -405,6 +402,7 @@ relação que atinja os testemunhos certos, o balanço da transacção e a cria�
 de novos compromissos. Não rouba por si só uma chave de saída e não torna
 falsas, retroactivamente, todas as provas antigas.
 
+\Needspace{9\baselineskip}
 \subsection*{O controlo negativo}
 
 As tabelas
@@ -418,7 +416,6 @@ falhas de parâmetros. A solidez vem da prova de conhecimento e das restantes re
 públicas entre os múltiplos fazem parte da declaração. \textbf{Conclusão ---
 relação inofensiva ou deliberadamente conhecida.}
 
-\clearpage
 \section{Consequências para Curve Trees, Selene e Helios}
 
 Cada curva \(\mathcal E\) tem a sua própria família de bases,
@@ -470,6 +467,7 @@ por uma máscara da prova, se colidir uma codificação inicializada com uma som
 crua, ou se vier acompanhada de uma relação entre os \(g_{\mathcal E,i}\). Sem essa
 composição, temos hipótese invalidada, não uma árvore falsa demonstrada.
 
+\Needspace{8\baselineskip}
 No topo há ainda a prova Schnorr da abertura da raiz. Se
 \[
  X=\widetilde Q_L-\rho=\beta_Lh_{\mathcal E},
@@ -513,60 +511,91 @@ relação que apenas reabre um compromisso auxiliar mas não altera uma restriç
 pode ficar no nível «solidez assumida, exploração não demonstrada».
 
 \begin{landscape}
+\hypersetup{pdfview=Fit}
 \section{Matriz de consequências}
 
-\tiny
-\setlength{\tabcolsep}{1.8pt}
-\renewcommand{\arraystretch}{.98}
+\small
+Nas tabelas, «sim» indica a consequência algébrica derivada; «cond.» exige a
+composição indicada; «não» assinala que a relação isolada não fornece esse
+efeito pelas equações analisadas. A coluna de ligação refere-se à capacidade
+de apresentar imagens diferentes para a mesma saída. «Roubo» significa
+obter autorização sobre uma saída alheia cuja abertura é desconhecida;
+«n/d» indica um efeito não demonstrado.
+
+\begingroup
+\footnotesize
+\setstretch{1.0}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.16}
 \begin{center}
-\begin{tabular}{|p{.62in}|p{.67in}|p{.84in}|p{.43in}|p{.43in}|p{.52in}|p{.52in}|p{.62in}|p{.52in}|p{.82in}|p{.78in}|}
+\begin{tabular}{|L{2.5cm}|L{3.6cm}|L{1.5cm}|L{1.2cm}|L{1.6cm}|L{1.6cm}|L{1.4cm}|L{1.4cm}|L{5.6cm}|}
 \hline
-\textbf{Família} & \textbf{Armadilha conhecida} & \textbf{Vinculação perdida onde}
-& \textbf{\shortstack{Privaci-\\dade?}} & \textbf{Roubo?} & \textbf{Pertença falsa?}
-& \textbf{Intervalo falso?} & \textbf{Detecção gasto duplo?}
-& \textbf{Inflação?} & \textbf{Hipóteses adicionais} & \textbf{Confiança / evidência}\\ \hline
-\(G,H\) & \(H=\gamma G\) & compromisso de montante & não & não & não & não & não & sim
-& abertura e transacção normal & alta: álgebra e código RingCT\\ \hline
-\(G,T\) & \(T=\tau G\) & abertura \(x,y\) da saída & não & não & não & não & sim & condicional
-& abertura própria; segundo gasto & alta: álgebra SAL/código\\ \hline
-\(G,U\) & \(U=qG\) & \(x,w\) dentro de \(P\) & não & não & não & não & condicional & condicional
-& outra relação que vença \(O,P'\) & média: álgebra; exploração não demonstrada\\ \hline
-\(G,V\) & \(V=qG\) & \(x,r_J\) dentro de \(P\) & não & não & não & não & condicional & condicional
-& outra relação que vença \(O,R\) & média: álgebra; exploração não demonstrada\\ \hline
-\(H,T\) & \(H=qT\) & nenhuma equação isolada & não & não & não & não & não & condicional
-& caminho \(T\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(H,U\) & \(H=qU\) & nenhuma equação isolada & não & não & não & não & não & condicional
-& caminho \(U\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(H,V\) & \(H=qV\) & nenhuma equação isolada & não & não & não & não & não & condicional
-& caminho \(V\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(T,U\) & \(U=qT\) & \(wU+rT\) & não & não & não & não & sim & condicional
-& abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(T,V\) & \(V=qT\) & \(R\) em \(r_J\) & não & não & não & não & sim & condicional
-& abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(U,V\) & \(V=qU\) & \(r_JV+wU\) & não & não & não & não & sim & condicional
-& abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(G,T,U,V\) & \(aG+bT+cU+dV=0\) & compromisso multibase & condi\-cional & não demonstrado & condi\-cional & não & condi\-cional & condi\-cional
-& suporte deve vencer equações externas & média: vinculação certa; efeito depende do suporte\\ \hline
-\(J\) & \(J=\eta_OG\) & bases da DLEQ tornam-se relacionadas & sim & não & não & não & não & não
-& relação para a saída observada & alta: \(I=\eta_OO\)\\ \hline
-BP/BP+ & relação em \(G,\boldsymbol G,\boldsymbol H\) & compromisso vectorial & não & não & não & condicional & não & condicional
-& direcção altera testemunho; balanço & média: abertura explícita; falsificação depende da relação\\ \hline
-Selene & relação em \(\mathcal B_{\rm S}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
-& colisão/restrição útil; saída própria e SAL & média: Curve Trees e composição\\ \hline
-Helios & relação em \(\mathcal B_{\rm H}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
-& colisão/restrição útil; saída própria e SAL & média: Curve Trees e composição\\ \hline
-Controlo & \(J,2J,\ldots;\ P=xG;\ R=rH\) & nenhuma & não & não & não & não & não & não
-& prova de conhecimento normal & alta: relação deliberada\\ \hline
+\textbf{Relação conhecida} & \textbf{Vinculação afectada}
+& \textbf{Privaci-dade} & \textbf{Roubo} & \textbf{Pertença falsa}
+& \textbf{Intervalo falso} & \textbf{Ligação quebrada}
+& \textbf{Inflação} & \textbf{Condições e composição}\\ \hline
+\(H=\gamma G\) & Compromisso de montante & não & não & não & não & não & sim
+& Abertura conhecida, autorização da entrada e provas normais para as saídas.\\ \hline
+\(T=\tau G\) & Abertura \((x,y)\) da saída & não & não & não & não & sim & cond.
+& Abertura própria; aberturas alternativas admissíveis; segundo gasto.\\ \hline
+\(U=qG\) & Coeficientes \((x,w)\) de \(P\) & não & não & não & não & cond. & cond.
+& Outra relação que permita satisfazer também as restrições nas bases \(G,T\) e \(U,T\).\\ \hline
+\(V=qG\) & Coeficientes \((x,r_J)\) de \(P\) & não & não & não & não & cond. & cond.
+& Outra relação que permita satisfazer também as aberturas de \(\widetilde O\) e \(R\).\\ \hline
+\(H=qT\) & Nenhuma das equações isoladas & não & não & não & não & não & cond.
+& Um caminho adicional de \(T\) até \(G\) fornece \(\log_GH\).\\ \hline
+\(H=qU\) & Nenhuma das equações isoladas & não & não & não & não & não & cond.
+& Um caminho adicional de \(U\) até \(G\) fornece \(\log_GH\).\\ \hline
+\(H=qV\) & Nenhuma das equações isoladas & não & não & não & não & não & cond.
+& Um caminho adicional de \(V\) até \(G\) fornece \(\log_GH\).\\ \hline
+\(U=qT\) & Coeficiente de \(U\) em \(wU+\eta T\) & não & não & não & não & sim & cond.
+& Abertura própria; o produto e a ligação usam aberturas distintas; segundo gasto.\\ \hline
+\(V=qT\) & Abertura de \(R\) em \(r_J\) & não & não & não & não & sim & cond.
+& Abertura própria; pertença e produto usam valores diferentes de \(r_J\); segundo gasto.\\ \hline
+\(V=qU\) & Coeficientes de \(r_JV+wU\) & não & não & não & não & sim & cond.
+& Abertura própria e \(x\ne-q\); segundo gasto.\\ \hline
 \end{tabular}
 \end{center}
+\endgroup
 
-\scriptsize
-O único «sim» directo na coluna de inflação é \(G-H\). As arestas SAL
-assinaladas quebram directamente a ligação, mas a inflação vem
-condicionalmente de um segundo gasto. Bulletproofs e Curve Trees exigem uma
-relação que atinja a restrição certa e a composição indicada. \(\eta_O\) é
-privacidade sem autorização; uma hipótese invalidada continua a exigir
-correcção mesmo sem uma exploração concreta demonstrada.
+\clearpage
+\subsection*{Relações vectoriais e bases dependentes da saída}
+
+\begingroup
+\footnotesize
+\setstretch{1.0}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{center}
+\begin{tabular}{|L{2.5cm}|L{3.6cm}|L{1.5cm}|L{1.2cm}|L{1.6cm}|L{1.6cm}|L{1.4cm}|L{1.4cm}|L{5.6cm}|}
+\hline
+\textbf{Relação conhecida} & \textbf{Vinculação afectada}
+& \textbf{Privaci-dade} & \textbf{Roubo} & \textbf{Pertença falsa}
+& \textbf{Intervalo falso} & \textbf{Ligação quebrada}
+& \textbf{Inflação} & \textbf{Condições e composição}\\ \hline
+\(aG+bT+cU+dV=\mathcal O\) & Compromisso multibase & cond. & n/d & cond. & não & cond. & cond.
+& O suporte da relação tem de vencer as restantes equações. A relação, por si só, fornece aberturas alternativas; os efeitos dependem desse suporte.\\ \hline
+\(J=\eta_OG\) & Bases da igualdade de logaritmos relacionadas & sim & não & não & não & não & não
+& Saída \(O=xG\); a relação conhecida dá \(I=\eta_OO\), identificável nos dados públicos.\\ \hline
+Relação em \(G,\boldsymbol G,\boldsymbol H\) & Compromisso vectorial de Bulletproofs ou Bulletproofs+ & não & não & não & cond. & não & cond.
+& Direcção utilizável para alterar a testemunha constrangida; prova aceite e balanço da transacção.\\ \hline
+Relação em \(\mathcal B_{\rm S}\) & Nó ou compromisso sobre Selene & não & não & cond. & não & não & cond.
+& Colisão entre filhos admissíveis ou restrição falsificada; caminho completo, saída própria e SAL.\\ \hline
+Relação em \(\mathcal B_{\rm H}\) & Nó ou compromisso sobre Helios & não & não & cond. & não & não & cond.
+& As mesmas condições na outra curva; uma relação utilizável numa das camadas pode bastar.\\ \hline
+\(J,2J,\ldots\); \(P=xG\); \(R=rH\) & Relações deliberadas da declaração & não & não & não & não & não & não
+& Múltiplos usados pelo dispositivo e pontos com testemunha conhecida, sujeitos às suas provas e restrições.\\ \hline
+\end{tabular}
+\end{center}
+\endgroup
+
+A relação \(G-H\) fornece directamente a abertura alternativa necessária
+à inflação. As relações SAL assinaladas quebram a ligação; a criação de
+valor exige ainda que o segundo gasto seja aceite. Nas famílias vectoriais,
+a utilidade da relação depende das coordenadas que ela altera e das
+restrições exteriores que continuam a fixá-las. Estes requisitos permitem
+avaliar uma relação concreta pela sequência completa de equações que o
+verificador exige.
 
 \label{page:dlog-relations-end}
 \end{landscape}

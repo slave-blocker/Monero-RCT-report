@@ -42,28 +42,6 @@
 \AtBeginDocument{\let~=\nobreakspace}
 \setstretch{1.1}
 
-% Advanced crossreferencing commands 
-% -------------------------------------
-% Default settings:
-% \usepackage[]{hyperref}
-% Disable link coloring:
-% \usepackage[colorlinks=false]{hyperref}
-% Enable link coloring with personalized colors, make page number (not text) be link on the Table Of Contents (needs color package)
-\usepackage[colorlinks=true, linkcolor=BlueViolet, citecolor=BlueViolet, urlcolor=BlueViolet,linktocpage=true]{hyperref}
-
-%% more footnote stuff
-\usepackage{footnotebackref}
-
-\let\oldFootnote\footnote
-\newcommand\nextToken\relax
-
-\renewcommand\footnote[1]{%
-    \oldFootnote{#1}\futurelet\nextToken\isFootnote}
-
-\newcommand\isFootnote{%
-    \ifx\footnote\nextToken\textsuperscript{,}\fi}
-
-
 % Flexible interface to page dimensions
 % -------------------------------------
 % Default settings:
@@ -110,6 +88,8 @@
 % Modify appendix and add subappendices environments
 % -------------------------------------
 \usepackage{appendix}
+\renewcommand{\appendixpagename}{Apêndices}
+\renewcommand{\appendixtocname}{Apêndices}
 
 % Paragraph indentation and skip
 % -------------------------------------
@@ -133,6 +113,30 @@
 
 % Separate document into parts
 \usepackage{titlesec}
+
+% Advanced crossreferencing commands
+% -------------------------------------
+% Default settings:
+% \usepackage[]{hyperref}
+% Disable link coloring:
+% \usepackage[colorlinks=false]{hyperref}
+% Enable link coloring with personalized colors, make page number (not text) be link on the Table Of Contents (needs color package)
+\usepackage[colorlinks=true, linkcolor=BlueViolet, citecolor=BlueViolet, urlcolor=BlueViolet,linktocpage=true]{hyperref}
+
+%% more footnote stuff
+\usepackage{footnotebackref}
+
+\let\oldFootnote\footnote
+\newcommand\nextToken\relax
+
+\renewcommand\footnote[1]{%
+    \oldFootnote{#1}\futurelet\nextToken\isFootnote}
+
+\newcommand\isFootnote{%
+    \ifx\footnote\nextToken\textsuperscript{,}\fi}
+
+
+
 
 % Line numbering for drafts only
 %\usepackage[pagewise,modulo,displaymath,mathlines]{lineno}
@@ -260,6 +264,8 @@
 
 % -------- Bibliography -----------------------
 
+\clearpage
+\phantomsection
 \addcontentsline{toc}{chapter}{Bibliografia}
 {\footnotesize
 \bibliographystyle{plain}

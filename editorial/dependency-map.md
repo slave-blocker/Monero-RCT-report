@@ -34,6 +34,8 @@ F6 transforma a soma de pontos em quatro produtos com domínio explícito, e a p
 
 F7 fixa a ordem das mensagens que torna aplicáveis os limites de desafios já demonstrados. Os dados comprometidos precedem as avaliações e a compressão; as provas exteriores seguem a determinação dos circuitos. A análise deriva a massa dos pontos da amostragem de abscissas e sinais e transporta a contagem de D5 através de uma majoração por par. O limite inclui pares excepcionais e zeros secretos, preservando o domínio das testemunhas honestas. A soma de erros para desafios partilhados usa a desigualdade de união. F8 deve reunir estas propriedades locais numa exposição da composição, com as hipóteses de extracção e de Fiat–Shamir.
 
+F8 reúne a indução descendente da raiz, a ligação a SAL e as condições da composição. A estabilidade da imagem usa duas aberturas conhecidas da mesma chave; a simulação conserva os dados públicos fixos e explicita a hipótese adicional para distribuições condicionadas. As contagens dos circuitos e da testemunha conduzem aos compromissos, às mensagens, aos bytes e a parcelas reprodutíveis do trabalho. A capacidade da árvore e os limites das parcelas auxiliares fecham a ligação entre dimensão do conjunto, profundidade e tamanho da prova. O texto de FCMP++ está completo em 38 páginas; o poster dará uma vista conjunta das dependências.
+
 ## Assinaturas, codificação e consulta
 
 Codificação de pontos e escalares → representações canónicas → hash para escalares/pontos e gerador H → bLSAG e validação de subgrupo → pergunta DDH → MLSAG → CLSAG com duas relações → representação de uma entrada → índices globais e relativos → recuperação dos membros do anel → campos de tx_extra.

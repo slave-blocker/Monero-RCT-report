@@ -2,13 +2,14 @@
 
 ## Objectivo activo
 
-Revisão autorizada em 10-11-2026, com orçamento de 5 000 000 de tokens. Reescrever divisores e FCMP++ e executar todas as intervenções abaixo. Uma unidade semântica por ciclo, com compilação e inspecção. Preservar a progressão apreciada em SAG e bLSAG.
+Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de tokens. Retomada em 16-11-2026 com novo objectivo de 1 000 000 de tokens, abrangendo todo o âmbito preservado em `retoma.md`. Reescrever divisores e FCMP++ e executar todas as intervenções abaixo. Uma unidade semântica por ciclo, com compilação e inspecção. Preservar a progressão apreciada em SAG e bLSAG.
 
 ## Lista de intervenções
 
 - [x] Divisores: reescrita integral e paginação contínua.
-- [ ] FCMP++: reescrita integral a partir das fontes; mapa da composição antes das equações completas; paginação contínua.
-- [ ] FCMP++: IPA, Generalized Bulletproofs, SAL e prova de intervalo; contagem condicionada de argumentos.
+- [x] FCMP++: reescrita integral a partir das fontes; mapa da composição antes das equações completas; paginação contínua; 38 páginas de texto.
+- [x] FCMP++: IPA, Generalized Bulletproofs, SAL e prova de intervalo; contagem condicionada de argumentos.
+- [ ] FCMP++: construir e inspeccionar o novo poster.
 - [ ] Explicar a receita de \(H_p\) e reproduzir a obtenção do gerador fixo \(H\).
 - [ ] Página impressa 55: desenvolver a falha de validação das imagens de chave e a investigação publicada sobre a ausência de exploração.
 - [ ] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
@@ -196,3 +197,19 @@ Duas revisões independentes conferiram o contexto, a ordem dos desafios, os dom
 Validação: `editorial/checks/sampling-F7.py` enumera 4152 pares em treze curvas pequenas; confere as massas, a dominação dos abortos, os encontros repetidos, a contagem de no máximo 4N pares excepcionais e as seis representações de cada secante regular. Oito curvas incluem pontos admissíveis de ordenada zero. Estes testes verificam as contas geométricas e probabilísticas; o limite geral é demonstrado no texto.
 
 A compilação integral estabilizou com remissões e citações resolvidas e os mesmos 164 avisos tipográficos preexistentes. Inspeccionaram-se as páginas físicas 217–222. O prefixo F1–F6, os divisores, o preâmbulo e a bibliografia foram preservados. Os excertos foram conferidos contra o livro: 300 páginas no total, trinta em divisores e 32 em FCMP++. Restam a composição final, os custos completos e o poster, além das restantes alterações do livro registadas em `retoma.md`.
+
+## Unidade F8 — composição final e custos completos
+
+Estado: concluída e verificada em 16 de Novembro de 2026. FCMP++ atinge 38 páginas de texto; o poster novo será a unidade seguinte.
+
+Resultado: cinco secções contínuas reúnem a extracção descendente desde a raiz, a ligação a SAL, a estabilidade da imagem e as condições de ocultação. A simulação conserva o enunciado público fixo, incluindo imagens e pseudo-compromissos; a realização condicionada à admissibilidade conserva a hipótese de simulação da mesma distribuição. A completude é enunciada no domínio dos certificados e das somas. A resistência a colisões dirigidas entre imagens de saídas diferentes fica identificada como propriedade adicional, sem lhe atribuir a demonstração da estabilidade para uma mesma saída.
+
+As contagens partem das aberturas e da capacidade dos compromissos, deduzem as mensagens das duas GBP e o fecho de Schnorr, e acrescentam SAL e os três pontos da apresentação. O exemplo de uma entrada e três níveis dá 4160 bytes para pertença e 4640 para o objecto FCMP++. O trabalho do provador distingue a interpolação densa dos divisores, os polinómios da prova exterior e as operações de grupo. A última página deduz a capacidade da árvore e o limite de quarenta compromissos auxiliares, conservando a contagem exacta dos ramos.
+
+Fontes: releram-se as relações e a composição no TeX de Cypher Stack, as funções de contagem e de leitura/escrita Rust, a acomodação dos dados em tape.rs, os circuitos e o cálculo dos polinómios de Generalized Bulletproofs. A consulta à página primária de Curve Trees confirmou a referência bibliográfica; a construção seleccionada e as contagens seguem as cópias locais fixas. O historial e as diferenças de âmbito ficam no registo de versões.
+
+Validação: composition-costs-F8.py confere 2048 configurações por enumeração dos ramos, blocos e mensagens; 252 avaliações de produtos de polinómios e respectivos custos; 260642 apresentações sobre um grupo pequeno, com enunciado fixo e bijecção completa. As duas funções de contagem Rust foram copiadas directamente para um programa isolado, compilado em /tmp; os seus resultados coincidem com as fórmulas nas mesmas 2048 configurações. O teste verifica contas e distribuições finitas, conservando o âmbito próprio das hipóteses criptográficas.
+
+A compilação integral produz 306 páginas, com remissões e citações resolvidas e os mesmos 164 avisos de caixas. O prefixo F1–F7 foi conservado integralmente. Inspeccionaram-se as sete páginas físicas atravessadas por F8, incluindo a transição de F7, e ajustou-se a última página para desenvolver os limites dos compromissos auxiliares. FCMP++ ocupa as páginas físicas 191–228; divisores conserva 40–69.
+
+Os auxiliares temporários da sessão anterior tinham desaparecido. A compilação e a exportação foram reconstituídas em editorial/build-pt.py e editorial/export-chapters.py; a configuração e os produtos intermédios continuam em /tmp. O pacote oficial de hifenização portuguesa foi descarregado e extraído nesse directório, sem instalação no sistema.

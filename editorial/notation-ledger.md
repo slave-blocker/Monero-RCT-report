@@ -117,3 +117,12 @@ As etiquetas existentes são mantidas durante as unidades locais para preservar 
 | L_r^PI,R_r^PI,e_r,a_fim,b_fim | Mensagens, desafios e escalares finais do IPA | Os pares diferem do ponto R da apresentação e do número L de níveis. |
 | Δ_r | Derivada da cúbica de intersecção no encontro B_r | Δ_r ≠ 0 equivale a encontro simples. |
 | q_E,N_aff,n_x,s_div,ε_A | Cardinal do corpo, pontos afins, abscissas admissíveis, limite do suporte e erro local do certificado | s_div=d_A+L_A+1; limite incondicional para dados previamente fixados e amostragem ideal. |
+
+## Composição e tamanho
+
+| Símbolo | Significado e domínio | Regra de utilização |
+|---|---|---|
+| ε_W, ε_H, ε_S | Limites locais dos certificados, por curva do ponto certificado | Cinco de Wei25519 por entrada; a de Helios e b de Selene. A soma conserva o modelo de dados fixados e desafios ideais. |
+| a, b, ε | Contagens locais de níveis: floor((L−1)/2), floor(L/2), L mod 2 | Notação local da contagem; distinta do montante a e do comprimento L_A de uma representação. |
+| s_S, s_H | Número total de compromissos vectoriais de cada curva | Ramos mais dados auxiliares. Os ramos somam n(L−1)+1; os auxiliares são no máximo 24+16. |
+| B_pert, B_FCMP++ | Tamanho em bytes da pertença e do objecto FCMP++ | B_FCMP++ = B_pert + 480n. Imagens, pseudo-compromissos, saídas e provas de intervalo pertencem aos restantes campos da transacção. |

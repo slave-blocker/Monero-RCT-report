@@ -138,3 +138,19 @@ O auxiliar de compilação da sessão é `/tmp/ztm-build-pt.py`. Executa `pdflat
 Uma cópia de comparação em `/tmp/ztm-baseline-src` usa as fontes de `c671971` e ligações de leitura para os recursos. A compilação de referência em `/tmp/ztm-editorial-baseline` produziu as 296 páginas esperadas. O registo permite distinguir avisos preexistentes de problemas introduzidos por cada unidade.
 
 Os auxiliares e as imagens de inspecção ficam em `/tmp/ztm-editorial-build`; os PDFs finais ficam nos destinos já usados pelo repositório.
+
+## Composição e custos — F8
+
+Conferiram-se em 16-11-2026 as relações e hipóteses da composição em cypherstack-fcmp-review/main.tex:95–193,536–701, as duas funções de contagem em crypto/fcmps/src/lib.rs:214–302, os blocos de testemunha em src/tape.rs e a montagem em src/lib.rs:775–889, a serialização de FCMP++ em monero-oxide/ringct/fcmp++/src/lib.rs:186–220 e SAL em src/sal/mod.rs:410–422. A contagem dos polinómios foi confrontada com crypto/generalized-bulletproofs/src/arithmetic_circuit_proof.rs:386–552,679–712.
+
+A composição é apresentada sob hipóteses de extracção e vinculação das subprovas, conservando os limites algébricos para dados fixados antes de desafios ideais. A soma dos erros locais conta 5n certificados de Wei25519, n floor((L−1)/2) de Helios e n floor(L/2) de Selene, além de 38n/(p−1) para as compressões. Esta soma não substitui a redução criptográfica de Fiat–Shamir nem a análise da extracção exterior.
+
+A simulação mantém Ctilde e I fixos. Os quatro pontos Otilde,Jtilde,R,P são conjuntamente uniformes na relação abstracta com máscaras uniformes no corpo inteiro, pela bijecção triangular determinada por r_O,r_J,r_R,r_P. A execução concreta tem condições de admissibilidade de testemunhas e desafios; a simulação da distribuição condicionada é uma hipótese adicional expressa. Não se importaram a afirmação incondicional de completude da composição abstracta, extractibilidade após simulação para toda a construção, uma prova de resistência a colisões dirigidas entre imagens de saídas diferentes ou uma garantia pós-quântica geral.
+
+Uma GBP transmite 4s+13+2log₂m elementos. As duas GBP e o fecho da raiz dão 32[4(s_S+s_H)+28+2(log₂m_S+log₂m_H)] bytes. SAL acrescenta 384n e os três pontos da apresentação 96n; pseudo-compromissos e imagens ficam nos campos próprios. A tabela de F8 coincide com as funções Rust nas 2048 configurações n=1..64, L=1..32. As funções foram extraídas literalmente e compiladas num invólucro isolado com as cinco constantes de linhas e COMMITMENT_WORD_LEN lidas da fonte. Nenhum ficheiro da fonte foi alterado.
+
+Os ramos contam n(L−1)+1 compromissos. As parcelas auxiliares são no máximo 24 sobre Selene e 16 sobre Helios, pelas dimensões inferiores n(97+52a) e 32nb. A capacidade de uma árvore cheia é 38^(a+1)18^b, a=floor((L−1)/2), b=floor(L/2).
+
+O custo  n[5·33282+(L−1)·34322]  refere-se exclusivamente à interpolação densa dos coeficientes dos divisores. Para os polinómios de GBP com coordenadas direitas nulas, há s+3 posições vectoriais de cada lado; a multiplicação densa dos coeficientes custa m(s+3)² produtos no corpo. A fonte usa vectores de comprimento efectivo reduzido e pode omitir parcelas nulas: o custo denso é o algoritmo matemático descrito, não uma medição da execução optimizada. O programa F8 verifica 252 avaliações e as contagens de produtos.
+
+A configuração portuguesa do TeX foi reconstituída a partir do mesmo pacote Ubuntu 2023.20240207-1, descarregado para /tmp/ztm-latex-deps e aí extraído. Os programas duradouros são agora editorial/build-pt.py e editorial/export-chapters.py. A compilação de referência recuperou exactamente 300 páginas e 164 avisos; F8 termina com 306 páginas e o mesmo número de avisos.

@@ -2348,3 +2348,481 @@ conjunto admitido. SAL liga depois a apresentação comum
 à chave de gasto, à imagem e à mensagem da transacção.
 A composição reúne estas garantias sob as condições que
 acabámos de explicitar.
+
+\section{Da raiz admitida à testemunha do gasto}
+\label{sec:fcmp-composed-security}
+
+A composição começa por uma raiz cuja abertura é pública:
+os registos de saídas determinam todos os ramos da árvore.
+O que permanece secreto é o percurso escolhido. Suponhamos
+que as provas exteriores fornecem a extracção de conhecimento
+descrita nas secções anteriores, que as relações de logaritmo
+discreto entre as bases são difíceis de encontrar e que
+os dados comprometidos estão fixados antes dos desafios
+pertinentes. Conservemos também as hipóteses dos certificados,
+incluindo a função não nula e o limite do seu pólo.
+Estas condições permitem reunir o argumento numa descida
+desde a raiz até à saída.
+
+No último nível, a extracção de Schnorr fornece
+\(\beta_L\). A abertura ampliada de \(K_L\), extraída
+da prova aritmética, satisfaz
+\[
+ B_{\mathcal E_L}+K_L-\beta_Lh_{\mathcal E_L}=\rho.
+\]
+Compará-la com a abertura pública de \(\rho\) fixa as
+coordenadas do ramo da raiz: são as abscissas dos seus
+filhos, ou os sextuplos das saídas se \(L=1\), com o
+preenchimento correspondente. A mesma comparação fixa
+em zero as coordenadas da segunda família de bases da
+abertura ampliada. Obtém-se, assim, uma lista conhecida
+à qual se aplica a primeira selecção da descida.
+
+Suponhamos agora que o ramo do nível \(j+1\) já ficou
+identificado. O circuito fornece um ponto \(Q_j'\)
+cuja abscissa pertence a essa lista. O certificado da
+máscara e a soma de pontos fornecem, por sua vez,
+\[
+ Q_j'=B_{\mathcal E_j}+K_j-\beta_jh_{\mathcal E_j}.
+\]
+Escolher uma posição que satisfaz a igualdade identifica
+um filho público \(Q_j\). A comparação da
+secção~\ref{sec:fcmp-masked-path} estabelece
+\(Q_j'=Q_j\) e recupera o vector exacto daquele ramo.
+O inicializador vincula o sinal; o preenchimento nulo
+conserva as posições excedentes; as duas famílias de bases
+ficam abrangidas pela mesma hipótese de vinculação.
+Este é o passo indutivo, repetido até ao ramo das folhas.
+
+Na folha, a selecção usa os seis pesos desafiados.
+Fora do acontecimento de colisão contado em
+\eqref{eq:fcmp-tuple-error}, a igualdade comprimida
+identifica o sextuplo de um registo \((O,J,C)\in\mathcal S\).
+As cinco funções testemunhas e as quatro somas recuperam
+as máscaras de \eqref{eq:fcmp-public-presentation}.
+A representação partilhada nas bases \(U,V\) fornece
+o mesmo \(r_J\). Chega-se precisamente à testemunha
+de pertença que a composição com SAL exige.
+
+A secção~\ref{sec:fcmp-sal-knowledge} já calculou a ligação
+das aberturas. Aplicando-a ao registo agora extraído,
+obtêm-se \(x,y,r_C\) e as relações
+\[
+ (O,J,C)\in\mathcal S,\qquad
+ O=xG+yT,\qquad I=xJ,\qquad
+ \widetilde C=C+r_CG.
+\]
+A raiz, as coordenadas da folha, o produto secreto de SAL
+e a imagem ficam ligados à mesma escolha. Para várias
+entradas, a extracção repete esta conclusão por entrada,
+partilhando a raiz e os dois argumentos aritméticos
+\cite{fcmp-composition-review}.
+
+Podemos localizar os erros algébricos sem os confundir
+com a redução criptográfica completa. Para dados fixados,
+no modelo ideal dos desafios, somam-se os limites dos
+\(n(L+4)\) certificados e os das \(n\) selecções de
+sextuplos. Com \(\varepsilon_{\rm W},\varepsilon_{\rm H},
+\varepsilon_{\rm S}\) dados por \eqref{eq:fcmp-sampler-error}
+para cada curva, e \(p=2^{255}-19\), essa soma é
+\[
+ 5n\varepsilon_{\rm W}
+ +n\left\lfloor\frac{L-1}{2}\right\rfloor\varepsilon_{\rm H}
+ +n\left\lfloor\frac L2\right\rfloor\varepsilon_{\rm S}
+ +\frac{38n}{p-1},
+\]
+tomando-se o mínimo entre esta expressão e um. Cada certificado é contado
+na curva do ponto que certifica. A partilha dos desafios
+é compatível com esta soma pela desigualdade de união.
+A garantia de conhecimento da prova não interactiva
+incorpora ainda a extracção das provas exteriores, a
+vinculação computacional, o desvio da amostragem concreta
+e a análise das consultas adaptativas de Fiat--Shamir.
+
+\section{Autorização, repetição e ocultação}
+\label{sec:fcmp-authorization-and-privacy}
+
+A abertura extraída de \(O\) autoriza a mensagem vinculada
+ao desafio de SAL. Essa mensagem abrange os dados assináveis
+da transacção, incluindo os pseudo-compromissos usados no
+equilíbrio. A exigência \(I\ne\mathcal O\) conserva uma
+declaração não trivial na equação da imagem. As condições
+de codificação, subgrupo e contexto aplicam-se antes de
+reunir a autorização com os restantes testes da transacção.
+
+A estabilidade da imagem segue de uma conta curta. Se dois
+gastos da mesma saída fornecessem aberturas conhecidas
+\((x,y)\) e \((x',y')\), teríamos
+\[
+ (x-x')G+(y-y')T=\mathcal O.
+\]
+A hipótese sobre as bases obriga as aberturas extraídas
+a coincidir, salvo probabilidade negligenciável. Como o
+registo fixa \(J\), ambas produzem \(I=xJ\).
+O verificador reconhece, portanto, a repetição comparando
+as imagens entre entradas e com as já admitidas. A
+resistência a colisões dirigidas entre imagens de saídas
+\emph{diferentes} constitui uma propriedade adicional,
+cuja demonstração deve abranger a forma \(O=xG+yT\)
+e o modelo de transacções considerado.
+
+A conservação dos montantes vem da terceira componente
+do registo. Se a validação da saída estabelece uma
+abertura \(C=zG+aH\), a relação extraída dá
+\(\widetilde C=(z+r_C)G+aH\). O mesmo \(a\) entra,
+assim, na equação de equilíbrio. As provas de intervalo
+das saídas e os limites dos somatórios convertem a
+igualdade modular dos compromissos na conservação inteira
+dos montantes, nas condições já estudadas no capítulo
+dos compromissos. Cada garantia ocupa um lugar determinado:
+a pertença fornece o registo, SAL fornece a abertura da
+chave e a imagem, e as condições dos montantes completam
+a validação.
+
+Para enunciar a ocultação, fixemos os dados públicos:
+o conjunto e a sua raiz, a mensagem, as imagens e os
+pseudo-compromissos. A propriedade de conhecimento zero
+pergunta que informação a prova acrescenta a esses dados.
+Na relação abstracta, com máscaras uniformes no corpo
+inteiro, os quatro pontos
+\(\widetilde O,\widetilde J,R,P\) têm uma distribuição
+conjuntamente uniforme. A razão pode ser seguida pela
+ordem das máscaras. \(r_O\) torna \(\widetilde O\)
+uniforme; \(r_J\) faz o mesmo a \(\widetilde J\).
+Fixados estes valores, \(r_R\) torna \(R\) uniforme.
+Por fim, em
+\[
+ P=xG+r_JV+(xr_J)U+r_PT,
+\]
+\(r_P\) torna \(P\) uniforme, mesmo depois de fixados
+os três primeiros pontos. Cada passo é uma translação
+de uma bijecção entre o corpo escalar e o grupo.
+
+Um simulador da composição pode, por isso, sortear estes
+quatro pontos e aplicar os simuladores das subprovas aos
+respectivos enunciados e desafios. Conserva os valores
+fixados de \(I\) e \(\widetilde C\). Para várias entradas,
+conserva também as correlações entre pseudo-compromissos
+impostas pelo equilíbrio. Sob a hipótese de conhecimento
+zero das subprovas, obtém a distribuição do transcrito
+interactivo sem usar a saída escolhida nem as suas chaves.
+A simulação de Fiat--Shamir tem o seu âmbito no modelo
+de oráculo aleatório~\cite{fcmp-composition-review}.
+
+A realização por divisores conserva o domínio estabelecido
+nas secções~\ref{sec:fcmp-divisor-purpose}
+e~\ref{sec:fcmp-challenge-domain}: coeficiente normalizador
+não nulo, pontos afins admissíveis e denominadores
+invertíveis na construção honesta. Nesse domínio, as
+identidades demonstradas asseguram a completude das
+relações. Uma execução condicionada à admissibilidade
+requer uma simulação da mesma distribuição condicionada
+para herdar a igualdade de distribuições acabada de provar.
+A conclusão de ocultação para essa realização mantém,
+portanto, esta hipótese sobre os seus componentes.
+O enunciado fixado delimita ainda a informação que se
+pretende ocultar: imagens, número de entradas, profundidade
+e restantes dados públicos acompanham a prova.
+
+\section{Contar os compromissos de cada curva}
+\label{sec:fcmp-commitment-counts}
+
+O tamanho transmitido pode agora ser deduzido das mensagens.
+Fixemos \(n,L\geq1\) e as dimensões
+\(m_{\rm S},m_{\rm H}\) de \eqref{eq:fcmp-ipa-dimensions}.
+Para abreviar as contagens de níveis, ponhamos
+\[
+ a=\left\lfloor\frac{L-1}{2}\right\rfloor,\qquad
+ b=\left\lfloor\frac L2\right\rfloor,\qquad
+ \epsilon=L\bmod2.
+\]
+Há \(a\) camadas ímpares acima das folhas e \(b\)
+camadas pares. A raiz está em Selene quando \(\epsilon=1\)
+e em Helios quando \(\epsilon=0\).
+
+Cada entrada apresenta um compromisso por ramo do seu
+caminho, partilhando com as restantes o compromisso da
+raiz. Para Selene, cada caminho tem \(b+\epsilon\)
+ramos; retirar a raiz quando pertence a essa curva e
+reintroduzi-la uma só vez dá
+\[
+ n(b+\epsilon-\epsilon)+\epsilon=nb+\epsilon.
+\]
+Para Helios, cada caminho tem \(b\) ramos, e a mesma
+conta dá \(n(b-1+\epsilon)+1-\epsilon\).
+Estas expressões incluem \(L=1\): existe apenas o
+compromisso partilhado do ramo das folhas.
+
+Acrescentam-se os compromissos dos dados auxiliares.
+Na acomodação escolhida, a folha reserva 2304 posições
+por entrada para os 2293 elementos contados na
+secção~\ref{sec:fcmp-divisor-costs} e o preenchimento.
+As quatro representações e as cinco funções ocupam
+nove conjuntos de 256 posições; os lugares livres
+recebem as coordenadas dos pontos e os zeros necessários.
+Cada passagem seguinte reserva 512 posições para o seu
+certificado. As quantidades a distribuir são, assim,
+\[
+ n(2304+512a)\quad\hbox{sobre Selene},\qquad
+ 512nb\quad\hbox{sobre Helios}.
+\]
+Um compromisso comporta \(m_{\rm S}\) ou \(m_{\rm H}\)
+elementos, e o último é completado com zeros. Somando
+ramos e auxiliares, o número total de compromissos é
+\begin{equation}
+ \begin{aligned}
+ s_{\rm S}&=nb+\epsilon+
+       \left\lceil\frac{n(2304+512a)}{m_{\rm S}}\right\rceil,\\
+ s_{\rm H}&=n(b-1+\epsilon)+1-\epsilon+
+       \left\lceil\frac{512nb}{m_{\rm H}}\right\rceil.
+ \end{aligned}
+ \label{eq:fcmp-commitment-counts}
+\end{equation}
+As contagens referem-se à disposição aqui fixada dos dados
+\cite{monero-oxide-fcmp-source}.
+
+No exemplo de uma entrada e três níveis,
+\(a=b=\epsilon=1\) e as dimensões são 256 e 128.
+Sobre Selene há dois ramos e
+\((2304+512)/256=11\) compromissos auxiliares:
+\(s_{\rm S}=13\). Sobre Helios há um ramo e
+\(512/128=4\) auxiliares: \(s_{\rm H}=5\).
+Para duas entradas, as dimensões passam a 512 e 128.
+Os ramos dão três e dois compromissos; os auxiliares
+dão onze e oito. Resultam \(s_{\rm S}=14\) e
+\(s_{\rm H}=10\). A agregação altera simultaneamente
+a capacidade de cada compromisso e a quantidade a guardar.
+
+\section{Das mensagens aos bytes}
+\label{sec:fcmp-proof-size}
+
+Consideremos uma das provas aritméticas, com \(s\)
+compromissos e dimensão \(m\). Além dos \(s\) pontos
+\(K_k\), são transmitidos os três pontos \(A_I,A_O,S\).
+Os compromissos \(T_i\) percorrem os índices
+\(s+1\leq i\leq2d+2\), excepto \(i=d\), com
+\(d=2s+2\). O seu número é
+\[
+ (2d+2)-(s+1)+1-1=2d+1-s=3s+5.
+\]
+Seguem-se os três escalares
+\(\tau_\xi,\mu,\widehat t\), os dois pontos de cada
+uma das \(\log_2m\) rondas do IPA e os dois escalares
+finais. A soma é
+\[
+ s+3+(3s+5)+3+2\log_2m+2
+       =4s+13+2\log_2m
+\]
+elementos codificados. Os desafios são reconstruídos
+pelo transcrito. As coordenadas e os coeficientes secretos
+permanecem nas aberturas dos compromissos.
+
+Cada ponto ou escalar ocupa 32 bytes na codificação
+seleccionada. As duas provas aritméticas contribuem com
+duas parcelas de 13 elementos; o único fecho de Schnorr
+da raiz acrescenta um ponto e um escalar. O tamanho da
+prova de pertença é, portanto,
+\begin{equation}
+ B_{\rm pert}=32\left[
+  4(s_{\rm S}+s_{\rm H})+28
+  +2(\log_2m_{\rm S}+\log_2m_{\rm H})\right].
+ \label{eq:fcmp-membership-size}
+\end{equation}
+Para uma entrada e três níveis, a conta fica inteiramente
+numérica:
+\[
+ B_{\rm pert}
+ =32[4(13+5)+28+2(8+7)]
+ =32\cdot130=4\,160\ \hbox{bytes}.
+\]
+
+SAL transmite os seis pontos
+\(P,A,B,R_O,R_P,R_I\) e os seis escalares de resposta:
+são \(12\cdot32=384\) bytes por entrada. A apresentação
+acrescenta os três pontos
+\(\widetilde O,\widetilde J,R\), ou 96 bytes.
+O pseudo-compromisso \(\widetilde C\) ocupa o campo
+próprio da transacção; a imagem \(I\) acompanha a entrada.
+Assim, o objecto que reúne as apresentações, SAL e a
+pertença tem tamanho
+\begin{equation}
+ B_{\rm FCMP++}=B_{\rm pert}+(384+96)n
+              =B_{\rm pert}+480n.
+ \label{eq:fcmp-proof-byte-size}
+\end{equation}
+A transacção completa inclui ainda os campos acabados de
+referir, as novas saídas, as provas de intervalo e os
+restantes dados da sua estrutura.
+
+\begin{center}
+\small
+\begin{tabular}{rrrrrrrr}
+\(n\)&\(L\)&\(m_{\rm S}\)&\(m_{\rm H}\)&
+\(s_{\rm S}\)&\(s_{\rm H}\)&
+\(B_{\rm pert}\)&\(B_{\rm FCMP++}\)\\[1mm]
+1&3&256&128&13&5&4160&4640\\
+2&3&512&128&14&10&4992&5952\\
+1&8&256&128&19&20&6848&7328\\
+1&9&512&128&14&20&6272&6752\\
+1&10&512&256&14&15&5696&6176
+\end{tabular}
+\end{center}
+Os dois últimos campos estão em bytes. A diminuição
+entre certas profundidades tem uma causa aritmética:
+quando \(m\) duplica, os dados auxiliares cabem em menos
+compromissos. Cada compromisso poupado retira também
+três pontos \(T_i\), ao passo que a ronda adicional
+do IPA acrescenta dois pontos. Entre oito e nove níveis,
+\(s_{\rm S}\) desce de 19 para 14; o saldo é
+\(32(4\cdot5-2)=576\) bytes poupados. A fórmula
+contabiliza os dois efeitos, incluindo os seus limiares.
+
+\section{O trabalho que fica por detrás da prova}
+\label{sec:fcmp-total-work}
+
+O tamanho curto resulta de comprometer os dados e provar
+as suas relações através dos dois IPA. O provador constrói
+a testemunha inteira: os ramos dos caminhos, as máscaras,
+as \(n(L+4)\) funções de divisores e os auxiliares dos
+circuitos. Na interpolação densa descrita na
+secção~\ref{sec:fcmp-divisor-costs}, a recuperação dos
+coeficientes dessas funções usa
+\[
+ n\bigl[5\cdot33\,282+(L-1)\cdot34\,322\bigr]
+\]
+produtos com acumulação. Para uma entrada e três níveis,
+são \(166\,410+68\,644=235\,054\) desses produtos.
+Acrescem a formação dos pontos, as fusões das funções,
+as inversões, a normalização e a prova exterior.
+As tabelas das bases fixas admitem preparação e reutilização.
+
+Os circuitos reúnem \(N_{\rm S},N_{\rm H}\) linhas
+multiplicativas e as respectivas condições lineares.
+As dimensões \(m_{\rm S},m_{\rm H}\) determinam os
+comprimentos dos vectores usados nos compromissos e nos
+polinómios da prova. Para verificar um IPA reduzido,
+reconstituem-se os pesos das duas famílias de \(m\)
+bases. A verificação polinomial usa os \(3s+5\) pontos
+\(T_i\), e a reconstrução da declaração usa os \(s\)
+compromissos \(K_k\). A dimensão dos vectores e o número
+de compromissos continuam, pois, a governar o trabalho,
+mesmo quando as rondas transmitidas são logarítmicas.
+Os algoritmos de multiplicação múltipla e a verificação
+em lote determinam como esse trabalho se executa.
+
+Podemos tornar explícita uma parcela do custo da prova
+exterior. Na testemunha honesta, os vectores
+\(\boldsymbol d_k\) da segunda família dos compromissos
+são nulos. Em \eqref{eq:fcmp-gbp-vector-polynomials},
+\(\boldsymbol l(X)\) tem, então, \(s+3\) posições de
+coeficientes vectoriais: as \(s\) aberturas
+\(\boldsymbol c_k\) e os três vectores associados a
+\(A_I,A_O,S\). Também \(\boldsymbol r(X)\) tem \(s+3\)
+posições: o termo constante, os \(s\) pesos
+\(\boldsymbol w_k\), o termo de grau \(s+1\) e o de
+grau \(d+1\).
+
+Escrevendo esses coeficientes como \(\boldsymbol l_i\)
+e \(\boldsymbol r_j\), cada coeficiente do produto é
+\[
+ t_k=\sum_{i+j=k}
+          \langle\boldsymbol l_i,\boldsymbol r_j\rangle.
+\]
+Um cálculo directo percorre os \((s+3)^2\) pares de
+posições. Com vectores completos de dimensão \(m\),
+cada produto interno custa \(m\) multiplicações no corpo:
+são \(m(s+3)^2\) multiplicações para esta etapa.
+A contagem descreve esse cálculo denso; coordenadas
+nulas e comprimentos efectivos menores permitem omitir
+parcelas. As adições que acumulam os resultados e a
+formação prévia dos coeficientes conservam os seus custos.
+
+Para uma entrada e três níveis, as duas provas dão,
+nesse cálculo,
+\[
+ 256(13+3)^2+128(5+3)^2
+   =65\,536+8192=73\,728
+\]
+multiplicações. Esta parcela ocorre depois de construir
+as funções de divisores e pertence a outro corpo de
+trabalho: transforma as condições dos circuitos no
+polinómio comprometido. Avaliar os dois polinómios
+vectoriais nos desafios, formar os pontos \(T_i\) e
+executar os IPA são etapas adicionais. As expressões
+permitem, deste modo, comparar disposições dos dados
+sem confundir o tamanho da prova com o esforço para a
+produzir.
+
+A verificação recupera coeficientes públicos em vez de
+construir aquelas funções. As suas somas de pontos
+podem ser reunidas em multiplicações múltiplas. Quando
+várias provas usam as mesmas bases, a verificação em
+lote combina equações com pesos aleatórios apropriados,
+acumulando os coeficientes dessas bases antes da operação
+de grupo. A validade de cada equação e a análise do
+erro dessa combinação continuam a ser as condições
+matemáticas do procedimento. Tempos de execução dependem
+dos algoritmos e dos recursos usados; as contagens de
+dados, mensagens e operações acima fixam o que se está
+a medir.
+
+
+Há uma ligação final entre a grandeza do conjunto e a
+profundidade. Com as larguras aqui escolhidas, uma árvore
+cheia de \(L\) níveis comporta
+\[
+ 38^{a+1}18^b
+\]
+saídas: o primeiro factor de 38 conta os sextuplos das
+folhas; os níveis seguintes multiplicam a capacidade
+alternadamente por 18 e por 38. O caminho cresce com
+o número de níveis necessários para alcançar o conjunto.
+
+Esta capacidade esclarece também a dependência do tamanho.
+Somar os compromissos de ramos das duas curvas dá
+\[
+ (nb+\epsilon)+[n(b-1+\epsilon)+1-\epsilon]
+       =n(L-1)+1.
+\]
+Cada entrada fornece os seus \(L-1\) ramos anteriores
+à raiz; a raiz contribui uma vez. Os compromissos dos
+dados auxiliares acrescentam as duas parcelas arredondadas
+de \eqref{eq:fcmp-commitment-counts}. A dimensão dos IPA
+cresce com o número de linhas e limita essas parcelas.
+Com efeito, \(m_{\rm S}\geq n(97+52a)\), pelo que
+\[
+ \left\lceil\frac{n(2304+512a)}{m_{\rm S}}\right\rceil
+ \leq
+ \left\lceil\frac{2304+512a}{97+52a}\right\rceil
+ \leq24.
+\]
+A última desigualdade resulta de
+\(2304+512a\leq24(97+52a)\), válida para \(a\geq0\).
+Quando \(b\geq1\), a outra dimensão satisfaz
+\(m_{\rm H}\geq32nb\), dando
+\[
+ \left\lceil\frac{512nb}{m_{\rm H}}\right\rceil\leq16.
+\]
+Para \(b=0\), essa parcela vale zero. Assim, nesta
+disposição, os compromissos auxiliares são no máximo
+quarenta, ao passo que os de ramos seguem exactamente
+a conta \(n(L-1)+1\). Os patamares da tabela exprimem
+as mudanças dentro desses limites.
+
+O número de pontos das rondas dos IPA cresce com os
+logaritmos das dimensões; os pontos que apresentam os
+ramos crescem com \(nL\). Para larguras fixas e profundidade
+mínima, \(L\) cresce logaritmicamente com o número de
+saídas. A ampliação do conjunto repercute-se, portanto,
+através da profundidade e dos limiares de acomodação,
+com a dependência exacta fixada por
+\eqref{eq:fcmp-membership-size}. A comparação de tamanhos
+pode ser feita a partir da raiz e da profundidade
+admitidas, antes de conhecer o caminho secreto.
+
+A prova reúne as condições desses caminhos em dois
+argumentos e acrescenta uma autorização por entrada.
+É esta organização que permite conservar uma escolha
+secreta entre os registos admitidos, enquanto a imagem
+e os compromissos públicos conservam as verificações
+de repetição e de equilíbrio.

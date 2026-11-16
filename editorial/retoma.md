@@ -1,14 +1,14 @@
 # Ponto de retoma
 
-Estado verificado em 11 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F7 concluída até ao transcrito e à análise da amostragem, em 32 das 38 páginas previstas. O livro compilado tem 300 páginas. O trabalho ficou em pausa a pedido do utilizador, com o âmbito integral preservado. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`.
+Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto. O livro compilado tem 306 páginas, ainda sem o poster novo. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`.
 
 ## Próxima unidade
 
-F8: composição final de segurança e custos completos. Reunir as garantias de pertença, autorização, vinculação ao gasto, imagem de chave e ocultação, com as hipóteses exactas das fontes primárias. Desenvolver a extracção descendente desde a raiz e a ligação a SAL sem repetir os cálculos já demonstrados. Deduzir o tamanho da prova a partir dos compromissos e dimensões de F6; as contagens preparatórias estão no registo de versões. O capítulo tem seis páginas de margem até às 38 previstas; a última página de F7 pode receber a continuação natural.
+Construir um poster novo para FCMP++, a partir da exposição concluída, e inseri-lo depois das 38 páginas de texto. Conferir a legibilidade, as relações e a ligação entre pertença, SAL e validação exterior. Prosseguir depois para as receitas de H_p e H, as assinaturas, a estrutura das entradas e o índice, conservando todo o âmbito abaixo.
 
-A preparação de F8 ficou guardada em `editorial/fcmp-F8-preparation.md`: hipóteses e limites da composição, tratamento da simulação com enunciado fixo, fórmulas exactas do tamanho e exemplos conferidos. O texto TeX de F8 ainda não foi iniciado. A pausa conserva os três PDFs verificados de F7.
+A preparação de F8 permanece em `editorial/fcmp-F8-preparation.md` como registo das fontes. O texto TeX já inclui a extracção descendente, a estabilidade da imagem, a simulação com enunciado fixo, as fórmulas exactas do tamanho e os custos. `editorial/checks/composition-costs-F8.py` verifica as contas e pode compará-las directamente com as funções Rust, compiladas isoladamente em /tmp.
 
-F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. Depois de F8, ajustar FCMP++ a 38 páginas de texto e construir o poster novo. O poster antigo permanece fora da composição; o capítulo antigo é recuperável pelo Git.
+F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. F8 conserva expressamente a hipótese de simulação da distribuição condicionada para a realização concreta. O poster antigo permanece fora da composição; o capítulo antigo é recuperável pelo Git.
 
 ## Restante âmbito autorizado
 
@@ -27,6 +27,6 @@ Os números de página dos pedidos referem-se ao exemplar impresso anterior; as 
 
 ## Verificação e composição
 
-As contas reproduzíveis estão em `editorial/checks/`. Os seis programas usam apenas Python 3 e a biblioteca padrão. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
+As contas reproduzíveis estão em `editorial/checks/`. Os sete programas usam Python 3 e a biblioteca padrão; a comparação opcional de F8 com a fonte exige também rustc. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
 
-Nesta sessão, `python3 /tmp/ztm-build-pt.py` compila o livro; `python3 /tmp/ztm-export-chapters.py` actualiza e confere os três PDFs. Os auxiliares, os padrões portugueses do TeX e as imagens de inspecção estão em `/tmp/ztm-editorial-build` e `/tmp/ztm-latex-deps`; são recursos temporários. O registo de versões documenta a preparação do ambiente. As fontes definitivas são `translations/pt/main.tex`, os ficheiros de conteúdo e a bibliografia; a composição normal usa pdflatex e bibtex, com as passagens necessárias para estabilizar as remissões.
+`python3 editorial/build-pt.py` compila o livro; acrescentar `--export` actualiza o PDF principal e chama `editorial/export-chapters.py`, que confere texto e imagem de todas as páginas dos excertos antes de os substituir. Os auxiliares, os padrões portugueses do TeX e as imagens de inspecção estão em `/tmp/ztm-editorial-build` e `/tmp/ztm-latex-deps`; são recursos temporários. Os programas de compilação e exportação ficam agora no repositório. O registo de versões documenta a preparação do ambiente. As fontes definitivas são `translations/pt/main.tex`, os ficheiros de conteúdo e a bibliografia; a composição normal usa pdflatex e bibtex, com as passagens necessárias para estabilizar as remissões.

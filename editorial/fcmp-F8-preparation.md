@@ -1,6 +1,6 @@
 # Preparação de F8 — composição e tamanho
 
-Fontes inspeccionadas em 11 de Novembro de 2026. Notas para a próxima unidade; ainda não incorporadas no capítulo. O ponto de recuperação textual e dos PDFs é `0ab541c`.
+Fontes inspeccionadas em 11 de Novembro de 2026. Notas de preparação histórica; a unidade foi incorporada e verificada em 16 de Novembro de 2026, conforme revision-log.md. O ponto de recuperação textual e dos PDFs é `0ab541c`.
 
 ## Composição
 

@@ -4,22 +4,19 @@
 % Original draft by Sarang Noether, Ph.D.; implementation review for this
 % edition against Monero revision 3646f648db57f60cca86430e25a635d19fa9b92a.
 
-A lista de blocos não publica os endereços dos remetentes e destinatários, e
-os montantes RingCT estão cifrados. Uma carteira pode, porém, divulgar provas
-limitadas sobre uma transacção ou sobre um conjunto de saídas. Este capítulo
-define as afirmações que essas provas sustentam, os dados que revelam e as
-condições que não demonstram.
+Uma carteira pode divulgar provas limitadas acerca de uma transacção ou de
+um conjunto de saídas, conservando reservados os segredos que as produzem.
+Cada prova fixa uma afirmação, os dados públicos necessários para a testar e
+o conhecimento exigido ao provador.
 
-Salvo indicação em contrário, as observações sobre a implementação referem-se
-à revisão do código Monero datada de 14 de Agosto de 2026
-\cite{monero-source-v16}. Estas provas são artefactos da carteira. Não fazem
-parte de uma transacção, não são verificadas pelo consenso e não alteram o
-estado da lista de blocos.
+Estes artefactos são transmitidos entre o provador e um observador, que os
+verifica com os dados da lista de blocos. A sua função é fornecer evidência
+sobre transacções já existentes \cite{monero-source-v16}.
 
 \section{Interface e alcance}
 \label{sec:proofs-monero-proofs}
 
-A carteira consultada gera quatro formatos:
+Consideraremos quatro formatos:
 
 \begin{center}
 \small
@@ -46,26 +43,15 @@ verificador calcula o total e a parte já gasta. \\
 \end{tabular}
 \end{center}
 
-Os verificadores ainda aceitam \texttt{InProofV1}, \texttt{OutProofV1} e
-\texttt{ReserveProofV1} para compatibilidade com artefactos antigos. A carteira
-gera as versões V2. A prova de gasto continua a usar
-\texttt{SpendProofV1}; não existe no código consultado uma
-\texttt{SpendProofV2}.
+As etiquetas distinguem a relação e a versão da sua codificação.
+\texttt{InProofV2} e \texttt{OutProofV2} demonstram recepção e montante;
+\texttt{SpendProofV1} demonstra conhecimento de chaves de gasto;
+\texttt{ReserveProofV2} permite enumerar saídas e consultar as respectivas
+imagens de chave. A condição «recebida» refere-se à criação da saída; o seu
+estado de gasto exige a verificação adicional dessas imagens.
 
-Na tabela, ``recebeu'' não significa ``permanece não gasta''. Uma prova de
-entrada ou de saída confirma a recepção e o montante, mas não determina se a
-saída foi gasta depois, não reconstrói a actividade de saída da carteira e
-não prova o saldo actual.
-
-Na carteira de linha de comandos, as operações agrupam-se assim:
-\begin{itemize}
- \item \texttt{get\_tx\_proof} e \texttt{check\_tx\_proof};
- \item \texttt{get\_spend\_proof} e \texttt{check\_spend\_proof};
- \item \texttt{get\_reserve\_proof} e \texttt{check\_reserve\_proof}.
-\end{itemize}
-A interface RPC da carteira expõe métodos com os mesmos nomes. A geração e a
-verificação recebem uma mensagem opcional. As duas partes têm de usar
-exactamente os mesmos bytes.
+A geração e a verificação usam a mesma mensagem de contexto, com exactamente
+os mesmos bytes.
 
 Para as provas relativas a uma só transacção, a mensagem assinada é
 \begin{align*}
@@ -201,7 +187,7 @@ recepções futuras da conta.
 \subsection{O estado gasto e a actividade de saída}
 \label{subsec:proofs-view-key-limit}
 
-Na hierarquia actualmente usada, a chave privada de vista detecta uma saída
+Na hierarquia do capítulo dos endereços, a chave privada de vista detecta uma saída
 recebida e descodifica o montante. Para decidir se essa saída foi gasta, a
 carteira tem de procurar na lista de blocos a sua imagem de chave. No caso
 principal,
@@ -229,13 +215,12 @@ montante recebido, mas não fornece a imagem de chave. Em contraste,
 de chave das saídas declaradas e permite ao verificador consultar o estado de
 gasto dessas imagens.
 
-\subsection{Âmbitos de vista previstos no Carrot}
+\subsection{Âmbitos de vista em Carrot}
 \label{subsec:proofs-carrot-view-tiers}
 \index{carrot@Carrot!ambitos de vista@âmbitos de vista}
 
-O protocolo de endereçamento Carrot, previsto para a actualização FCMP++,
-separa capacidades que a hierarquia anterior concentra ou não oferece
-\cite{carrot-specification}. Na hierarquia recomendada:
+O protocolo de endereçamento Carrot distribui as capacidades de observação
+por diferentes segredos \cite{carrot-specification}. Na sua hierarquia:
 \begin{itemize}
  \item a chave de vista de entrada \(k_v\), correspondente ao nível
  \emph{View-Received}, detecta pagamentos externos e troco externo, mas não
@@ -248,12 +233,10 @@ separa capacidades que a hierarquia anterior concentra ou não oferece
  \item o segredo \(s_{ga}\) permite gerar endereços sem conceder acesso à
  lista de blocos.
 \end{itemize}
-Assim, a capacidade de observar envios é fornecida pelo nível associado a
-\(s_{vb}\), não pela chave privada de vista legada. Os formatos descritos
-neste capítulo são os formatos
-da carteira actual. A especificação Carrot ainda não define versões desses
-formatos para saídas Carrot nem afirma que possam ser reutilizados sem
-adaptação.
+A capacidade de observar envios pertence ao nível associado a \(s_{vb}\).
+Os quatro formatos de prova aqui definidos usam as relações da hierarquia
+anterior; a construção de artefactos equivalentes para Carrot requer uma
+especificação das relações, dos dados públicos e dos traslados correspondentes.
 
 \section{Prova de gasto: \texttt{SpendProofV1}}
 \label{subsec:proofs-input-creation-spendproof}
@@ -261,12 +244,12 @@ adaptação.
 \index{prova@prova!de gasto@de gasto}
 
 Uma prova de gasto contém uma nova assinatura em anel para cada entrada de
-gasto; no código, estas entradas têm o tipo \texttt{txin\_to\_key}. A carteira
+gasto. A carteira
 reutiliza exactamente o anel e a imagem de chave da entrada original.
 Reutilizar os mesmos membros evita uma intersecção entre dois anéis diferentes
 que pudesse reduzir o anonimato.
 
-Embora as transacções activas usem CLSAG, esta prova auxiliar usa o esquema de
+Esta prova auxiliar usa o esquema de
 assinatura em anel original de CryptoNote \cite{cryptoNoteWhitePaper}. Para um
 anel \((K_1^o,\ldots,K_n^o)\), a posição real \(\pi\), a chave privada
 \(k_\pi^o\) e a imagem de chave
@@ -392,11 +375,11 @@ combinar estas provas com documentos externos e autenticação das partes. A
 lista de blocos e as provas da carteira, por si sós, não fornecem essa
 identidade.
 
-\section{Construções não implementadas}
+\section{Relações complementares de auditoria}
 
-As duas construções seguintes descrevem relações úteis para auditoria, mas
-não existem nas interfaces da carteira consultada. Não são formatos de prova
-aceites pelas ferramentas actuais.
+As relações seguintes permitem definir outras afirmações de auditoria. O seu
+uso como provas requer fixar uma codificação e um traslado próprios, sob as
+hipóteses dos argumentos de conhecimento que as realizam.
 
 \subsection{Provar que uma saída não corresponde a uma imagem de chave}
 \label{subsec:proofs-owned-output-spent-unspentproof}
@@ -438,8 +421,8 @@ O verificador confirma as duas provas e compara
 A igualdade indica que a imagem testada gastou a saída; a desigualdade exclui
 essa imagem, sob as hipóteses das provas. Para afirmar que a saída continua
 não gasta seria necessário repetir o teste para todas as entradas em que
-\(K^o\) aparece como membro do anel. Não há comando, formato serializado nem
-verificador desta construção no código Monero consultado.
+\(K^o\) aparece como membro do anel, relativamente ao prefixo da lista de
+blocos que se pretende auditar.
 
 \subsection{Provar a relação entre um endereço e um sub-endereço}
 \label{subsec:proofs-address-subaddress-correspond-subaddressproof}
@@ -456,15 +439,14 @@ uma prova de igualdade de logaritmos poderia usar
 \end{align*}
 O traslado teria de incluir uma separação de domínio própria, os dois
 endereços e a mensagem do verificador. Uma prova válida ligaria o
-sub-endereço à chave de vista principal sem divulgar \(k^v\). Esta
-\texttt{SubaddressProof} não está implementada no código consultado.
+sub-endereço à chave de vista principal sem divulgar \(k^v\).
 
 \subsection{Limite de uma auditoria completa}
 \label{subsec:audit-framework}
 \index{auditoria@auditoria!alcance das provas@alcance das provas}
 \label{sec:proofs-monero-audit-framework}
 
-Com provas de relação de sub-endereços e provas de não-gasto implementadas,
+Com protocolos que realizem as relações de sub-endereços e de não-gasto,
 um provador poderia apresentar uma auditoria mais selectiva:
 
 \begin{enumerate}

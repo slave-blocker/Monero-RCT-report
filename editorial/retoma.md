@@ -1,24 +1,39 @@
-# Ponto de retoma
+# Estado final
 
-Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 321 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`; o poster ficou em `8d85712`; as receitas de pontos e o gerador H ficaram em `ce00840`; as imagens de chave e DDH ficaram em `0e9b26c`; CLSAG ficou em `d5c4060`; Bulletproofs ficou em `d85fff7`; os índices das transacções ficaram em `268e951`; o índice remissivo ficou em `951f766`; a notação das relações SAL ficou em `bc897ab`.
+Revisão concluída e verificada em 16 de Novembro de 2026. O livro português tem **314 páginas**. Não resta trabalho pendente no âmbito autorizado registado nesta sessão. As fontes, os registos de revisão e os três PDFs finais constituem o resultado. Os commits são locais; não foi feito push.
 
-## Próxima unidade
+## Artefactos e extensão
 
-Prosseguir a revisão global de terminologia, exposição afirmativa e composição. A notação I/J e as máscaras estão reconciliadas nos capítulos das relações entre geradores e das multi-assinaturas. A exposição de multi-assinaturas e mercados já separa a matemática do estado das interfaces; as duas distribuições de segredos SAL estão derivadas e verificadas (commit `6c5a91a`). As tabelas das relações entre geradores têm letra maior; os destinos de títulos, bibliografia e apêndices estão corrigidos. O índice remissivo está composto no fim, com 371 entradas e seis páginas: símbolos, siglas, sinónimos, remissões e ligações para as páginas de explicação. A compilação estabiliza também o índice. As unidades locais de conteúdo estão concluídas; falta a revisão transversal e a inspecção integral.
+| Artefacto | Estado verificado |
+|---|---|
+| `Zero-to-Monero-2-0-0-pt.pdf` | Livro completo, 314 páginas. |
+| `translations/pt/Divisores-pt.pdf` | 30 páginas, iguais às páginas físicas 41–70 do livro. |
+| `translations/pt/FCMP-pt.pdf` | 38 páginas de texto, físicas 194–231, mais o poster A3 na 232. |
+| `translations/pt/posters/fcmp-composition/` | Poster novo, com fonte TeX e PDF vectorial. |
+| Índice remissivo | 371 entradas aceites; seis páginas, físicas 308–313; remissões verificadas. |
 
-A preparação de F8 permanece em `editorial/fcmp-F8-preparation.md` como registo das fontes. O texto TeX já inclui a extracção descendente, a estabilidade da imagem, a simulação com enunciado fixo, as fórmulas exactas do tamanho e os custos. `editorial/checks/composition-costs-F8.py` verifica as contas e pode compará-las directamente com as funções Rust, compiladas isoladamente em /tmp.
+## Âmbito concluído
 
-F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. F8 conserva expressamente a hipótese de simulação da distribuição condicionada para a realização concreta. O poster novo está em `translations/pt/posters/fcmp-composition/`; os dois conjuntos de figuras antigos foram retirados e permanecem recuperáveis pelo Git.
+- Divisores D1–D5 e reconstrução de FCMP++ F1–F8 a partir das fontes primárias, incluindo os certificados, os seus custos e o poster novo.
+- Representações canónicas, receitas de hash para pontos, gerador H, domínio das imagens de chave e pergunta DDH.
+- Desenvolvimento adicional de CLSAG; verificação de Bulletproofs por duas condições; retirada da repetição localizada na antiga página impressa 109.
+- Índices locais, globais e relativos dos anéis, varints, leitura de extra e exemplos completos.
+- Notação cumulativa das relações entre geradores, tabelas legíveis, autorização distribuída e mercados com garantia.
+- Revisão global de terminologia, exposição afirmativa e separação entre matemática, fontes e pormenores incidentais de implementação.
+- Inspecção integral, recompilação, verificação de sumário/índice, exportação dos excertos e fecho em Git.
 
-## Restante âmbito autorizado
+## Evidência de verificação
 
-- Revisão global de «de/por/em Monero», «lista de blocos» e exposição afirmativa.
-- Compilar e inspeccionar o livro completo, os excertos e o índice; fechar as alterações restantes em commits verificados. Não foi pedido push.
+A compilação estabiliza com zero avisos de caixas, sem referências ou citações por resolver. Makeindex aceita as 371 entradas sem rejeições nem avisos. Foram conferidos os destinos, páginas e títulos das 293 entradas do sumário, as 296 âncoras de títulos, as 342 referências numéricas do índice e os alvos das 29 remissões «ver». Os excertos foram comparados com o livro por texto e imagem em todas as páginas.
 
-Os números de página dos pedidos referem-se ao exemplar impresso anterior; as localizações actuais devem ser identificadas pelo conteúdo. A nota terminológica solicitada já está em FCMP++, e as directivas de estilo estão em AGENTS.md.
+O desenvolvimento matemático e os resultados das verificações reproduzíveis estão em `revision-log.md`, `protocol-version-ledger.md` e `checks/README.md`. Os programas em `checks/` conservam o âmbito das identidades e exemplos verificados; não substituem as hipóteses criptográficas nem constituem uma auditoria da rede em funcionamento.
 
-## Verificação e composição
+F7 conserva o modelo de dados fixados antes de desafios ideais, distinguindo a redução de hashes e as tentativas adaptativas de Fiat–Shamir. F8 conserva a hipótese de simulação da distribuição condicionada e o domínio de admissibilidade dos certificados. Estes limites fazem parte da exposição concluída, não são tarefas pendentes.
 
-As contas reproduzíveis estão em `editorial/checks/`. Os programas usam Python 3 e a biblioteca padrão; a comparação opcional de F8 com a fonte exige rustc, e a comparação dos mapas com a fonte C exige gcc, libsodium e os cabeçalhos indicados no registo de versões. Os registos de notação, dependências, fontes e revisão descrevem o âmbito e os limites das verificações.
+As notas de fontes retiradas do corpo estão em `source-margin-inventory.md`; o estado das interfaces de multi-assinatura está em `multisig-interface-snapshot.md`. As notas de preparação de F8 são históricas. Os capítulos e figuras substituídos permanecem recuperáveis pelo historial Git.
 
-`python3 editorial/build-pt.py` compila o livro; acrescentar `--export` actualiza o PDF principal e chama `editorial/export-chapters.py`, que confere texto e imagem de todas as páginas dos excertos antes de os substituir. Os auxiliares, os padrões portugueses do TeX e as imagens de inspecção estão em `/tmp/ztm-editorial-build` e `/tmp/ztm-latex-deps`; são recursos temporários. Os programas de compilação e exportação ficam agora no repositório. O registo de versões documenta a preparação do ambiente. As fontes definitivas são `translations/pt/main.tex`, os ficheiros de conteúdo e a bibliografia; a composição normal usa pdflatex e bibtex, com as passagens necessárias para estabilizar as remissões.
+## Reprodução
+
+`python3 editorial/build-pt.py` compila o livro; `--export` actualiza o PDF principal e chama `editorial/export-chapters.py`, que confere texto e imagem de todas as páginas dos excertos antes de os substituir. O ambiente e as dependências estão descritos em `building.md` e no registo de versões. Os auxiliares e as imagens de inspecção em `/tmp` são temporários; as fontes definitivas e os programas de compilação/exportação estão no repositório.
+
+Os principais marcos anteriores ao fecho foram `f4858c0` (F8), `8d85712` (poster), `ce00840` (receitas de pontos), `0e9b26c` (imagens/DDH), `d5c4060` (CLSAG), `d85fff7` (Bulletproofs), `268e951` (índices das transacções), `951f766` (índice remissivo), `bc897ab` (notação SAL), `6c5a91a` (autorização partilhada) e `c5b236a` (tabelas e destinos). O commit que contém este estado final fecha a revisão transversal e os PDFs definitivos.

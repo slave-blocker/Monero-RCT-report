@@ -3,7 +3,7 @@
 | Símbolo | Significado e domínio | Regra editorial |
 |---|---|---|
 | \(\mathbb F\), \(\mathbb F_q\) | Corpo das coordenadas da curva em estudo | Nas contas iniciais, \(q\) primo maior que três; exemplo em \(\mathbb F_{17}\). |
-| \(\ell\), \(l\) | Ordem prima do subgrupo criptográfico | Distinguir de \(q\); uniformização global pendente. |
+| \(\ell\), \(l\) | Ordem prima do subgrupo criptográfico | Distinguir de \(q\). Usa-se l nas construções de Edwards25519 e ℓ na apresentação geral dos divisores e dos subgrupos de FCMP++; ambos designam a ordem do subgrupo explicitamente indicado, não o módulo das coordenadas. ℓ_A distingue a ordem de cada base A. |
 | \(\mathbb E\) | Curva elíptica | Weierstrass nos divisores, com transformação de representação explicitada quando necessária. |
 | \(a_{\mathbb E},b_{\mathbb E}\) | Coeficientes da equação da curva | Reservar \(a,b\) simples conforme a construção posterior; evitar colisões locais. |
 | \(\mathcal O_\infty\) | Identidade na apresentação de Weierstrass | Explicar a representação projectiva antes de calcular ordens nesse ponto. |
@@ -37,7 +37,7 @@
 
 ## Convenções da nova exposição de FCMP++
 
-Preservar I como imagem de chave, conforme bLSAG e CLSAG. Usar J para a base da imagem. Na tradução das fontes primárias, o I da fonte passa a J no livro, e o L da fonte passa a I. A notação da secção pertinente de `dlogRelations.tex` será reconciliada no exame global; o capítulo antigo de FCMP++ foi substituído, sem conservar os seus esquemas de notação por inércia.
+Preservar I como imagem de chave, conforme bLSAG e CLSAG. Usar J para a base da imagem. Na tradução das fontes primárias, o I da fonte passa a J no livro, e o L da fonte passa a I. A notação da secção pertinente de `dlogRelations.tex` foi reconciliada no exame global; o capítulo antigo de FCMP++ foi substituído, sem conservar os seus esquemas de notação por inércia.
 
 | Símbolo | Significado | Correspondência com as fontes |
 |---|---|---|
@@ -106,7 +106,7 @@ Preservar I como imagem de chave, conforme bLSAG e CLSAG. Usar J para a base da 
 | \(\mathsf{Mult}_A(W;\boldsymbol u,f)\) | Relações do certificado de multiplicação de D5 | Abreviatura das sete multiplicações, condições lineares, normalização e fixação anterior ao desafio. |
 | \(N_{\rm S},N_{\rm H},m_{\rm S},m_{\rm H},\operatorname{pot}_2\) | Linhas dos circuitos, dimensões dos IPA e arredondamento à potência de dois seguinte | N_S = n(97+52⌊(L−1)/2⌋); N_H = 32n⌊L/2⌋. m_S = pot₂(max(256,N_S)); m_H = pot₂(max(128,n,N_H)). |
 
-As etiquetas existentes são mantidas durante as unidades locais para preservar as referências a jusante. A estrutura definitiva será reconciliada quando cada capítulo ficar integralmente reescrito.
+As etiquetas existentes foram conservadas para preservar as referências a jusante. A estrutura definitiva foi reconciliada e as remissões foram verificadas na compilação integral.
 
 ## Transcrito e amostragem
 
@@ -133,7 +133,7 @@ M(u) designa o mapa algébrico de um elemento do corpo das coordenadas para Edwa
 
 ## CLSAG
 
-J_i=H_p(K_i,1) é a base comum das imagens da coluna i; I_j são imagens, com I_1 como marcador primário. W_i é a chave agregada e Wtilde a imagem agregada; w_pi é a combinação escalar extraível. Na aplicação de duas linhas, I=pJ_pi e D=zJ_pi, com Dbar=[8^-1 mod l]D. c_P,i e c_C,i designam os representantes canónicos de c_i mu_P e c_i mu_C, necessários para formular a verificação também perante membros com torção. O domínio primo permite recuperar a factorização por c_i. A harmonização do capítulo das relações de logaritmo discreto continua pendente.
+J_i=H_p(K_i,1) é a base comum das imagens da coluna i; I_j são imagens, com I_1 como marcador primário. W_i é a chave agregada e Wtilde a imagem agregada; w_pi é a combinação escalar extraível. Na aplicação de duas linhas, I=pJ_pi e D=zJ_pi, com Dbar=[8^-1 mod l]D. c_P,i e c_C,i designam os representantes canónicos de c_i mu_P e c_i mu_C, necessários para formular a verificação também perante membros com torção. O domínio primo permite recuperar a factorização por c_i. O capítulo das relações de logaritmo discreto usa a mesma convenção, conforme a conferência registada abaixo.
 
 ## Consistência depois de FCMP++
 

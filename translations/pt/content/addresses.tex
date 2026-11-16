@@ -15,11 +15,10 @@ gastas. A conservação dos valores e a ocultação dos montantes serão tratada
 nos capítulos \ref{chapter:pedersen-commitments} e \ref{chapter:transactions};
 aqui isolaremos o encaminhamento e a detecção das saídas.
 
-Salvo indicação em contrário, todas as observações sobre a implementação
-neste capítulo referem-se à revisão do código Monero identificada no resumo
-inicial. A distinção será importante:
-algumas formas estão impostas pelo consenso da versão~16, ao passo que outras
-são convenções das carteiras para que remetentes e destinatários se entendam.
+As saídas obedecem às condições de consenso da versão~16; os endereços e as
+derivações seguem as convenções de carteira aqui definidas
+\cite{monero-source-v16}. Essas convenções permitem que remetente e
+destinatário obtenham os mesmos pontos a partir dos seus respectivos dados.
 
 \section{Chaves}
 \label{sec:user-keys}
@@ -48,8 +47,8 @@ assinar uma transacção. Sem imagens de chave importadas de uma carteira
 completa, também não consegue decidir com segurança se uma saída detectada já
 foi gasta. A capacidade de observação não confere autoridade de gasto.
 
-As carteiras determinísticas da implementação consultada geram primeiro
-\(k^s\) e derivam normalmente \(k^v=\mathcal H_n(k^s)\). É uma convenção de
+A derivação determinística de carteira aqui considerada gera primeiro
+\(k^s\) e deriva \(k^v=\mathcal H_n(k^s)\). É uma convenção de
 recuperação da carteira, não uma equação exigida pelo consenso; também é
 possível importar dois segredos independentes. Em qualquer caso, os segredos
 devem ser escalares canónicos e os pontos públicos esperados pertencem ao
@@ -66,27 +65,25 @@ binária de um endereço principal é
 \[
  \operatorname{varint}(18)\mathbin\|K^s\mathbin\|K^v,
 \]
-pela mesma ordem em que os dois pontos aparecem na estrutura
-\texttt{account\_public\_address}. Calcula-se Keccak--256 sobre essa entrada,
+com a chave de gasto antes da chave de vista. Calcula-se Keccak--256 sobre essa entrada,
 juntam-se os primeiros quatro bytes do resultado como soma de verificação e
 codifica-se tudo em blocos Base58. O resultado tem 95 caracteres e começa
 habitualmente por «4». O número 18, e não esse primeiro carácter isolado, é
 o prefixo que identifica simultaneamente a rede e o tipo de endereço.
-\marginnote{src/ common/ base58. cpp {\tt encode\_ addr()};
-src/ crypto- note\_ basic/ crypto- note\_ basic\_ impl.cpp}
 
-Ao descodificar, a implementação exige Base58 bem formada, soma de verificação
+
+Ao descodificar, exige-se Base58 bem formada, soma de verificação
 correcta, prefixo da rede e comprimento apropriados, e duas codificações
-canónicas de pontos da curva. A soma de quatro bytes detecta enganos de cópia;
-não autentica Bob, não cifra o endereço e não prova que alguém conhece as
-chaves privadas.
+canónicas de pontos da curva. A soma de quatro bytes detecta enganos de cópia.
+A autenticação do destinatário e a demonstração de conhecimento das chaves
+privadas exigem procedimentos próprios.
 
-\textbf{Requisitos.} A rotina \texttt{check\_key()} confirma que cada sequência
-de 32 bytes representa canonicamente um ponto da curva, mas não testa por si só
-se o ponto é não nulo e pertence ao subgrupo de ordem \(l\). Uma carteira
-robusta deve exigir estas últimas condições para chaves de endereço, além de
-rejeitar escalares nulos ou não canónicos. As chaves produzidas pelo gerador
-normal satisfazem-nas por construção.
+\textbf{Requisitos.} O teste de codificação confirma que cada sequência de
+32 bytes representa canonicamente um ponto da curva. A pertença ao subgrupo
+de ordem \(l\) e a exclusão da identidade são condições adicionais que uma
+carteira robusta deve exigir para chaves de endereço, juntamente com escalares
+nulos excluídos e representações escalares canónicas. As chaves produzidas
+pela construção anterior satisfazem-nas.
 
 \section{Endereços ocultos}
 \label{sec:one-time-addresses}
@@ -94,11 +91,10 @@ normal satisfazem-nas por construção.
 \index{chave@chave!de utilizacao unica@de utilização única}
 \index{stealth address@stealth address|see{endereço, oculto}}
 
-Alice não escreve o endereço principal de Bob numa saída. Aplica-lhe antes uma
-troca semelhante a Diffie--Hellman e cria uma chave pública nova para cada
-saída \cite{cryptoNoteWhitePaper}. O livro chamou historicamente a estes
-objectos \emph{endereços ocultos}; diremos também, com maior precisão,
-\emph{chaves de saída de utilização única}. Um observador pode ver a chave de
+Alice aplica ao endereço principal de Bob uma troca semelhante a Diffie--Hellman
+e cria uma chave pública nova para cada saída \cite{cryptoNoteWhitePaper}.
+Estes \emph{endereços ocultos} são chaves de saída de utilização única.
+Um observador pode ver a chave de
 saída, mas não o endereço público do qual ela foi derivada.
 
 \subsection*{Uma saída para um endereço principal}
@@ -110,8 +106,7 @@ construção de cada uma pode ser estudada separadamente. Alice conhece
 
 \begin{enumerate}
  \item Gera, de modo uniforme, um escalar efémero não nulo
- \(r\in_R\mathbb{Z}_l^*\). A função usada pela implementação rejeita zero e
- produz uma representação escalar canónica.
+ \(r\in_R\mathbb{Z}_l^*\), representado canonicamente.
 
  \item Calcula a \emph{chave pública de transacção} ordinária
  \[
@@ -121,8 +116,7 @@ construção de cada uma pode ser estudada separadamente. Alice conhece
  \[
   \mathcal D_B=8rK_B^v.
  \]
- O factor 8 é o cofactor da curva. Faz parte da rotina
- \texttt{generate\_key\_derivation()} e não deve ser omitido.
+ O factor 8 é o cofactor da curva e faz parte da definição da derivação.
 
  \item Liga a derivação à posição serializada da saída:
  \begin{align*}
@@ -138,10 +132,7 @@ construção de cada uma pode ser estudada separadamente. Alice conhece
  etiqueta de vista que definiremos abaixo. O compromisso que oculta o
  montante será explicado na Secção \ref{sec:pedersen_monero}.
 \end{enumerate}
-\marginnote{src/crypto/ crypto.cpp
-{\tt generate\_ key\_ deri- vation()},
-{\tt deri- vation\_ to\_ scalar()} e
-{\tt derive\_ pu- blic\_ key()}}[-6cm]
+
 
 Ao percorrer a lista de blocos, Bob lê \(R\) e calcula
 \[
@@ -179,24 +170,24 @@ acima já estão no subgrupo de ordem \(l\). A multiplicação por 8 tem uma fun
 mais geral: elimina a componente de torção de qualquer ponto Edwards
 descodificável antes de este ser usado como derivação. Não transforma, porém,
 uma chave maliciosa numa chave autenticada. Um ponto de baixa ordem pode
-resultar na identidade depois dessa multiplicação, e uma sequência que nem
-sequer codifique canonicamente um ponto faz
-\texttt{generate\_key\_derivation()} falhar.
+resultar na identidade depois dessa multiplicação. A derivação exige ainda
+que os bytes de entrada codifiquem canonicamente um ponto; caso contrário,
+o cálculo é rejeitado.
 
 As carteiras devem, pois, rejeitar ou saltar chaves públicas de transacção
 malformadas e exigir chaves de endereço não nulas no subgrupo primo. Também
 devem evitar o caso negligível \(k_t^o=0\), regenerando o segredo efémero se
-necessário. A implementação gera \(r\) uniformemente em \(\mathbb{Z}_l^*\), e
-os seus pontos honestos têm codificação canónica.
+necessário. Na construção honesta, \(r\) é uniforme em \(\mathbb{Z}_l^*\), e
+os pontos têm codificação canónica.
 
 Há aqui uma fronteira de protocolo fácil de perder. O consenso valida que a
 chave pública de cada saída é uma codificação de ponto admissível e, na
 versão~16, que o alvo tem a variante com etiqueta. Não prova a relação entre
 \(K_t^o\), \(R\) e qualquer endereço, nem exige que uma chave pública de
 transacção semanticamente válida exista em \texttt{extra}; esses são
-contractos de interoperabilidade das carteiras. A rotina de consenso
-\texttt{check\_key()} também não impõe, isoladamente, pertença ao subgrupo
-primo. Uma transacção deliberadamente defeituosa pode assim ser aceite pelo
+contractos de interoperabilidade das carteiras. O teste de codificação
+aplicado pelo consenso admite pontos fora do subgrupo primo.
+Uma transacção deliberadamente defeituosa pode assim ser aceite pelo
 consenso e, ainda assim, criar uma saída que a carteira pretendida não
 consiga encontrar ou gastar.
 
@@ -205,8 +196,7 @@ consiga encontrar ou gastar.
 \index{view tag@view tag|see{etiqueta de vista}}
 
 Testar \(K_t^o-h_tG\) contra uma grande tabela de chaves públicas custa mais do
-que comparar um byte. Para cada derivação e índice, o remetente da
-implementação consultada calcula
+que comparar um byte. Para cada derivação e índice, o remetente calcula
 \[
  v_t=\operatorname{primeiroByte}\!\left(
  \mathcal H\bigl(
@@ -216,10 +206,7 @@ implementação consultada calcula
 onde \(\mathcal H\) é Keccak--256 sem redução escalar, e inclui \(v_t\) junto
 de \(K_t^o\). O sal ASCII de oito bytes \texttt{view\_tag} separa este uso dos
 restantes hashes.
-\marginnote{src/crypto/ crypto.cpp
-{\tt derive\_ view\_ tag()};
-src/crypto- note\_basic/
-cryptonote\_ format\_ utils.cpp}
+
 
 Ao examinar uma saída, Bob calcula primeiro o seu próprio \(v_t\). Se os bytes
 diferirem, a carteira salta logo a derivação pública completa. Se coincidirem,
@@ -231,7 +218,7 @@ o teste completo.
 
 Na versão~15 houve um período de transição em que uma transacção podia usar
 alvos antigos sem etiqueta ou alvos etiquetados, desde que todas as suas
-saídas tivessem o mesmo tipo. Na versão~16, congelada para esta edição, cada
+saídas tivessem o mesmo tipo. Na versão~16, cada
 saída tem obrigatoriamente a variante \texttt{txout\_to\_tagged\_key} e uma
 etiqueta de exactamente um byte. Saídas históricas sem etiqueta continuam a
 ser lidas pelo caminho de varrimento completo.
@@ -255,7 +242,7 @@ sem entregar essa chave, recorreremos ao Capítulo
 
 A transacção corrente costuma pagar ao destinatário e devolver troco ao
 remetente. Para transacções RingCT não mineiras, a versão~16 exige por
-consenso pelo menos duas saídas. A forma canónica de Bulletproof+ usada nessa
+consenso pelo menos duas saídas. A forma canónica de Bulletproofs+ usada nessa
 versão agrega no máximo 16; por isso, uma transacção corrente tem
 \(2\leq p\leq16\) saídas. As razões de valor e a prova de intervalo ficam para
 o capítulo seguinte.
@@ -273,9 +260,7 @@ destinada a \((K_t^s,K_t^v)\), definimos
  K_t^o&=h_tG+K_t^s=(h_t+k_t^s)G,\\
  k_t^o&=h_t+k_t^s\pmod{l}.
 \end{align*}
-\marginnote{src/crypto- note\_core/
-cryptonote\_ tx\_utils.cpp
-{\tt construct\_ tx\_ with\_ tx\_ key()}}[-6cm]
+
 
 Mesmo que Alice pague duas vezes ao mesmo endereço na mesma transacção, os
 índices diferentes entram no hash e produzem chaves de saída distintas,
@@ -303,12 +288,11 @@ contrário de publicar repetidamente o endereço principal, isto evita que um
 observador ligue essas identidades apenas por igualdade textual
 \cite{MRL-0006-subaddresses}.
 
-Os sub-endereços entraram no software associado à versão~7 do protocolo
-\cite{subaddress-pull-request}. A carteira mantém uma tabela das respectivas
+A carteira mantém uma tabela das respectivas
 chaves públicas de gasto: construir essa tabela requer tempo e memória
 proporcionais ao número de sub-endereços, mas cada saída candidata pode ser
 classificada por uma consulta à tabela, sem uma nova passagem completa pela
-lista de blocos para cada endereço.
+lista de blocos para cada endereço \cite{subaddress-pull-request}.
 
 \subsection*{Derivação e codificação}
 
@@ -336,11 +320,7 @@ A partir das chaves principais de Bob calcula
 \end{align*}
 O sub-endereço é o par
 \((K_B^{s,\iota},K_B^{v,\iota})\).
-\marginnote{src/device/
-device\_ default.cpp
-{\tt get\_ sub- address\_
-secret\_ key()} e
-{\tt get\_ sub- address()}}[-6cm]
+
 
 Não se introduz aqui uma nova chave privada
 \(k_B^{v,\iota}\) com o papel da chave de vista principal. Uma carteira
@@ -412,18 +392,12 @@ Depois do teste da etiqueta, subtrai \(h_tG\) de \(K_t^o\). O resultado
 Alice conhece \(r\), as duas chaves públicas e \(h_t\), mas não conhece
 \(k_B^{s,\iota}\) e portanto não obtém \(k_t^o\). A carteira só de vista
 chega à identificação, mas não a esse segredo.
-\marginnote{src/crypto/
-crypto.cpp
-{\tt derive\_ sub- address\_
-public\_ key()};
-src/crypto- note\_ core/
-crypto- note\_ tx\_ utils.cpp}[-6cm]
+
 
 \subsubsection*{Chave principal e chaves adicionais}
 
-Uma só fórmula não descreve todos os lotes de destinatários. Na revisão
-consultada, a carteira classifica os \emph{endereços distintos que não são de
-troco} e escolhe as chaves públicas de transacção assim:
+A construção das chaves públicas depende dos \emph{endereços distintos que
+não são de troco}. A regra da carteira distingue três casos:
 
 \begin{itemize}
  \item Se todos forem endereços principais, usa uma chave principal
@@ -487,9 +461,9 @@ externas automáticas reduz o oráculo, mas uma defesa criptográfica completa
 exige um contracto adicional entre remetente e carteira receptora. As
 propostas incluem publicar material que permita à carteira completa verificar
 que a chave de vista e a chave de gasto usadas pelo remetente pertencem ao
-mesmo sub-endereço \cite{janus-mitigation-issue-62}. Tal ligação não é hoje
-uma regra de consenso, pelo que uma mitigação de carteira deve declarar
-exactamente o que verifica e como trata transacções antigas.
+mesmo sub-endereço \cite{janus-mitigation-issue-62}. Uma mitigação de carteira
+tem de fixar essa relação adicional e o tratamento das transacções que
+seguem as convenções anteriores.
 
 \section{Endereços integrados}
 \label{sec:integrated-addresses}
@@ -514,13 +488,11 @@ oito bytes de ID. O prefixo integrado só é aceite com o par de um endereço
 principal; não existe uma codificação integrada de sub-endereço
 \cite{integrated-addresses}.
 
-Estes endereços continuam suportados na revisão consultada por motivos de
-compatibilidade. Não devem confundir-se com os antigos IDs de pagamento
-autónomos de 32 bytes, escritos em claro em \texttt{extra}: a carteira corrente
-recusa criá-los e ignora-os em blocos a partir da versão~12, conservando apenas
-caminhos de leitura histórica. Um \texttt{extra} transporta no máximo um ID
+O ID integrado tem oito bytes e é cifrado para o destinatário. Os IDs
+autónomos de 32 bytes pertencem ao formato histórico, em que eram publicados
+em claro em \texttt{extra}. Um \texttt{extra} transporta no máximo um ID
 curto cifrado, sem indicar a que saída pertence. Por isso, a construção
-corrente requer uma única chave de vista de destinatário não troco a quem o
+aqui definida requer uma única chave de vista de destinatário não troco a quem o
 associar; um pagamento agrupado para destinatários distintos não oferece uma
 atribuição inequívoca.
 
@@ -544,9 +516,7 @@ O valor colocado no nonce de \texttt{extra} é
 Aqui não se aplica \(\mathcal H_n\), não há redução módulo \(l\) e não entra
 qualquer índice de saída. O byte \texttt{0x8d}, de valor decimal 141, separa
 este hash dos hashes das chaves de saída e das etiquetas de vista.
-\marginnote{src/device/
-device\_ default.cpp
-{\tt encrypt\_ payment\_ id()}}
+
 
 \subsubsection*{Descodificar}
 
@@ -575,16 +545,8 @@ não de uma regra de consenso; ao descodificá-lo obtêm-se oito bytes nulos.
 \index{endereco@endereço!de multi-assinatura@de multi-assinatura}
 
 Uma carteira de multi-assinatura faz várias partes cooperarem para controlar
-as chaves descritas neste capítulo. Não existe, no entanto, um prefixo Base58,
-um tipo de endereço ou uma espécie de saída de consenso reservados para
-«multi-assinatura»: o endereço partilhado contém o par público habitual e o
-remetente cria uma chave de saída de utilização única habitual. A diferença
-está em como os participantes formam e usam os segredos da carteira.
-
-Na revisão de implementação fixada para este capítulo, o suporte da carteira
-é marcado como experimental, vem desactivado e a interface de linha de
-comandos exige activá-lo explicitamente com
-\texttt{set enable-multisig-experimental 1}; a interface RPC apresenta
-igualmente um aviso de perigo. Isto é estado do software, não uma restrição de
-consenso. O Capítulo \ref{chapter:multisignatures} desenvolve o protocolo e as
-suas hipóteses operacionais.
+as chaves descritas neste capítulo. O endereço partilhado contém o par
+público habitual, e o remetente cria uma chave de saída de utilização única
+pela mesma derivação. A repartição intervém na formação e no uso dos segredos
+da carteira. O capítulo \ref{chapter:multisignatures} desenvolve o protocolo
+e as suas hipóteses operacionais.

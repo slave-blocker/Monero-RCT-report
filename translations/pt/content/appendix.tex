@@ -239,7 +239,7 @@ nomes do JSON, mas diz expressamente a que época pertencem.
  obrigatória nas saídas v16.
 
  \item {\tt extra} (linhas 36--39) contém bytes interpretados por etiquetas.
- \marginnote{\scriptsize\path{src/cryptonote_basic/tx_extra.h}} A etiqueta
+  A etiqueta
  `1' introduz a chave pública de transacção \(rG\), de 32 bytes e comprimento
  implícito. A etiqueta `2' introduz um \emph{nonce} de nove bytes: o primeiro,
  `1', identifica um ID de pagamento cifrado; os oito seguintes contêm-no.
@@ -401,7 +401,7 @@ O bloco de génese é a excepção que permite todas as regras posteriores: não
 tem antecessor, e a sua identidade é fixada pela implementação. Não contém
 transacções ordinárias; contém apenas a transacção de mineiro que atribui a
 primeira subvenção a thankful\_for\_today \cite{bitmonero-launched}. O campo
-temporal vale zero. O código inicial do Monero derivou de Bytecoin, cuja
+temporal vale zero. O código inicial de Monero derivou de Bytecoin, cuja
 história se encontra descrita em \cite{monero-history,bytecoin-network}.
 
 O bloco 1 foi adicionado à rede com o carimbo temporal
@@ -458,12 +458,12 @@ reward: 17592186044415
 
 O mesmo comando imprimiu este bloco e o do apêndice
 \ref{appendix:block-content}; por isso, a forma exterior é semelhante. As
-diferenças, porém, dizem exactamente onde começa a cadeia.
+diferenças, porém, dizem exactamente onde começa a lista de blocos.
 
 \begin{itemize}
  \item A dificuldade calculada é `1', o mínimo. O \emph{nonce} `10000' é o
  valor fixado para este bloco; não resulta de uma competição de mineração
- observável na cadeia.
+ observável na lista de blocos.
 
  \item {\tt timestamp}=0 não representa uma data civil significativa. O
  primeiro carimbo temporal posterior fornece apenas um limite plausível, não
@@ -481,7 +481,7 @@ diferenças, porém, dizem exactamente onde começa a cadeia.
 
  \item Os vectores {\tt signatures} e {\tt tx\_hashes} estão vazios: a
  transacção de mineiro v1 não tem assinatura de gasto e o bloco não inclui
- transacções ordinárias. O JSON mostra explicitamente o vazio; a cadeia, com
+ transacções ordinárias. O JSON mostra explicitamente o vazio; a lista de blocos, com
  uma sobriedade muito sua, nada acrescenta.
 \end{itemize}
 
@@ -624,8 +624,8 @@ Obtemos a identidade limpa
 \[
  \langle\underline l_0,\underline r_0\rangle=z^2v+\delta(y,z).
 \]
-O termo \(\delta(y,z)\) não é um remendo misterioso: é exactamente o resto
-conhecido produzido pelas deslocações em \(z\). As componentes aleatórias dos
+O termo \(\delta(y,z)\) é o resto conhecido produzido pelas deslocações
+em \(z\). As componentes aleatórias dos
 polinómios acrescentam os coeficientes de grau um e dois; esta igualdade fixa
 o termo constante ao montante comprometido.
 

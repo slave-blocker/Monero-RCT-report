@@ -5,8 +5,7 @@ computação.
 
 Uma cripto-moeda usa criptografia para definir e transferir a posse de fundos.
 Para impedir que a mesma moeda seja gasta duas vezes ou que novas moedas sejam
-criadas arbitrariamente, as transacções são registadas numa lista de blocos
-(\emph{blockchain}): um registo público e distribuído que terceiros
+criadas arbitrariamente, as transacções são registadas numa lista de blocos: um registo público e distribuído que terceiros
 podem verificar \cite{Nakamoto_bitcoin}. A verificabilidade pública não exige
 que remetentes, destinatários e montantes fiquem expostos: Monero oculta
 remetentes e destinatários segundo o protocolo CryptoNote
@@ -14,19 +13,17 @@ remetentes e destinatários segundo o protocolo CryptoNote
 \cite{MRL-0005-ringct}, permitindo ainda que a rede confirme a validade das
 transacções.
 
-Para os leitores experientes: a rede principal usa criptografia sobre a curva
-Edwards25519 \cite{Bernstein2008}, endereços de utilização única, assinaturas
-em anel CLSAG, compromissos de Pedersen e provas de intervalo Bulletproof+.
-Cada anel tem 16 membros e as saídas incluem etiquetas de vista. RandomX
-protege a prova de trabalho; Dandelion++ intervém na difusão inicial de
-transacções, não nas regras de consenso. Este livro apresenta os fundamentos e
-a notação antes de descrever a sua composição no protocolo.
+A construção RingCT aqui estudada combina a curva Edwards25519
+\cite{Bernstein2008}, endereços de utilização única, assinaturas em anel
+CLSAG, compromissos de Pedersen e provas de intervalo Bulletproofs+.
+Na especialização de consenso da versão 16, os anéis têm 16 membros e as
+saídas incluem etiquetas de vista \cite{monero-source-v16}. RandomX fornece
+a função de prova de trabalho e Dandelion++ organiza a difusão inicial de
+transacções.
 
-A segunda edição original descreve o protocolo v12. A rede principal actual de
-Monero usa o protocolo v16, estado conferido na revisão do código-fonte
-datada de 14 de Agosto de 2026 \cite{monero-source-v16}. A edição portuguesa
-foi revista relativamente a esse estado. As construções de épocas anteriores
-permanecem quando ensinam uma derivação que o protocolo moderno herdou; nesses
-casos, são identificadas expressamente como históricas. As propostas que nunca
-foram implementadas são igualmente separadas das funcionalidades disponíveis.
-%For our experienced readers: Monero is a standard one-dimensional distributed acyclic graph (DAG) cryptocurrency blockchain \cite{Nakamoto_bitcoin} where transactions are based on elliptic curve cryptography using curve Ed25519 \cite{Bernstein2008}, transaction inputs are signed with Schnorr-style multilayered linkable spontaneous anonymous group signatures (MLSAG) \cite{MRL-0005-ringct}, and output amounts (communicated to recipients via ECDH \cite{Diffie-Hellman}) are concealed with Pedersen commitments \cite{maxwell-ct} and proven in a legitimate range with Bulletproofs \cite{Bulletproofs_paper}. Much of the first part of this report is spent explaining these ideas.
+A exposição apresenta os fundamentos antes de desenvolver estas
+composições. O estudo dos divisores prepara os certificados de logaritmo
+discreto usados por FCMP++; a árvore de curvas e as provas aritméticas
+estabelecem a pertença, e a autorização SAL liga-a à imagem de chave.
+As hipóteses de segurança acompanham cada construção, desde as operações
+elementares até às relações verificadas numa transacção completa.

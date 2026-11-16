@@ -354,7 +354,7 @@ corpo finito.
 \index{weierstrass, forma de@Weierstrass, forma de}
 
 Quando \(q\) é primo, podemos representar o corpo
-finito\marginnote{{\tt fe}: field element} \(\mathbb{F}_q\)
+finito \(\mathbb{F}_q\)
 \index{corpo finito@corpo finito}
 \index{f q@\(\mathbb F_q\), corpo finito} pelo conjunto de
 restos \(\{0,1,\ldots,q-1\}\). A soma, a subtracção e a multiplicação são
@@ -395,8 +395,7 @@ menos operações aritméticas \cite{Bernstein2007}.
 
 Sejam \(P_1=(x_1,y_1)\) e \(P_2=(x_2,y_2)\) dois pontos da curva. A sua soma
 \(P_3=P_1+P_2=(x_3,y_3)\) é definida por\footnote{Por razões de eficiência, as
-implementações\marginnote{src/crypto/ crypto\_ops\_ builder/ ref10Comm-
-entedComb- ined/\\ ge.h} representam habitualmente os pontos em coordenadas
+implementações representam habitualmente os pontos em coordenadas
 projectivas, evitando assim inversões no corpo durante muitas operações
 \cite{ecc-projective}.}
 \begin{align*}
@@ -839,7 +838,7 @@ Os requisitos computacionais de uma prova incluem o espaço necessário para a
 guardar e o trabalho de verificação. Neste esquema, a prova contém um ponto de
 curva e um escalar; a declaração contém ainda a chave pública, outro ponto. A
 verificação exige uma hash e multiplicações escalares da curva.
-\marginnote{src/ringct/ rctOps.cpp}
+
 
 
 \subsection{Assinar mensagens}
@@ -989,7 +988,7 @@ do esquema de assinatura EdDSA sobre essa curva, que estudaremos mais abaixo.
 %Both Curve25519 and Ed25519 were released by Bernstein {\em et al.} \cite{Bernstein2008, Bernstein2012, Bernstein2007}.
 \footnote{Bernstein desenvolveu também a cifra ChaCha
 \cite{Bernstein_chacha,chacha-irtf}, usada pela implementação Monero
-\cite{monero-source-v16} para cifrar\marginnote{src/wallet/ ringdb.cpp} certos
+\cite{monero-source-v16} para cifrar certos
 dados sensíveis da carteira.}
 
 %also developed an encryption scheme known as ChaCha \cite{Bernstein_chacha,chacha-irtf}, which the primary Monero implementation uses to encrypt\marginnote{src/wallet/ ringdb.cpp} certain sensitive information related to users' wallets.}
@@ -997,7 +996,7 @@ dados sensíveis da carteira.}
 A curva é definida sobre o corpo primo \(\mathbb{F}_q\), com
 \(q=2^{255}-19\), pela equação
 %The
-\marginnote{src/crypto/ crypto\_ops\_ builder/ ref10Comm- entedComb- ined/\\ ge.h} %curve is defined over the prime field \(\mathbb{F}_{2^{255} - 19}\) (i.e. $q = 2^{255}-19$) by means of the following equation:
+ %curve is defined over the prime field \(\mathbb{F}_{2^{255} - 19}\) (i.e. $q = 2^{255}-19$) by means of the following equation:
 \[
 -x^2+y^2=1-\frac{121665}{121666}x^2y^2.
 \]
@@ -1031,7 +1030,7 @@ de análise.
 %standard algorithms have issues. For example, it has recently become clear the NIST standard random number generation algorithm PNRG (the version based on elliptic curves) is flawed and contains a potential backdoor \cite{hales2014nsa}. Seen from a broader perspective, standardization authorities like NIST lead to a cryptographic monoculture, introducing a point of centralization. A great example of this was illustrated when the NSA used its influence over NIST to weaken an international cryptographic standard \cite{NSA-NIST}.
 O projecto Edwards25519 foi também apresentado com atenção à ausência de
 restrições por patentes (veja-se \cite{ECC-patents}) e a operações eficientes
-\marginnote{src/crypto/ crypto\_ops\_ builder/} \cite{Bernstein2007}.
+ \cite{Bernstein2007}.
 %Curve Ed25519 is not subject to any patents (see \cite{ECC-patents} for a discussion on this subject), and the team behind it has
 %developed\marginnote{src/crypto/ crypto\_ops\_ builder/} and adapted basic cryptographic algorithms with efficiency in mind \cite{Bernstein2007}.
 O grupo de pontos de Edwards25519 tem ordem \(N=hl\), com cofactor
@@ -1041,7 +1040,7 @@ O grupo de pontos de Edwards25519 tem ordem \(N=hl\), com cofactor
 l=72370055773322622139731865630429942408\,
 57116359379907606001950938285454250989.
 \]
-\marginnote{src/ringct/ rctOps.h {\tt curve- Order()}}
+
 O inteiro \(l\) tem comprimento binário de 253 bits, pois
 \(2^{252}<l<2^{253}\); isso não significa que um escalar uniforme contenha
 253 bits completos de entropia. A sua entropia é \(\log_2 l\), muito próxima
@@ -1112,8 +1111,7 @@ procedimento conceptual para um ponto \((x,y)\):
 
 \begin{description}
 	\item[Codificar] Codifica-se \(y\) canonicamente em 32 bytes
-    {\em little-endian}\marginnote{src/crypto/ crypto\_ops\_ builder/
-    ref10Comm- entedComb- ined/\\ ge\_to- bytes.c} e coloca-se no bit 255 a
+    {\em little-endian} e coloca-se no bit 255 a
     paridade do representante canónico de \(x\): zero se \(x\) é par, um se é
     ímpar. Chamemos \(y'\) ao resultado.
 %We\marginnote{src/crypto/ crypto\_ops\_ builder/ ref10Comm- entedComb- ined/\\ ge\_to- bytes.c} set the most significant bit of $y$ to 0 if $x$ is even, and 1 if it is odd. The resulting value $y’$ will represent the curve point.
@@ -1123,7 +1121,7 @@ procedimento conceptual para um ponto \((x,y)\):
             \item Copie-se o bit 255 de \(y'\) para \(b\), limpe-se esse bit e
             interpretem-se os restantes como \(y\). Rejeita-se a codificação
             se \(y\geq q\), pois não seria canónica.
-            \marginnote{ge\_from- bytes.c}[2.05cm]
+
 %Retrieve\marginnote{ge\_from- bytes.c}[2.05cm] the compressed point $y’$, then copy its most significant bit to the parity bit $b$ before setting it to 0. Now it is the original $y$ again.
             \item Calcule-se \(u=(y^2-1)\bmod q\) e
             \(v=(dy^2+1)\bmod q\), de modo que \(x^2=u/v\) no corpo.

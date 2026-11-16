@@ -18,7 +18,8 @@ função hash convencional executa sempre a mesma sequência de operações. Um
 circuito construído especificamente para essa sequência pode omitir recursos
 que ela não utiliza e superar a eficiência de um processador geral.
 
-RandomX é a função de prova de trabalho activa em Monero desde a versão 12.
+RandomX é a função de prova de trabalho da especialização de Monero aqui
+estudada.
 Foi desenhada para estreitar a vantagem entre processadores de uso geral e
 máquinas especializadas. Em vez de repetir em cada tentativa uma sequência
 fixa,
@@ -34,12 +35,10 @@ memória, saltos, execução especulativa e largura para instruções independen
 Uma máquina especializada pode reproduzi-los, mas tem de implementar uma
 parte substancial dos recursos presentes num processador geral.
 
-Este capítulo não reproduz programas, instruções de montagem ou funções do
-código. A análise usa entradas, estado, transformações e condições de
-segurança. A implementação consultada fixa a versão 1.2.3 de RandomX como
-submódulo da revisão do código Monero consultada em Agosto
-de 2026 \cite{monero-source-v16,randomx-spec-v1}. Cada parâmetro numérico
-abaixo pertence a essa instanciação.
+A função será definida pelas entradas, pelo estado da máquina virtual e
+pelas suas transformações. Os parâmetros pertencem à linha algorítmica 1 de
+RandomX, especificada nas fontes fixadas na bibliografia
+\cite{monero-source-v16,randomx-spec-v1}.
 
 
 \section{Especialização de hardware numa função fixa}
@@ -144,7 +143,7 @@ o mesmo resultado com menos memória e mais tempo.
 Se o próprio mineiro pudesse escolher \(K\), procuraria uma chave que gerasse
 um Dataset particularmente favorável ao seu equipamento. A procura da chave
 introduziria uma etapa de selecção anterior à procura do nonce. A chave deve
-portanto derivar da cadeia e mudar, mas não pode derivar do bloco que está a
+portanto derivar da lista de blocos e mudar, mas não pode derivar do bloco que está a
 ser minerado, pois nesse caso o nonce também influenciaria os dados usados na
 própria avaliação.
 
@@ -156,7 +155,7 @@ e introduz um atraso de
 \begin{align*}
  L=64\text{ blocos}.
 \end{align*}
-Para uma altura candidata \(h\), a função usada na revisão do código consultada
+Para uma altura candidata \(h\), a função de escolha do bloco-semente
 escolhe a altura-semente
 \begin{align}
  s(h)=
@@ -172,7 +171,7 @@ convenção exacta das alturas no nó. Em regime normal, a chave do bloco
 intermédios \(jE+1,\ldots,jE+64\).
 
 Por exemplo, com \(E=16\) e \(L=3\), a semente da
-altura 32 fica conhecida quando esse bloco entra na cadeia, mas só governa a
+altura 32 fica conhecida quando esse bloco entra na lista de blocos, mas só governa a
 mineração a partir da altura 36:
 
 \begin{center}
@@ -196,7 +195,7 @@ mineração a partir da altura 36:
 \end{center}
 
 O atraso não torna o bloco-semente impossível de influenciar. Um mineiro pode
-tentar reorganizar a cadeia ou reter um bloco, como em qualquer disputa de
+tentar reorganizar a lista de blocos ou reter um bloco, como em qualquer disputa de
 prova de trabalho. Torna, porém, dispendioso escolher entre muitas sementes:
 quando a chave entra em uso, sessenta e quatro sucessores já investiram
 trabalho por cima dela. Abandonar uma semente desfavorável significa abandonar
@@ -211,7 +210,7 @@ uma tabela permanente. Com blocos de dois minutos, uma época dura cerca de
  \approx 2{,}84\text{ dias}.
 \end{align*}
 Este intervalo permite amortizar a preparação, mas exige a substituição
-periódica dos dados dependentes da cadeia.
+periódica dos dados dependentes da lista de blocos.
 
 
 \section{Cache e Dataset}
@@ -934,7 +933,7 @@ de uma longa função fixa. O dispositivo precisa de:
  \item suportar saltos e estados de memória dependentes;
  \item fornecer cerca de dois gigabytes de Dataset por grupo de trabalho
  eficiente, ou pagar a reconstituição leve;
- \item acompanhar uma chave de Dataset que muda com a cadeia.
+ \item acompanhar uma chave de Dataset que muda com a lista de blocos.
 \end{itemize}
 
 Uma FPGA enfrenta dificuldade semelhante. Reconfigurar fisicamente o circuito
@@ -948,39 +947,32 @@ Nem todos estes argumentos têm o mesmo estatuto. A igualdade dos modos leve e
 completo e a transição da máquina virtual pertencem à especificação. A
 uniformidade do resultado depende das propriedades criptográficas das funções
 e dos testes. A vantagem futura de hardware depende de tecnologia e economia.
-Uma boa exposição deve dizer onde acaba a função e começa a previsão.
+A igualdade funcional é uma propriedade exacta das transformações; a vantagem
+de equipamento exige hipóteses adicionais sobre os custos e recursos das
+arquitecturas comparadas.
 
 
-\section{Auditorias, versão e fronteira de consenso}
+\section{Identidade da função e verificação de consenso}
 \label{sec:randomx-status}
 
-RandomX foi submetido em 2019 a quatro auditorias independentes, por Trail of
-Bits, X41 D-Sec, Kudelski Security e QuarksLab. Os relatórios não registaram
-vulnerabilidades críticas; encontraram questões e recomendações que levaram a
-alterações no algoritmo e na implementação \cite{randomx-audits}. As auditorias
-constituem evidência limitada às revisões, plataformas e âmbitos analisados;
-não testam hardware futuro.
+A função abstracta fixa um resultado para cada par \((K,H)\). Os modos
+leve e completo, a interpretação das instruções e a sua tradução para
+instruções nativas têm de produzir esse mesmo resultado. Uma optimização
+conserva esta igualdade, ainda que altere o tempo de execução ou a quantidade
+de memória materializada.
 
-Também há duas espécies de actualização. Uma implementação pode corrigir a
-tradução para uma arquitectura sem mudar a função abstracta: os hashes
-correctos permanecem os mesmos. Uma versão \emph{algorítmica} muda a função e
-portanto exige coordenação de consenso. Se dois nós calcularem funções
-RandomX diferentes para o mesmo \((K,H)\), podem discordar sobre
-\eqref{eq:randomx-difficulty-check}.
+Uma alteração algorítmica, pelo contrário, define outra função. Se dois nós
+obtêm hashes diferentes para a mesma entrada, podem discordar sobre a
+condição \eqref{eq:randomx-difficulty-check}. A regra de consenso tem, por
+isso, de identificar a função aplicável a cada altura. A equivalência entre
+realizações diz respeito a todas as transições do estado, incluindo as
+operações de vírgula flutuante e os respectivos modos de arredondamento.
 
-Na revisão consultada para esta edição, o código principal de Monero fixa o compromisso
-RandomX 1.2.3, da linha algorítmica 1 \cite{randomx-spec-v1,monero-source-v16}.
-O projecto RandomX publicou entretanto a versão algorítmica 2
-\cite{randomx-v2-release}. Ela acrescenta trabalho na mistura dos registos de
-vírgula flutuante, entre outras alterações, mas não é por isso uma regra activa
-de Monero. Substituir a biblioteca por iniciativa individual não seria uma
-optimização: seria calcular outra prova de trabalho.
-
-Uma versão mais recente pode corrigir uma falha de implementação sem alterar
-o consenso, mas não deve substituir automaticamente a versão algorítmica
-activa. A regra de consenso é a versão que todos os nós devem aplicar àquela
-altura; uma proposta posterior só se torna activa por coordenação de consenso.
-
+O resultado numérico e o custo de o produzir têm estatutos distintos. A
+especificação determina o primeiro. A análise do segundo depende do modelo
+de equipamento, das alternativas de cálculo e memória e das hipóteses sobre
+atalhos. A segurança económica da prova de trabalho conserva essa dependência
+mesmo quando a implementação reproduz exactamente a função especificada.
 
 \section{Resumo da avaliação RandomX}
 \label{sec:randomx-summary}

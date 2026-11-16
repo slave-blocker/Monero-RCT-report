@@ -10,8 +10,7 @@ pessoa. Se não quisermos confiar essa tarefa a uma autoridade central, a oferta
 monetária e a história completa das transacções têm de ser verificáveis pelo
 público.
 
-As cripto-moedas registam transacções numa lista de blocos
-(\emph{blockchain}), uma base de dados distribuída cuja história é muito
+As cripto-moedas registam transacções numa lista de blocos, uma base de dados distribuída cuja história é muito
 difícil de alterar sem que a rede o detecte \cite{Nakamoto_bitcoin}. Muitas
 listas de blocos expõem os intervenientes e os montantes para tornar simples a
 verificação colectiva. O preço é evidente: perde-se privacidade e, com ela,
@@ -43,87 +42,51 @@ aplicadas às assinaturas em anel, veja-se \cite{monero-ring-heuristics-ryo}.}
 \section{Objectivos}
 \label{sec:goals}
 
-Monero foi lançado em 2014 e tem uma história continuada de desenvolvimento
-\cite{bitmonero-launched, monero-history}. Quando a segunda edição deste livro
-foi preparada, a comunidade e a adopção da moeda continuavam a aumentar
-\cite{justin-defcon-2019-community-growth}.\footnote{Naquele período, Monero
-ocupava o 14.º lugar por capitalização de mercado em 14 de
-Junho de 2018 e o 12.º em 5 de Janeiro de 2020; veja-se
-\url{https://coinmarketcap.com/}. Estes valores não são uma medida técnica nem
-uma afirmação sobre a posição actual.}
+Este livro desenvolve a matemática que permite verificar uma moeda digital
+mantendo reservados os montantes e a escolha das saídas gastas. A exposição
+parte da aritmética modular e dos grupos elípticos, constrói assinaturas e
+compromissos e acompanha depois a sua composição numa transacção. Cada
+construção é apresentada com as relações que o verificador testa e as
+hipóteses que sustentam a sua segurança.
 
-Documentar o sistema é difícil. Existe documentação prática no projecto
-\url{https://monerodocs.org/} e em \emph{Mastering Monero}
-\cite{mastering-monero}, mas partes importantes da construção teórica foram
-publicadas em textos incompletos, não revistos por pares ou entretanto
-ultrapassados. Para saber o que uma versão do programa faz, o código-fonte é a
-referência decisiva; para saber por que uma construção criptográfica é segura,
-continuam a ser indispensáveis os artigos e as provas que a fundamentam.
-\footnote{A série \emph{Monero Building Blocks}, de Seguias
-\cite{monero-building-blocks}, trata com cuidado as provas de segurança dos
-esquemas de assinatura. Tal como a primeira edição de \emph{Zero a Monero}
-\cite{ztm-1}, concentra-se no protocolo v7.}
+As definições e os cálculos preparam os passos seguintes. As somas de pontos
+levam aos compromissos de Pedersen; as respostas lineares de Schnorr levam às
+assinaturas em anel e à autorização SAL; o produto interno e os divisores
+fornecem os instrumentos para provar relações maiores sem revelar as suas
+testemunhas. Os artigos primários e as especificações citadas permitem
+confrontar esta exposição com as construções que a fundamentam.
 
-Para leitores sem formação matemática, os fundamentos da criptografia de
-curva elíptica podem exigir conceitos preliminares que outras descrições
-pressupõem.
-Uma explicação anterior do funcionamento de Monero
-\cite{MRL-0003-about-monero}, por exemplo, não desenvolvia esses fundamentos,
-era incompleta e ficou obsoleta. Este livro introduz os conceitos necessários,
-revê os algoritmos criptográficos e reúne uma descrição construtiva, passo a
-passo, do funcionamento interno de Monero.
-
-\section{Âmbito técnico desta edição}
+\section{Construções e âmbito técnico}
 \label{sec:technical-scope}
 
-A segunda edição original descreve o protocolo v12 e o programa Monero
-v0.15.x.x. A revisão portuguesa toma esse texto como ponto de partida, mas
-confere o estado corrente contra a rede principal e a revisão do código
-identificada no resumo inicial.\footnote{Foram conferidos, entre
-outros, \path{README.md}, \path{src/hardforks/hardforks.cpp},
-\path{src/cryptonote_core/blockchain.cpp},
-\path{src/cryptonote_protocol/levin_notify.cpp} e o directório
-\path{src/fcmp_pp/}. O repositório completo está em
-\url{https://github.com/monero-project/monero}.}
+A construção RingCT seleccionada usa as regras da versão 16: assinaturas
+CLSAG, provas de intervalo Bulletproofs+, anéis de 16 membros e etiquetas de
+vista \cite{monero-source-v16}. O campo de versão de uma transacção continua
+a identificar a serialização RingCT de versão 2. A versão das regras de
+consenso e a versão desse campo designam objectos diferentes: as regras
+fixam a validade, enquanto o campo participa na leitura dos bytes.
 
-Esta distinção evita três confusões frequentes:
+As regras de consenso determinam que transacções e blocos são válidos. As
+convenções de carteira ligam os endereços às saídas e permitem recuperar os
+segredos necessários ao gasto. Os protocolos de comunicação determinam como
+os dados circulam entre os participantes. RandomX intervém na prova de
+trabalho; Dandelion++ intervém na difusão inicial das transacções. Cada
+camada será estudada com os seus próprios dados e condições.
 
-\begin{itemize}
-    \item uma \emph{regra de consenso activa} determina que blocos e
-    transacções a rede principal aceita;
-    \item um \emph{comportamento implementado} pode pertencer à carteira ou à
-    rede entre nós sem fazer parte do consenso;
-    \item \emph{trabalho experimental} pode existir no código antes de estar
-    completo, estável ou sequer programado para activação.
-\end{itemize}
+FCMP++ constitui outra composição de pertença, autorização e ligação,
+apresentada a partir da especificação e das fontes fixadas na bibliografia
+\cite{fcmp-plus-plus-paper,monero-oxide-fcmp-source,fcmp-composition-review}.
+A sua árvore, os circuitos, as máscaras e os formatos são os objectos
+matemáticos definidos no respectivo capítulo. Carrot fornece uma hierarquia
+de chaves em que os poderes de vista e de autorização podem ser distribuídos
+separadamente \cite{carrot-specification}.
 
-Na v16, as novas transacções usam CLSAG e Bulletproof+, anéis fixos de 16
-membros e etiquetas de vista. RandomX é a prova de trabalho activa desde a v12.
-Dandelion++ é comportamento implementado para a difusão de transacções na rede
-pública, não uma regra de consenso. O ramo consultado contém componentes de
-FCMP++ e tipos associados a Carrot, mas não programa uma versão posterior à
-v16 na rede principal; são, por isso, trabalho experimental nesta edição.
-
-O ``protocolo'' é o conjunto de regras contra o qual cada novo bloco é testado
-antes de entrar na lista. Inclui as regras das transacções, mas não se confunde
-com o campo de versão da própria transacção. Este último continua a identificar
-RingCT v2, embora várias regras concretas e o formato RingCT tenham mudado de
-facto ao longo das versões de consenso.
-
-A actualização desta edição abrange todos os capítulos. As descrições do
-protocolo activo referem-se à v16; os formatos e esquemas de épocas anteriores
-são identificados expressamente como históricos quando ajudam a interpretar
-dados antigos ou a acompanhar uma derivação. A primeira edição, por sua vez,
-corresponde ao protocolo v7 e ao programa v0.12.x.x \cite{ztm-1}.
-
-O código beneficia de revisão pública, mas isso não o torna infalível. O leitor
-é convidado a conferir as explicações nas fontes. Uma vulnerabilidade séria
-deve ser comunicada de forma responsável em
-\url{https://hackerone.com/monero}; uma correcção não sensível pode ser proposta
-no repositório do projecto. As propostas Triptych \cite{triptych-preprint},
-RingCT 3.0 \cite{ringct3-preprint}, Omniring \cite{omniring-paper} e Lelantus
-\cite{lelantus-preprint} pertencem ao contexto de investigação da segunda
-edição, não ao conjunto de regras activas aqui descrito.
+As construções MLSAG, Borromean e Bulletproofs conservam interesse próprio:
+permitem interpretar formatos históricos e desenvolver, por passos, as
+relações usadas nas construções seguintes. Os exemplos de bytes identificam
+o formato a que pertencem. As propostas de aplicação, por seu turno,
+explicitam os requisitos de coordenação necessários para que as suas
+identidades algébricas se tornem protocolos seguros.
 
 \section{Aos leitores}
 
@@ -134,15 +97,10 @@ aprender sem depender constantemente de pesquisa externa.\footnote{Uma
 introdução extensa à criptografia aplicada encontra-se em
 \cite{applied-cryptography-textbook}.}
 
-Alguns pormenores matemáticos foram omitidos ou remetidos para notas de rodapé
-quando prejudicariam a clareza. Também não seguimos cada detalhe de
-implementação quando ele não é necessário para compreender o mecanismo. O
-objectivo é combinar criptografia matemática e implementação: apresentar as
-hipóteses formalmente e mostrar de forma concreta como os componentes se
-relacionam.
-\footnote{Certas notas de rodapé antecipam capítulos posteriores. Foram
-pensadas para ganhar utilidade numa segunda leitura, quando os detalhes de
-implementação já têm onde assentar.}
+A leitura acompanha os cálculos necessários a cada construção. As definições
+fixam os objectos, as derivações mostram as relações entre eles e as hipóteses
+delimitam as conclusões de segurança. As remissões permitem regressar a uma
+operação anterior quando ela reaparece num argumento mais composto.
 
 \section{Origens da cripto-moeda Monero}
 
@@ -159,7 +117,7 @@ inspirados, entre outros, no trabalho de Greg Maxwell
 \cite{Signatures2015BorromeanRS} e integrados em RingCT segundo as recomendações
 de Shen Noether \cite{MRL-0005-ringct}. As provas Bulletproof tornaram depois
 essa ocultação muito mais eficiente \cite{Bulletproofs_paper}; CLSAG reduziu o
-custo das assinaturas em anel \cite{MRL-0011-CLSAG}, e Bulletproof+ sucedeu às
+custo das assinaturas em anel \cite{MRL-0011-CLSAG}, e Bulletproofs+ sucedeu às
 provas Bulletproof nas transacções activas.
 
 \subsection{Parte 1: ``Essenciais''}
@@ -183,34 +141,25 @@ de máquinas especializadas. O capítulo \ref{chapter:dandelion} acompanha
 a propagação das transacções: Dandelion++ procura afastar a origem do ponto
 onde começa a difusão pública, sob hipóteses explícitas sobre o adversário e
 o grafo de ligações. O capítulo \ref{chapter:fcmp-plus-plus} analisa a
-alteração FCMP++ ainda em
-desenvolvimento: parte das provas de Schnorr e das árvores de curvas para
-explicar como uma entrada poderá pertencer privadamente ao conjunto de saídas da cadeia
-inteira. Como fecho dos ``Essenciais'', o capítulo
+composição FCMP++: parte das provas de Schnorr e das árvores de curvas para
+explicar como se prova privadamente que uma entrada pertence ao conjunto de
+saídas admitidas de toda a lista de blocos. Como fecho dos ``Essenciais'', o capítulo
 \ref{chapter:dlog-relations} pergunta o que aconteceria se alguém descobrisse
 as relações supostamente desconhecidas entre os geradores: quando se perde só
 privacidade, quando se torna possível o gasto duplo e quando aparece inflação.
-Esta ordem fornece a base criptográfica para a parte seguinte; não transforma
-a proposta FCMP++ em regra activa da versão 16.
+Esta ordem fornece a base criptográfica para a parte seguinte.
 
 \subsection{Parte 2: ``Extensões''}
 
-Uma cripto-moeda é mais do que as suas regras de consenso. Esta parte explora
-aplicações e propostas, várias das quais não estão implementadas ou dependem de
-funcionalidades experimentais. Uma futura alteração do formato das transacções
-pode torná-las impraticáveis; cada capítulo deve, portanto, ser lido com o seu
-estatuto técnico em mente.
-
-O capítulo \ref{chapter:tx-knowledge-proofs} mostra que informação sobre uma
-transacção pode ser demonstrada a um observador. O capítulo
-\ref{chapter:multisignatures} descreve a abordagem de multi-assinaturas da
-carteira; na implementação consultada, esta funcionalidade continua marcada
-como experimental e desactivada por omissão. O capítulo
-\ref{chapter:escrowed-market} usa multi-assinaturas para desenhar mercados com
-garantia. O capítulo \ref{chapter:txtangle} apresenta TxTangle, uma proposta
-original e descentralizada para reunir as transacções de várias pessoas numa
-só; o capítulo conserva a sua álgebra, mas deixa claro que o protocolo não foi
-implementado no Monero.
+A segunda parte aplica as relações anteriores à divulgação selectiva de
+informação e à cooperação entre participantes. O capítulo
+\ref{chapter:tx-knowledge-proofs} define o que se pode demonstrar acerca de
+uma transacção. O capítulo \ref{chapter:multisignatures} reparte a autoridade
+de gasto por um grupo e constrói respostas comuns. O capítulo
+\ref{chapter:escrowed-market} associa um limiar 2-de-3 a um acordo comercial.
+O capítulo \ref{chapter:txtangle} estuda TxTangle, uma proposta para reunir
+entradas e saídas de várias pessoas numa transacção, com as condições de
+privacidade e de coordenação de que depende.
 
 \subsection{Conteúdo adicional}
 
@@ -223,16 +172,6 @@ Monero. O apêndice \ref{appendix:nota} fixa a notação vectorial e deriva o
 termo \(\delta(y,z)\) das Bulletproofs sem saltos algébricos. Em conjunto,
 ligam a teoria a objectos concretos da lista de blocos e às identidades que os
 verificam.
-
-As notas de margem \marginnote{isto é útil!} apontam para locais relevantes no
-código-fonte. Os caminhos modernos foram conferidos na revisão indicada no
-resumo; quando se conserva um caminho da v0.15.x.x para acompanhar uma
-construção histórica, o contexto assinala essa época. A história completa
-continua disponível em Git. Uma nota contém normalmente um caminho, como
-\path{src/ringct/rctOps.cpp}, e por vezes uma função, como
-\texttt{ecdhEncode()}. Um hífen num caminho estreito pode ser apenas uma quebra
-tipográfica; os qualificadores de \emph{namespace}, como
-\texttt{Blockchain::}, são geralmente omitidos.
 
 \section{Aviso}
 

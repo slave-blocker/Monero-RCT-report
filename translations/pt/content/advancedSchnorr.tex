@@ -381,9 +381,8 @@ propriedade.
 
 SAG esconde qual membro assinou, mas permite repetir a mesma chave sem deixar
 um marcador público. Uma assinatura em anel \emph{ligável} acrescenta esse
-marcador: a imagem de chave. O objectivo não é revelar o signatário; é permitir
-que qualquer pessoa reconheça uma segunda utilização da mesma chave de uso
-único.
+marcador: a imagem de chave. Esta permite reconhecer uma segunda utilização
+da mesma chave de uso único, conservando oculta a posição do signatário.
 
 LSAG \cite{Liu2004} ligava assinaturas relativas ao mesmo anel ordenado. A
 variante que estudaremos, habitualmente chamada bLSAG, torna a imagem
@@ -734,10 +733,9 @@ posição verdadeira das respostas simuladas. A assinatura guarda
 
 MLSAG generaliza bLSAG a uma matriz de chaves
 \cite{MRL-0005-ringct}. Foi uma peça central das primeiras transacções
-RingCT, pelo que continua a ser necessária para compreender dados históricos
-e a evolução do protocolo. Não é, contudo, a assinatura criada nem admitida
-para novas transacções na versão 16: CLSAG foi admitida na versão 13 e tornou-se
-obrigatória a partir da versão 14 na revisão Monero aqui consultada.
+RingCT e permite interpretar os respectivos formatos históricos. A sua
+agregação de relações prepara a construção CLSAG, usada na especialização
+RingCT da versão 16.
 
 \subsection*{Matriz, declaração e testemunhas}
 
@@ -1157,10 +1155,7 @@ no argumento dos hashes que determinaram esses pesos.
 \index{clsag@CLSAG!especializacao ringct@especialização RingCT}
 \index{d clsag@\(D\), imagem auxiliar CLSAG}
 
-\marginnote{\raggedright\tiny
-\nolinkurl{src/ringct/rctSigs.cpp}\\
-{\tt CLSAG\_Gen()}\\
-{\tt verRctCLSAG\allowbreak Simple()}}
+
 Na especialização de CLSAG em Monero há duas linhas. A primeira contém as
 chaves públicas de uso único \(P_i\). A segunda contém diferenças entre
 o compromisso candidato

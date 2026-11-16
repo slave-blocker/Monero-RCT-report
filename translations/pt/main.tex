@@ -114,6 +114,14 @@
 % Separate document into parts
 \usepackage{titlesec}
 
+% Room for section numbers with two digits at both levels.
+\makeatletter
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.1em}}
+\renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.0em}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}{8.6em}{4.5em}}
+\makeatother
+
+
 % Advanced crossreferencing commands
 % -------------------------------------
 % Default settings:
@@ -183,7 +191,7 @@
 \bigskip \bigskip
 {\par\centering \textsc{\LARGE Um guia técnico para uma moeda digital privada; para principiantes, amadores e especialistas}\par}
 \bigskip
-{\par\centering \textsc{\LARGE Tradução portuguesa em revisão, \today{}}\par}
+{\par\centering \textsc{\LARGE Tradução portuguesa, \today{}}\par}
 %{\par\centering \textsc{\LARGE \today{}, Pre-Publication Draft 1.2.0}\par}
 \bigskip
 {\par\centering \textsc{\large koe\footnote{ukoe@protonmail.com}, Kurt M. Alonso\footnote{kurt@oktav.se}, Sarang Noether\footnote{sarang.noether@protonmail.com}}
@@ -268,14 +276,16 @@
 \phantomsection
 \addcontentsline{toc}{chapter}{Bibliografia}
 {\footnotesize
+\raggedright
 \bibliographystyle{plain}
 \bibliography{back/references.bib}
 }
 
 % -------- Appendix ---------------------------
 
-\addappheadtotoc
+\appendixtocon
 \appendixpage
+\appendixtocoff
 \include{content/appendix}
 
 % -------- Alphabetical index -----------------

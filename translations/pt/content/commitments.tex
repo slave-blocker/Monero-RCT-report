@@ -13,8 +13,8 @@ escalares vivem módulo~\(l\), pelo que um valor modular enorme poderia fazer de
 Pedersen ocultam os montantes e preservam somas; provas de intervalo obrigam
 cada montante de saída a pertencer a \([0,2^{64}-1]\).
 
-Salvo indicação em contrário, as referências à implementação neste capítulo
-dizem respeito à revisão do código Monero identificada no resumo inicial.
+A especialização RingCT usa os formatos e relações definidos pela fonte
+fixada para a versão 16 \cite{monero-source-v16}.
 
 \section{Compromissos}
 \label{sec:commitments}
@@ -76,10 +76,7 @@ inteiros menores que \(l\). Um montante Monero é um inteiro sem sinal de
 64 bits, colocado nos oito bytes menos significativos de um escalar; os outros
 24 bytes são nulos. Os pontos têm a codificação comprimida de Edwards de
 32 bytes.
-\marginnote{src/ringct/
-rctTypes.cpp, {\tt d2h()};
-src/ringct/
-rctOps.cpp, {\tt genC()}}
+
 
 \textbf{Ocultação.} Se \(x\) for uniforme em \(\mathbb Z_l\), então, para
 qualquer \(b\), o ponto \(xG+bH\) é uniforme no subgrupo. O esquema abstracto
@@ -97,7 +94,7 @@ aleatoriedade perfeita.
 \]
 Salvo o caso trivial em que ambas as diferenças são nulas, isso revelaria a
 relação entre \(G\) e \(H\). A vinculação é portanto \emph{computacional}, sob
-a dificuldade do logaritmo discreto; não é «vinculação perfeita». Quem
+a dificuldade do logaritmo discreto. Quem
 conhecesse \(\gamma\) poderia escolher qualquer \(b'\) e calcular
 \(x'=x+(b-b')\gamma\), quebrando-a.
 
@@ -206,20 +203,14 @@ Alice coloca no campo \texttt{ecdhInfo.amount}
  \label{eq:encoded-amount}
 \end{equation}
 onde \(\oplus\) é o XOR da Secção \ref{sec:XOR_section}. Desde o formato
-\texttt{RCTTypeBulletproof2}, incluindo CLSAG e Bulletproof+, só estes oito
+\texttt{RCTTypeBulletproof2}, incluindo CLSAG e Bulletproofs+, só estes oito
 bytes são serializados; a máscara não é transmitida porque ambos os lados a
 recompõem pela
 Equação~\eqref{eq:commitment-mask}. O formato anterior, mais volumoso, guardava
 32 bytes de montante e uma máscara codificada; a versão~10 introduziu a forma
 compacta sob o nome histórico \texttt{RCTTypeBulletproof2}
 \cite{monero-source-v16}.
-\marginnote{src/device/
-device\_ default.cpp,
-{\tt generate\_ output\_ ephemeral\_ keys()};
-src/ringct/
-rctOps.cpp,
-{\tt genCommit- mentMask()} e
-{\tt ecdh- Encode()}}[-6cm]
+
 
 Bob calcula o mesmo \(h_t\), recupera
 \[
@@ -235,12 +226,7 @@ confirmar a abertura; não permite gastá-la. O XOR não oferece segurança de
 teoria da informação nem autenticação autónoma: a confidencialidade depende
 computacionalmente do segredo partilhado e do hash, enquanto o compromisso
 público fornece a verificação de consistência da abertura.
-\marginnote{src/ringct/
-rctSigs.cpp,
-{\tt decode- Rct()};
-src/ringct/
-rctTypes.h,
-{\tt serialize\_ rctsig\_ base()}}
+
 
 \section{Introdução a RingCT}
 \label{sec:ringct-introduction}
@@ -297,10 +283,7 @@ Logo, \(\sum_jx'_j=\sum_ty_t\), e o verificador testa a equação de pontos
    =\sum_{t=0}^{p-1}C_t^b+fH.}
  \label{eq:commitment-balance}
 \end{equation}
-\marginnote{src/ringct/
-rctSigs.cpp,
-{\tt genRct- Simple()} e
-{\tt verRct- Semantics- Simple()}}[-6cm]
+
 
 Ao expandi-la, o componente em \(G\) cancela por construção e sobra a
 Equação~\eqref{eq:amount-balance}, interpretada módulo~\(l\). O público vê os
@@ -323,9 +306,9 @@ iguais a 21 e \(-10\). No corpo escalar,
  (6+5)-\bigl(21+(l-10)\bigr)=-l\equiv0\pmod l.
 \]
 Se as máscaras também se cancelassem, a equação de compromissos passaria,
-apesar de \(l-10\) não ser um montante admissível. O problema não é que a curva
-tenha inteiros negativos; é que a mesma classe modular admite representantes
-que dariam a aparência de criar valor.
+apesar de \(l-10\) não ser um montante admissível. A redução modular torna
+a igualdade compatível com representantes inteiros que dariam a aparência
+de criar valor.
 
 Uma prova de intervalo exclui esses representantes modulares. Para cada compromisso de saída
 \(C_t^b\), a afirmação exacta é
@@ -357,16 +340,7 @@ Equação~\eqref{eq:range-statement} com assinaturas em anel Borromean
 intervalo nascer, bit a bit, de compromissos e assinaturas de Schnorr. É um
 formato histórico: a versão~9 deixou de o admitir em novas transacções, embora
 continue a ser necessário verificar as provas antigas da lista de blocos.
-\marginnote{\scriptsize\raggedright
-src/crypto-\newline
-note\_core/\newline
-blockchain.cpp,\newline
-{\tt check\_tx\_}\newline
-{\tt outputs()};\newline
-src/ringct/\newline
-rctSigs.cpp,\newline
-{\tt proveRange()} e\newline
-{\tt verRange()}}
+
 
 Seja o compromisso ao montante \(b\):
 \[
@@ -467,8 +441,7 @@ A ordem é a dos bits, do menos significativo ao mais significativo, e cada
 ponto entra através da sua codificação de 32 bytes. O desafio \(\lambda\)
 fica assim preso aos resultados de todos os anéis. Não é um escalar que Alice
 possa escolher livremente depois de ver as respostas.
-\marginnote{\tiny\raggedright\path{src/ringct/rctSigs.cpp},
-\texttt{genBorromean()} e \texttt{verifyBorromean()}}
+
 
 Falta fechar cada percurso. Se \(b_i=0\), Alice calcula a resposta que
 deixara em aberto:
@@ -681,7 +654,7 @@ passo a passo, até se perceber por que acerta no alvo. Assim se vê por que o
 método funciona, que peças impedem a falsificação e onde uma implementação mal
 feita poderia estragar a magia. Esta é a Bulletproof clássica de Bünz
 \emph{et al.} \cite{Bulletproofs_paper,adam-zero-to-bulletproofs}, apresentada
-primeiro para um único montante. A agregação e a passagem para Bulletproof+
+primeiro para um único montante. A agregação e a passagem para Bulletproofs+
 virão depois; não se atropela esta batalha com a seguinte.
 
 Fixe-se \(n=64\). Se \(v\) está entre \(0\) e \(2^{64}-1\), passa-se primeiro
@@ -1102,7 +1075,6 @@ P_{k-1}={}&
 O \(u_k\) de cada termo diagonal encontra o seu inverso e desaparece. Os termos
 cruzados não desaparecem: ficam marcados por \(u_k^2\) ou \(u_k^{-2}\).
 
-\newpage
 \noindent Agora ponhamo-los lado a lado, como peças de um fecho éclair:
 \[
 \begin{gathered}
@@ -1138,7 +1110,7 @@ P_{k-1}=\\[-1mm]
 \end{aligned}}_{u_k^2L_k+u_k^{-2}R_k}.
 \end{gathered}
 \]
-\marginnote{clik!}
+
 
 E como tal possibilita-se a seguinte recursão:
 \[
@@ -1163,8 +1135,8 @@ P_0&=a\ce{^{0}_{\ }\underline G}
 \label{eq:bp-p-final}
 \end{align}
 A floresta de 64 coordenadas acabou em dois escalares, \(a,b\), e dois pontos
-finais que o verificador consegue reconstruir. A Equação
-\eqref{eq:bp-ip-recursion}, prometida acima, já não é um truque por explicar.
+finais que o verificador consegue reconstruir. A recursão
+\eqref{eq:bp-ip-recursion} reúne os termos cruzados de cada redução.
 \newpage
 \subsubsection{O verificador e o fim da batalha}
 \label{sec:bullet_fim}
@@ -1382,14 +1354,14 @@ para Fiat--Shamir, a composição estabelece o intervalo
 intermédios permanecem secretos; o verificador usa os compromissos,
 os desafios recompostos e os dois escalares finais.
 
-\section{Bulletproof+}
+\section{Bulletproofs+}
 \label{sec:bulletproof_plus}
 \index{bulletproofs+@Bulletproofs+}
 \index{bulletproof+@Bulletproof+|see{Bulletproofs+}}
 \index{produto interno@produto interno!ponderado@ponderado}
 
 A Bulletproof clássica já teve o seu palco, as suas setas e o seu fim da
-batalha. Bulletproof+ não apaga nada disso. É a batalha seguinte: prova a mesma
+batalha. Bulletproofs+ não apaga nada disso. É a batalha seguinte: prova a mesma
 afirmação sobre os montantes, conserva a ideia de dobrar vectores com pares
 \(L_j,R_j\), mas muda a coreografia que liga o compromisso inicial ao fecho.
 
@@ -1419,9 +1391,9 @@ As duas formas serializadas tornam a diferença visível:
   &=(A,A_1,B,r_1,s_1,d_1,
      \boldsymbol L,\boldsymbol R).
 \end{align*}
-Para a mesma dimensão, Bulletproof+ retira três objectos de 32 bytes. A
+Para a mesma dimensão, Bulletproofs+ retira três objectos de 32 bytes. A
 agregação, note-se, não nasceu com o sinal \(+\): a Bulletproof clássica já
-agregava montantes. O ganho estrutural de Bulletproof+ está no fecho mais curto
+agregava montantes. O ganho estrutural de Bulletproofs+ está no fecho mais curto
 e na verificação reorganizada.
 
 A ideia algébrica continua a começar em bits. Para \(p\) montantes, ponhamos
@@ -1456,52 +1428,28 @@ compromissos por saída. A verificação continua a ter trabalho proporcional a
 \(64M\): a agregação poupa sobretudo espaço, não transforma toda a verificação
 num cálculo logarítmico.
 
-\subsection{Dos tipos históricos ao Bulletproof+}
+\subsection{Formatos de prova e representação dos pontos}
 
-Há três nomes parecidos que convém não misturar:
+A prova Bulletproofs tem a estrutura
+\[
+ \Pi_{\rm BP}=(A,S,T_1,T_2,\tau_x,\mu,
+               \boldsymbol L,\boldsymbol R,a,b,t).
+\]
+Esta estrutura aparece nos formatos históricos
+\texttt{RCTTypeBulletproof}, \texttt{RCTTypeBulletproof2} e
+\texttt{RCTTypeCLSAG}. O segundo combina-a com o montante cifrado de oito
+bytes e a máscara derivada da secção~\ref{sec:pedersen_monero}; o terceiro
+usa CLSAG para autorizar as entradas. O formato
+\texttt{RCTType}\allowbreak\texttt{BulletproofPlus}, seleccionado na
+especialização de consenso da versão 16, usa a prova Bulletproofs+.
 
-\begin{description}
- \item[\texttt{RCTTypeBulletproof}.] A versão~8 admitiu a prova Bulletproof
- original. O objecto serializado contém
- \[
-  \Pi_{\rm BP}=(A,S,T_1,T_2,\tau_x,\mu,
-                \boldsymbol L,\boldsymbol R,a,b,t).
- \]
- A versão~9 deixou de admitir as provas Borromean em novas transacções.
-
- \item[\texttt{RCTTypeBulletproof2}.] A versão~10 admitiu este tipo e a
- versão~11 tornou-o obrigatório em lugar do tipo anterior. O sufixo «2» não
- designa Bulletproof+: a prova continua a usar exactamente a estrutura
- \(\Pi_{\rm BP}\) e o mesmo verificador. A revisão reduziu os dados ECDH por
- saída para o montante cifrado de oito bytes e passou a derivar a máscara,
- como vimos na Secção \ref{sec:pedersen_monero}.
-
- \item[\texttt{RCTTypeBulletproofPlus}.] A versão~15 admitiu Bulletproof+; a
- versão~16 proibiu os tipos que ainda usam a prova Bulletproof anterior. Na
- rede principal, a versão~16 começou no bloco 2\,689\,608. Este é o tipo criado
- para novas transacções na implementação congelada.
-\end{description}
-\marginnote{\scriptsize\raggedright
-src/crypto-\newline
-note\_core/\newline
-blockchain.cpp,\newline
-{\tt check\_tx\_}\newline
-{\tt outputs()};\newline
-src/hardforks/\newline
-hardforks.cpp}
-
-Os leitores históricos encontrarão ainda \texttt{RCTTypeCLSAG}: esse tipo já
-usava CLSAG para autorizar entradas, mas conservava a estrutura de prova
-\(\Pi_{\rm BP}\). O código continua a analisar e a verificar todos estes
-formatos para ler blocos antigos. Essa compatibilidade não os torna escolhas
-válidas para construir uma transacção da versão~16.
-
-Nas equações da secção clássica usámos os pontos matemáticos já restaurados.
-No objecto Monero serializado, \(A,S,T_1,T_2,\boldsymbol L,\boldsymbol R\) da
-Bulletproof clássica eram guardados multiplicados por \(8^{-1}\); o verificador
-volta a multiplicá-los por 8. Bulletproof+ conserva esta convenção para
-\(A,A_1,B,\boldsymbol L,\boldsymbol R\). É uma representação de implementação,
-não uma seta nova na álgebra.
+Nas equações anteriores, os pontos representam os elementos do grupo que
+entram na verificação. A serialização de Bulletproofs guarda
+\(A,S,T_1,T_2,\boldsymbol L,\boldsymbol R\) multiplicados por
+\(8^{-1}\) no subgrupo primo; o verificador multiplica os pontos recebidos
+por 8 para recuperar os elementos das equações. Bulletproofs+ usa a mesma
+convenção para \(A,A_1,B,\boldsymbol L,\boldsymbol R\). Esta transformação
+fixa a correspondência entre os bytes da prova e os pontos matemáticos.
 
 Para o mesmo \(M\), a parte formada por objectos de 32 bytes ocupa
 \begin{align}
@@ -1511,34 +1459,21 @@ Para o mesmo \(M\), a parte formada por objectos de 32 bytes ocupa
    &=32\bigl(6+2\log_2(64M)\bigr).\label{eq:bpp-size}
 \end{align}
 Não se contam aqui os pequenos prefixos de comprimento da serialização.
-Bulletproof+ retira três objectos, ou 96 bytes: para \(M=2\), são 736 contra
+Bulletproofs+ retira três objectos, ou 96 bytes: para \(M=2\), são 736 contra
 640 bytes; para \(M=16\), 928 contra 832 bytes. A prova Borromean, recordemos,
 ocupava 6176 bytes \emph{por saída}. Estes números são comparações de formato;
 não afirmam, sem uma medição separada, que um verificador seja tantas vezes
 mais rápido do que outro.
-\marginnote{\scriptsize\raggedright
-src/ringct/\newline
-rctTypes.h,\newline
-{\tt Bulletproof} e\newline
-{\tt Bulletproof-}\newline
-{\tt Plus};\newline
-src/crypto-\newline
-note\_basic/\newline
-cryptonote\_\newline
-format\_\newline
-utils.cpp,\newline
-{\tt get\_pruned\_}\newline
-{\tt transaction\_}\newline
-{\tt weight()}}
 
-\subsection{Bulletproof+ na versão 16}
+
+\subsection{Bulletproofs+ na versão 16}
 
 Para não sobrecarregar a notação anterior, chamemos \(v_j\) ao montante e
 \(\gamma_j\) à máscara de compromisso nesta subsecção:
 \[
  C_j=\gamma_jG+v_jH.
 \]
-Uma Bulletproof+ agregada prova, para todos os seus \(p\) compromissos,
+Uma Bulletproofs+ agregada prova, para todos os seus \(p\) compromissos,
 \begin{equation}
  \exists\,(\gamma_j,v_j)_{j=0}^{p-1}:
  \quad C_j=\gamma_jG+v_jH
@@ -1551,13 +1486,13 @@ As aberturas \((\gamma_j,v_j)\) são as testemunhas. Os compromissos
  \Pi_+=(A,A_1,B,r_1,s_1,d_1,
           \boldsymbol L,\boldsymbol R)
 \]
-são públicos. O vector de compromissos internos, chamado \(V\) no código, não
-é serializado dentro da prova: é reconstruído a partir de
-\texttt{outPk.mask}.
+são públicos. O vector de compromissos internos \(V\) é reconstruído a partir
+dos compromissos de saída, no campo \texttt{outPk.mask}; a prova serializada
+contém apenas os elementos de \(\Pi_+\).
 
 \subsubsection*{Agregação e preenchimento}
 
-Uma transacção RingCT canónica deste tipo contém exactamente uma Bulletproof+,
+Uma transacção RingCT canónica deste tipo contém exactamente uma Bulletproofs+,
 e essa prova cobre todos os seus compromissos de saída. O formato admite
 \(1\leq p\leq16\); a regra geral da versão~16 exige separadamente pelo menos
 duas saídas numa transacção comum. O valor interno \(M\) é a menor potência de
@@ -1578,18 +1513,7 @@ Durante a análise da transacção, o tamanho de
 \(M\), o número reconstruído de \(V_j\) tem de ser \(p\), e o limite é 16.
 Assim, uma prova para capacidade 16 não é uma codificação canónica de apenas
 duas saídas.
-\marginnote{\scriptsize\raggedright
-src/crypto-\newline
-note\_core/\newline
-tx\_verification\_\newline
-utils.cpp,\newline
-{\tt is\_canonical\_}\newline
-{\tt bulletproof\_}\newline
-{\tt plus\_layout()};\newline
-src/ringct/\newline
-rctTypes.cpp,\newline
-{\tt n\_bulletproof\_}\newline
-{\tt plus\_amounts()}}
+
 
 \subsubsection*{As duas representações do compromisso}
 
@@ -1599,46 +1523,30 @@ porém, constrói
  V_j=8^{-1}C_j=(8^{-1}\gamma_j)G+(8^{-1}v_j)H,
  \label{eq:bpp-v-eighth}
 \end{equation}
-onde \(8^{-1}\) é o inverso do cofactor no corpo \(\mathbb Z_l\). Na criação,
-\texttt{bulletproof\_plus\_PROVE()} devolve estes \(V_j\);
-\texttt{genRctSimple()} multiplica-os por 8 antes de os colocar em
-\texttt{outPk.mask}. Na leitura acontece o inverso: o analisador multiplica
-cada compromisso de \texttt{outPk} por \(8^{-1}\) para restaurar \(V_j\).
+onde \(8^{-1}\) é o inverso do cofactor no corpo \(\mathbb Z_l\). A construção
+da prova produz estes \(V_j\); a transacção guarda \(8V_j=C_j\) no campo
+\texttt{outPk.mask}. Na leitura, cada compromisso serializado é multiplicado
+por \(8^{-1}\) para restaurar \(V_j\).
 
 Os pontos \(A,A_1,B,\boldsymbol L,\boldsymbol R\) são igualmente produzidos e
 serializados na representação dividida por 8. Antes da equação final, o
 verificador multiplica todos esses pontos e cada \(V_j\) por 8. Isso elimina
-qualquer componente de torsão e deixa os pontos usados na multiplicação
-multiescalar no subgrupo de ordem prima. Não se deve, pois, multiplicar
-\texttt{outPk.mask} por 8 mais uma vez: ele já é \(C_j\).
-\marginnote{\scriptsize\raggedright
-src/ringct/\newline
-rctSigs.cpp,\newline
-{\tt proveRange-}\newline
-{\tt Bulletproof}\newline
-{\tt Plus()} e\newline
-{\tt genRct}\newline
-{\tt Simple()};\newline
-src/crypto-\newline
-note\_basic/\newline
-cryptonote\_\newline
-format\_\newline
-utils.cpp,\newline
-{\tt expand\_}\newline
-{\tt transaction\_}\newline
-{\tt 1()}}
+qualquer componente de torção e deixa os pontos usados na multiplicação
+multiescalar no subgrupo de ordem prima. O compromisso serializado
+\(C_j=8V_j\) já tem, portanto, a representação exigida pela equação final.
+
 
 \subsubsection*{Geradores e traslado}
 
 Além de \(G\) e \(H\), a prova usa vectores públicos
 \(\boldsymbol G=(G_0,\ldots,G_{n-1})\) e
-\(\boldsymbol H=(H_0,\ldots,H_{n-1})\). A implementação deriva cada ponto dos
+\(\boldsymbol H=(H_0,\ldots,H_{n-1})\). Cada ponto é derivado dos
 bytes de \(H\), da cadeia ASCII \texttt{bulletproof\_plus}, da codificação
 \texttt{varint} do índice e de uma função hash-para-ponto com limpeza pelo
 cofactor. Uma derivação que produzisse a identidade seria rejeitada. A
 segurança pressupõe que não se conhecem relações de logaritmo discreto úteis
-entre estes geradores. Na notação do artigo Bulletproof+, os papéis dos
-geradores de valor e de máscara aparecem trocados: no código Monero, \(H\)
+entre estes geradores. Na notação do artigo Bulletproofs+, os papéis dos
+geradores de valor e de máscara aparecem trocados: na notação presente, \(H\)
 leva o montante e \(G\) leva a máscara.
 
 O traslado começa num ponto fixo derivado da cadeia
@@ -1661,18 +1569,7 @@ O traslado começa num ponto fixo derivado da cadeia
 A cadeia inicial separa este protocolo de outros usos do hash. Todos os
 desafios são escalares reduzidos; o provador recomeça e o verificador rejeita
 se \(y,z,u_k\) ou \(e\) forem zero.
-\marginnote{\scriptsize\raggedright
-src/crypto-\newline
-note\_config.h,\newline
-{\tt HASH\_KEY\_}\newline
-{\tt BULLETPROOF\_}\newline
-{\tt PLUS\_*};\newline
-src/ringct/\newline
-bulletproofs\_\newline
-plus.cc,\newline
-{\tt get\_exponent()} e\newline
-{\tt transcript\_}\newline
-{\tt update()}}
+
 
 \subsubsection{Mais detalhes do provador}
 \label{sec:bpp_detalhes}
@@ -1691,7 +1588,7 @@ O primeiro ponto enviado é
    \right),
  \label{eq:bpp-a}
 \end{equation}
-com \(\alpha\in_R\mathbb Z_l^*\). Depois dos desafios \(y,z\), o código
+com \(\alpha\in_R\mathbb Z_l^*\). Depois dos desafios \(y,z\), o provador
 constrói a janela
 \begin{equation}
  d_{jN+i}=z^{\,2(j+1)}2^i,
@@ -1719,8 +1616,7 @@ O argumento de produto interno dobra
 dimensão até 1. Chamemos \(a^\star,b^\star\) aos escalares finais,
 \(G^\star,H^\star\) aos geradores finais e \(\alpha^\star\) à máscara
 acumulada depois de todas as dobras.
-Com escalares aleatórios não nulos \(r,s,d,\eta\), o fecho calculado pelo
-código é
+Com escalares aleatórios não nulos \(r,s,d,\eta\), o fecho é
 \begin{align}
  A_1={}&8^{-1}\!\left(
   rG^\star+sH^\star+dG+
@@ -1737,7 +1633,7 @@ Equação~\eqref{eq:commitment-mask}; \(\alpha\), as máscaras das rondas e
 aleatoriedade é necessária para ocultar os bits e as aberturas. A ocultação de
 Pedersen perfeita, a propriedade de conhecimento da prova e a heurística
 Fiat--Shamir são afirmações distintas; a solidez e o conhecimento de
-Bulletproof+ são garantias computacionais sob as hipóteses do protocolo, não
+Bulletproofs+ são garantias computacionais sob as hipóteses do protocolo, não
 uma consequência da ocultação perfeita por si só.
 
 \subsection{Verificação}
@@ -1752,7 +1648,7 @@ Equações~\eqref{eq:bpp-a1}--\eqref{eq:bpp-d1}. Depois de reunir termos, toda a
 prova se reduz a uma multiplicação multiescalar que tem de dar a identidade
 \(\mathcal O\).
 
-A implementação pode verificar várias provas desta família numa só equação.
+O verificador pode reunir várias provas desta família numa só equação.
 Se \(\mathcal F_q\) é a combinação de pontos que deveria ser
 \(\mathcal O\) para a prova \(q\), escolhe pesos independentes
 \(w_q\in_R\mathbb Z_l^*\) e testa
@@ -1765,24 +1661,12 @@ que erros de provas diferentes se cancelem de propósito. Isto é
 \emph{verificação em lote} de várias provas; não é a agregação de vários
 montantes dentro de uma prova.
 
-No percurso de consenso congelado,
-\texttt{verRctSemanticsSimple()} reúne separadamente as Bulletproof+ e as
-Bulletproof antigas recebidas no conjunto de transacções que lhe foi passado.
-Um suplemento de transacções de bloco pode assim ser verificado em lote; a
-validação isolada de uma transacção chama o mesmo verificador com uma única
-prova. Não afirmamos que toda a verificação aconteça sempre «por bloco».
-\marginnote{\scriptsize\raggedright
-src/ringct/\newline
-rctSigs.cpp,\newline
-{\tt verRct-}\newline
-{\tt Semantics}\newline
-{\tt Simple()};\newline
-src/crypto-\newline
-note\_core/\newline
-tx\_verification\_\newline
-utils.cpp,\newline
-{\tt ver\_mixed\_rct\_}\newline
-{\tt semantics()}}
+Cada lote reúne provas da mesma família: Bulletproofs+ e Bulletproofs têm
+equações próprias. O conjunto de transacções de um bloco pode fornecer um
+lote; a validação isolada de uma transacção usa o mesmo procedimento com
+uma única prova. A escolha do lote é independente da agregação dos montantes
+que cada prova contém.
+
 
 \subsubsection{O verificador e o fim da batalha}
 \label{sec:bpp_fim}
@@ -1797,8 +1681,7 @@ atrás da álgebra:
 
  \item \(A,A_1,B,V_j,L_k,R_k\) têm de descodificar como pontos comprimidos
  canónicos sobre a curva. Uma codificação não canónica ou que não representa
- um ponto provoca rejeição; as excepções de descodificação são convertidas em
- \texttt{false} pelo invólucro RingCT.
+ um ponto provoca rejeição da prova.
 
  \item Os pontos fornecidos pela prova são multiplicados pelo cofactor 8 antes
  da multiplicação multiescalar. Não há, contudo, uma regra separada que rejeite
@@ -1815,25 +1698,12 @@ atrás da álgebra:
  \texttt{outPk}, a Equação~\eqref{eq:commitment-balance} e as CLSAG são testes
  distintos; todos têm de passar.
 \end{itemize}
-\marginnote{\scriptsize\raggedright
-src/ringct/\newline
-bulletproofs\_\newline
-plus.cc,\newline
-{\tt bulletproof\_}\newline
-{\tt plus\_VERIFY()};\newline
-src/ringct/\newline
-rctOps.cpp,\newline
-{\tt scalarmult8()};\newline
-src/crypto/\newline
-crypto-ops.c,\newline
-{\tt ge\_frombytes\_}\newline
-{\tt vartime()}}
+
 
 Chegámos assim à afirmação prometida: para cada compromisso ligado ao traslado
 de \(\Pi_+\), o provador conhece uma abertura cujo montante está em
 \([0,2^{64}-1]\). Continuam públicos o número de saídas, os compromissos, o
-formato e tamanho da prova e a taxa da transacção. Continuam fora desta
-afirmação a identidade do destinatário, a propriedade da saída, a ausência de
-dupla despesa, a autorização das entradas e a validade completa da
-transacção. O próximo capítulo juntará essas peças sem alterar o significado
-limitado, mas essencial, da prova de intervalo.
+formato e tamanho da prova e a taxa da transacção. O próximo capítulo juntará
+esta propriedade às condições de autorização das entradas, de reconhecimento
+das saídas, de equilíbrio e de ausência de dupla despesa que compõem a
+validade de uma transacção.

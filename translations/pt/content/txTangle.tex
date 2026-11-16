@@ -10,23 +10,19 @@ mesmo quando os montantes e os verdadeiros membros dos anéis permanecem
 ocultos (veja-se a secção 5.1 de \cite{AnalysisOfLinkability}). A álgebra cala
 muito, mas não corrige por si só os costumes de quem a usa.
 
-Este capítulo conserva a proposta \emph{TxTangle}, inspirada no CoinJoin de
-Bitcoin \cite{coinjoin-wiki}: vários participantes constroem uma única
+Na proposta \emph{TxTangle}, inspirada no CoinJoin de
+Bitcoin \cite{coinjoin-wiki}, vários participantes constroem uma única
 transacção e procuram esconder a partição das entradas e saídas entre si.
 Pretende-se que um observador não consiga decidir quais entradas financiaram
 quais saídas, nem quantos participantes reais estiveram presentes. Pretende-se
 ainda que cada participante aprenda tão pouco quanto possível acerca dos
 outros.
 
-\paragraph{Estado da proposta.}
-TxTangle não é uma funcionalidade do Monero, não é um tipo de transacção do
-consenso e não está implementado nas carteiras de referência. O que se segue é
-uma construção de investigação, originalmente escrita para a época de MLSAG e
-Bulletproofs. Uma proposta anterior, MoJoin, atribuía a coordenação a um
-administrador de confiança; essa confiança contrariava o objectivo de
-fungibilidade e o trabalho não prosseguiu. No fim do capítulo distinguiremos a
-ideia algébrica, que continua instrutiva, do protocolo histórico, que não pode
-ser apresentado como software disponível.
+Estudaremos a construção como um protocolo de investigação. As identidades
+de balanço, a ocultação das contribuições e a coordenação têm obrigações
+próprias. A segurança completa depende de um protocolo que reúna essas
+obrigações sob um adversário definido; as contas algébricas estabelecem os
+passos que tal protocolo terá de preservar.
 
 \section{O núcleo algébrico}
 \label{sec:building-txtangle}
@@ -90,7 +86,7 @@ distinta a cada saída. Assim se forma um canal com \(n\) identidades sem se
 publicar directamente quantas pessoas as controlam.
 
 Uma sessão admite \(2\leq n\leq16\), limite que coincide com as dezasseis
-saídas cobertas por uma Bulletproof+ nas regras actuais. A sala abre em
+saídas cobertas por uma Bulletproofs+ na especialização da versão 16. A sala abre em
 \(t_0\), fecha inscrições em \(t_1\) e fixa previamente a prioridade da taxa,
 o método de estimação, a versão de transacção e os restantes parâmetros que
 poderiam criar uma impressão digital. Em \(t_1\), cada identidade publica uma
@@ -134,9 +130,8 @@ proximidade temporal não denuncie grupos de entradas ou saídas.
 
  \item Se o balanço for correcto, cada identidade calcula o primeiro desafio
  comum da Bulletproof e publica a contribuição seguinte para a prova. Uma
- divergência no transcrito deve abortar a sessão: continuar com desafios
- diferentes não produz uma prova parcialmente válida, mas duas provas
- inválidas inteiras.
+ divergência no traslado exige o aborto da sessão: as contribuições só
+ se combinam numa prova válida quando os desafios coincidem.
 
  \item Fixam-se os membros dos anéis, as imagens de chave, os
  pseudo-compromissos, os endereços ocultos, as chaves públicas de transacção e
@@ -150,10 +145,9 @@ proximidade temporal não denuncie grupos de entradas ou saídas.
  serializar e difundir a transacção.
 \end{enumerate}
 
-Estes passos descrevem MLSAG e Bulletproofs clássicos, não a construção activa
-com CLSAG e Bulletproof+. A diferença não é uma troca de nomes: mudam os
-desafios, os dados assinados, as condições de agregação e a gestão segura dos
-\emph{nonces}.
+Estes passos fixam a composição de MLSAG com Bulletproofs. Uma composição
+com CLSAG e Bulletproofs+ tem de usar os respectivos desafios, dados
+assinados, condições de agregação e regras de gestão dos valores aleatórios.
 
 \subsection{Chaves públicas de transacção e ataque de Janus}
 
@@ -311,53 +305,33 @@ O protocolo fica mais simples porque o administrador conhece aquilo que o
 modelo descentralizado tentava esconder. A privacidade passa então de uma
 propriedade criptográfica para uma promessa operacional.
 
-\section{Avaliação face ao Monero actual}
+\section{Condições para uma composição segura}
 \label{sec:txtangle-modern-status}
 
-O código-fonte de referência foi verificado na revisão de 14 de Agosto de
-2026:
-\begin{center}
- \small\texttt{3646f648db57f60cca86430e25a635d19fa9b92a}.
-\end{center}
-Não contém TxTangle, MoJoin nem uma interface CoinJoin para Monero.
-\footnote{A construção ordinária está em
-\texttt{src/wallet/wallet2.cpp} e \texttt{src/ringct/rctSigs.cpp}; a construção
-distribuída existente pertence às contas de multi-assinatura e usa
-\texttt{src/multisig/multisig\_tx\_builder\_ringct.cpp}. Nenhum destes caminhos
-implementa o protocolo deste capítulo.}
+Os deslocamentos antissimétricos das
+Equações~\eqref{eq:txtangle-offset-zero}--\eqref{eq:txtangle-cut} preservam o
+balanço global. A ocultação de um balanço parcial depende dos segredos que
+atravessam a fronteira do subconjunto observado. A mesma identidade convive,
+portanto, com diferentes garantias de privacidade conforme a informação do
+adversário.
 
-Há, pois, três afirmações que não devemos confundir:
+Uma transacção final que use um formato RingCT ordinário tem de satisfazer
+todas as suas condições: compromissos, provas de intervalo, assinaturas e
+mensagem comum. Na especialização com CLSAG e Bulletproofs+, a coordenação
+precisa de construir esses objectos conjuntamente e vincular cada
+contribuição à mesma transacção. A presença de etiquetas de vista e das
+chaves de transacção em \texttt{extra} também entra na informação que cada
+participante verifica.
 
-\begin{enumerate}
- \item \emph{A álgebra é plausível.} Os \emph{offsets} antissimétricos das
- Equações~\eqref{eq:txtangle-offset-zero}--\eqref{eq:txtangle-cut} preservam o
- balanço global e escondem balanços próprios de subconjuntos.
+Um protocolo completo tem de fixar a codificação do traslado, as provas de
+posse das entradas, a produção segura da prova de intervalo agregada e a
+protecção dos valores aleatórios. Cada mensagem deve ser validada antes da
+ronda seguinte. Os abortos, a recuperação, os participantes fictícios e os
+metadados de comunicação pertencem ao modelo de adversário. A análise deve
+estabelecer a autorização correcta, a conservação do valor e a privacidade
+entre participantes, incluindo sessões que terminem sem transacção.
 
- \item \emph{Uma transacção final poderia usar o formato ordinário.} Se todos
- os compromissos, provas e assinaturas fossem válidos, o consenso não
- precisaria de uma etiqueta `TxTangle': verificaria apenas uma transacção
- RingCT. Isto torna concebível uma implementação na camada das carteiras e da
- coordenação; não significa que ela exista.
-
- \item \emph{O transcrito histórico não é uma especificação actual.} O
- caminho activo usa CLSAG e Bulletproof+, com etiquetas de vista e
- regras modernas para o campo \emph{extra}. FCMP++ e Carrot alteram novamente
- a autorização, a pertença e a construção das saídas, mas não estavam activos
- no consenso na revisão considerada (capítulo \ref{chapter:fcmp-plus-plus}).
-\end{enumerate}
-
-Uma implementação séria teria de fornecer, no mínimo, uma especificação
-canónica do transcrito; provas de posse das entradas; geração distribuída de
-Bulletproof+ ou outra forma segura de agregar provas; protecção dos
-\emph{nonces}; validação de cada mensagem antes da ronda seguinte; regras de
-aborto e recuperação; defesa contra Sybil e poluição; testes diferenciais com
-o verificador do consenso; análise de metadados; vectores de teste; e uma
-auditoria independente. Teria ainda de provar que um participante malicioso
-não consegue roubar fundos, criar inflação, ligar honestos ou obter assinaturas
-sobre uma transacção diferente.
-
-TxTangle é, em suma, uma proposta matemática real e uma implementação ausente.
-O cancelamento dos \emph{offsets} merece ficar; a alegação de que o protocolo
-vive hoje em XMR, essa deve ficar de fora. Entre uma equação elegante e uma
-carteira segura há sempre um corredor comprido --- e, neste caso, ainda não foi
-construída a porta.
+A álgebra fornece o ponto de partida: as contribuições secretas cancelam-se
+na soma total, enquanto as somas parciais conservam os termos que atravessam
+as suas fronteiras. A segurança da coordenação determina como produzir essa
+transacção comum preservando os segredos e a intenção de cada participante.

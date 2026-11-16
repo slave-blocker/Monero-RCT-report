@@ -28,57 +28,37 @@ As respostas vêm de três construções que já conhecemos:
     \item a assinatura CLSAG da secção \ref{sec:CLSAG}.
 \end{itemize}
 
-Este capítulo relaciona esses componentes com os bytes que a versão 16 aceita.
-As afirmações acerca da implementação referem-se à revisão do código Monero
-identificada no resumo inicial. Nesse estado, a versão 16 activou-se na rede
-principal à altura \(2\,689\,608\) e
-é a última versão agendada. Esta descrição é verificável para essa revisão e
-não afirma que o protocolo permanecerá inalterado.\footnote{Veja-se
-\texttt{src/hardforks/hardforks.cpp} para a agenda da rede principal e
-\texttt{src/cryptonote\_config.h} para as constantes de cada versão.}
+As relações seguintes fixam a especialização de transacções admitida pelas
+regras da versão 16 \cite{monero-source-v16}. O formato dos bytes permite
+reconstruir os mesmos dados públicos que entram nas verificações algébricas.
 
-
-\section{Formato activo: \texttt{RCTTypeBulletproofPlus}}
+\section{Formato RingCT com Bulletproofs+}
 \label{sec:RCTTypeBulletproofPlus}
 
-Uma transacção ordinária criada pelo programa de referência na versão 16
-tem versão de serialização 2 e tipo RingCT `6', isto é,
-\texttt{RCTTypeBulletproofPlus}. Usa uma CLSAG por entrada, anéis de 16
-membros e uma prova Bulletproofs+ agregada para todas as saídas. Tem entre
-duas e dezasseis saídas. A transacção de mineiro é a excepção importante:
-tem tipo `0' (\texttt{RCTTypeNull}), montantes visíveis, nenhuma CLSAG e
-nenhuma prova de domínio. A rotina que constrói o bloco cria actualmente uma
-saída de mineiro; o consenso não contém, porém, uma regra isolada de
-``exactamente uma saída'': verifica a entrada de geração, o tipo, o
-desbloqueio, os alvos e a soma da recompensa.\footnote{A admissão dos tipos por versão está em
-\texttt{src/cryptonote\_core/blockchain.cpp}; a enumeração dos tipos, em
-\texttt{src/ringct/rctTypes.h}; e a escolha feita pela carteira, em
-\texttt{src/wallet/wallet2.cpp} e \texttt{src/ringct/rctSigs.cpp}.}
+A versão de serialização é 2; o tipo RingCT é `6',
+\texttt{RCTType}\allowbreak\texttt{BulletproofPlus}. Usa uma CLSAG por entrada, anéis de 16
+membros e uma prova Bulletproofs+ agregada para as suas duas a dezasseis
+saídas. A transacção de mineiro tem tipo `0', \texttt{RCTTypeNull}, e
+montantes visíveis; a sua validade depende da entrada de geração, do
+bloqueio temporal, dos alvos e da soma da recompensa. A construção de
+mineiro considerada cria uma saída. Essa escolha de construção é distinta
+das condições de validade, que verificam a estrutura e a soma dos montantes.
 
-O nome merece ser lido com cuidado. \emph{Confidencial} quer dizer que os
-montantes ficam escondidos em compromissos. \emph{Em anel} quer dizer que a
-autorização aponta para um conjunto de saídas possíveis, não para uma saída
-declarada. Nenhuma destas duas propriedades esconde tudo: a taxa, o número
-de entradas, o número de saídas, os membros de cada anel, as imagens de
-chave e o campo \texttt{extra} continuam públicos.
+\emph{Confidencial} refere-se à ocultação dos montantes nos compromissos;
+\emph{em anel} refere-se à autorização mediante uma posição secreta entre
+saídas públicas. A taxa, as contagens de entradas e saídas, os membros dos
+anéis, as imagens de chave e o campo \texttt{extra} permanecem públicos.
 
-\subsection*{Formato histórico: \texttt{RCTTypeBulletproof2}}
+\subsection*{Formato histórico com Bulletproofs}
 \label{sec:RCTTypeBulletproof2}
 
-O tipo `4', \texttt{RCTTypeBulletproof2}, pertence à história do
-protocolo. Usava Bulletproofs e MLSAG, e era o tipo activo na versão 12
-descrita pela edição anterior deste relatório. O apêndice
-\ref{appendix:RCTTypeBulletproof2} conserva uma transacção real desse período
-como exemplo histórico para a leitura dos bytes, mas não representa uma nova
-transacção v16. Entre os dois extremos existiu ainda o
-tipo `5', \texttt{RCTTypeCLSAG}, que já trocava MLSAG por CLSAG mas ainda não
-usava Bulletproofs+. Os tipos `1'--`5' continuam necessários para validar a
-história da cadeia; na versão 16 não são permitidos em novas transacções
-ordinárias.\footnote{As transições estão codificadas em
-\texttt{src/cryptonote\_core/blockchain.cpp}: CLSAG é admitida desde v13,
-Bulletproofs+ desde v15, e v16 deixa de admitir os Bulletproofs anteriores
-em novas transacções.}
-
+O tipo `4', \texttt{RCTTypeBulletproof2}, combina Bulletproofs com MLSAG.
+O apêndice \ref{appendix:RCTTypeBulletproof2} conserva uma transacção real
+desse formato para a leitura dos bytes. O tipo `5', \texttt{RCTTypeCLSAG},
+combina Bulletproofs com CLSAG. A leitura dos tipos históricos permite
+verificar as transacções admitidas pelas regras das respectivas alturas;
+na especialização da versão 16, as novas transacções ordinárias usam o
+formato com Bulletproofs+ acima definido.
 
 \subsection{Compromissos a montantes e taxas de transacção}
 \label{sec:commitments-and-fees}
@@ -178,14 +158,11 @@ A máscara não é transmitida cifrada ao lado do montante. O destinatário volt
 calcular \(y_t\) pela fórmula anterior e confirma que o compromisso publicado
 é \(C^b_t=y_tG+b_tH\). Esta confirmação é importante:
 decifrar oito bytes com aspecto razoável não basta para possuir uma saída.
-\footnote{A derivação da saída e do \emph{view tag} está em
-\path{src/device/device_default.cpp}; a máscara e o XOR de oito bytes, em
-\path{src/ringct/rctOps.cpp}; e a forma serializada, em
-\path{src/ringct/rctTypes.h}.}
 
-Uma transacção publica uma chave principal de transacção em
-\texttt{extra}. Quando há sub-endereços, pode publicar ainda uma lista de
-chaves adicionais, uma por saída, seguindo exactamente os casos da secção
+
+O campo \texttt{extra} contém a chave pública principal da transacção.
+Para os casos com sub-endereços, pode conter também uma lista de
+chaves adicionais, uma por saída, conforme os casos da secção
 \ref{sec:multi_out_transactions}. Essas chaves permitem ao destinatário
 obter \(D_t\); não demonstram ao consenso que certo endereço foi o
 destinatário pretendido.
@@ -221,10 +198,7 @@ altera o montante comprometido. A prova e a verificação completas estão na
 secção \ref{sec:bulletproof_plus}. Os compromissos históricos do anel, os
 compromissos de saída em \texttt{outPk} e os pseudo-compromissos são
 serializados na representação normal; não se lhes aplica esta divisão por 8.
-\footnote{Comparem-se \path{src/ringct/rctSigs.cpp},
-\path{src/ringct/rctTypes.cpp},
-\path{src/cryptonote_basic/cryptonote_format_utils.cpp} e
-\path{src/ringct/bulletproofs_plus.cc}.}
+
 
 
 \subsection{Um anel: uma entrada real e quinze desvios}
@@ -262,16 +236,14 @@ carteira. O programa de referência insere a saída real e amostra candidatos
 históricos com a sua \texttt{gamma\_picker}: parte de uma distribuição gamma
 de forma \(19{,}28\) e escala \(1/1{,}61\), corrige a janela de maturação,
 estima um índice pela densidade recente de saídas e escolhe ao acaso uma
-saída dentro do bloco encontrado.\footnote{Veja-se
-\texttt{src/wallet/wallet2.cpp}, em particular \texttt{gamma\_picker::pick()}
-e \texttt{wallet2::get\_outs()}. Esta distribuição é uma heurística de
-privacidade da carteira congelada, não uma regra de validade. Também não se
-deve chamar aos desvios ``saídas não gastas'': a cadeia não marca uma saída
-RingCT como gasta, apenas regista imagens de chave.}
+saída dentro do bloco encontrado.\footnote{A distribuição dos desvios é uma heurística de privacidade da
+carteira. A validade depende das referências e das provas. As imagens de
+chave registam os gastos; a lista de blocos conserva as saídas RingCT sem
+lhes atribuir uma marca pública de «gasta».}
 
 Quem verifica conhece todos os pares de \(\mathcal R_j\), mas não recebe
 esses pontos repetidos dentro da assinatura. Recebe os \emph{offsets} e vai
-buscá-los à cadeia. Antes de verificar a CLSAG confirma que as referências
+buscá-los à lista de blocos. Antes de verificar a CLSAG confirma que as referências
 existem, têm tipos admissíveis, já maturaram e estão desbloqueadas.
 
 \subsubsection{Dos índices globais aos deslocamentos relativos}
@@ -475,9 +447,7 @@ passarem.
 
 \subsection{A mensagem que as CLSAG assinam}
 
-As CLSAG dependem de toda a transacção, mas essa afirmação não descreve os
-bytes com precisão suficiente. Na revisão consultada, a mensagem anterior
-às CLSAG é
+A mensagem comum das CLSAG reúne três resumos dos dados da transacção:
 \begin{align}
  \mathfrak m=\mathcal H(h_0\,\|\,h_1\,\|\,h_2),
  \label{eq:transaction-pre-clsag-hash}
@@ -507,11 +477,7 @@ explicitamente o seu próprio \(\widetilde C^a_j\), juntamente com
 \(\mathfrak m\), os \(P_{i,j}\), os \(C^a_{i,j}\), \(I_j\) e \(\bar D_j\). Logo,
 mudar um pseudo-compromisso invalida a assinatura correspondente; não é, porém,
 verdade literal que exista um único \emph{hash} de todos os bytes excepto as
-assinaturas.\footnote{A construção está em
-\path{src/ringct/rctSigs.cpp}, funções
-\path{get_pre_mlsag_hash()}, \path{genRctSimple()} e
-\path{CLSAG_Gen()}; o \emph{hash} final dos três termos está em
-\path{src/device/device_default.cpp}.}
+assinaturas.
 
 Esta disposição prende os destinatários, os anéis, as imagens de chave, a
 taxa, \texttt{extra}, os montantes em código, os compromissos de saída, a
@@ -539,7 +505,7 @@ pouco enganadores:
     \eqref{eq:transaction-commitment-balance} e a prova de domínio;
 
     \item a verificação \emph{não semântica} reconstrói os anéis a partir da
-    cadeia e verifica uma CLSAG por entrada contra o seu
+    lista de blocos e verifica uma CLSAG por entrada contra o seu
     pseudo-compromisso.
 \end{enumerate}
 
@@ -555,20 +521,8 @@ pontos têm de descodificar, \(I_j\) não pode ser a identidade e tem de
 satisfazer \(lI_j=0\); depois de recuperar \(D_j=8\bar D_j\), a verificação
 rejeita também a identidade. Bulletproofs+ verifica os escalares canónicos,
 a forma dos vectores e as suas próprias equações depois das multiplicações
-por 8. É por isso demasiado forte dizer simplesmente que ``todos os pontos
-da transacção são testados um a um no subgrupo primo'': a implementação usa
-testes e limpezas de cofactor diferentes em fronteiras diferentes.
-
-Os testes locais tornam estas fronteiras visíveis. Os testes de núcleo para
-Bulletproofs+ rejeitam provas em falta, provas duplicadas e uma prova sobre
-o compromisso errado; o teste de maleabilidade CLSAG altera \(\bar D\) por
-um ponto de torção e espera rejeição; os testes de serialização confirmam
-que \(V_t\) e \(I_j\) são reconstruídos, não repetidos no corpo das provas.\footnote{
-Veja-se \path{tests/core_tests/bulletproof_plus.cpp},
-\path{tests/core_tests/rct2.cpp},
-\path{tests/unit_tests/bulletproofs_plus.cpp} e
-\path{tests/unit_tests/serialization.cpp}.}
-
+por 8. As condições sobre os pontos combinam, portanto, testes de domínio
+e multiplicações pelo cofactor, com regras próprias em cada fronteira.
 
 \subsection{Evitar o gasto duplo}
 
@@ -576,7 +530,7 @@ A imagem de chave \(I_j=p_j\mathcal H_p(P_{\pi_j,j})\) é determinística para
 a chave privada de utilização única, mas não revela qual dos dezasseis
 \(P_{i,j}\) lhe corresponde. O núcleo rejeita imagens repetidas dentro da
 mesma transacção, entre transacções do mesmo bloco e contra o conjunto de
-imagens já gastas na cadeia. Sob a segurança da CLSAG e da função de
+imagens já gastas na lista de blocos. Sob a segurança da CLSAG e da função de
 \emph{hash} para ponto, uma segunda assinatura com a mesma chave produz a
 mesma \(I_j\): o marcador denuncia a repetição sem desmascarar o membro real.
 
@@ -607,11 +561,7 @@ de cada membro do anel.
 
 Uma transacção de mineiro criada à altura \(h\) tem obrigatoriamente
 \(\texttt{unlock\_time}=h+60\). A sua saída só pode portanto ser referida a
-partir dessa altura; o bloqueio de 60 domina a maturação ordinária de 10.\footnote{
-Veja-se \path{is_tx_spendtime_unlocked()} e a verificação das referências
-em \path{src/cryptonote_core/blockchain.cpp}, a política em
-\path{src/cryptonote_core/tx_pool.cpp} e a construção da transacção de
-mineiro em \path{src/cryptonote_core/cryptonote_tx_utils.cpp}.}
+partir dessa altura; o bloqueio de 60 domina a maturação ordinária de 10.
 
 
 \subsection{A relação desconhecida \texorpdfstring{$\gamma=\log_GH$}{gamma}}
@@ -651,7 +601,7 @@ Então
  &=C^a.
 \end{align*}
 As duas aberturas representam montantes diferentes no mesmo ponto publicado na
-cadeia.
+lista de blocos.
 
 Ao gastar a saída, o Óscar trata \(C^a\) como compromisso a
 \(b_{\mathrm{mau}}\). Escolhe uma pseudo-máscara \(x'\) e publica
@@ -837,7 +787,7 @@ organizado para clareza conceptual. O apêndice
 antiga; as diferenças estão assinaladas no próprio apêndice.
 
 \begin{itemize}
-    \item \underline{Tipo}: `6' é \texttt{RCTTypeBulletproofPlus}; `0' é
+    \item \underline{Tipo}: `6' é \texttt{RCTType}\allowbreak\texttt{BulletproofPlus}; `0' é
     \texttt{RCTTypeNull} para a transacção de mineiro.
 
     \item \underline{Entradas}: para cada entrada \(j\):
@@ -862,8 +812,8 @@ antiga; as diferenças estão assinaladas no próprio apêndice.
     \item \underline{Base RingCT}: tipo, taxa pública, \texttt{ecdhInfo} e
     \texttt{outPk}. Esta parte não é podável.
 
-    \item \underline{Parte podável}: uma prova Bulletproofs+,
-    seguida das CLSAG e dos pseudo-compromissos.
+    \item \underline{Parte podável}: prova Bulletproofs+, CLSAG e
+    pseudo-compromissos.
 
     \item \underline{\texttt{extra}}: bytes opacos no prefixo, onde as
     carteiras colocam normalmente a chave pública principal de transacção,
@@ -883,7 +833,7 @@ a utilização pelos destinatários dependem das condições seguintes:
  \item a imagem de chave ainda não tenha aparecido num gasto aceite;
  \item cada saída inclua endereço oculto, etiqueta de vista, compromisso e
  montante cifrado;
- \item a Bulletproof+ prove que os dois montantes pertencem ao intervalo de
+ \item a Bulletproofs+ prove que os dois montantes pertencem ao intervalo de
  64 bits;
  \item a taxa \(f\) seja pública e se verifique
  \(\widetilde C^a=C^b_0+C^b_1+fH\); e
@@ -900,7 +850,7 @@ intervalo dos montantes e do equilíbrio.
 \index{transaccao@transacção!tamanho e peso@tamanho e peso}
 
 Um anel v16 não repete no \emph{blob} os 16 endereços ocultos e os 16
-compromissos: os \emph{offsets} apontam para esses dados na cadeia. Por
+compromissos: os \emph{offsets} apontam para esses dados na lista de blocos. Por
 entrada, os elementos fixos directamente ligados ao gasto são:
 \begin{align*}
  \underbrace{16\cdot32+32+32}_{\text{CLSAG}}
@@ -924,10 +874,10 @@ mais dois comprimentos de vector.
 
 \subsubsection*{Peso, não apenas bytes}
 
-Para uma transacção actual, o peso é o tamanho serializado mais uma
+Para este formato de transacção, o peso é o tamanho serializado mais uma
 penalização de ``recuperação'' da economia obtida pela agregação de
 Bulletproofs+. Se \(M\leq2\), a penalização é zero e peso e bytes coincidem.
-Para \(M>2\), a revisão congelada calcula
+Para \(M>2\), a regra de peso é
 \begin{align*}
  w={}&|\mathrm{blob}|+
  \frac{4}{5}\left[
@@ -941,11 +891,7 @@ exceder
 \end{align*}
 unidades de peso. A reserva de 600 deixa espaço para a transacção de mineiro;
 a relação com o peso dinâmico do bloco é explicada na secção
-\ref{subsec:dynamic-block-weight}.\footnote{Veja-se
-\path{get_transaction_weight()} e
-\path{get_transaction_weight_clawback()} em
-\path{src/cryptonote_basic/cryptonote_format_utils.cpp}, e o limite em
-\path{src/cryptonote_core/tx_verification_utils.cpp}.}
+\ref{subsec:dynamic-block-weight}.
 
 \subsection{O campo \texttt{extra}: leitura e significado}
 \label{subsec:tx-extra-structure}

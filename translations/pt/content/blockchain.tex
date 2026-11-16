@@ -4,7 +4,7 @@
 Uma transacção prova uma transferência autorizada; a lista de blocos
 determina a história comum dessas transferências. É nela que se ordenam os
 gastos, se contabiliza a moeda criada e se resolve a concorrência entre ramos.
-A validade de cada bloco e a escolha da cadeia são relações de consenso; a
+A validade de cada bloco e a escolha da lista de blocos são relações de consenso; a
 conservação dos dados em cada nó obedece a uma política de armazenamento
 distinta \cite{monero-source-v16}.
 
@@ -39,7 +39,7 @@ por organizações poderosas \cite{Nakamoto_bitcoin}.
 
 Uma moeda digital descentralizada substitui a confiança num guardião por
 regras públicas que os participantes podem verificar.
- 
+
 %To alleviate these drawbacks decentralized digital currencies have been engineered.
 
 \section{Moedas digitais}
@@ -109,7 +109,7 @@ primeira vista, seguem as mesmas regras --- uma bifurcação ({\em fork}).
 %If two computers receive different legitimate transactions spending the same money before they have a chance to send the information to each other, how do they decide which is correct? There is a `fork' in the currency, because two different copies that follow the same rules exist.
 
 É necessário determinar qual transacção será canónica. Obter consenso sobre o
-histórico de transacções é a função principal da blockchain, isto é, da lista
+histórico de transacções é a função principal da lista
 de blocos.
 
 %Clearly the earliest legitimate transaction spending a piece of money should be canonical. This is easier said than done. As we will see, obtaining consensus for transaction histories constitutes the raison d'\^{e}tre of blockchain technology.
@@ -219,7 +219,7 @@ Chamamos \emph{dificuldade} a $d$.
 
 %Now say we have a hash function for generating proofs of work, $\mathcal{H}_{PoW} \in^D_R \{0,...,m\}$, where $m$ is its maximum possible output. Given a message $\mathfrak{m}$ (a block of information), a nonce $n$ to mine, and a target $t$, we can define the expected average number of hashes, the {\em difficulty} $d$, like this: $d = m/t$. 
 
-Se\marginnote{\scriptsize src/crypto- note\_basic/ difficulty.cpp {\tt check\_hash()}}
+Se
 $\mathcal H_{PoW}(\mathfrak m,n)d\leq m$, então
 $\mathcal H_{PoW}(\mathfrak m,n)\leq t$ e $n$ é aceitável.\footnote{Monero
 guarda e calcula a dificuldade; testa directamente o produto, sem precisar de
@@ -299,43 +299,14 @@ escolhe o ramo com a maior dificuldade cumulativa, isto é, aquele que
 representa mais trabalho. Um ramo alternativo só substitui o principal quando
 a sua soma é \emph{estritamente} maior. Se houver igualdade, o nó conserva o
 ramo principal que já adoptara; não há uma segunda regra que prefira o ramo
-com mais blocos.\marginnote{src/crypto- note\_core/ block- chain.cpp
-{\tt handle\_ alter- native\_ block()}}
+com mais blocos.
 
-Uma alteração das regras de consenso produz uma bifurcação rígida
-({\em hard fork}): software que aplica regras incompatíveis deixa de aceitar os
-mesmos blocos. As regras aplicáveis à história de Monero são indexadas pela
-altura. Os limiares até ao regime v16 são:
-
-\begin{center}
-\begin{tabular}{c r l}
-\textbf{versão} & \textbf{altura de activação} & \textbf{mudança principal} \\
-v1  & 0       & génese \\
-v2  & 1009827 & anéis $\geq 3$, alvo de 120 s, zona de 60 kB \\
-v3  & 1141317 & decomposição das saídas da transacção de mineiro \\
-v4  & 1220516 & transacções RingCT permitidas \\
-v5  & 1288616 & zona mínima de 300 kB e novas taxas \\
-v6  & 1400000 & RingCT obrigatório e anéis $\geq 5$ \\
-v7  & 1546000 & variante de CryptoNight, anéis $\geq 7$ \\
-v8  & 1685555 & Bulletproofs permitidas, anel fixo de 11 \\
-v9  & 1686275 & Bulletproofs obrigatórias \\
-v10 & 1788000 & CryptoNight-R e peso de longo termo \\
-v11 & 1788720 & formato RingCT antigo proibido \\
-v12 & 1978433 & RandomX e novas regras da transacção de mineiro \\
-v13 & 2210000 & CLSAG permitido e recompensa exacta \\
-v14 & 2210720 & MLSAG antigo proibido \\
-v15 & 2688888 & anel 16; Bulletproof+ e etiquetas de vista permitidas \\
-v16 & 2689608 & Bulletproof+ e etiquetas de vista obrigatórias
-\end{tabular}
-\end{center}
-\marginnote{\scriptsize src/hardforks/ hardforks.cpp
-{\tt mainnet\_ hard\_ forks[]}}
-
-Se \(h_j\) é a altura de activação da versão \(v_j\), para \(1\leq j<16\)
-o intervalo \(h_j\leq h<h_{j+1}\) obedece a \(v_j\). O regime v16 reúne as condições da
-última linha e as condições anteriores que não foram substituídas.
-O campo de versão menor conserva a função de voto do mecanismo de bifurcação;
-em v16 tem de ser pelo menos 16.
+As regras de consenso aplicáveis a um bloco são determinadas pela sua altura.
+Uma bifurcação rígida ({\em hard fork}) fixa um limiar a partir do qual vale
+um novo conjunto de regras; um nó valida cada trecho da história segundo o
+conjunto que lhe corresponde. Neste capítulo estudamos o regime v16
+\cite{monero-source-v16}. O campo de versão menor conserva a função de voto
+do mecanismo de bifurcação; neste regime tem de ser pelo menos 16.
 
 Para que um atacante convença nós honestos a alterar a história de
 transacções, tem de construir um ramo válido cuja dificuldade cumulativa
@@ -364,8 +335,7 @@ As dificuldades cumulativas mantêm a ordem do ramo. É uma assimetria
 deliberada: os extremos temporais são aparados sem reordenar o trabalho.
 %Before chopping outliers we sorted timestamps, but {\em only} timestamps. Block difficulties are left unsorted. We use the cumulative difficulty for each block, which is that block's difficulty plus the difficulty of all previous blocks in the chain.
 
-Usando\marginnote{src/crypto- note\_core/ block- chain.cpp
-{\tt get\_diff- iculty\_for\_ next\_ block()}}[-1.8cm] índices $i$ e $j$ nos extremos
+Usando índices $i$ e $j$ nos extremos
 da janela conservada, define-se
 \begin{align*}
 \mathit{Tempo\ total} &= TS_{j}-TS_{i},\\
@@ -380,7 +350,7 @@ No regime v16, o alvo é 120 segundos, $l=15$, $b=720$ e
 $o=60$. O nó recolhe até $b+l=735$ blocos anteriores, ignora os 15 mais
 recentes quando a janela está cheia e mede o intervalo entre 600 carimbos
 centrais. Como vimos, não reordena com eles o trabalho cumulativo.
-\marginnote{\scriptsize src/crypto- note\_basic/ difficulty.cpp {\tt next\_ difficulty()}}
+
 Tanto a dificuldade como a sua soma cumulativa são inteiros sem sinal de 128
 bits; o cálculo intermédio usa 256 bits e rejeita um resultado que não caiba
 novamente em 128.
@@ -403,14 +373,11 @@ seguintes:
 
 
 \subsection*{Prova de trabalho em Monero}
-Monero usou historicamente CryptoNight, uma função concebida para ser
-relativamente ineficiente em GPU, FPGA e ASIC quando comparada com SHA-256
-\cite{CryptoNight}. Seguiram-se variantes em v7, CryptoNight V2 em v8 e
-CryptoNight-R em v10 \cite{cryptonight7,berylliumbullet-v8,boronbutterfly-v10}.
-A regra activa desde v12 é \textbf{RandomX} \cite{randomx-pr-5549,randomx}.
-Aqui basta saber que produz o hash de prova de trabalho de 256 bits verificado
-contra a dificuldade; a sua construção fica para o tratamento próprio da
-etapa seguinte.
+No regime v16, a prova de trabalho usa \textbf{RandomX}
+\cite{randomx-pr-5549,randomx}. A função produz o hash de 256 bits verificado
+contra a dificuldade. A sua construção, as dependências de memória e as
+hipóteses económicas da resistência a especialização serão estudadas no
+capítulo seguinte.
 
 %\marginnote{src/crypto- note\_basic/ cryptonote\_ tx\_utils.cpp {\tt get\_block\_ longhash()}} has used a few different proof of work hash algorithms (with 32 byte outputs) in different protocol versions. The original, known as Cryptonight, was designed to be relatively inefficient on GPU, FPGA, and ASIC architectures \cite{CryptoNight} compared to standard hash functions like SHA256. In April 2018 (v7 of the protocol), new blocks were required to begin using a slightly modified variant that countered the advent of Cryptonight ASICs \cite{cryptonight7}. Another slight variant, named Cryptonight V2, was implemented in October 2018 (v8) \cite{berylliumbullet-v8}, and Cryptonight-R (based on Cryptonight but with more substantial changes than just a tweak) started being used for new blocks in March 2019 (v10) \cite{boronbutterfly-v10}. A\marginnote{src/crypto/ rx-slow-hash.c} radical new proof of work called RandomX \cite{randomx-pr-5549} was designed and made mandatory for new blocks in November 2019 (v12) with the intention of long-term ASIC resistance \cite{randomx}.
 \section{Quantidade monetária}
@@ -524,8 +491,7 @@ B=\frac{(L-M)\mathbin{>>}19}{10^{12}}.
 
 A emissão inclui ainda um piso positivo. Em unidades atómicas, a recompensa
 base sem penalização é
-\marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp
-{\tt get\_block\_ reward()}}
+
 \begin{align*}
 B_0=\max\left\{(L-M)\mathbin{>>}19,\;600\,000\,000\,000\right\}.
 \end{align*}
@@ -552,16 +518,15 @@ uma penalização económica.
 
 Desde que as Bulletproofs foram permitidas (v8), o tamanho serializado e o
 peso deixaram de ser sempre iguais. O algoritmo atribui a uma transacção sem
-Bulletproof nem Bulletproof+ exactamente o número de bytes do seu objecto
+Bulletproof nem Bulletproofs+ exactamente o número de bytes do seu objecto
 serializado; num bloco v16, este caso abrange a transacção de mineiro
-{\tt RCTTypeNull}, enquanto uma transacção normal tem de usar Bulletproof+.
+{\tt RCTTypeNull}, enquanto uma transacção normal tem de usar Bulletproofs+.
 Para esta última, acrescenta-se uma recuperação ({\em clawback}) que cobra
 parte da economia obtida ao agregar muitas saídas.
-\marginnote{src/crypto- note\_basic/ cryptonote\_ format\_ utils.cpp
-{\tt get\_trans- action\_ weight()}}
+
 
 Se $p$ é a capacidade preenchida pela prova, arredondada a uma potência de
-dois até ao máximo de 16 saídas, então, para $p>2$, a prova Bulletproof+ ocupa
+dois até ao máximo de 16 saídas, então, para $p>2$, a prova Bulletproofs+ ocupa
 \begin{align*}
 S_{\rm BP+}(p)=32\bigl(6+2(\log_2p+6)\bigr)
 \end{align*}
@@ -576,7 +541,7 @@ Para $p\leq2$, $C(p)=0$. Logo,
 Embora a prova cresça logaritmicamente, a verificação continua a ter custo. O
 peso incorpora parte desse custo. A fórmula mais antiga, com a constante 9 das Bulletproofs
 originais, pertence a v8--v15; em v15 coexistiu transitoriamente com a
-constante 6 de Bulletproof+. V16 só permite esta última.
+constante 6 de Bulletproofs+. V16 só permite esta última.
 
 O peso de um bloco é a soma dos pesos da transacção de mineiro e de todas as
 transacções normais. O cabeçalho e o vector de identificadores não são somados
@@ -594,8 +559,7 @@ bloco.
 
 Chamemos $W$ ao peso normal do bloco acabado de aceitar e $M_L$ à mediana
 efectiva anterior de longo termo. Na regra activa desde v15,
-\marginnote{src/crypto- note\_core/ block- chain.cpp
-{\tt get\_next\_ long\_term\_ block\_ weight()}}
+
 \begin{align*}
 W_L&=\min\left\{\max\left\{W,\frac{10}{17}M_L\right\},
                          \frac{17}{10}M_L\right\},\\
@@ -619,8 +583,7 @@ O volume de transacções pode mudar dramaticamente num curto período,
 especialmente à volta das férias \cite{visa-seasonality}. Chamemos $M_S$ à
 mediana dos pesos normais dos 100 blocos \emph{anteriores}. A mediana efectiva
 que determina a penalização do bloco seguinte é
-\marginnote{\scriptsize src/crypto- note\_core/ block- chain.cpp
-{\tt update\_next\_ cumulative\_ weight\_limit()}}
+
 \begin{align*}
 M_N=\min\left\{\max\{M_L,M_S\},\;50M_L\right\}.
 \end{align*}
@@ -659,7 +622,7 @@ construtor da transacção de mineiro arredondava ainda a recompensa para baixo,
 retirando os algarismos menos significativos segundo
 {\tt BASE\_REWARD\_CLAMP\_THRESHOLD}. O resto não desaparecia: ficava
 disponível para recompensas posteriores.}
-\marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp {\tt get\_block\_ reward()}}
+
 
 %The actual block reward\marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp {\tt get\_block\_ reward()}} is therefore
 
@@ -684,11 +647,11 @@ mediana efectiva de curto prazo definida acima.
 É de esperar que os mineiros entrem na zona penalizada quando as taxas
 adicionais compensarem a perda marginal de subvenção. Isto é economia do
 modelo de bloco, não uma condição de validade.
- 
+
 %We can expect miners to create blocks larger than the cumulative median when the fee from adding another transaction is bigger than the penalty incurred.
 
 
-\subsection{Taxas dinâmicas: política, não consenso}
+\subsection{Taxas dinâmicas e política de propagação}
 \label{subsec:dynamic-minimum-fee}
 \index{taxa de transaccao@taxa de transacção!politica de propagacao@política de propagação} %get_dynamic_per_kb_fee
 
@@ -696,15 +659,15 @@ Actores maliciosos podem inundar a rede com transacções e fazer crescer a
 lista de blocos. Para desencorajar esse comportamento, os nós aplicam uma taxa
 mínima por unidade de \emph{peso} ao admitir uma transacção na memória de
 transacções ({\em txpool}) e ao propagá-la.
-\marginnote{\scriptsize src/crypto- note\_core/ block- chain.cpp {\tt check\_fee()}}
+
 
 %To prevent malicious actors from flooding the blockchain with transactions that could be used to pollute ring signatures, and generally bloat it unnecessarily, Monero has a minimum fee\marginnote{src/crypto- note\_core/ block- chain.cpp {\tt check\_fee()}} per byte of transaction data.
-\textbf{Isto não é uma regra de consenso.} Um bloco pode conter uma
+A taxa mínima é uma política local de propagação. Um bloco pode conter uma
 transacção sem taxa, ou com taxa inferior ao mínimo local, se satisfizer todas
 as restantes regras. Ao processar transacções vindas de um bloco, o nó ignora
 o teste de taxa da txpool. É por isso que carteiras e nós podem actualizar o
 algoritmo sem uma bifurcação da rede.
-\marginnote{src/crypto- note\_core/ tx\_pool.cpp {\tt add\_tx()}}
+
 %This minimum is enforced by the node consensus protocol, not the blockchain protocol. Most nodes won't relay a transaction to other nodes if it has a fee below the minimum\marginnote{src/crypto- note\_core/ tx\_pool.cpp {\tt add\_tx()}} (at least in part so only transactions likely to be mined by someone are passed along \cite{articmine-36c3-dynamics}), but they {\em will} accept a new block containing that transaction. In particular, this means there is no need to maintain backward compatibility with fee algorithms.}
 Uma política de taxa dinâmica relaciona o preço do espaço com a recompensa e com a
 capacidade que a rede consegue oferecer
@@ -807,8 +770,7 @@ em pelo menos 0,6 XMR.
 %It turns out using the cumulative median for fees enables a spam attack. By raising the short term median to its highest value (50 x long term median), an attacker can use minimum fees to maintain high block weights (relative to organic transaction volume) with very low cost.
 Se $B_0$ é a recompensa base sem penalização e $w$ o peso da transacção, o
 preço local por unidade de peso é calculado, com aritmética inteira, em torno de
-\marginnote{\scriptsize src/crypto- note\_core/ block- chain.cpp
-{\tt get\_dynamic\_ base\_fee()}}
+
 \begin{align*}
 f_{\rm pool}\simeq
 \max\left\{1,\;0{,}95\frac{B_0\cdot3000}{M_L^2}\right\}
@@ -822,7 +784,7 @@ diferenças de arredondamento, a txpool aceita até 2\% abaixo desse total.
 %An attacker can spend just enough in fees for the short term median to hit 50*long-term-median. With current (as of this writing) block rewards at 2 XMR, an optimized attacker can increase the short term median by 17\% every 50 blocks, and reach the upper bound after about 1300 blocks (about 43 hours), spending 0.39*2 XMR per block, for a total setup cost of about 1000 XMR (or around 65k USD at current valuations), and then go back to the minimum fee. When the fee median equals the penalty-free zone, then the minimum total fee to fill the penalty-free zone is 0.004 XMR (about 0.26 USD at current valuations). If the fee median equals the long term median, it would in the spam scenario be 1/50th the penalty-free zone. Therefore it would just be 50x the short-median case, for 0.2 XMR per block (13 USD per block). This comes out to 2.88 XMR per day vs 144 XMR per day (for 69 days, until the long term median rises by 40\%) to maintain every block with 50*long-term-median block weight. The 1000 XMR setup cost would be worthwhile in the former case, but not the latter. This will reduce to 300 XMR setup, and 43 XMR maintenance, at the emission tail.}\vspace{.1cm}
 \[M_{\rm taxa}=\min\{M_N,M_L\}=M_L.\]
 
-\marginnote{\scriptsize src/crypto- note\_core/ block- chain.cpp {\tt check\_fee()}}
+
 
 O quadrado no denominador segue da derivação anterior: se a capacidade de
 longo termo duplica, o custo por unidade de peso cai quatro vezes. Se a
@@ -851,8 +813,7 @@ B(W_{\rm novo})+\sum\mathit{taxas}
 ficar abaixo do melhor rendimento já obtido. Esta selecção é comportamento do
 mineiro; o consenso verifica apenas o bloco final, incluindo o peso real da
 transacção de mineiro.
-\marginnote{src/crypto- note\_core/ tx\_pool.cpp
-{\tt fill\_block\_ template()}}
+
 %As Caba$\tilde{\textrm{n}}$as said in his insightful presentation on this topic \cite{articmine-36c3-dynamics}, ``[f]ees tell the miner how deep into the penalty [transaction authors are] willing to pay for, in order to get a transaction mined." Miners will fill up their blocks by adding transactions in descending order of fee amount \cite{articmine-36c3-dynamics} (assuming all transactions have the same weight), so to move into the penalty zone there must be numerous transactions with large fees. This means it is likely the block weight cap can only be reached if total fees are at least about 3-4 times the base block reward (at which point the actual block reward is zero).
 \footnote{\label{penaltyzonecost_footnote} A intuição marginal permanece: uma
 transacção entra na zona penalizada quando a sua taxa compensa a subvenção que
@@ -867,8 +828,7 @@ calcular, o nó projecta dez blocos de folga, obtém medianas projectadas e
 devolve quatro patamares, arredondados para cima a dois
 algarismos significativos. A carteira multiplica o patamar escolhido pelo peso estimado e
 volta a verificar o peso real ao construir a transacção.
-\marginnote{\scriptsize src/crypto- note\_core/ block- chain.cpp
-{\tt get\_dynamic\_ base\_fee\_ estimate\_2021\_ scaling()}}
+
 %To calculate fees for a transaction, Monero's core implementation wallet uses `priority'\marginnote{src/wallet/ wallet2.cpp {\tt get\_fee\_ multi- plier()}} multipliers. A `slow' transaction uses the minimum fee directly, `normal' is the default fee (5x), if all transactions use `fast' (25x) they can reach 2.5\% of the penalty zone, and a block with `super urgent' (1000x) transactions can fill 100\% of the penalty zone.%wallet2::get_fee_multiplier()
 %One important consequence of dynamic block weights is average total block fees will tend to be of a magnitude lower than, or at least the same as, the block reward (total fees can be expected to equal the base block reward at about 37\% of the penalty zone [68.5\% of the maximum block weight], when the penalty is 13\%). Transactions competing for block space with higher fees leads to a bigger supply of block space, and lower fees.
 
@@ -909,12 +869,11 @@ podem agravar incentivos de mineração egoísta
 \footnote{O caso de uma quantidade monetária limitada e um tamanho de bloco fixo, como em Bitcoin, também é considerado como instável \cite{no-reward-instability}.
 %The case of fixed supply and fixed block weight, as in Bitcoin, is also thought to be unstable. \cite{no-reward-instability}
 }
- 
+
 
 %This introduces an unstable, insecure situation. Miners have little to no incentive to mine new blocks, leading to a fall in network hash rate as returns on investment decline. Block times remain the same as difficulties adjust, but the cost of performing a double-spend attack may become feasible. If minimum fees are forced to be non-zero then the `selfish miner' \cite{selfish-miner} threat becomes realistic  \cite{no-reward-instability}.\\
 
-Monero \marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp
-{\tt get\_block\_ reward()}} evita esse precipício: a recompensa base nunca
+Monero  evita esse precipício: a recompensa base nunca
 desce abaixo de 0,6 XMR por bloco, isto é, 0,3 XMR por minuto ao alvo de dois
 minutos. A curva principal encontrou esse piso quando
 %Monero\marginnote{src/crypto- note\_basic/ cryptonote\_ basic\_ impl.cpp {\tt get\_block\_ reward()}} prevents this by not allowing the block reward to fall below 0.6 XMR (0.3 XMR per minute). When the following condition is met,
@@ -943,15 +902,14 @@ provas de intervalo.}
 \index{coinbase@coinbase|see{transacção, de mineiro}} %-fees -> summed into block reward and spent in the miner tx (construct_miner_tx function)
 
 O mineiro reclama a subvenção e as taxas através da transacção de
-mineiro\marginnote{src/crypto- note\_core/ cryptonote\_ tx\_utils.cpp
-{\tt construct\_ miner\_tx()}} (também chamada {\em coinbase transaction}).
+mineiro (também chamada {\em coinbase transaction}).
 Parece uma transacção normal à distância, mas as regras de consenso activas
 são muito específicas:
 
 \begin{itemize}
 \item tem versão 2 e exactamente uma entrada {\tt txin\_gen}, cuja altura é a
       altura do bloco;
-\item usa {\tt RCTTypeNull}: não contém CLSAG, Bulletproof+ nem pseudo-saídas;
+\item usa {\tt RCTTypeNull}: não contém CLSAG, Bulletproofs+ nem pseudo-saídas;
 \item o tempo de desbloqueio é exactamente $h+60$;\footnote{Se esta
       transacção aparece no bloco 10, a altura de desbloqueio é 70 e a saída
       pode ser usada numa transacção incluída no bloco 70 ou posterior. Esta
@@ -966,8 +924,7 @@ são muito específicas:
       {\tt RCTTypeNull} \cite{miner-tx-checks}. V13 tornou exacta a soma
       reclamada.}
 \end{itemize}
-\marginnote{src/crypto- note\_core/ block- chain.cpp
-{\tt is\_tx\_ spendtime\_ unlocked()}}[-1.2cm]
+
 
 %A block's miner has the right to claim ownership of the fees provided in its transactions, and to mint new money in the form of a block reward. The mechanism is a miner transaction\marginnote{src/crypto- note\_core/ cryptonote\_ tx\_utils.cpp {\tt construct\_ miner\_tx()}} (a.k.a. coinbase transaction), which is similar to a normal transaction.
 
@@ -987,13 +944,12 @@ condições acima e o peso máximo do bloco sejam satisfeitos.
 No regime RingCT, a partir de v4,
 \cite{ringct-dates}, o nó que guarda uma saída de mineiro v2 fabrica também o
 compromisso de máscara escalar igual a um
-\marginnote{src/block- chain\_db/ blockchain\_ db.cpp
-{\tt add\_trans- action()}}
+
 \begin{align*}
 C=1G+aH=G+aH.
 \end{align*}
-Esse compromisso não está escondido na transacção de mineiro; é metadado
-derivado do montante claro. Permite, contudo, que a saída apareça mais tarde
+Esse compromisso é um metadado derivado do montante claro. Permite que a
+saída apareça mais tarde
 num anel CLSAG juntamente com saídas RingCT normais. O montante $a$ é público
 e a máscara é conhecida; este compromisso não pretende ocultar a recompensa.
 
@@ -1017,7 +973,7 @@ mineiro que dispersa a primeira recompensa (apêndice
 \ref{appendix:genesis-block}). Cada bloco seguinte contém no cabeçalho o ID do
 bloco anterior.
 %It starts with a genesis message
-\marginnote{src/crypto- note\_core/ cryptonote\_ tx\_utils.cpp {\tt generate\_ genesis\_ block()}}[-.8cm] 
+
 %of some kind (in our case basically a miner transaction dispersing the first block reward), which constitutes the genesis block (see Appendix \ref{appendix:genesis-block}). The next block contains a reference to the previous block, in the form of block ID.
 
 Para calcular o ID, não se aplica a função hash à serialização completa do
@@ -1028,9 +984,7 @@ rápida de CryptoNote (Keccak):\footnote{Há uma excepção histórica de consen
 para o bloco 202612, cujo ID é tratado especialmente. Não altera a construção
 dos blocos v16.}
 %A block ID is simply a hash of
-\marginnote{src/crypto- note\_basic/ cryptonote\_ format\_ utils.cpp;
-{\tt get\_block\_ hashing\_ blob(); calculate\_ block\_ hash(); calculate\_
-transa- ction\_ hash()}}[3.5cm]
+
 %[1.2cm] the block's header (a list of information about a block), a so-called `Merkle root' that attaches all the block's transaction IDs (which are hashes of each transaction), and the number of transactions (including the miner transaction).
 \vspace{.175cm}
 %calculate_block_hash, which ultimately uses cn_fast_hash(get_block_hashing_blob)
@@ -1080,7 +1034,7 @@ Calculam-se três hashes de 32 bytes:
           informação de montante;
 %pseudo output commitments for inputs, ecdhInfo (encrypted or cleartext amounts), output commitments
     \item $h_r$: a hash da parte RingCT podável, que nas transacções do regime v16
-          normais inclui Bulletproof+, CLSAG e pseudo-saídas. Para
+          normais inclui Bulletproofs+, CLSAG e pseudo-saídas. Para
           {\tt RCTTypeNull}, $h_r$ é a hash nula de 32 bytes.
 \end{itemize}
 
@@ -1138,7 +1092,7 @@ Monero usa a árvore CryptoNote, não a regra de Bitcoin de duplicar sempre a
 entram directamente no nível intermédio e as restantes são emparelhadas. A
 primeira folha é sempre o ID da transacção de mineiro; seguem-se, pela ordem
 serializada no bloco, os IDs das transacções normais.
-\marginnote{\scriptsize src/crypto/ tree-hash.c {\tt tree\_hash()}}
+
 
 %To\marginnote{src/crypto/ tree-hash.c {\tt tree\_hash()}} facilitate `pruning' transaction data, and to more generally organize it within a block, we use a Merkle tree \cite{merkle-tree}, which is just a binary hash tree. Any branch in a Merkle tree can be pruned if you keep its root hash.
 %The first known pruning method was added in v0.14.1 of the core Monero implementation (March 2019, coinciding with protocol v10). After verifying a transaction, full nodes can delete all its signature data (including Bulletproofs, MLSAGS, and pseudo output commitments) while keeping $\mathcal{H}_n$(Signatures) for computing the transaction ID. They only do this with 7/8\nths of all transactions, so every transaction is fully stored by at least 1/8\nth of the network's full nodes. This reduces blockchain storage by about 2/3\rds. \cite{monero-pruning-1/8}}\\
@@ -1178,9 +1132,8 @@ na Figura \ref*{chapter:blockchain}.1.
 \end{center}
 
 Uma raiz de Merkle é, pois, uma referência compacta a todas as transacções
-incluídas. Mas há um pormenor: a poda real de Monero não corta ramos desta
-árvore. É a decomposição $h_p\|h_b\|h_r$ do ID da transacção que permite
-retirar dados e ainda reconstruir o mesmo ID.
+incluídas. A poda aplica-se à decomposição $h_p\|h_b\|h_r$ do ID da
+transacção, que permite retirar dados e ainda reconstruir o mesmo ID.
 
 \subsubsection*{Da decomposição à poda}
 
@@ -1191,7 +1144,6 @@ verificar essa prova são operações diferentes.
 
 
 
-\newpage
 \subsection{Blocos}
 \label{subsec:blocks}
 \index{bloco@bloco}
@@ -1270,7 +1222,7 @@ admissão dependente do seu relógio:
       RandomX satisfaz $h_{\rm PoW}d\leq2^{256}-1$;
 \item que cada corpo de transacção referido produz o ID anunciado, tem no
       máximo 1\,000\,000 bytes, satisfaz as regras v16 de entradas, saídas,
-      imagens de chave, CLSAG e Bulletproof+, e não duplica gastos;
+      imagens de chave, CLSAG e Bulletproofs+, e não duplica gastos;
 \item que a raiz de Merkle, o número de transacções e o ID do bloco se
       recompõem; que o peso total não excede $2M_N$; e que a transacção de
       mineiro satisfaz altura, maturidade, tipo de saída e recompensa exacta.
@@ -1292,7 +1244,7 @@ Um nó podado acompanha toda a lista de blocos, desde a origem até à ponta.
 Conserva os cabeçalhos e os dados de todas as transacções necessários para
 reconhecer as saídas e impedir gastos duplos. A economia vem de omitir parte
 das assinaturas e provas antigas, mantendo os hashes que as vinculam à
-história. A cadeia continua inteira; é uma parte dos dados das transacções
+história. A lista de blocos continua inteira; é uma parte dos dados das transacções
 que deixa de ocupar espaço local.
 
 Há, porém, duas perguntas diferentes: quanto fica no disco e quanto chega
@@ -1332,7 +1284,7 @@ conserva inteira. Para uma faixa \(s\) escolhida uniformemente, a conta central
 Um nó concreto conserva uma faixa inteira, não exactamente um oitavo dos
 bytes: distribuem-se troços de alturas pelas oito faixas, e os troços têm
 tamanhos variáveis. O oitavo esperado refere-se apenas à \emph{parte antiga
-podável}, não ao conjunto da blockchain. Cabeçalhos, prefixos, dados
+podável}, não ao conjunto da lista de blocos. Cabeçalhos, prefixos, dados
 necessários ao estado, índices e a
 ponta recente não são multiplicados por \(1/8\). Por isso uma base podada não
 tem um oitavo do tamanho da base completa \cite{monero-pruning-doc}.
@@ -1361,7 +1313,7 @@ conservados, abstraindo de espaço livre e de sobrecustos do ficheiro da base.
 
 Fixemos a política de retenção com oito faixas, troços de 4096 blocos e uma
 janela recente de 5500 blocos \cite{monero-source-v16}. Fora dessa janela,
-as faixas repetem-se ciclicamente. Se \(H\) é o número de blocos na cadeia,
+as faixas repetem-se ciclicamente. Se \(H\) é o número de blocos na lista de blocos,
 as alturas vão de zero a \(H-1\). Para uma altura \(h\), definimos
 \begin{align}
  \sigma(h,H)=
@@ -1378,8 +1330,7 @@ antigos dos troços com \(\sigma(h,H)=s\) e elimina esses dados nos outros sete
 troços. A escolha e o expoente \(\log_2 8=3\) são codificados na
 \emph{semente de poda}. A semente identifica a política de retenção, mas não
 permite reconstruir os dados eliminados.
-\marginnote{\scriptsize\path{src/common/pruning.cpp};
-\path{src/cryptonote_config.h}}
+
 
 \begin{center}
 \begin{tikzpicture}[x=.48cm,y=.72cm,>=stealth,
@@ -1450,23 +1401,19 @@ A expressão «sincronização podada» pode designar três procedimentos distin
 \paragraph{Validar primeiro, podar depois.}
 Um nó pode sincronizar uma base completa, receber cada prova histórica,
 validar blocos e transacções e só depois executar a poda local. Nesse percurso,
-a decisão de apagar vem depois da verificação independente. Podar uma LMDB já
-existente marca páginas como livres para reutilização e pode não encolher logo
-o ficheiro; a ferramenta de cópia podada cria uma base fisicamente menor.
+a decisão de apagar vem depois da verificação independente.
 
 \paragraph{Começar do zero com poda activada.}
-Com \texttt{--prune-blockchain}, o daemon cria desde o início uma semente e
-mantém a base segundo \eqref{eq:pruning-stripe}. Esta opção, por si só,
-não activa \texttt{--sync-pruned-blocks}. O nó pede material
-completo a pares capazes de servir cada faixa, aplica a política de validação
-seleccionada e vai libertando localmente os sete oitavos antigos que não lhe
-cabem. Poupa disco durante o
-crescimento, mas não activa automaticamente a aceitação de respostas sem as
-provas podáveis.
+O nó escolhe desde o início uma semente e mantém a base segundo
+\eqref{eq:pruning-stripe}. Pede material completo a pares capazes de servir
+cada faixa, aplica a política de validação seleccionada e vai libertando
+localmente os sete oitavos antigos que não lhe cabem. A economia de disco
+acompanha o crescimento da base; as provas continuam a ser recebidas antes
+da eliminação local.
 
 \paragraph{Sincronizar a partir de respostas podadas.}
-A opção adicional \texttt{--sync-pruned-blocks} autoriza pedidos de respostas
-podadas quando a base local também tem uma semente. Neste percurso, o pedido
+Um terceiro modo permite pedidos de respostas podadas quando a base local
+também tem uma semente. Na política de sincronização aqui descrita, o pedido
 exige que todas as condições seguintes se verifiquem:
 \begin{itemize}
  \item o intervalo não pertence à faixa local nem à ponta recente;
@@ -1481,8 +1428,7 @@ Se uma condição falhar, o nó pede dados completos. A redução da descarga
 depende, portanto, dos intervalos em que aceita respostas podadas e do volume
 das provas dispensadas. A fracção \(1/8\) da política de retenção não é uma
 fracção universal dos bytes que atravessam a rede.
-\marginnote{\scriptsize\path{src/cryptonote_protocol/}
-\path{cryptonote_protocol_handler.inl}}
+
 
 
 \subsection{Verificar um hash não verifica uma prova ausente}
@@ -1495,8 +1441,8 @@ construir o estado indispensável. Recusa uma resposta podada quando tinha
 pedido uma completa e recusa pesos nulos onde esperava dados podados.
 
 O que ele não consegue fazer é recalcular uma prova criptográfica cujos bytes
-não recebeu. Para os intervalos aceites por
-\texttt{--sync-pruned-blocks}, a correspondência com os hashes e pesos
+não recebeu. Para os intervalos em que se aceitam respostas podadas,
+a correspondência com os hashes e pesos
 compilados vincula os dados recebidos aos valores de referência distribuídos
 com o programa. Um par não pode substituir a prova ausente por dados
 incompatíveis sem mudar os IDs; mas o nó também não obtém, nessa sincronização,
@@ -1526,10 +1472,10 @@ aceita a semente zero, que significa base completa, ou uma semente com
 \(\log_2 8=3\) e faixa entre 1 e 8; valores incompatíveis levam ao fecho da
 ligação. A fila de blocos calcula a faixa da próxima altura necessária.
 
-Sem \texttt{--sync-pruned-blocks}, o nó procura um par completo ou um par cuja
+Para receber provas completas, o nó procura um par completo ou um par cuja
 faixa contenha material integral para esse troço. Pode reservar desde já o
 troço da faixa seguinte e liberta ligações pouco úteis para abrir lugar à
-faixa necessária. Com a opção activa, qualquer par que conserve a base
+faixa necessária. No modo que admite respostas podadas, qualquer par que conserve a base
 indispensável pode responder de forma podada aos troços que o nó local não
 pretende conservar; para a faixa local e para a ponta, continuam necessários
 dados completos. A semente anunciada permite seleccionar apenas pares que
@@ -1542,7 +1488,7 @@ o nó possui ou descarrega as transacções e provas completas da nova rama. Se
 uma reorganização excepcional exigir uma rama profunda fora da janela, um nó
 podado tem de encontrar pares que forneçam o material integral que falta; uma
 rama alternativa nova não pode ser justificada por um hash compilado da antiga
-cadeia principal. A poda não transforma 5500 blocos em finalidade e a falha de
+lista de blocos principal. A poda não transforma 5500 blocos em finalidade e a falha de
 cobertura pode atrasar ou impedir aquele nó de acompanhar a reorganização.
 
 \subsection{Garantias e limites da poda}

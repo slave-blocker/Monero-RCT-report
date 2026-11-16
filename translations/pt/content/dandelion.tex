@@ -233,8 +233,7 @@ seguinte política:
  \item se uma haste se desligar, o mapa tenta substituí-la por uma ligação
  elegível sem esperar pela época seguinte.
 \end{itemize}
-\marginnote{\scriptsize\path{src/net/dandelionpp.cpp};
-\path{src/cryptonote_protocol/levin_notify.cpp}}
+
 
 A escolha «menos usada» aproxima as duas cargas; não é a amostragem com
 reposição do artigo. A elegibilidade pela altura é uma necessidade específica
@@ -495,12 +494,12 @@ uma operação da análise; não apaga dados nem ligações da rede.
  própria transacção. Foram construídos nos capítulos
  \ref{chapter:addresses}--\ref{chapter:transactions}.
  \item[Consenso.] As regras de validação decidem se uma transacção pode entrar
- num bloco e qual cadeia possui trabalho suficiente. Dandelion++ não muda os
+ num bloco e qual lista de blocos possui trabalho suficiente. Dandelion++ não muda os
  bytes assinados, a imagem de chave, a prova de intervalo, a dificuldade ou a
- escolha da cadeia.
+ escolha da lista de blocos.
 \end{description}
 
-A privacidade dos dados na cadeia não implica anonimato do endereço IP. Do
+A privacidade dos dados na lista de blocos não implica anonimato do endereço IP. Do
 mesmo modo, ocultar a origem de rede não impede que a própria transacção seja
 reconhecível nem garante a sua validade. Estas propriedades são distintas. A
 falha de Dandelion++ pode revelar metadados ou atrasar a propagação, mas não

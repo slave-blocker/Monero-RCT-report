@@ -397,9 +397,9 @@ e qualquer co-signatário calcula
 \begin{align*}
  x_i=(s_i-s'_i)(c'-c)^{-1}.
 \end{align*}
-Um valor aleatório de assinatura é de uso único. Fazer uma cópia de segurança
-desse valor e reutilizá-la não é prudência; é guardar duas metades de uma
-equação que revela a chave.
+Um valor aleatório de assinatura é de uso único. A reutilização de uma
+cópia desse valor fornece precisamente as duas respostas que permitem
+resolver a equação e recuperar a parcela da chave.
 
 Protocolos simples de duas rondas têm ainda ataques nos quais o último
 participante escolhe o seu ponto aleatório depois de observar os restantes e
@@ -499,7 +499,7 @@ mesma sessão não devem ser misturados ao acaso.
 \subsection{Proposta}
 
 O proponente escolhe as entradas e destinos, calcula os pseudo-compromissos e
-a prova Bulletproof+, e fixa a estrutura que todos irão verificar. Cria também
+a prova Bulletproofs+, e fixa a estrutura que todos irão verificar. Cria também
 tentativas para as combinações de signatários que podem atingir o limiar com
 o material importado.
 

@@ -1,10 +1,10 @@
 # Ponto de retoma
 
-Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 314 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`; o poster ficou em `8d85712`; as receitas de pontos e o gerador H ficaram em `ce00840`; as imagens de chave e DDH ficaram em `0e9b26c`.
+Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 312 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`; o poster ficou em `8d85712`; as receitas de pontos e o gerador H ficaram em `ce00840`; as imagens de chave e DDH ficaram em `0e9b26c`; CLSAG ficou em `d5c4060`.
 
 ## Próxima unidade
 
-Simplificar a verificação de Bulletproofs, conservando duas condições separadas e retirando os resíduos e a combinação ponderada. CLSAG recebeu duas páginas adicionais e teve as hipóteses e a especialização conferidas na fonte primária. A vulnerabilidade das imagens de chave e DDH estão desenvolvidos; o parágrafo indicado de MLSAG foi retirado. As receitas de H_p e H estão conferidas contra a fonte C; «canónico» está explicado na primeira utilização relevante. Prosseguir depois para Bulletproofs, a estrutura das entradas e o índice, conservando todo o âmbito abaixo.
+Desenvolver a representação uniforme dos membros do anel e acrescentar três páginas sobre índices absolutos, key_offsets, reconstrução dos anéis e tx_extra. Bulletproofs conserva agora duas condições independentes, sem resíduos nem combinação ponderada; a passagem redundante da antiga página impressa 109 foi retirada. Prosseguir depois para o índice remissivo e a revisão global, conservando todo o âmbito abaixo.
 
 A preparação de F8 permanece em `editorial/fcmp-F8-preparation.md` como registo das fontes. O texto TeX já inclui a extracção descendente, a estabilidade da imagem, a simulação com enunciado fixo, as fórmulas exactas do tamanho e os custos. `editorial/checks/composition-costs-F8.py` verifica as contas e pode compará-las directamente com as funções Rust, compiladas isoladamente em /tmp.
 
@@ -13,8 +13,6 @@ F7 fixa a sequência completa e demonstra um limite incondicional para dados fix
 ## Restante âmbito autorizado
 
 - Índice remissivo no fim, incluindo símbolos, siglas e remissões entre termos.
-- Simplificar a verificação de Bulletproofs, conservando as duas igualdades: retirar E_0/E_IP e a combinação opcional por pesos.
-- Remover o conteúdo indicado da antiga página 109, após localização na edição de referência.
 - Corrigir a explicação dos anéis/índices e acrescentar três páginas sobre índices absolutos e relativos, reconstrução dos anéis e estrutura de tx_extra. Os key_offsets pertencem às entradas, não a tx_extra.
 - Revisão global de «de/por/em Monero», «lista de blocos» e exposição afirmativa; reconciliar a notação do capítulo das relações de logaritmo discreto com I como imagem e J como base.
 - Compilar e inspeccionar o livro completo, os excertos e o índice; fechar as alterações restantes em commits verificados. Não foi pedido push.

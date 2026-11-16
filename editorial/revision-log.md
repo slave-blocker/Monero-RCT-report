@@ -16,8 +16,8 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] Página 59: ensinar a pergunta decisional de Diffie–Hellman antes de a nomear.
 - [ ] Explicar «canónico» na primeira utilização relevante e incluir o termo no índice.
 - [x] Página 62: «Especialização usada por Monero»; acrescentar duas páginas de explicação de CLSAG.
-- [ ] Página 91: simplificar a apresentação das duas verificações de Bulletproofs; retirar do percurso principal os resíduos e a combinação ponderada, preservando as duas condições matemáticas.
-- [ ] Página 109: eliminar a página redundante sobre o tamanho da prova de intervalo, conservando a exposição útil na secção de espaço.
+- [x] Página 91: simplificar a apresentação das duas verificações de Bulletproofs; retirar do percurso principal os resíduos e a combinação ponderada, preservando as duas condições matemáticas.
+- [x] Página 109: eliminar a página redundante sobre o tamanho da prova de intervalo, conservando a exposição útil na secção de espaço.
 - [ ] Página 111: desenvolver a representação uniforme dos membros do anel e a posição secreta por entrada.
 - [ ] Acrescentar três páginas sobre índices absolutos, key_offsets, reconstrução dos anéis e estrutura de tx_extra. Explicitar que key_offsets pertence a vin.
 - [ ] Índice remissivo alfabético no fim, incluindo símbolos, siglas, sinónimos e páginas de explicação.
@@ -253,3 +253,13 @@ A conferência da fonte revelou a importância da redução de c_i mu_P e c_i mu
 Validação: clsag-aggregation.py confere o exemplo, 2280 reconstruções e extracções sobre a curva de ordem 19, todas as 360 diferenças não nulas e a proporção exacta 19/361 de pesos que as anulam. Compara ainda 361 produtos de coeficientes no grupo Z_19 x Z_8; 247 casos distinguem a redução prévia da factorização na componente de torção, enquanto todos coincidem no subgrupo primo. Conferiram-se a serialização e os domínios directamente no C++.
 
 A compilação produz 314 páginas, conserva os 164 avisos anteriores e resolve referências e citações. Inspeccionaram-se as páginas físicas 86–92. FCMP++ mantém 38 páginas de texto e o poster, em 198–236; divisores mantém trinta páginas, em 42–71. Os excertos foram conferidos por texto e imagem antes de serem actualizados. O teste das imagens de chave passou também a evitar a criação de bytecode no directório de trabalho.
+
+## Bulletproofs — duas condições de verificação
+
+Estado: concluída e verificada em 16 de Novembro de 2026. O compromisso ao valor conserva a sua igualdade própria. A condição vectorial define directamente o ponto público do argumento de produto interno; as dobras conduzem à segunda igualdade final. Foram retirados a soma inicial das condições, os resíduos e a combinação ponderada. A expansão nos geradores originais conserva cada sinal, peso e mudança de base. Eliminou-se também uma nota sobre uma versão anterior e uma quebra de página que deixava quase toda a página vazia.
+
+A antiga página impressa 109 foi localizada no PDF de referência 24b7ee6, página física 122. A subsecção de tamanho repetia apenas a fórmula da prova agregada; foi retirada de Transactions.tex. A fórmula e a explicação útil permanecem nos requisitos de espaço.
+
+Validação: bulletproof-checks.py verifica 120 provas algébricas sobre dois corpos, com dimensões de 2 a 64, e 384 dobras. Confere separadamente as duas igualdades, os geradores reconstruídos, os pesos inversos, a passagem de H' a H e perturbações independentes das condições. Os testes usam bases formais independentes e verificam identidades; não constituem uma análise da segurança criptográfica. As condições foram também confrontadas com os termos de verificação da fonte C++.
+
+A compilação produz 312 páginas, resolve referências e citações e conserva os 164 avisos de caixas. Inspeccionaram-se as páginas alteradas e as transições. FCMP++ mantém 38 páginas de texto e o poster, nas páginas físicas 196–234; divisores mantém trinta páginas, em 42–71. Os excertos foram conferidos por texto e imagem.

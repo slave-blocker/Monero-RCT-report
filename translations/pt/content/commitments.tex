@@ -933,9 +933,11 @@ dois vectores terão de atravessar a rede.
 \subsection{Verificação}
 \label{sec:bullet_ver}
 
-Se recebesse simplesmente os dois vectores de 64 elementos, o verificador já
-conseguiria conferir os dois circuitos. Mas não saltemos por cima da ponte:
-são mesmo \emph{duas} igualdades.
+As duas igualdades seguintes ligam o compromisso ao valor e o compromisso
+aos vectores. O verificador confere a primeira com os dados públicos; o
+argumento de produto interno permitirá conferir a segunda juntamente
+com \(t(x)=\langle\underline l(x),\underline r(x)\rangle\), conservando
+secretos os dois vectores de 64 elementos.
 
 Do primeiro circuito, o compromisso ao valor, vem
 \begin{equation}
@@ -955,71 +957,41 @@ Do segundo circuito, o compromisso aos dois vectores, vem
 \label{eq:bp-vector-check}
 \end{equation}
 
-A regra é escolar: se \(a=b\) e \(c=d\), então \(a+c=b+d\). A recíproca,
-porém, não vale: diferenças não nulas podem cancelar-se. A soma é uma condição
-necessária, não um teste suficiente; conservaremos as duas condições até à
-verificação ponderada. Somando os lados esquerdos das duas igualdades, e
-fazendo o mesmo aos lados direitos, obtemos
-\begin{align*}
-&t(x)H+\tau_xG+
- \langle\underline l(x),\underline G\rangle+
- \langle\underline r(x),\underline{H'}\rangle+\mu G\\
-={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
-          \underline{H'}\rangle
- +\langle-z\underline1,\underline G\rangle .
-\end{align*}
-Esta linha é simplesmente a soma das Equações~\eqref{eq:bp-value-check} e
-\eqref{eq:bp-vector-check}. Mas enviar
-\(\underline l(x),\underline r(x)\) seria carregar 128 escalares.
-
-\medskip
-\noindent\emph{A sorte é que:} há uma porta mais estreita.
-
 Depois de \(t(x)\) entrar no traslado, ambos os lados extraem \(x_{ip}\) e
-calculam \(U=x_{ip}H\). A construção do polinómio dá então a seta decisiva:
-\[
-t(x)=\langle\underline l(x),\underline r(x)\rangle
-\quad\overset{\times U}{\Longrightarrow}\quad
-\underbrace{\langle\underline l(x),\underline r(x)\rangle U}
-            _{\text{vectores}}
-=\underbrace{t(x)U}_{\text{escalar}}.
-\]
-Acrescentemos esse mesmo ponto aos dois lados da igualdade grande:
-\begin{align*}
-&t(x)H+\tau_xG+
- \underbrace{\langle\underline l(x),\underline G\rangle+
- \langle\underline r(x),\underline{H'}\rangle+
- \langle\underline l(x),\underline r(x)\rangle U}_{P_k}
- +\mu G\\
-={}&t(x)U+z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
-          \underline{H'}\rangle
- +\langle-z\underline1,\underline G\rangle .
-\end{align*}
-
-Ponhamos \(k=\log_2 64=6\). O argumento de produto interno dobra o termo sob a
-chaveta até restarem os escalares \(a,b\):
+calculam \(U=x_{ip}H\). O verificador reconstrói o ponto público
 \begin{equation}
 \begin{split}
-P_k={}&\langle\underline l(x),\underline G\rangle+
- \langle\underline r(x),\underline{H'}\rangle+
- \langle\underline l(x),\underline r(x)\rangle U\\
-={}&P_0-\sum_{j=1}^{k}
- \left(u_j^2L_j+u_j^{-2}R_j\right).
+ P_k={}&A+xS-\mu G+t(x)U\\
+ &+\langle-z\underline1,\underline G\rangle
+ +\langle z\underline y^{\,n}+z^2\underline2^{\,n},
+                                      \underline{H'}\rangle.
 \end{split}
-\label{eq:bp-ip-recursion}
+\label{eq:bp-public-ip-point}
 \end{equation}
-Substituir a chaveta \(P_k\) por esta expressão dá finalmente
-\begin{align*}
-&t(x)H+\tau_xG+P_0
- -\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right)+\mu G\\
-={}&t(x)U+z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
-          \underline{H'}\rangle
- +\langle-z\underline1,\underline G\rangle .
-\end{align*}
-\marginnote{pow!}
+A Equação~\eqref{eq:bp-vector-check} identifica os termos vectoriais
+neste ponto. Ao substituir também \(t(x)\) pelo produto interno,
+obtemos a relação que o provador deve demonstrar:
+\[
+ P_k=\langle\underline l(x),\underline G\rangle+
+     \langle\underline r(x),\underline{H'}\rangle+
+     \langle\underline l(x),\underline r(x)\rangle U.
+\]
+As duas parcelas lineares fixam os vectores comprometidos, e a parcela
+em \(U\) liga-os ao valor declarado do seu produto interno.
+
+Ponhamos \(k=\log_2 64=6\). O argumento dobra esta relação até
+restarem os escalares \(a,b\) e dois geradores finais. A identidade
+acumulada das dobras é
+\begin{equation}
+ P_k=P_0-\sum_{j=1}^{k}
+              \left(u_j^2L_j+u_j^{-2}R_j\right).
+ \label{eq:bp-ip-recursion}
+\end{equation}
+O verificador obtém \(P_k\) dos dados públicos pela
+Equação~\eqref{eq:bp-public-ip-point}; os pares \(L_j,R_j\) e os
+escalares finais permitem conferir esta última igualdade. A derivação
+das dobras, que veremos a seguir, explica como cada par transporta os
+termos cruzados de metade das coordenadas para a metade seguinte.
 
 Nem os \(u_j\) atravessam a rede: ambos os lados os colhem do traslado. Para
 uma saída enviam-se \(2\cdot6+9=21\) objectos de 32 bytes:
@@ -1031,7 +1003,6 @@ São 672 bytes, antes dos pequenos prefixos de serialização, em vez dos 6176
 bytes da prova Borromean de uma saída. É aqui que a bala começa realmente a
 ganhar velocidade.
 
-\newpage
 \subsubsection{Mais detalhes do provador}
 \label{sec:bullet_detalhes}
 
@@ -1294,8 +1265,8 @@ Portanto,
  \ce{^{0}_{\ }\underline{H'}}
  =\langle\underline\varphi,\underline{H'}_k\rangle.
 \]
-Este sinal contrário é essencial. A versão anterior escrevia os dois padrões
-com o mesmo sinal, o que estava incorrecto.
+Os expoentes opostos conservam a correspondência entre cada vector de
+testemunhas e os seus geradores ao longo das dobras.
 
 \newpage
 O verificador refaz agora toda a viagem do traslado:
@@ -1329,128 +1300,63 @@ extrai \(u_j\). Os estados 13, 14 e 15 são a primeira destas rondas; os número
 continuam a avançar nas cinco seguintes. Assim o verificador não recebe
 \(y,z,x,x_{ip},u_1,\ldots,u_k\): reencontra-os.
 
-Agora está armado para a verificação final. Defina-se
+O verificador dispõe agora de todos os termos das duas condições.
+A primeira permanece a Equação~\eqref{eq:bp-value-check}:
 \[
- \Sigma_{\rm IP}=
- \sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right).
+ t(x)H+\tau_xG
+   \stackrel{?}{=}z^2V+\delta(y,z)H+xT_1+x^2T_2.
 \]
+Ela liga o coeficiente constante do polinómio ao compromisso \(V\),
+através de \(\delta(y,z)\), e confere a avaliação comprometida em \(x\).
 
-Não saltemos logo para a última linha: devolvamos ao fim da batalha as
-equações que mostram como cada peça cai no seu lugar. A soma das duas
-condições, depois de substituir os dois vectores por \(P_k-t(x)U\), é
-\begin{align}
-&t(x)H+\tau_xG+P_k-t(x)U+\mu G\notag\\
-={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
-          \underline{H'}\rangle
- +\langle-z\underline1,\underline G\rangle .
-\label{eq:bp-ending-start}
-\end{align}
+Para a segunda, reunamos os termos públicos acrescentados pelas dobras:
+\[
+ \Sigma_{\rm IP}=\sum_{j=1}^{k}\left(u_j^2L_j+u_j^{-2}R_j\right).
+\]
+As Equações~\eqref{eq:bp-p-recursion} e~\eqref{eq:bp-p-final} dão
+\[
+ P_k+\Sigma_{\rm IP}
+   \stackrel{?}{=}a\langle\underline\phi,\underline G\rangle
+     +b\langle\underline\varphi,\underline{H'}\rangle+abU.
+\]
+O membro esquerdo recompõe o compromisso depois de todas as dobras;
+o direito usa os dois escalares recebidos e os geradores finais
+reconstruídos. Substituindo a expressão pública de \(P_k\), obtemos
+\begin{align*}
+ \mathcal O\stackrel{?}{=}&\ A+xS-\mu G+\Sigma_{\rm IP}+(t(x)-ab)U\\
+ &+\langle-z\underline1-a\underline\phi,\underline G\rangle\\
+ &+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
+                  -b\underline\varphi,\underline{H'}\rangle.
+\end{align*}
+Cada parcela resulta de uma substituição identificada: \(-\mu G\)
+retira a máscara vectorial, \(\Sigma_{\rm IP}\) reúne os pares das
+rondas e \((t(x)-ab)U\) acompanha a passagem do produto inicial ao
+produto final.
 
-Substituam-se agora as Equações~\eqref{eq:bp-p-recursion} e
-\eqref{eq:bp-p-final}. A floresta dobrada reaparece só nos seus dois escalares
-finais:
-\begin{align}
-&t(x)H-t(x)U+(\tau_x+\mu)G
- +a\ce{^{0}_{\ }\underline G}
- +b\ce{^{0}_{\ }\underline{H'}}+abU-\Sigma_{\rm IP}\notag\\
-={}&z^2V+\delta(y,z)H+xT_1+x^2T_2+A+xS\notag\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
-          \underline{H'}\rangle
- +\langle-z\underline1,\underline G\rangle .
-\label{eq:bp-ending-folded}
-\end{align}
-
-Passando tudo para o lado direito, sem esconder nenhum sinal,
-\begin{align}
-\mathcal O={}&
- z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G+\Sigma_{\rm IP}\notag\\
-&+[\delta(y,z)-t(x)]H+[t(x)-ab]U\notag\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n},
-          \underline{H'}\rangle
- +\langle-z\underline1,\underline G\rangle\notag\\
-&-a\ce{^{0}_{\ }\underline G}
- -b\ce{^{0}_{\ }\underline{H'}}.
-\label{eq:bp-ending-one-side}
-\end{align}
-
-O verificador reconstruiu
-\(\ce{^{0}_{\ }\underline G}=\langle\underline\phi,\underline G\rangle\)
-e
-\(\ce{^{0}_{\ }\underline{H'}}=\langle\underline\varphi,
-\underline{H'}\rangle\). Logo, as duas últimas linhas juntam-se aos produtos
-internos públicos:
-\begin{align}
-\mathcal O={}&
- z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G+\Sigma_{\rm IP}\notag\\
-&+[\delta(y,z)-t(x)]H+[t(x)-ab]U\notag\\
-&+\langle-z\underline1-a\underline\phi,\underline G\rangle\notag\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
-          -b\underline\varphi,\underline{H'}\rangle .
-\label{eq:bp-ending-reconstructed}
-\end{align}
-
-Finalmente usa-se \(U=x_{ip}H\). Chega-se assim à condição necessária escrita
-como uma soma multiescalar:
-\begin{align}
-\mathcal O={}&
- z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
- +\Sigma_{\rm IP}\notag\\
-&+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
-&+\langle-z\underline1-a\underline\phi,\underline G\rangle\notag\\
-&+\langle z\underline y^{\,n}+z^2\underline2^{\,n}
-          -b\underline\varphi,\underline{H'}\rangle .
-\label{eq:bp-final-hprime}
-\end{align}
-E, como
-\(\underline{H'}=\underline y^{-n}\circ\underline H\), chamemos \(\mathcal F\)
-à soma escrita nos geradores originais:
-\begin{align}
-\mathcal F={}&
- z^2V+xT_1+x^2T_2+A+xS-(\tau_x+\mu)G
- +\Sigma_{\rm IP}\notag\\
-&+\bigl[\delta(y,z)-t(x)+(t(x)-ab)x_{ip}\bigr]H\notag\\
-&+\left\langle
- z\underline1+\underline y^{-n}\circ
-   (z^2\underline2^{\,n}-b\underline\varphi),
- \underline H\right\rangle\notag\\
-&+\langle-z\underline1-a\underline\phi,\underline G\rangle .
+Por fim, \(U=x_{ip}H\) e
+\(\underline{H'}=\underline y^{-n}\circ\underline H\). As duas
+mudanças escrevem a mesma condição nos geradores originais:
+\begin{equation}
+\begin{split}
+ \mathcal O\stackrel{?}{=}&\ A+xS-\mu G+\Sigma_{\rm IP}
+                         +(t(x)-ab)x_{ip}H\\
+ &+\langle-z\underline1-a\underline\phi,\underline G\rangle\\
+ &+\left\langle z\underline1+\underline y^{-n}\circ
+       (z^2\underline2^{\,n}-b\underline\varphi),
+       \underline H\right\rangle.
+\end{split}
 \label{eq:bp-final}
-\end{align}
-\marginnote{bang!}
-
-Para conservar os dois testes, separemos o resíduo do compromisso ao valor:
-\begin{equation}
- \mathcal E_v=z^2V+xT_1+x^2T_2+
-       [\delta(y,z)-t(x)]H-\tau_xG.
- \label{eq:bp-value-residual}
 \end{equation}
-O resíduo da condição vectorial, já dobrada, é
-\(\mathcal E_{\rm IP}=\mathcal F-\mathcal E_v\). Uma prova válida exige
-\(\mathcal E_v=\mathcal O\) e \(\mathcal E_{\rm IP}=\mathcal O\), não apenas
-\(\mathcal F=\mathcal O\). Depois de receber a prova inteira, o verificador
-escolhe pesos independentes \(w_v,w_{\rm IP}\in_R\mathbb Z_l^*\) e testa
-\begin{equation}
- w_v\mathcal E_v+w_{\rm IP}\mathcal E_{\rm IP}
- =w_{\rm IP}\mathcal F+(w_v-w_{\rm IP})\mathcal E_v
- \stackrel{?}{=}\mathcal O.
- \label{eq:bp-weighted-check}
-\end{equation}
-Esta é uma única soma multiescalar, mas com pesos distintos para as duas
-condições. Por exemplo, resíduos \(dG\) e \(-dG\), com \(d\ne0\), deixam
-\((w_v-w_{\rm IP})dG\); só se cancelam quando os pesos coincidem. Para resíduos
-fixos e não ambos nulos, a probabilidade de cancelamento é no máximo
-\(1/(l-1)\). Os pesos são escolhidos pelo verificador depois de a prova ficar
-fixada; não são valores fornecidos pelo provador. O mesmo princípio permite
-combinar várias provas, com novos pesos independentes para cada uma.
 
-Se a soma ponderada dá a identidade, as codificações são canónicas e todos os
-desafios que precisam de inverso são não nulos, o verificador aceita.
-Sob a dificuldade do logaritmo discreto e o modelo Fiat--Shamir, uma prova
-forjada de que \(0\leq v\leq2^{64}-1\) passa apenas com probabilidade
-negligenciável. Os bits, a máscara \(\gamma\) e os vectores intermédios nunca
-saíram do provador. As setas mexeram-se; a prova ficou mais pequena; Sundance
-tinha razão.
+A aceitação exige que a igualdade do compromisso ao valor e a igualdade
+final do produto interno se verifiquem, com dimensões coerentes,
+codificações canónicas e desafios invertíveis onde aparecem inversas.
+Sob as hipóteses de logaritmo discreto e do modelo de oráculo aleatório
+para Fiat--Shamir, a composição estabelece o intervalo
+\(0\leq v\leq2^{64}-1\) com erro negligenciável
+\cite{Bulletproofs_paper}. Os bits, a máscara \(\gamma\) e os vectores
+intermédios permanecem secretos; o verificador usa os compromissos,
+os desafios recompostos e os dois escalares finais.
 
 \section{Bulletproof+}
 \label{sec:bulletproof_plus}
@@ -1473,8 +1379,8 @@ afirmação sobre os montantes, conserva a ideia de dobrar vectores com pares
  \]
  Em seu lugar aparecem \(A_1,B,r_1,s_1,d_1\), com novas equações de fecho, um
  traslado separado por domínio e uma equação de verificação própria. As setas
- continuam a dobrar vectores; já não se pode, porém, pegar na
- Equação~\eqref{eq:bp-final} e trocar apenas os nomes.
+ continuam a dobrar vectores; a condição que liga o resultado aos
+ compromissos será deduzida na secção~\ref{sec:bpp_ver}.
 \end{description}
 
 As duas formas serializadas tornam a diferença visível:

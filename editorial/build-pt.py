@@ -71,6 +71,14 @@ def main():
     for part in ("front", "content", "back"):
         (build / part).mkdir(exist_ok=True)
     env = tex_environment(args.tex_deps.resolve(), build)
+    poster_source = SOURCE / "posters/fcmp-composition"
+    if (poster_source / "poster.tex").exists():
+        poster_build = build / "fcmp-poster"
+        poster_build.mkdir(exist_ok=True)
+        run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
+             f"-output-directory={poster_build}", "poster.tex"],
+            cwd=poster_source, env=env, log=poster_build / "build.log")
+        shutil.copy2(poster_build / "poster.pdf", poster_source / "poster.pdf")
     latex = ["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
              f"-output-directory={build}", "main.tex"]
     run(latex, cwd=SOURCE, env=env, log=build / "pass-1.log")

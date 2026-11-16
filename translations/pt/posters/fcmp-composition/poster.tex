@@ -1,0 +1,199 @@
+\documentclass[tikz,border=12mm]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{mathpazo}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\definecolor{ink}{HTML}{263039}
+\definecolor{accent}{HTML}{BF5D2E}
+\definecolor{sea}{HTML}{275D70}
+\definecolor{plum}{HTML}{65577F}
+\definecolor{pale}{HTML}{F5F6F4}
+\definecolor{line}{HTML}{CED4D5}
+\definecolor{cream}{HTML}{F4EDE3}
+\begin{document}
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={text=ink,font=\fontsize{11.5}{14.5}\selectfont},
+  textblock/.style={anchor=north west,align=left,inner sep=0pt,text width=8.45cm},
+  heading/.style={anchor=west,font=\sffamily\bfseries\fontsize{15}{18}\selectfont},
+  subhead/.style={anchor=west,font=\sffamily\bfseries\fontsize{11.5}{14}\selectfont},
+  point/.style={circle,draw=line,fill=white,minimum size=4mm,inner sep=0pt},
+  chosen/.style={circle,draw=accent,fill=accent,minimum size=4mm,inner sep=0pt},
+  flow/.style={-{Stealth[length=2.4mm]},line width=1.2pt,draw=accent}
+]
+\useasboundingbox (0,0) rectangle (39.6,27.3);
+\node[anchor=west,font=\sffamily\bfseries\fontsize{30}{34}\selectfont]
+  at (0,26.65) {FCMP++: da saída à autorização};
+\node[anchor=west,font=\fontsize{13}{16}\selectfont]
+  at (0,25.55) {Um caminho secreto liga o registo admitido à chave, à imagem e ao montante do mesmo gasto.};
+
+\fill[cream,rounded corners=3pt] (0,22.9) rectangle (39.6,24.8);
+\node[anchor=west,font=\sffamily\bfseries\fontsize{11}{13}\selectfont,text=accent]
+  at (.45,24.25) {RELAÇÃO COMPOSTA};
+\node[anchor=west,font=\fontsize{18}{22}\selectfont]
+  at (5.6,23.86) {\((O,J,C)\in\mathcal S
+    \qquad O=xG+yT
+    \qquad I=xJ
+    \qquad \widetilde C=C+r_CG\)};
+\node[anchor=west,font=\fontsize{10.5}{13}\selectfont]
+  at (.45,23.35) {Segredos: registo, caminho, chaves e máscaras.};
+\node[anchor=east,font=\fontsize{10.5}{13}\selectfont]
+  at (39.15,23.35) {Dados públicos: raiz \(\rho\), profundidade \(L\), mensagem, imagens e pseudo-compromissos.};
+
+\foreach \panelx/\panelnum/\paneltitle in {
+  0/1/O conjunto e o caminho,
+  10.1/2/A prova de pertença,
+  20.2/3/A apresentação e SAL,
+  30.3/4/A validação do gasto}{
+  \fill[pale,rounded corners=3pt] (\panelx,4.75) rectangle (\panelx+9.3,21.95);
+  \fill[ink,rounded corners=3pt] (\panelx,20.4) rectangle (\panelx+9.3,21.95);
+  \node[heading,text=white] at (\panelx+.4,21.2) {\panelnum\quad \paneltitle};
+}
+\draw[flow] (9.4,14.0)--(10,14.0);
+\draw[flow] (19.5,14.0)--(20.1,14.0);
+\draw[flow] (29.6,14.0)--(30.2,14.0);
+
+% O percurso público da construção e a escolha secreta.
+\node[textblock] at (.45,19.95)
+  {Os registos públicos determinam a árvore.\\
+   A testemunha escolhe um percurso até à raiz admitida \(\rho\).};
+\node[chosen,label={[font=\small]above:\(\rho\)}] (root) at (4.65,18.0) {};
+\node[point] (h0) at (2.3,16.65) {};
+\node[chosen] (h1) at (4.65,16.65) {};
+\node[point] (h2) at (7,16.65) {};
+\node[point] (s0) at (3.4,15.3) {};
+\node[chosen] (s1) at (4.65,15.3) {};
+\node[point] (s2) at (5.9,15.3) {};
+\draw[line,line width=.7pt] (h0)--(root) (h2)--(root) (s0)--(h1) (s2)--(h1);
+\draw[flow] (h1)--(root);
+\draw[flow] (s1)--(h1);
+\node[anchor=west,text=sea,font=\sffamily\small] at (.5,18) {Selene};
+\node[anchor=west,text=plum,font=\sffamily\small] at (.5,16.65) {Helios};
+\node[anchor=west,text=sea,font=\sffamily\small] at (.5,15.3) {Selene};
+\node[draw=accent,fill=white,rounded corners=2pt,minimum width=8.35cm,minimum height=.9cm]
+  (leaf) at (4.65,13.95) {\((O_x,O_y,J_x,J_y,C_x,C_y)\)};
+\draw[flow] (leaf.north)--(s1);
+\node[textblock,font=\fontsize{10.5}{13}\selectfont] at (.45,13.15)
+  {Exemplo de três níveis. O traço laranja assinala o percurso secreto; os outros ramos permanecem candidatos.};
+\node[subhead] at (.45,11.6) {O nó e a sua apresentação};
+\node[textblock] at (.45,11.05) {
+  \(\displaystyle Q_j=B_{\mathcal E_j}
+     +\langle\boldsymbol v_j,\boldsymbol g_{\mathcal E_j}\rangle\)\\[3mm]
+  \(\displaystyle K_j=\langle\boldsymbol v_j,\boldsymbol g_{\mathcal E_j}\rangle
+     +\beta_jh_{\mathcal E_j}\)\\[3mm]
+  \(\displaystyle B_{\mathcal E_j}+K_j=Q_j+\beta_jh_{\mathcal E_j}\)};
+\node[textblock] at (.45,8.5) {
+  O vector \(\boldsymbol v_j\) guarda os dados do ramo. O compromisso público \(K_j\) oculta o vector e a máscara \(\beta_j\).};
+\node[subhead] at (.45,6.8) {Fecho da raiz por Schnorr};
+\node[textblock] at (.45,6.25) {
+  \(\displaystyle B_{\mathcal E_L}+K_L-\rho=\beta_Lh_{\mathcal E_L}\)\\[2mm]
+  Um único fecho é partilhado pelas entradas.};
+
+% As relações internas da pertença.
+\node[textblock] at (10.55,19.95) {
+  Os compromissos fixam os ramos, as coordenadas e as funções antes dos desafios.};
+\node[draw=sea,fill=white,rounded corners=2pt,minimum width=3.9cm,minimum height=1.3cm,align=center,text=sea]
+  at (12.5,18.1) {GBP sobre Selene\\\small camadas ímpares};
+\node[draw=plum,fill=white,rounded corners=2pt,minimum width=3.9cm,minimum height=1.3cm,align=center,text=plum]
+  at (17.15,18.1) {GBP sobre Helios\\\small camadas pares};
+\node[textblock] at (10.55,17.1) {Dois IPA para a pertença agregada.};
+\node[subhead] at (10.55,16.1) {Certificar a máscara: \(W=s_AA\)};
+\node[textblock] at (10.55,15.55) {
+  \(\displaystyle
+    \begin{aligned}
+     \operatorname{div}(f_A)
+       ={}&\sum_i m_i[A_i]+[-W]\\
+          &-(L_A+1)[\mathcal O_\infty].
+    \end{aligned}\)\\[3mm]
+  A função não nula, de pólo limitado, certifica a multiplicação pelas avaliações desafiadas.};
+\node[subhead] at (10.55,11.9) {Escolher dentro de um ramo};
+\node[textblock] at (10.55,11.35) {
+  \(\displaystyle \prod_{i=0}^{w-1}(v_i-u)=0\)\\[3mm]
+  A lista contém o valor escolhido \(u\). Na folha, seis pesos combinam as coordenadas de cada sextuplo; os dados precedem os pesos.};
+\node[subhead] at (10.55,7.8) {Da raiz à saída};
+\node[textblock] at (10.55,7.25) {
+  A descida desde a raiz fixa os ramos e os sinais dos nós.
+  Na folha, obtém-se \((O,J,C)\in\mathcal S\) com as máscaras da apresentação usada por SAL.};
+
+% A interface e a autorização.
+\node[textblock] at (20.65,19.95) {
+  \(\displaystyle
+  \begin{aligned}
+   \widetilde O&=O+r_OT,\\
+   \widetilde J&=J+r_JU,\\
+   \widetilde C&=C+r_CG,\\
+   R&=r_JV+r_RT.
+  \end{aligned}\)\\[3mm]
+  Pertença e SAL recebem esta apresentação comum.};
+\node[subhead] at (20.65,15.65) {O produto que liga as respostas};
+\node[textblock] at (20.65,15.1) {
+  \(\displaystyle w=xr_J\)\\[2mm]
+  \(\displaystyle P=xG+r_JV+wU+r_PT\)\\[2mm]
+  \(\displaystyle D=P-\widetilde O-R\)};
+\node[subhead] at (20.65,12.45) {Aberturas ligadas pelo mesmo desafio};
+\node[textblock] at (20.65,11.9) {
+  \(\displaystyle
+  \begin{aligned}
+   \widetilde O&=xG+\bar yT,\\
+   D&=wU+\eta T,\\
+   I&=x\widetilde J-wU,
+  \end{aligned}\)\\[2mm]
+  com \(\bar y=y+r_O\) e \(\eta=r_P-\bar y-r_R\).};
+\node[subhead] at (20.65,8.8) {A imagem da mesma saída};
+\node[textblock] at (20.65,8.25) {
+  \(\displaystyle
+    I=x(J+r_JU)-(xr_J)U=xJ.
+  \)\\[3mm]
+  Um SAL por entrada. O desafio vincula a mensagem da transacção, incluindo os pseudo-compromissos.\\[3mm]
+  Seis pontos e seis escalares: \textbf{384 bytes}.};
+
+% As propriedades e os testes exteriores.
+\node[subhead] at (30.75,19.75) {Pertença e autorização};
+\node[textblock] at (30.75,19.2) {
+  A raiz admitida fixa o conjunto. A composição extrai o registo \((O,J,C)\) e a abertura \(O=xG+yT\).};
+\node[subhead] at (30.75,17.3) {Reconhecer a repetição};
+\node[textblock] at (30.75,16.75) {
+  A mesma saída produz a mesma imagem \(I=xJ\), pela vinculação das aberturas.\\[2mm]
+  As imagens são válidas, não nulas, distintas entre entradas e ainda não usadas.};
+\node[subhead] at (30.75,14.2) {Transportar o montante};
+\node[textblock] at (30.75,13.65) {
+  \(\displaystyle C=zG+aH\)\\[2mm]
+  \(\displaystyle\widetilde C=(z+r_C)G+aH\)\\[2mm]
+  O coeficiente \(a\) acompanha o mesmo registo até ao pseudo-compromisso.};
+\node[subhead] at (30.75,10.8) {Conferir o equilíbrio e os intervalos};
+\node[textblock] at (30.75,10.25) {
+  \(\displaystyle
+    \sum_i\widetilde C_i=\sum_j C_j^{\text{saída}}
+                              +\mathrm{taxa}\,H
+  \)\\[3mm]
+  As provas de intervalo das saídas e os limites das somas asseguram a interpretação inteira dos montantes.};
+\node[subhead] at (30.75,7.0) {Ocultação com enunciado fixo};
+\node[textblock] at (30.75,6.45) {
+  A simulação conserva imagens e pseudo-compromissos, incluindo as correlações impostas pelo equilíbrio.};
+
+\draw[line,line width=.7pt] (0,4.1)--(39.6,4.1);
+\node[subhead,text=accent] at (.1,3.55) {MENSAGENS E TAMANHO};
+\node[anchor=north west,align=left,text width=19.1cm,inner sep=0pt,font=\fontsize{11.5}{15}\selectfont]
+ at (.1,3.0) {
+  \(\displaystyle B_{\rm pert}
+      =32[\,4(s_{\rm S}+s_{\rm H})+28+
+                      2(\log_2m_{\rm S}+\log_2m_{\rm H})\,]\)\\[2mm]
+  \(\displaystyle B_{\rm FCMP++}=B_{\rm pert}+480n\).
+  \(s\): compromissos por curva; \(m\): dimensão do IPA; \(n\): entradas.\\[2mm]
+  Para \(n=1,\ L=3\): \textbf{4160 bytes} de pertença e \textbf{4640 bytes} no objecto FCMP++.
+  Imagens, pseudo-compromissos e provas de intervalo ocupam os seus campos próprios.};
+\node[subhead,text=accent] at (20.2,3.55) {DOMÍNIO DAS GARANTIAS};
+\node[anchor=north west,align=left,text width=19.1cm,inner sep=0pt,font=\fontsize{10.5}{13}\selectfont]
+ at (20.2,3.0) {
+  A composição assume extracção das subprovas, dificuldade das relações de logaritmo discreto
+  entre as bases e a análise de Fiat--Shamir no modelo de oráculo aleatório.
+  Os certificados conservam normalização válida, domínios afins e denominadores admissíveis.\\[2mm]
+  A ocultação da realização condicionada exige simulação da mesma distribuição condicionada.
+  Os limites dos desafios algébricos aplicam-se a dados previamente fixados.};
+\node[anchor=south east,text=sea,font=\sffamily\fontsize{9}{11}\selectfont]
+  at (39.6,.05) {ZERO A MONERO \(\,\cdot\,\) FCMP++};
+\end{tikzpicture}
+\end{document}

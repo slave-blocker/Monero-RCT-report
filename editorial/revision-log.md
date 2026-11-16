@@ -9,7 +9,7 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] Divisores: reescrita integral e paginação contínua.
 - [x] FCMP++: reescrita integral a partir das fontes; mapa da composição antes das equações completas; paginação contínua; 38 páginas de texto.
 - [x] FCMP++: IPA, Generalized Bulletproofs, SAL e prova de intervalo; contagem condicionada de argumentos.
-- [ ] FCMP++: construir e inspeccionar o novo poster.
+- [x] FCMP++: construir e inspeccionar o novo poster.
 - [ ] Explicar a receita de \(H_p\) e reproduzir a obtenção do gerador fixo \(H\).
 - [ ] Página impressa 55: desenvolver a falha de validação das imagens de chave e a investigação publicada sobre a ausência de exploração.
 - [ ] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
@@ -213,3 +213,11 @@ Validação: composition-costs-F8.py confere 2048 configurações por enumeraç�
 A compilação integral produz 306 páginas, com remissões e citações resolvidas e os mesmos 164 avisos de caixas. O prefixo F1–F7 foi conservado integralmente. Inspeccionaram-se as sete páginas físicas atravessadas por F8, incluindo a transição de F7, e ajustou-se a última página para desenvolver os limites dos compromissos auxiliares. FCMP++ ocupa as páginas físicas 191–228; divisores conserva 40–69.
 
 Os auxiliares temporários da sessão anterior tinham desaparecido. A compilação e a exportação foram reconstituídas em editorial/build-pt.py e editorial/export-chapters.py; a configuração e os produtos intermédios continuam em /tmp. O pacote oficial de hifenização portuguesa foi descarregado e extraído nesse directório, sem instalação no sistema.
+
+## Poster de FCMP++ — vista conjunta
+
+Estado: concluído em 16 de Novembro de 2026, depois das 38 páginas de texto. Uma página A3 reúne quatro percursos: conjunto e caminho, prova de pertença, apresentação e SAL, validação do gasto. O esquema novo mostra o caminho de três níveis com alternância Selene–Helios–Selene; as relações de máscaras, divisor, selecção, autorização e equilíbrio acompanham o percurso. O rodapé conserva as hipóteses da composição e os limites da simulação condicionada, além das fórmulas do tamanho.
+
+O poster foi criado de raiz em `translations/pt/posters/fcmp-composition/poster.tex`, com desenhos e texto vectoriais. Os dois conjuntos de figuras antigos deixaram o directório de trabalho e conservam-se no Git. O programa de compilação produz o poster antes de compor o livro. Inspeccionou-se a página e corrigiram-se sobreposições, uma acentuação em modo matemático e substituições de tamanho de fonte; o poster final não produz avisos de composição.
+
+O livro tem 307 páginas. FCMP++ ocupa 38 páginas de texto, físicas 191–228, e o poster ocupa a página física 229. O excerto contém estas 39 páginas. As páginas dos excertos de divisores e FCMP++ são conferidas por texto e imagem contra o livro antes de serem actualizadas.

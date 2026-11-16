@@ -6,6 +6,8 @@ Acrescentar `--export` actualiza `Zero-to-Monero-2-0-0-pt.pdf` e os excertos de 
 
 Os directórios temporários são configuráveis com `--build-dir` e `--tex-deps`. A exportação requer os utilitários pdfinfo, pdftotext, pdftoppm e mutool.
 
+O poster de FCMP++ é composto primeiro a partir de `translations/pt/posters/fcmp-composition/poster.tex`, com auxiliares em `fcmp-poster` dentro do directório de compilação. O PDF vectorial resultante é guardado junto da fonte e inserido no livro como página A3, depois das 38 páginas de texto do capítulo.
+
 ## Hifenização portuguesa sem instalação no sistema
 
 Se o TeX instalado já inclui `portuguese.ldf`, o programa usa a configuração existente. Caso contrário, pode usar-se uma extracção local do pacote oficial da distribuição. No ambiente Ubuntu Noble usado nesta revisão:

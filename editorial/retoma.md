@@ -1,14 +1,14 @@
 # Ponto de retoma
 
-Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto. O livro compilado tem 306 páginas, ainda sem o poster novo. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`.
+Estado verificado em 16 de Novembro de 2026: divisores D1–D5 concluídos, em 30 páginas; reconstrução de FCMP++ F1–F8 concluída, em 38 páginas de texto, seguida de um poster novo em A3. O livro compilado tem 307 páginas. O trabalho foi retomado com autorização para todo o âmbito e orçamento de 1 000 000 de tokens. O objectivo está activo. O checkpoint D1–D5/F1–F6 ficou guardado em `e0e6b12`; F7 foi concluída em `0ab541c`; a preparação de F8 ficou em `af5f0f0`; F8 e os PDFs verificados ficaram em `f4858c0`.
 
 ## Próxima unidade
 
-Construir um poster novo para FCMP++, a partir da exposição concluída, e inseri-lo depois das 38 páginas de texto. Conferir a legibilidade, as relações e a ligação entre pertença, SAL e validação exterior. Prosseguir depois para as receitas de H_p e H, as assinaturas, a estrutura das entradas e o índice, conservando todo o âmbito abaixo.
+Receitas de H_p e H e explicação de representações canónicas: conferir a aplicação exacta do hash Keccak, o mapa para pontos e a obtenção do gerador fixo. Inserir as definições nos lugares adequados à progressão do livro. Prosseguir depois para a vulnerabilidade das imagens de chave, DDH, MLSAG/CLSAG, Bulletproofs, a estrutura das entradas e o índice, conservando todo o âmbito abaixo.
 
 A preparação de F8 permanece em `editorial/fcmp-F8-preparation.md` como registo das fontes. O texto TeX já inclui a extracção descendente, a estabilidade da imagem, a simulação com enunciado fixo, as fórmulas exactas do tamanho e os custos. `editorial/checks/composition-costs-F8.py` verifica as contas e pode compará-las directamente com as funções Rust, compiladas isoladamente em /tmp.
 
-F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. F8 conserva expressamente a hipótese de simulação da distribuição condicionada para a realização concreta. O poster antigo permanece fora da composição; o capítulo antigo é recuperável pelo Git.
+F7 fixa a sequência completa e demonstra um limite incondicional para dados fixados antes de desafios ideais. A redução efectiva dos resumos e as tentativas adaptativas de Fiat–Shamir conservam a sua análise própria. A normalização e os domínios das testemunhas honestas continuam condicionados; não apresentar uma garantia incondicional de completude nem inventar um procedimento de repetição. F8 conserva expressamente a hipótese de simulação da distribuição condicionada para a realização concreta. O poster novo está em `translations/pt/posters/fcmp-composition/`; os dois conjuntos de figuras antigos foram retirados e permanecem recuperáveis pelo Git.
 
 ## Restante âmbito autorizado
 

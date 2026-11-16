@@ -134,3 +134,7 @@ M(u) designa o mapa algébrico de um elemento do corpo das coordenadas para Edwa
 ## CLSAG
 
 J_i=H_p(K_i,1) é a base comum das imagens da coluna i; I_j são imagens, com I_1 como marcador primário. W_i é a chave agregada e Wtilde a imagem agregada; w_pi é a combinação escalar extraível. Na aplicação de duas linhas, I=pJ_pi e D=zJ_pi, com Dbar=[8^-1 mod l]D. c_P,i e c_C,i designam os representantes canónicos de c_i mu_P e c_i mu_C, necessários para formular a verificação também perante membros com torção. O domínio primo permite recuperar a factorização por c_i. A harmonização do capítulo das relações de logaritmo discreto continua pendente.
+
+## Consistência depois de FCMP++
+
+O capítulo das relações entre geradores e a nota de multi-assinatura conservam J como base e I como imagem, r_J/r_R/r_P como máscaras, bar y como abertura em T, w=x r_J e eta=r_P-bar y-r_R. As curvas da árvore conservam g_E,h_E,gvec_E,hvec_E,B_E, reunidas localmente na família Bcal_E; os nós são Q, os compromissos de prova K, e a raiz pública rho. No fecho, Qtilde_L-rho=beta_L h_E e A_raiz+c_raiz(Qtilde_L-rho)=s_raiz h_E. A base escalar da máscara no compromisso vectorial Bulletproofs é G.

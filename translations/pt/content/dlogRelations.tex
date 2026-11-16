@@ -82,12 +82,13 @@ ou deliberadamente conhecida}. Roubo, gasto duplo, pertença falsa, prova de
 intervalo falsa e inflação são resultados distintos. A invalidação de uma
 hipótese de segurança não demonstra automaticamente uma exploração concreta.
 
-As equações seguintes foram confrontadas com os geradores do Monero e com a
-SAL corrente nas revisões fixadas nas notas do capítulo anterior
-\cite{monero-source-v16,monero-oxide-fcmp-source}, e com a especificação e a
-análise de composição FCMP++ \cite{fcmp-plus-plus-paper,fcmp-composition-review}.
+Aplicaremos estas relações aos compromissos de montante e à composição
+FCMP++ já estabelecida. As contas decorrem nos respectivos subgrupos
+primos; nas relações por pares, o escalar conhecido é não nulo.
+As aberturas alternativas terão de satisfazer as restantes condições
+da transacção e o domínio das provas
+\cite{monero-source-v16,fcmp-plus-plus-paper,fcmp-composition-review}.
 
-\clearpage
 \section{Relações que envolvem montantes e saídas}
 
 \subsection*{Se \(H=\gamma G\)}
@@ -134,10 +135,10 @@ uma prova SAL de «conheço \(x,y\)» deixa de provar a abertura pretendida.
 
 Há uma consequência concreta para o próprio dono. Numa saída histórica
 \(O=xG\), a árvore conserva também
-\(I=\mathcal H_p(O_{\rm original})\), onde \(O_{\rm original}\) é a chave
+\(J=\mathcal H_p(O_{\rm original})\), onde \(O_{\rm original}\) é a chave
 publicada antes da eventual limpeza de torsão, e a SAL publica
-\(L=xI\). Com \(\tau\), o dono escolhe aberturas alternativas \(x'\) do mesmo
-\(O\) e obtém marcadores \(L'=x'I\) diferentes. A autorização não passou para
+\(I=xJ\). Com \(\tau\), o dono escolhe aberturas alternativas \(x'\) do mesmo
+\(O\) e obtém marcadores \(I'=x'J\) diferentes. A autorização não passou para
 um estranho; a detecção do segundo gasto deixou de reconhecer o primeiro.
 
 \textbf{Conclusão --- exploração algébrica directa:} \(G-T\) permite ao dono
@@ -163,16 +164,16 @@ até \(G\), a inflação passa a ser a exploração directa anterior.
 para uma saída histórica, alguém descobre
 \[
  \mathcal H_p(O_{\rm original})=\eta_OG,\qquad O=xG,\qquad
- L=x\mathcal H_p(O_{\rm original}),
+ I=x\mathcal H_p(O_{\rm original}),
 \]
 então
 \[
- \boxed{L=\eta_OO.}
+ \boxed{I=\eta_OO.}
 \]
 O marcador da saída passa a ser calculável a partir de dados públicos. Conhecer
-\(\eta_O\) para uma saída permite reconhecê-la quando \(L\) aparece; conhecer
-as relações para todas permite testar todas as saídas da cadeia. Não revela \(x\), não assina
-uma transacção e não faz \(L\) deixar de repetir.
+\(\eta_O\) para uma saída permite reconhecê-la quando \(I\) aparece; conhecer
+as relações para todas permite testar todas as saídas da lista de blocos. Não revela \(x\), não assina
+uma transacção e não faz \(I\) deixar de repetir.
 
 \textbf{Conclusão --- falha só de privacidade:} identificação retroactiva da
 saída gasta; sem roubo, quebra da autorização ou inflação demonstrada.
@@ -181,21 +182,22 @@ saída gasta; sem roubo, quebra da autorização ou inflação demonstrada.
 \section{Consequências de relações entre as bases da SAL}
 \scriptsize
 
-O código corrente não se limita a \(\widetilde I\) e \(R_{\rm fcmp}\). Para
-uma abertura \(\widetilde O=xG+yT\), escreve, com \(z=xr_i\),
+Retomemos os pontos da apresentação e o compromisso do produto secreto.
+Para \(\widetilde O=xG+\bar yT\), as relações são
 \begin{align*}
- \widetilde I&=I+r_iU,&
- R_{\rm fcmp}&=r_iV+r_jT,\\
- P&=xG+r_iV+zU+r_pT,& z&=xr_i,\\
- P-\widetilde O-R_{\rm fcmp}&=zU+r_p'T,&
- L&=x\widetilde I-zU.
+ \widetilde J&=J+r_JU,&
+ R&=r_JV+r_RT,\\
+ P&=xG+r_JV+wU+r_P T,& w&=xr_J,\\
+ P-\widetilde O-R&=wU+\eta T,&
+ I&=x\widetilde J-wU.
 \end{align*}
-Aqui \(r_p'=r_p-y-r_j\).
-A prova de produto vincula \(z=xr_i\) a \(P\); três provas de
-representação vinculam \(x\) a \(\widetilde O\), \(z\) à terceira linha e
-\((x,z)\) a \(L\). A pertença FCMP vincula o mesmo \(r_i\) a
-\(\widetilde I\) e \(R_{\rm fcmp}\). Cada ponto público impõe a igualdade das
-variáveis partilhadas entre as provas.
+Aqui \(\eta=r_P-\bar y-r_R\).
+A prova de produto vincula \(w=xr_J\) a \(P\); três provas de
+representação vinculam \(x\) a \(\widetilde O\), \(w\) à terceira linha e
+\((x,w)\) a \(I\). A pertença FCMP vincula o mesmo \(r_J\) a
+\(\widetilde J\) e \(R\). Sob a hipótese de vinculação conjunta das
+bases, estas relações fixam a consistência das testemunhas extraídas,
+como foi demonstrado na secção~\ref{sec:fcmp-sal-knowledge}.
 
 \subsection*{\(U=qT\): muda o coeficiente de \(U\)}
 
@@ -203,61 +205,61 @@ Para quaisquer \(a,b,\Delta\),
 \[
  aU+bT=(a+\Delta)U+(b-q\Delta)T.
 \]
-Assim, \(zU+r_p'T\) aceita um \(z_{\rm lig}\) diferente do
-\(z_{\rm prod}=xr_i\) provado dentro de \(P\), ajustando a máscara em \(T\).
+Assim, \(wU+\eta T\) aceita um \(w_{\rm lig}\) diferente do
+\(w_{\rm prod}=xr_J\) provado dentro de \(P\), ajustando a máscara em \(T\).
 A última equação publica então
 \[
- L=x\widetilde I-z_{\rm lig}U,
+ I=x\widetilde J-w_{\rm lig}U,
 \]
 que o dono pode variar entre gastos da mesma folha. A relação conhecida não muda
-\(r_i\) em \(\widetilde I=I+r_iU\); muda a interpretação do coeficiente de
+\(r_J\) em \(\widetilde J=J+r_JU\); muda a interpretação do coeficiente de
 \(U\) na representação conjunta nas bases \(U,T\).
 
 \textbf{Conclusão --- exploração algébrica directa:} falha de ligação SAL e
 gasto duplo pelo dono; não roubo de uma saída arbitrária.
 
-\subsection*{\(V=qT\): \(R_{\rm fcmp}\) já não se compromete com \(r_i\)}
+\subsection*{\(V=qT\): \(R\) já não se compromete com \(r_J\)}
 
 Agora
 \[
- r_iV+r_jT=(r_i+\Delta)V+(r_j-q\Delta)T.
+ r_JV+r_RT=(r_J+\Delta)V+(r_R-q\Delta)T.
 \]
-A prova FCMP pode usar o \(r_i\) que abre \(\widetilde I\), enquanto a SAL
-usa \(r_i'=r_i+\Delta\) no produto \(z'=xr_i'\); o mesmo ponto \(R_{\rm fcmp}\) admite as duas aberturas. O termo extra em \(V\) é absorvido
+A prova FCMP pode usar o \(r_J\) que abre \(\widetilde J\), enquanto a SAL
+usa \(r_J'=r_J+\Delta\) no produto \(w'=xr_J'\); o mesmo ponto \(R\) admite as duas aberturas. O termo extra em \(V\) é absorvido
 pela máscara em \(T\) de \(P\). Resulta
-\(L=x\widetilde I-xr_i'U\), variável com \(\Delta\).
+\(I=x\widetilde J-xr_J'U\), variável com \(\Delta\).
 
-\textbf{Conclusão --- exploração algébrica directa:} perdeu-se a vinculação do compromisso a \(r_i\) que compunha pertença e SAL; o dono pode produzir
+\textbf{Conclusão --- exploração algébrica directa:} perdeu-se a vinculação do compromisso a \(r_J\) que compunha pertença e SAL; o dono pode produzir
 marcadores diferentes.
 
 \subsection*{\(V=qU\): inconsistência entre produto e ligação}
 
 No ponto \(P\),
 \[
- r_iV+zU=(r_i+\Delta)V+(z-q\Delta)U.
+ r_JV+wU=(r_J+\Delta)V+(w-q\Delta)U.
 \]
 Mais explicitamente, deixe a pertença usar \(r\), a prova de produto usar
-\(r'\) e \(z'=xr'\). Depois de subtrair \(R_{\rm fcmp}\), a prova de
+\(r'\) e \(w'=xr'\). Depois de subtrair \(R\), a prova de
 representação lê
 \[
- z_{\rm lig}=xr'+q(r'-r),
+ w_{\rm lig}=xr'+q(r'-r),
 \]
 logo
 \[
- L=xI+(x+q)(r-r')U.
+ I=xJ+(x+q)(r-r')U.
 \]
-Escolher \(r'\) muda \(L\), salvo o caso degenerado \(x=-q\).
+Escolher \(r'\) muda \(I\), salvo o caso degenerado \(x=-q\).
 
 \textbf{Conclusão --- exploração algébrica directa:} novamente gasto duplo
 por quebra da ligação; ainda exige conhecer uma abertura autorizada da saída.
 
 \subsection*{\(U=qG\) e \(V=qG\) consideradas isoladamente}
 
-Se \(U=qG\), \(xG+zU\) admite
-\((x,z)\mapsto(x-q\Delta,z+\Delta)\). Se \(V=qG\), \(xG+r_iV\)
-admite o mesmo deslocamento em \((x,r_i)\). A vinculação interna de \(P\)
-desaparece. Isoladamente, porém, \(\widetilde O=xG+yT\) fixa \(x\),
-\(R_{\rm fcmp}=r_iV+r_jT\) fixa \(r_i\), e a equação em \(U,T\) fixa \(z\),
+Se \(U=qG\), \(xG+wU\) admite
+\((x,w)\mapsto(x-q\Delta,w+\Delta)\). Se \(V=qG\), \(xG+r_JV\)
+admite o mesmo deslocamento em \((x,r_J)\). A vinculação interna de \(P\)
+desaparece. Isoladamente, porém, \(\widetilde O=xG+\bar yT\) fixa \(x\),
+\(R=r_JV+r_RT\) fixa \(r_J\), e a equação em \(U,T\) fixa \(w\),
 sob as relações restantes desconhecidas. Não obtivemos uma transacção falsa.
 
 \textbf{Conclusão --- hipótese de segurança invalidada sem exploração
@@ -272,12 +274,12 @@ Se for conhecida
 \]
 então qualquer compromisso multibase
 \[
- M=xG+pT+zU+rV
+ M=xG+pT+wU+rV
 \]
 conserva o ponto sob a transformação
 \[
- (x,p,z,r)\longmapsto
- (x,p,z,r)+\lambda(a,b,c,d).
+ (x,p,w,r)\longmapsto
+ (x,p,w,r)+\lambda(a,b,c,d).
 \]
 Isto é perda directa de vinculação do vector-testemunho. A consequência final
 depende dos coeficientes que as equações externas voltam a fixar; os três
@@ -304,18 +306,18 @@ oculta pela transacção normal. & Não; requer apenas autorização de uma entr
 e as provas normais.\\ \hline
 \(T=\tau G\) & \(O=xG+yT\);
 \(y'\), \(x'=x+(y-y')\tau\). & Só quem conhece uma abertura; sim, saídas
-históricas próprias migradas. & Autorização ambígua; \(L\) variável, gasto
+históricas próprias migradas. & Autorização ambígua; \(I\) variável, gasto
 duplo. Não rouba \(O\) arbitrário. & Não para o dono; ao estranho falta
 \(\log_GO\).\\ \hline
-\(U=qG\) & \(P\) contém \(xG+zU\);
-\((x,z)\mapsto(x-q\Delta,z+\Delta)\). & Provador com uma abertura; pontos
+\(U=qG\) & \(P\) contém \(xG+wU\);
+\((x,w)\mapsto(x-q\Delta,w+\Delta)\). & Provador com uma abertura; pontos
 existentes têm duas descrições locais. & Vinculação de \(P\) perdida, mas
 \(\widetilde O\) e a equação \(U,T\) bloqueiam a falsificação completa. & Sim,
 uma relação que absorva a diferença externa.\\ \hline
-\(V=qG\) & \(P\) contém \(xG+r_iV\);
-\((x,r_i)\mapsto(x-q\Delta,r_i+\Delta)\). & Provador com uma abertura; a
+\(V=qG\) & \(P\) contém \(xG+r_JV\);
+\((x,r_J)\mapsto(x-q\Delta,r_J+\Delta)\). & Provador com uma abertura; a
 descrição local de \(P\) muda. & Redução SAL invalidada; \(\widetilde O\) e
-\(R_{\rm fcmp}\) fixam os coeficientes em isolamento. & Sim.\\ \hline
+\(R\) fixam os coeficientes em isolamento. & Sim.\\ \hline
 \(H=qT\) & \(C\) usa \(G,H\); saída/SAL usa \(G,T\). Não há compromisso
 variável comum a \(H,T\). & Ninguém obtém nova abertura só com a aresta; saídas
 existentes inalteradas. & Famílias ligadas; sem inflação ou roubo demonstrado.
@@ -326,13 +328,13 @@ global invalidada, sem exploração concreta. & Sim: caminho de \(U\) até
 \(G\).\\ \hline
 \(H=qV\) & Mesma separação: \(H\) não aparece nas equações SAL. & Idem. & Sem
 exploração concreta demonstrada. & Sim: caminho de \(V\) até \(G\).\\ \hline
-\(U=qT\) & \(zU+pT=(z+\Delta)U+(p-q\Delta)T\). & Dono/provador autorizado;
-sim, pode gastar a mesma folha existente com outro \(L\). & Coeficiente \(z\)
+\(U=qT\) & \(wU+pT=(w+\Delta)U+(p-q\Delta)T\). & Dono/provador autorizado;
+sim, pode gastar a mesma folha existente com outro \(I\). & Coeficiente \(w\)
 da ligação difere do produto; gasto duplo. & Não.\\ \hline
-\(V=qT\) & \(R=r_iV+r_jT=(r_i+\Delta)V+(r_j-q\Delta)T\). & Dono/provador;
-sim, FCMP e SAL podem abrir o mesmo \(R\) com \(r_i\) diferentes. & Compromisso
-a \(r_i\) perdido; \(L\) variável, gasto duplo. & Não.\\ \hline
-\(V=qU\) & \(r_iV+zU=(r_i+\Delta)V+(z-q\Delta)U\). & Dono/provador; sim,
+\(V=qT\) & \(R=r_JV+r_RT=(r_J+\Delta)V+(r_R-q\Delta)T\). & Dono/provador;
+sim, FCMP e SAL podem abrir o mesmo \(R\) com \(r_J\) diferentes. & Compromisso
+a \(r_J\) perdido; \(I\) variável, gasto duplo. & Não.\\ \hline
+\(V=qU\) & \(r_JV+wU=(r_J+\Delta)V+(w-q\Delta)U\). & Dono/provador; sim,
 uma folha autorizada basta. & Produto e ligação recebem aberturas distintas;
 gasto duplo. & Não.\\ \hline
 \end{tabular}
@@ -353,14 +355,13 @@ parar, actualizar regras ou rejeitar a família comprometida. As provas antigas 
 As bases indexadas das Bulletproofs e Bulletproof+ formam compromissos do
 género
 \[
- Q=\rho H+\langle\boldsymbol a,\boldsymbol G\rangle
+ Q=\rho G+\langle\boldsymbol a,\boldsymbol G\rangle
        +\langle\boldsymbol b,\boldsymbol H\rangle.
 \]
-Na notação concreta do Monero, \(G\) desempenha também o papel de base de
-algumas máscaras internas e \(H\) leva o montante; a troca de nomes não muda
-o argumento. Suponhamos conhecida uma relação
+Aqui \(G\) é a base da máscara, como no capítulo dos montantes ocultos.
+Suponhamos conhecida uma relação não trivial
 \[
- \rho_0H+\langle\boldsymbol u,\boldsymbol G\rangle
+ \rho_0G+\langle\boldsymbol u,\boldsymbol G\rangle
        +\langle\boldsymbol v,\boldsymbol H\rangle=\mathcal O.
 \]
 Então, sem mudar \(Q\), existe a seta
@@ -420,59 +421,65 @@ relação inofensiva ou deliberadamente conhecida.}
 \clearpage
 \section{Consequências para Curve Trees, Selene e Helios}
 
-Cada curva tem a sua própria família
+Cada curva \(\mathcal E\) tem a sua própria família de bases,
+que reunimos na notação
 \[
- g, h, \boldsymbol g, \boldsymbol h, J_{\rm init}.
+ \mathcal B_{\mathcal E}=
+ (g_{\mathcal E},h_{\mathcal E},
+ \boldsymbol g_{\mathcal E},\boldsymbol h_{\mathcal E},B_{\mathcal E}).
 \]
 Selene e Helios são grupos distintos: uma relação dentro de uma curva não se
 estende à outra. Em cada uma, os compromissos da prova têm
 a forma
 \[
- Q=rh+\langle\boldsymbol a,\boldsymbol g\rangle
-       +\langle\boldsymbol b,\boldsymbol h\rangle,
+ K=rh_{\mathcal E}+\langle\boldsymbol a,\boldsymbol g_{\mathcal E}\rangle
+       +\langle\boldsymbol b,\boldsymbol h_{\mathcal E}\rangle,
 \]
 e um nó que compromete os filhos tem a forma
 \[
- N=J_{\rm init}+\sum_i v_iJ_i.
+ Q=B_{\mathcal E}+\sum_{i=0}^{w-1}v_i g_{\mathcal E,i}.
 \]
-As famílias são derivadas de rótulos separados, sem configuração confiada, na
-implementação consultada; «transparente» significa que todos reproduzem os
-pontos, não que uma relação linear conhecida fosse aceitável
+As famílias são derivadas de rótulos separados por procedimentos públicos.
+Esta geração transparente torna os pontos reproduzíveis; a vinculação
+continua a depender da dificuldade de encontrar relações entre as bases
 \cite{curve-trees,generalized-bulletproofs-review}.
 
-Uma relação entre \(h,\boldsymbol g,\boldsymbol h\) dá aberturas alternativas
+Uma relação entre
+\(h_{\mathcal E},\boldsymbol g_{\mathcal E},\boldsymbol h_{\mathcal E}\)
+dá aberturas alternativas
 dos compromissos da prova, como na secção anterior. Uma relação
-\(\sum_i d_iJ_i=\mathcal O\) dá uma colisão explícita entre vectores de
+\(\sum_i d_i g_{\mathcal E,i}=\mathcal O\), com algum \(d_i\ne0\),
+dá uma colisão explícita entre vectores de
 filhos:
 \[
- (v_0,\ldots,v_m)\longmapsto
- (v_0,\ldots,v_m)+\lambda(d_0,\ldots,d_m),
- \qquad N\ \hbox{inalterado}.
+ (v_0,\ldots,v_{w-1})\longmapsto
+ (v_0,\ldots,v_{w-1})+\lambda(d_0,\ldots,d_{w-1}),
+ \qquad Q\ \hbox{inalterado}.
 \]
 Se essa colisão troca um filho honesto por outro compromisso, pode produzir
 uma passagem falsa numa camada e propagá-la até à raiz. Relações
-que envolvem \(g\) ou as bases vectoriais podem, em vez disso, falsificar as
+que envolvem \(g_{\mathcal E}\) ou as bases vectoriais podem, em vez disso, falsificar as
 restrições de selecção e re-randomização. O resultado possível é uma prova de
 pertença de uma saída que nunca esteve na árvore.
 
-O caso de \(J_{\rm init}\) deve ser tratado separadamente. Se o seu coeficiente é sempre exactamente
+O caso de \(B_{\mathcal E}\) deve ser tratado separadamente. Se o seu coeficiente é sempre exactamente
 um, ele cancela ao comparar dois nós bem formados; conhecer apenas
-\(J_{\rm init}=qJ_0\) não produz automaticamente dois vectores de filhos com o
+\(B_{\mathcal E}=qg_{\mathcal E,0}\) não produz automaticamente dois vectores de filhos com o
 mesmo nó. A relação torna-se utilizável se o inicializador puder ser absorvido
 por uma máscara da prova, se colidir uma codificação inicializada com uma soma
-crua, ou se vier acompanhada de uma relação entre os \(J_i\). Sem essa
+crua, ou se vier acompanhada de uma relação entre os \(g_{\mathcal E,i}\). Sem essa
 composição, temos hipótese invalidada, não uma árvore falsa demonstrada.
 
 No topo há ainda a prova Schnorr da abertura da raiz. Se
 \[
- X=\widehat{\mathcal R}_{\rm tree}-\mathcal R_{\rm tree}=\rho h,
+ X=\widetilde Q_L-\rho=\beta_Lh_{\mathcal E},
 \]
 o verificador exige
 \[
- R_{\rm sig}+cX=sh.
+ A_{\rm raiz}+c_{\rm raiz}X=s_{\rm raiz}h_{\mathcal E}.
 \]
 Uma armadilha que permita converter uma diferença de \emph{conteúdo} falsa
-num múltiplo conhecido de \(h\) faz esta equação aceitar a raiz comprometida.
+num múltiplo conhecido de \(h_{\mathcal E}\) faz esta equação aceitar a raiz comprometida.
 Conhecer apenas um caminho verdadeiro permite provar a pertença do membro
 correspondente, que é a propriedade pretendida.
 
@@ -522,9 +529,9 @@ pode ficar no nível «solidez assumida, exploração não demonstrada».
 & abertura e transacção normal & alta: álgebra e código RingCT\\ \hline
 \(G,T\) & \(T=\tau G\) & abertura \(x,y\) da saída & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: álgebra SAL/código\\ \hline
-\(G,U\) & \(U=qG\) & \(x,z\) dentro de \(P\) & não & não & não & não & condicional & condicional
+\(G,U\) & \(U=qG\) & \(x,w\) dentro de \(P\) & não & não & não & não & condicional & condicional
 & outra relação que vença \(O,P'\) & média: álgebra; exploração não demonstrada\\ \hline
-\(G,V\) & \(V=qG\) & \(x,r_i\) dentro de \(P\) & não & não & não & não & condicional & condicional
+\(G,V\) & \(V=qG\) & \(x,r_J\) dentro de \(P\) & não & não & não & não & condicional & condicional
 & outra relação que vença \(O,R\) & média: álgebra; exploração não demonstrada\\ \hline
 \(H,T\) & \(H=qT\) & nenhuma equação isolada & não & não & não & não & não & condicional
 & caminho \(T\leadsto G\) & alta: grafo e equações separadas\\ \hline
@@ -532,21 +539,21 @@ pode ficar no nível «solidez assumida, exploração não demonstrada».
 & caminho \(U\leadsto G\) & alta: grafo e equações separadas\\ \hline
 \(H,V\) & \(H=qV\) & nenhuma equação isolada & não & não & não & não & não & condicional
 & caminho \(V\leadsto G\) & alta: grafo e equações separadas\\ \hline
-\(T,U\) & \(U=qT\) & \(zU+rT\) & não & não & não & não & sim & condicional
+\(T,U\) & \(U=qT\) & \(wU+rT\) & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(T,V\) & \(V=qT\) & \(R_{\rm fcmp}\) em \(r_i\) & não & não & não & não & sim & condicional
+\(T,V\) & \(V=qT\) & \(R\) em \(r_J\) & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
-\(U,V\) & \(V=qU\) & \(r_iV+zU\) & não & não & não & não & sim & condicional
+\(U,V\) & \(V=qU\) & \(r_JV+wU\) & não & não & não & não & sim & condicional
 & abertura própria; segundo gasto & alta: deslocação SAL explícita\\ \hline
 \(G,T,U,V\) & \(aG+bT+cU+dV=0\) & compromisso multibase & condi\-cional & não demonstrado & condi\-cional & não & condi\-cional & condi\-cional
 & suporte deve vencer equações externas & média: vinculação certa; efeito depende do suporte\\ \hline
-\(I\) & \(I=\eta_OG\) & bases da DLEQ tornam-se relacionadas & sim & não & não & não & não & não
-& relação para a saída observada & alta: \(L=\eta_OO\)\\ \hline
-BP/BP+ & relação em \(H,\boldsymbol G,\boldsymbol H\) & compromisso vectorial & não & não & não & condicional & não & condicional
+\(J\) & \(J=\eta_OG\) & bases da DLEQ tornam-se relacionadas & sim & não & não & não & não & não
+& relação para a saída observada & alta: \(I=\eta_OO\)\\ \hline
+BP/BP+ & relação em \(G,\boldsymbol G,\boldsymbol H\) & compromisso vectorial & não & não & não & condicional & não & condicional
 & direcção altera testemunho; balanço & média: abertura explícita; falsificação depende da relação\\ \hline
-Selene & relação em \(g,h,\boldsymbol g,\boldsymbol h,J_{\rm init}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
+Selene & relação em \(\mathcal B_{\rm S}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
 & colisão/restrição útil; saída própria e SAL & média: Curve Trees e composição\\ \hline
-Helios & relação em \(g,h,\boldsymbol g,\boldsymbol h,J_{\rm init}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
+Helios & relação em \(\mathcal B_{\rm H}\) & nó ou compromisso da prova & não & não & condicional & não & não & condicional
 & colisão/restrição útil; saída própria e SAL & média: Curve Trees e composição\\ \hline
 Controlo & \(J,2J,\ldots;\ P=xG;\ R=rH\) & nenhuma & não & não & não & não & não & não
 & prova de conhecimento normal & alta: relação deliberada\\ \hline

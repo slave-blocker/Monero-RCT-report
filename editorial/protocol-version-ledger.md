@@ -198,3 +198,9 @@ Fonte C++ fixa /home/dollner/monero, HEAD 3646f648db57f60cca86430e25a635d19fa9b9
 A numeração usada pelas referências é amount_index, dentro da classe seleccionada; output_id é outro identificador interno da base de dados. As saídas de mineiro de versão 2 são inseridas na classe zero com máscara um. A conversão C++ de relativos para absolutos é uma soma de uint64_t; as fórmulas do livro descrevem a codificação normal de uma lista crescente representável, sem inventar um teste adicional de overflow na rotina.
 
 As etiquetas de extra são bytes, e as contagens são varints. O comentário geral em tx_extra.h não substitui as definições: a chave principal tem tamanho fixo, a lista adicional conta pontos e nonce conta bytes. O código de enchimento reconhece zeros até ao fim, com limite de 255 bytes incluindo a etiqueta. O teste facultativo usa o cabeçalho original de varints, sem modificar nem compilar o repositório de origem.
+
+## Relações entre geradores e multi-assinatura SAL
+
+Releram-se as relações do capítulo FCMP++ e sal/mod.rs (RerandomizedOutput, OpenedInputTuple), bem como as estruturas e bases FROST de sal/legacy_multisig.rs e sal/multisig.rs. A fonte chama I à base e L à imagem; o livro converte esses nomes para J/I em todos os capítulos. O código do caso legado partilha x e usa a resposta em G,U e I_tilde; o caso nativo partilha a componente em T. Esta inspecção de primitivas não estabelece disponibilidade de uma carteira nem estado de implantação da rede.
+
+O teste das quatro relações conhecidas constrói mensagens anteriores ao desafio que satisfazem os quatro testes SAL para qualquer desafio do grupo pequeno. Assim confere as transformações de aberturas e as fórmulas das imagens sem pressupor a segurança dos parâmetros deliberadamente relacionados. A pertença, os certificados de divisores e as regras exteriores de uma transacção mantêm o seu âmbito separado.

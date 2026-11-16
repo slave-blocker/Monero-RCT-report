@@ -750,26 +750,27 @@ concentra-se na imagem de chave e na SAL.
 Para uma saída de uma carteira de hierarquia antiga, escrevamos
 \begin{align*}
  x&=d+\sum_{j\in\mathcal A}x_j,&
- I&=\mathcal H_{\rm KI}(K_o),\\
- L=xI&=dI+\sum_{j\in\mathcal A}x_jI.
+ J&=\mathcal H_{\rm KI}(K_o),\\
+ I=xJ&=dJ+\sum_{j\in\mathcal A}x_jJ.
 \end{align*}
 \(\mathcal A\) contém uma vez cada parcela coberta pelos signatários. A imagem
-\(L\) é, portanto, a soma de imagens parciais; \(\mathcal H_{\rm KI}\) denota
+\(I\) é, portanto, a soma de imagens parciais; \(\mathcal H_{\rm KI}\) denota
 a derivação de base exigida pela versão da saída. Não se inverte a chave
 repartida. Esta linearidade torna a multi-assinatura viável.
 
 A SAL prova também conhecimento de \(x\), da outra abertura
-\(\widetilde y\) em \(\widetilde O=xG+\widetilde yT\), e do produto
-\(z=xr\). Fixado o mesmo re-randomizador \(r\), podem formar
+\(\bar y\) em \(\widetilde O=xG+\bar yT\), e do produto
+\(w=xr_J\). Fixado o mesmo re-randomizador \(r_J\), podem formar
 \begin{align*}
- z&=rd+\sum_{j\in\mathcal A}rx_j,&
+ w&=r_Jd+\sum_{j\in\mathcal A}r_Jx_j,&
  s_x&=\sum_j\alpha_j+ex,&
- s_z&=\sum_j\rho_j+ez.
+ s_w&=\sum_j\rho_j+ew.
 \end{align*}
-Nenhum signatário pode enviar \(rx_j\) sem máscara, pois \(r\) revelaria
-\(x_j\). Envia apenas pontos públicos e respostas ocultas pelos valores
+Para \(r_J\ne0\), divulgar \(r_Jx_j\) a quem conhece \(r_J\) revelaria
+\(x_j\), multiplicando por \(r_J^{-1}\). Cada signatário envia pontos
+públicos e respostas ocultas pelos valores
 aleatórios \(\alpha_j,\rho_j\), usados uma vez. Um protocolo completo tem
-ainda de construir conjuntamente \(P,A,B,R_O,R_P,R_L\), tratar a abertura em
+ainda de construir conjuntamente \(P,A,B,R_O,R_P,R_I\), tratar a abertura em
 \(T\) e resistir a valores duplicados e abortos maliciosos. As somas acima são
 um esboço algébrico, não o protocolo distribuído da implementação de referência
 nem uma análise de segurança.
@@ -785,7 +786,7 @@ funcionalidade opcional \texttt{multisig}, dois algoritmos baseados em FROST
  carteiras históricas, e uma abertura \(y\) conhecida. Cada participante
  acrescenta parcelas interpoladas da imagem de chave e de \(xU\); a resposta
  FROST comum produz simultaneamente as relações em \(G\), \(U\) e
- \(\widetilde I\).
+ \(\widetilde J\).
 
  \item \texttt{SalAlgorithm} destina-se à decomposição nova
  \(O=xG+yT\). O escalar \(x\), necessário para gerar a imagem de chave, é
@@ -811,7 +812,7 @@ reparte \(k_{\rm ps}\), a componente de autorização em \(T\). Assim, uma vista
 completa pode actualizar o estado gasto e o saldo sem reconstruir a parcela
 privada que autoriza o gasto.
 
-Na cadeia ver-se-iam apenas uma prova de pertença, uma SAL e \(L\), nunca
+Na cadeia ver-se-iam apenas uma prova de pertença, uma SAL e \(I\), nunca
 \(M\), \(N\) ou os signatários. No código Monero consultado, porém, o
 construtor multi-assinatura termina numa CLSAG: não há comandos nem mensagens
 que liguem a carteira às primitivas SAL distribuídas do ramo de referência.

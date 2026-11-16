@@ -283,3 +283,13 @@ Estado: composto em 16 de Novembro de 2026. Foram introduzidas 371 chamadas de �
 A ordenação usa chaves explícitas sem acentos, conservando no texto a grafia portuguesa. O programa de compilação estabiliza main.idx/main.ind e termina se makeindex rejeitar entradas ou emitir avisos. Conferiram-se todos os destinos das remissões e inspeccionaram-se as páginas, incluindo as entradas matemáticas. O índice ocupa seis páginas, físicas 315–320, e o livro tem 321 páginas. FCMP++ conserva as 38 páginas de texto e o poster, em 199–237; divisores conserva trinta páginas, em 42–71. Os excertos continuam conferidos por texto e imagem.
 
 A passagem final aceita as 371 entradas, sem rejeições nem avisos de makeindex; o livro conserva os 164 avisos de caixas anteriores. A marca de índice do pseudo-compromisso protege a expansão de \widetilde durante a escrita do auxiliar.
+
+## Notação das relações entre geradores
+
+Estado: concluída em 16 de Novembro de 2026. O capítulo das relações entre geradores e a secção de multi-assinatura com FCMP++ usam J para a base e I para a imagem, incluindo as fórmulas, as tabelas e os pontos de compromisso de Schnorr. A apresentação e a SAL conservam r_J, r_R, r_P, bar y, w e eta do capítulo anterior. As bases vectoriais, o inicializador B, os pontos K/Q e o fecho da raiz passam também a usar a notação cumulativa. A base da máscara do compromisso vectorial de Bulletproofs é G, como na derivação anterior.
+
+A condição de consistência dos testemunhos é atribuída à hipótese de vinculação conjunta, com remissão para a demonstração. A exposição conserva as condições de domínio das provas e a distinção entre uma identidade algébrica, uma violação de ligação e uma falsificação completa da pertença. A divisão por r_J na observação sobre parcelas de multi-assinatura tem agora a hipótese r_J não nulo explícita. Eliminou-se a quebra que deixava um parágrafo isolado numa página.
+
+Validação: generator-relations.py constrói 320 imagens alternativas não nulas sob quatro famílias de parâmetros deliberadamente relacionados e confere as quatro igualdades SAL para todos os dezenove desafios do grupo pequeno, num total de 6080 verificações. Confere ainda 256 somas de imagens parciais, produtos distribuídos e fechos de raiz. O caso degenerado x=-q em V=qU conserva a imagem, conforme a fórmula. O teste não executa a pertença FCMP++ nem constitui uma exploração da rede.
+
+O livro mantém 321 páginas, com 371 entradas de índice aceites e sem referências por resolver. Os avisos de caixas descem de 164 para 162. Inspeccionaram-se as equações, as duas tabelas e a secção de multi-assinatura. A revisão transversal de estilo, terminologia e legibilidade das tabelas continua pendente.

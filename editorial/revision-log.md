@@ -11,9 +11,9 @@ Revisão autorizada em 10-11-2026, inicialmente com orçamento de 5 000 000 de t
 - [x] FCMP++: IPA, Generalized Bulletproofs, SAL e prova de intervalo; contagem condicionada de argumentos.
 - [x] FCMP++: construir e inspeccionar o novo poster.
 - [x] Explicar a receita de \(H_p\) e reproduzir a obtenção do gerador fixo \(H\).
-- [ ] Página impressa 55: desenvolver a falha de validação das imagens de chave e a investigação publicada sobre a ausência de exploração.
-- [ ] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
-- [ ] Página 59: ensinar a pergunta decisional de Diffie–Hellman antes de a nomear.
+- [x] Página impressa 55: desenvolver a falha de validação das imagens de chave e a investigação publicada sobre a ausência de exploração.
+- [x] Página 57: retirar o parágrafo «Uma variante permite tornar ligáveis…».
+- [x] Página 59: ensinar a pergunta decisional de Diffie–Hellman antes de a nomear.
 - [ ] Explicar «canónico» na primeira utilização relevante e incluir o termo no índice.
 - [ ] Página 62: «Especialização usada por Monero»; acrescentar duas páginas de explicação de CLSAG.
 - [ ] Página 91: simplificar a apresentação das duas verificações de Bulletproofs; retirar do percurso principal os resíduos e a combinação ponderada, preservando as duas condições matemáticas.
@@ -231,3 +231,13 @@ A nova secção dos conceitos básicos define a leitura dos 256 bits, a reduçã
 A secção dos compromissos deriva separadamente o gerador fixo H: descompressão do resumo de G e três duplicações, com todas as codificações intermédias. Explica a hipótese de dificuldade da relação entre geradores e a distinção entre descodificar bytes e aplicar o mapa algébrico. O texto contém as codificações de H, H_p^(1)(G) e H_p^(2)(G).
 
 Validação: hash-points.py verifica 522 argumentos, incluindo fronteiras da redução dos 256 bits, ambos os ramos, a simetria, os resíduos, a pertença à curva e os exemplos. A comparação facultativa compila directamente as funções C da fonte fixa em pasta temporária; as imagens antes e depois do cofactor, o BLAKE2b personalizado, o Keccak e H coincidem com as contas independentes. Nenhuma fonte externa foi modificada. A compilação produz 310 páginas, conserva os 164 avisos anteriores e resolve remissões e citações. Inspeccionaram-se as páginas físicas 22–23, 35–39, 79 e 100–102. FCMP++ mantém as 38 páginas de texto e o poster; divisores mantém trinta páginas.
+
+## Domínio das imagens de chave e pergunta decisional
+
+Estado: concluído em 16 de Novembro de 2026. O percurso de bLSAG demonstra a decomposição entre a componente de ordem prima e a de pequena ordem, trabalha o ponto (0,−1) e deriva o termo residual cT na ronda verdadeira. O texto conta os desafios admissíveis no modelo ideal, explica as oito variantes e demonstra por que o teste [l]I=O rejeita todas as componentes de torção não nulas. Distingue a validação da imagem da multiplicação pelo cofactor e atribui expressamente o resultado do exame histórico à divulgação primária de 2017.
+
+A pergunta DDH é apresentada através de quatro pontos e das duas distribuições, antes de ser nomeada; as dificuldades decisional, computacional e do logaritmo discreto conservam hipóteses próprias. Retirou-se o parágrafo solicitado sobre a variante parcialmente ligável de MLSAG.
+
+Validação: key-image-domain.py constrói 24 assinaturas válidas no grupo Z_19 x Z_8, três posições de signatário com oito imagens cada, em 93 tentativas; confere todas as 152 decomposições e a contagem dos múltiplos dos desafios. Sobre Edwards25519, verifica as oito variantes, as projecções e 56 reconstruções, incluindo representantes próximos da ordem do subgrupo. O teste de domínio rejeita exactamente as sete variantes alteradas. As contas não substituem as hipóteses criptográficas nem constituem uma auditoria do histórico da rede.
+
+A compilação conserva 312 páginas, 164 avisos anteriores e todas as remissões resolvidas. Inspeccionaram-se as páginas físicas 80–86, incluindo a transição para MLSAG. Uma reserva condicional de espaço mantém o início da discussão de torção junto do título. FCMP++ conserva 38 páginas de texto e o poster, nas páginas físicas 196–234; divisores conserva as páginas 42–71. Os excertos foram novamente conferidos por texto e imagem.

@@ -499,23 +499,9 @@ Aceita apenas se
 \widehat c_{n+1}=c_1.
 \]
 
-\marginnote{\raggedright\tiny
-\nolinkurl{src/cryptonote_core/cryptonote_core.cpp}\\
-\nolinkurl{check_tx_inputs_keyimages_domain()}}
-A condição \(lI=0\), acompanhada da rejeição da identidade, prova que a
-imagem pertence ao subgrupo de ordem \(l\). Isto não é o mesmo que
-multiplicar simplesmente a equação de verificação pelo cofactor. Se se
-aceitasse \(I+T\), com \(T\) um ponto de pequena ordem \(t\), um atacante
-poderia explorar a componente de torção e procurar desafios com resíduos
-convenientes módulo \(t\), criando variantes que escapassem à ligação. Para
-um desafio divisível por \(t\), por exemplo,
-\begin{align*}
-c(I+T)&=cI+cT\\
-      &=cI.
-\end{align*}
-A verificação de subgrupo elimina todas essas variantes. Esta falha existiu
-nos primeiros anos do Monero e foi corrigida antes de ser explorada, nas
-regras da versão 5 \cite{key-image-bug}.
+As condições \([l]I=\mathcal O\) e \(I\ne\mathcal O\), impostas na
+validação, fixam a ordem de \(I\) em \(l\). A sua necessidade ficará
+visível depois de verificarmos o fecho da assinatura.
 
 \subsection*{Funciona porque}
 
@@ -535,6 +521,118 @@ Na posição verdadeira, as duas reconstruções devolvem os compromissos de
 As outras rondas foram simuladas exactamente como serão verificadas; portanto
 a cadeia fecha no \(c_1\) publicado.
 
+\Needspace{8\baselineskip}
+\subsection*{A componente de torção e a ligação}
+\phantomsection
+\label{subsec:key-image-torsion}
+
+A curva tem \(8l\) pontos, enquanto as chaves e as bases das imagens vivem
+no subgrupo de ordem \(l\). A diferença entre estes dois domínios é
+decisiva. Além da identidade, há pontos \(T\) de ordem \(2\), \(4\) ou \(8\):
+são as componentes de pequena ordem, ou de torção, que aqui nos interessam.
+O ponto \(T=(0,-1)\), por exemplo, satisfaz a equação de Edwards e tem
+ordem dois. Pela lei de adição,
+\[
+ (x,y)+(0,-1)=(-x,-y),\qquad [2](0,-1)=\mathcal O.
+\]
+Há oito pontos anulados pela multiplicação por oito.
+
+Como \(8\) e \(l\) são primos entre si, cada ponto \(P\) da curva admite
+uma decomposição única
+\[
+ P=P_l+T,\qquad [l]P_l=\mathcal O,\qquad [8]T=\mathcal O.
+\]
+Para a construir, tomamos \(s=8^{-1}\bmod l\) e pomos
+\[
+ P_l=[8s]P,\qquad T=P-P_l.
+\]
+De facto, \([l]P_l=[8ls]P=\mathcal O\), e
+\([8]T=[8(1-8s)]P=\mathcal O\), pois \(1-8s\) é múltiplo de \(l\).
+A unicidade resulta de a intersecção dos dois subgrupos conter apenas a
+identidade: a ordem de um ponto dessa intersecção teria de dividir
+simultaneamente \(8\) e \(l\).
+
+Seja agora \(J=\mathcal H_p(K_\pi)\) e \(I=k_\pi J\) a imagem legítima.
+O proprietário da chave pode formar
+\[
+ I^\star=I+T
+\]
+com \(T\ne\mathcal O\) de ordem \(t\mid8\). Esta imagem tem uma codificação
+válida de ponto e difere de \(I\). Um registo que guardasse apenas os bytes
+das imagens aceites consideraria \(I\) e \(I^\star\) identificadores
+diferentes do gasto.
+
+Vejamos como a componente adicional entra na assinatura. O proprietário
+inicia a ronda verdadeira com \(\alpha G\) e \(\alpha J\), inclui
+\(I^\star\) no enunciado público e percorre as outras rondas usando essa
+mesma imagem. Depois de obter \(c_\pi\), calcula
+\[
+ r_\pi=\alpha-c_\pi k_\pi\pmod l.
+\]
+O primeiro ponto recompõe-se como antes. O segundo passa a ser
+\begin{align*}
+ \widehat R_\pi
+   &=r_\pi J+c_\pi I^\star\\
+   &=(\alpha-c_\pi k_\pi)J+c_\pi(k_\pi J+T)\\
+   &=\alpha J+c_\pi T.
+\end{align*}
+A redução módulo \(l\) usada na resposta é válida nos termos em \(J\),
+que tem ordem \(l\). No termo \(c_\pi T\), conta o representante inteiro
+canónico do desafio e o seu resto módulo \(t\).
+
+Se \(c_\pi\) for divisível por \(t\), esse último termo desaparece e a
+assinatura fecha. Para o ponto de ordem dois, por exemplo,
+\[
+ [6](I+T)=[6]I,\qquad [5](I+T)=[5]I+T.
+\]
+O proprietário pode repetir a escolha dos valores efémeros até obter
+o resto pretendido. No modelo em que cada tentativa fornece um novo
+desafio independente e uniforme em \(\mathbb Z_l\), há
+\(\lceil l/t\rceil\) múltiplos de \(t\) entre \(0\) e \(l-1\);
+a probabilidade de êxito por tentativa é, portanto,
+\(\lceil l/t\rceil/l\), aproximadamente \(1/t\).
+O trabalho esperado fica próximo de duas, quatro ou oito tentativas.
+A imagem alterada participa desde o início nos hashes: a construção
+produz uma assinatura própria para essa imagem.
+
+Os oito pontos de torção dão oito imagens distintas \(I+T\) para a
+mesma saída. Uma delas é a imagem legítima; as outras sete permitiriam
+novos gastos se a validação aceitasse tais assinaturas e procurasse
+repetições apenas pela igualdade das imagens. Cada gasto poderia conservar
+as suas igualdades de montantes: a falha está na unicidade do identificador
+que liga o gasto à saída.
+
+O teste de subgrupo fecha precisamente esta possibilidade. Para
+\(I^\star=I+T\),
+\[
+ [l]I^\star=[l]T.
+\]
+A multiplicação por \(l\) é invertível no subgrupo de ordem \(t\), porque
+\(\gcd(l,t)=1\). Logo \([l]T=\mathcal O\) equivale a \(T=\mathcal O\).
+Ao exigir \([l]I^\star=\mathcal O\), o verificador aceita apenas imagens
+com \(T=\mathcal O\); a condição adicional
+\(I^\star\ne\mathcal O\) exclui a imagem nula
+\cite{monero-source-v16}.
+
+Multiplicar apenas por oito teria outro efeito:
+\[
+ [8](I+T)=[8]I.
+\]
+Essa operação elimina a diferença entre as variantes. É útil para
+levar pontos ao subgrupo, como fizemos nas funções hash, e exige que qualquer
+registo de ligação use uma representação coerente com essa projecção.
+O teste \([l]I=\mathcal O\) permite validar directamente a imagem que será
+guardada e comparada.
+
+A divulgação pública de 17 de Maio de 2017 relata que o exame da lista de
+blocos de Monero, efectuado em 20 de Fevereiro desse ano, não encontrou
+exploração desta falha \cite{key-image-bug}. A conclusão refere-se ao
+histórico examinado e ao mecanismo identificado. O fundamento matemático
+da investigação é público: cada imagem registada pode ser submetida ao
+teste de subgrupo, sem revelar qual membro do anel foi gasto nem conhecer
+a sua chave secreta. A ausência de imagens com componente de torção exclui,
+nesse histórico, os gastos adicionais construídos por este mecanismo.
+
 \subsection*{Ligação e hipóteses de segurança}
 
 Dadas duas assinaturas válidas
@@ -552,17 +650,45 @@ iguais correspondem à mesma relação depende de a função hash para ponto se
 comportar como um oráculo aleatório no subgrupo, de serem impraticáveis
 colisões e logaritmos discretos e de todos os pontos terem sido validados.
 
-Há uma hipótese distinta por trás da ambiguidade. Para testar se o candidato
-\(K_i=k_iG\) corresponde à imagem \(I=k_i\mathcal H_p(K_i)\), um observador
-teria de decidir se
+Para compreender a ambiguidade, coloquemos primeiro uma pergunta sobre
+quatro pontos públicos. Recebemos
 \[
-(G,K_i,\mathcal H_p(K_i),I)
+ G,\qquad A=aG,\qquad J=bG,\qquad Z,
 \]
-é um quádruplo Diffie--Hellman. A dificuldade deste problema decisional
-impede o teste. O PCDH pede antes \emph{calcular} \(I\), e o PLD pede recuperar
-\(k_i\). Um algoritmo para o PLD resolveria também os dois problemas
-Diffie--Hellman, mas a mera dificuldade conhecida do PLD não demonstra, em
-geral, a dificuldade decisional ou computacional.
+com \(a\) e \(b\) secretos. Queremos reconhecer se \(Z=aJ=abG\).
+Os pontos \(A\) e \(J\) revelam os resultados de duas multiplicações;
+o teste pergunta se o quarto ponto usa o produto dos respectivos
+escalares. Conhecer \(a\) permitiria calcular \(aJ\) e compará-lo com
+\(Z\). A questão criptográfica é a possibilidade de efectuar essa
+distinção a partir dos quatro pontos.
+
+Esta é a pergunta \emph{decisional de Diffie--Hellman}, habitualmente
+abreviada por DDH. A sua hipótese de dificuldade afirma que é
+computacionalmente impraticável distinguir, com vantagem apreciável,
+as distribuições
+\[
+ (G,aG,bG,abG)
+ \quad\hbox{e}\quad
+ (G,aG,bG,zG),
+\]
+quando \(a,b,z\) são escalares uniformes e independentes no domínio
+escolhido. Podemos tomá-los não nulos, em acordo com as chaves e imagens
+deste capítulo. Na primeira distribuição, o quarto ponto partilha a
+relação secreta; na segunda, é escolhido independentemente.
+
+Na assinatura, o candidato \(K_i\), a sua base \(\mathcal H_p(K_i)\)
+e a imagem \(I\) dão exactamente a pergunta
+\[
+ (G,K_i,\mathcal H_p(K_i),I):
+ \qquad I\stackrel{?}{=}k_i\mathcal H_p(K_i).
+\]
+A hipótese decisional, aplicada às bases produzidas pelo hash no modelo
+adoptado, sustenta a ocultação desta correspondência. O problema
+computacional de Diffie--Hellman, PCDH, pede \emph{obter} o quarto ponto
+a partir dos três primeiros; o PLD pede \emph{recuperar} o escalar \(a\)
+a partir de \(G\) e \(A\). Resolver o PLD permite resolver os outros dois:
+recupera-se \(a\), calcula-se \(aJ\) e faz-se a comparação pretendida.
+Cada afirmação de dificuldade conserva, porém, a sua hipótese própria.
 
 Mesmo quando duas assinaturas estão ligadas, a imagem não revela qual membro
 assinou. Se os dois anéis tiverem apenas uma chave em comum, porém, a
@@ -615,11 +741,6 @@ Na versão integralmente ligável que apresentamos, cada linha tem uma imagem
 I_j=k_{\pi,j}\mathcal H_p(K_{\pi,j}),
 \qquad j=1,\ldots,m.
 \]
-Uma variante permite tornar ligáveis apenas \(q\leq m\) linhas: essas linhas
-têm termos \(R_{i,j}\) e imagens \(I_j\); as restantes têm apenas termos
-\(L_{i,j}\). A fórmula abaixo corresponde a \(q=m\), que torna visível a
-estrutura sem esconder casos num índice adicional.
-
 O verificador exige uma matriz rectangular \(n\times m\), pontos canónicos,
 não nulos e no subgrupo de ordem \(l\), imagens também não nulas no mesmo
 subgrupo e exactamente \(nm\) respostas. Convencionamos \(c_{n+1}=c_1\) e

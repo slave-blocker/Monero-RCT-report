@@ -41,3 +41,5 @@ F8 reúne a indução descendente da raiz, a ligação a SAL e as condições da
 Codificação de pontos e escalares → representações canónicas → hash para escalares/pontos e gerador H → bLSAG e validação de subgrupo → pergunta DDH → MLSAG → CLSAG com duas relações → representação de uma entrada → índices globais e relativos → recuperação dos membros do anel → campos de tx_extra.
 
 O índice remissivo será construído com as definições e explicações como destinos principais, incluindo símbolos e remissões entre nomes portugueses, siglas e termos ingleses.
+
+O percurso das imagens de chave aplica agora as representações canónicas e a receita de H_p à reconstrução exacta da ronda. A decomposição por ordens coprimas e o termo cT explicam a condição de subgrupo; a pergunta sobre quatro pontos conduz depois a DDH e às hipóteses de anonimidade. A secção de CLSAG deverá conservar a diferença entre extrair uma combinação de testemunhas e conhecer as componentes sob as hipóteses de agregação.

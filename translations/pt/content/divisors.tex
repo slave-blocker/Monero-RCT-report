@@ -1,30 +1,27 @@
-\chapter{Divisores: certificar uma multiplicação de pontos}
+\chapter{Divisores e certificados de multiplicação escalar}
 \label{chapter:divisors}
 \label{sec:fcmp-divisors}
 
-Alice conhece um número \(n\) e calcula \(Q=nP\). A operação é familiar:
-uma sucessão de duplicações e adições leva do ponto \(P\) ao ponto \(Q\).
-Suponhamos agora que essa multiplicação faz parte de uma prova em
-conhecimento zero. Alice quer demonstrar que o resultado está certo,
-conservando secretos os valores que o protocolo lhe permite esconder.
-Cada operação intermédia terá de encontrar uma expressão nas condições da
-prova. O custo passa, assim, a depender da maneira de representar o cálculo.
+Alice calcula \(Q=nP\). Se der a Bruno o inteiro \(n\) e os pontos
+\(P,Q\), ele pode repetir as duplicações e as adições e comparar o
+resultado com \(Q\). Suponhamos, porém, que Alice quer provar que
+usou o mesmo escalar secreto em duas multiplicações. O que poderá
+Bruno conferir conservando o escalar oculto?
 
-Há uma possibilidade particularmente fecunda: construir uma função sobre
-a curva cujos zeros e pólos guardem a relação entre os pontos. A função
-servirá de testemunha. O provador constrói-a; a prova estabelece as
-propriedades que a tornam um certificado da multiplicação. A ligação
-entre os zeros de uma função e a soma de pontos é o assunto deste
-capítulo \cite{eagen-divisors}.
+Comecemos pela adição que já conhecemos. A recta por \(P\) e \(2P\)
+encontra a curva em \(-3P\). Alice pode guardar esta conta nos
+coeficientes da equação da recta. Quem souber que os seus três zeros
+são \(P,2P,-Q\) poderá somá-los na curva e concluir que
+\(P+2P-Q=\mathcal O_\infty\). Para uma multiplicação de muitas
+parcelas, uma função toma o lugar da recta. O seu \emph{divisor}
+regista os zeros com as respectivas multiplicidades e os pólos que
+fixam o total. A questão para Bruno passa a ser como reconhecer os
+zeros de uma função que Alice guarda consigo. No método de
+Eagen, Bruno escolherá uma recta depois de Alice se ter vinculado aos
+seus dados. A mesma conta feita pelos pontos da recta e pelos zeros
+da função terá de dar o mesmo elemento do corpo \cite{eagen-divisors}.
 
-Em FCMP++, esta técnica permitirá certificar multiplicações por números
-secretos usados para mascarar pontos. O capítulo dedicado ao protocolo
-explicará como se integram esses certificados numa prova maior. Aqui
-construiremos os objectos que lhes dão sentido: funções, zeros, ordens,
-pólos e, finalmente, divisores. Começaremos com contas pequenas, de modo
-que cada passagem possa ser acompanhada até ao seu resultado.
-
-\section{Uma função sobre a curva}
+\section{Como uma função conta os encontros com a curva}
 \label{sec:divisors-functions}
 \index{funcao@função!sobre uma curva@sobre uma curva}
 \index{fecho algebrico@fecho algébrico}
@@ -68,8 +65,8 @@ corpo, usando as suas coordenadas. A expressão
 é um exemplo. Os coeficientes \(m,c\) fixam uma recta, e a avaliação
 \(\lambda(A)=y_A-mx_A-c\) mede se o ponto satisfaz a equação dessa
 recta. O resultado zero assinala um encontro entre a recta e a curva.
-Os pontos são os argumentos da função; os valores da função são números
-do corpo. Essa distinção acompanhará todas as contas.
+Assim, cada ponto fornece um elemento do corpo. Conservaremos as duas
+operações distintas quando somarmos pontos na curva e valores no corpo.
 
 O exemplo que seguiremos é
 \[
@@ -123,13 +120,11 @@ polinómio de grau \(17\) que se anula para todos os elementos de
 um polinómio de grau \(17\). Serão os coeficientes e as relações da
 curva que determinarão os certificados.
 
-\section{Os encontros têm multiplicidade}
-\label{sec:divisors-multiplicity}
 \index{multiplicidade@multiplicidade}
 \index{zero de uma funcao@zero de uma função}
 
-Na apresentação de Weierstrass, a regra geométrica da adição começa por
-uma recta. A recta que passa por \(A\) e \(B\) encontra a curva num
+Para obter uma relação entre pontos a partir dos zeros, tomemos a
+recta que a lei de adição lhes associa. A recta que passa por \(A\) e \(B\) encontra a curva num
 terceiro ponto \(R\), contando os encontros repetidos; a soma é
 \(A+B=-R\). A tangente dá a duplicação quando \(A=B\). Uma vertical
 passa por um ponto e pelo seu inverso, cuja soma é
@@ -229,9 +224,6 @@ A vertical tem aí um zero duplo. A multiplicidade é, portanto, uma
 propriedade da função sobre a curva, calculada com uma coordenada local
 adequada ao ponto.
 
-\begin{samepage}
-\section{Fracções, pólos e o ponto no infinito}
-\label{sec:divisors-poles}
 \index{ord a@\(\operatorname{ord}_A(f)\), ordem de uma função}
 \index{polo@pólo}
 \index{parametro local@parâmetro local}
@@ -246,7 +238,6 @@ complementar. Com as mesmas funções,
 \[
  \frac{t^2u}{tv}=t\,\frac uv.
 \]
-\end{samepage}
 Como \(u/v\) é uma unidade local, a razão conserva um zero simples.
 
 Uma \emph{função racional} é uma razão \(f/g\) de funções polinomiais
@@ -341,34 +332,22 @@ omitindo da comparação qualquer parcela identicamente nula. Uma
 constante não nula tem ordem zero. Mais adiante, este cálculo permitirá
 controlar quantos zeros uma função testemunha pode transportar.
 
-Temos agora os elementos do registo: cada lugar da curva traz um inteiro
-que mede um zero, um pólo ou a ausência de ambos. No exemplo da tangente,
-os lugares são \(P\), \(-2P\) e \(\mathcal O_\infty\), com ordens
-\(2\), \(1\) e \(-3\). A definição de divisor reúne esses dados
-num objecto que podemos somar, subtrair e relacionar com a lei do grupo.
+No caso da tangente por \(P\), os dois encontros afins dão as
+ordens \(2\) em \(P\) e \(1\) em \(-2P\). Na identidade, o pólo
+dá a ordem \(-3\). Reunamos os três valores para ver como a
+multiplicação das funções acompanha a adição dos pontos.
 
-\section{O registo dos zeros e dos pólos}
+\section{O divisor principal de uma soma de pontos}
 \label{sec:divisors-ledger}
 \index{divisor@divisor}
 \index{lugar de um divisor@lugar de um divisor}
 \index{a lugar@\([A]\), lugar formal}
 
-A função da tangente já nos deu um registo completo: um zero duplo em
-\(P\), um zero simples em \(-2P\) e um pólo triplo em
-\(\mathcal O_\infty\). Podemos guardá-lo numa pequena tabela:
-\begin{center}
-\begin{tabular}{c r l}
-\textbf{Lugar} & \textbf{Ordem} & \textbf{Comportamento da função}\\[1mm]
-\(P\) & \(2\) & zero duplo\\
-\(-2P\) & \(1\) & zero simples\\
-\(\mathcal O_\infty\) & \(-3\) & pólo triplo
-\end{tabular}
-\end{center}
-A escrita
+O registo da tangente cabe numa linha,
 \[
- 2[P]+[-2P]-3[\mathcal O_\infty]
+ 2[P]+[-2P]-3[\mathcal O_\infty].
 \]
-contém os mesmos dados. Os parênteses rectos assinalam os lugares;
+Os parênteses rectos assinalam os lugares;
 os coeficientes guardam as ordens. Por exemplo, \(2[P]\) regista duas
 ocorrências no lugar \(P\), enquanto \([2P]\) regista uma ocorrência
 no lugar correspondente ao ponto duplicado.
@@ -421,19 +400,15 @@ tem ordem zero em todos os lugares e, portanto, divisor zero. A definição
 aplica-se a funções racionais não nulas, cujas ordens locais são inteiros
 bem determinados.
 
-O cálculo local da secção \ref{sec:divisors-poles} dá imediatamente
+Quando multiplicamos funções, os expoentes do parâmetro local somam-se
+em cada lugar. Resulta
 \begin{align*}
  \operatorname{div}(fg)&=\operatorname{div}(f)+\operatorname{div}(g),\\
  \operatorname{div}(f/g)&=\operatorname{div}(f)-\operatorname{div}(g).
 \end{align*}
-Com efeito, as potências \(t^m\) e \(t^n\) produzem \(t^{m+n}\)
-na multiplicação e \(t^{m-n}\) na divisão. Assim, podemos construir
-uma função composta e acompanhar o seu divisor somando ou subtraindo
-registos pequenos. É essa operação que vai reunir as etapas de uma
-multiplicação de pontos.
-
-\section{Uma adição escrita por uma função}
-\label{sec:divisors-addition-function}
+São estas duas regras que permitem reunir várias adições. Basta encontrar
+uma função cujos zeros indiquem as entradas de uma adição e cujo divisor
+contenha, com sinal oposto, a respectiva saída.
 
 Sejam \(A,B\) dois pontos afins e \(C=A+B\). Comecemos pelo caso
 em que a recta por \(A,B\) é não vertical; para \(A=B\), usamos
@@ -483,25 +458,18 @@ No exemplo de \(Q=3P\), as duas etapas produzem
  \operatorname{div}(h_{P,P})&=2[P]-[2P]-[\mathcal O_\infty],\\
  \operatorname{div}(h_{2P,P})&=[2P]+[P]-[3P]-[\mathcal O_\infty].
 \end{align*}
-Multiplicar as funções soma estas linhas. O coeficiente total de
-\([2P]\) passa a zero, e o divisor do produto é
+Multiplicar as funções soma estas linhas. O divisor do produto é
 \[
  3[P]-[3P]-2[\mathcal O_\infty].
 \]
-O ponto intermédio foi usado na construção; o registo final guarda
-os extremos. Esta é a economia algébrica que os certificados vão
-aproveitar \cite{eagen-divisors}.
+As duas ocorrências de \([2P]\) cancelaram-se porque \(2P\) era a saída de
+uma adição e a entrada da outra. Alice sabe assim construir uma função
+partindo de operações correctas. Para Bruno, a implicação decisiva é a
+recíproca. Se uma função tiver precisamente o divisor que Alice lhe
+atribui, que relação entre pontos é obrigatória? \cite{eagen-divisors}
 
-\section{Quando o registo pertence a uma função}
-\label{sec:divisors-principal-criterion}
 \index{divisor@divisor!criterio de principalidade@critério de principalidade}
 \index{equivalencia linear@equivalência linear}
-
-Para transformar a construção anterior numa garantia, precisamos de
-reconhecer quais os divisores que podem provir de funções. Interessa-nos
-uma equivalência exacta: a existência da função deverá estabelecer a
-relação entre os pontos que figuram no registo.
-
 Comecemos pelo grau. Toda a função polinomial não constante tem um
 certo número de zeros, contado com multiplicidade, e um pólo na
 identidade. Podemos conferir o equilíbrio por uma conta numa variável.
@@ -652,8 +620,6 @@ que associa a \(S\) a classe de \([S]-[\mathcal O_\infty]\)
 curva e \(\operatorname{Pic}^0(\mathbb E)\). As rectas que acabámos
 de usar mostram concretamente como se faz essa passagem.
 
-\section{O certificado de uma multiplicação}
-\label{sec:divisors-multiplication-certificate}
 \index{certificado de multiplicacao@certificado de multiplicação}
 \index{divisor@divisor!certificado de multiplicacao@certificado de multiplicação}
 
@@ -730,8 +696,8 @@ deixa a testemunha reduzida
 O maior peso é quatro, vindo de \(x^2\), pelo que o pólo na
 identidade tem ordem quatro.
 
-Podemos conferir o zero triplo directamente. Na secção
-\ref{sec:divisors-multiplicity}, obtivemos, junto de \(P\),
+Podemos conferir o zero triplo na expansão local já obtida junto de \(P\).
+Tínhamos
 \(x=5+t\) e \(y=1+13t+8t^2+\cdots\). Escrevamos o próximo
 termo como \(\gamma t^3\). Comparar os coeficientes de \(t^3\)
 na equação da curva dá
@@ -766,33 +732,22 @@ A função \(f\) determina os pontos sobre essas abscissas, e as
 ordens estabelecem o registo completo. A sua soma é
 \(3P+(-Q)=\mathcal O_\infty\), certificando \(Q=3P\).
 
-Esta garantia é algébrica. A prova criptográfica usará uma testemunha
-desse género e demonstrará as condições que fixam os seus zeros, as
-suas multiplicidades e o limite dos pólos. A função e os dados que
-devem permanecer secretos serão tratados no interior da prova.
-
-A representação ainda tem um custo que cresce com o escalar. Para
-\(P,Q\) afins e \(Q=nP\), multiplicar \(F_n\) por \(v_Q\)
-dá o divisor
+Quanto custaria esta função para um escalar de centenas de bits? Para
+\(P,Q\) afins e \(Q=nP\), multiplicar \(F_n\) por \(v_Q\) dá
 \[
  n[P]+[-Q]-(n+1)[\mathcal O_\infty].
 \]
-O pólo de ordem \(n+1\) faz crescer com \(n\) os limites dos
-graus de \(f_0\) e \(f_1\). O provador também calcula os pontos e
-constrói a função. Para adaptar o certificado aos escalares
-criptográficos, reorganizaremos agora a multiplicidade através dos
-dígitos do escalar e de uma tabela pública de pontos.
+A ordem do pólo cresce como o próprio \(n\). Um escalar de duzentos
+bits pode, por esta via, exigir da função cerca de \(2^{200}\) zeros
+contados com multiplicidade. Na multiplicação habitual, porém,
+duzentas posições binárias bastam para escrever o escalar. Podemos
+conservar essa economia se dermos a cada posição um lugar na curva.
 
-\section{Da escrita binária ao registo de pontos}
+\section{Uma testemunha para um escalar de muitas posições}
 \label{sec:divisors-scalar-table}
+\label{sec:divisors-function-bound}
 \index{decomposicao de escalares@decomposição de escalares}
 \index{tabela de duplicacoes@tabela de duplicações}
-
-O certificado anterior colocou \(n\) ocorrências no ponto \(P\).
-Para um número de algumas centenas de bits, essa multiplicidade faria
-crescer a função até um tamanho impraticável. A escrita binária oferece
-uma medida mais adequada: o número de posições que representam o
-escalar. Cada posição pode ter o seu próprio ponto, calculado de antemão.
 
 Fixemos um ponto \(A\) de ordem prima ímpar \(\ell\). O escalar
 \(s_A\) é uma classe módulo \(\ell\); para obter os seus bits,
@@ -874,9 +829,6 @@ constante não nula fornece a testemunha. Para \(s_A\ne0\), a ordem
 prima de \(A\) garante que \(W\) é afim. Esta última família
 permite trabalhar inteiramente com coordenadas afins.
 
-\Needspace{8\baselineskip}
-\section{Uma multiplicidade total fixa}
-\label{sec:divisors-fixed-multiplicity}
 \index{multiplicidade@multiplicidade!total fixa@total fixa}
 
 A decomposição binária fez o tamanho depender do número de bits. O
@@ -942,7 +894,6 @@ a \(L_A-1\). As divisões da etapa anterior completam o total
 \(L_A\). Fica construída uma representação
 \eqref{eq:divisors-fixed-multiplicity} para cada escalar não nulo.
 
-\Needspace{6\baselineskip}
 Vejamos o escalar três na mesma curva em módulo dezassete. As
 sucessivas duplicações de \(P\) dão
 \begin{center}
@@ -951,9 +902,7 @@ sucessivas duplicações de \(P\) dão
 \((5,1)\) & \((6,3)\) & \((3,1)\) & \((13,7)\) & \((10,11)\)
 \end{tabular}
 \end{center}
-\begin{samepage}
-Podemos conferir as três duplicações novas pelas mesmas fórmulas da
-secção \ref{sec:divisors-multiplicity}. Os declives e os resultados são
+As três duplicações restantes dão, sucessivamente,
 \begin{align*}
  m_{2P}&=(3\cdot6^2+2)(2\cdot3)^{-1}=8\cdot3=7,\\
  4P&=(7^2-2\cdot6,\;7(6-3)-3)=(3,1),\\
@@ -962,7 +911,6 @@ secção \ref{sec:divisors-multiplicity}. Os declives e os resultados são
  m_{8P}&=(3\cdot13^2+2)(2\cdot7)^{-1}=16\cdot11=6,\\
  16P&=(6^2-2\cdot13,\;6(13-10)-7)=(10,11).
 \end{align*}
-\end{samepage}
 Todas estas igualdades usam \(\mathbb F_{17}\). Como
 \(16P=-3P\), temos \(19P=\mathcal O_\infty\). O número
 \(19\) é primo e \(P\) é afim, pelo que a sua ordem é
@@ -995,19 +943,14 @@ selecciona com multiplicidades. A prova aritmética ligará esses
 coeficientes à função testemunha. Quando o mesmo vector é usado com
 outra base da mesma ordem, a soma ponderada representa a mesma classe
 de escalar. Essa consistência permitirá relacionar várias
-multiplicações secretas. A construção presente estabelece a
-existência das testemunhas; as condições que permitem verificá-las
-serão desenvolvidas adiante \cite{monero-oxide-fcmp-source}.
+multiplicações secretas. Falta dar aos coeficientes da função o formato público que há-de
+servir para qualquer escolha secreta \cite{monero-oxide-fcmp-source}.
 
-\Needspace{8\baselineskip}
-\section{O espaço da função e a garantia do certificado}
-\label{sec:divisors-function-bound}
 \index{normalizacao@normalização!da funcao testemunha@da função testemunha}
 \index{grau ponderado@grau ponderado}
 
-O tamanho público tem de fixar precisamente o espaço onde a função
-pode viver. Se pretendemos registar \(d\) ocorrências afins, o
-limite adequado é um pólo de ordem, no máximo, \(d\) na identidade.
+Para registar \(d\) ocorrências afins, admitimos na identidade
+um pólo de ordem no máximo \(d\).
 Os pesos que já calculámos traduzem-no em limites dos dois polinómios:
 \begin{equation}
  \deg f_0\leq\left\lfloor\frac d2\right\rfloor,
@@ -1061,7 +1004,7 @@ Escolhemos uma função \(f\ne0\) com os limites
 Os lugares indicados já fornecem pelo menos \(d\) zeros,
 contando multiplicidades. O limite do pólo permite, no máximo,
 \(d\) zeros em toda a parte afim, pelo equilíbrio demonstrado
-na secção \ref{sec:divisors-principal-criterion}. As duas contagens
+pela norma \(N_f\). As duas contagens
 coincidem. Consequentemente,
 \begin{equation}
  \operatorname{div}(f)=\sum_jr_j[B_j]-d[\mathcal O_\infty],
@@ -1118,7 +1061,7 @@ a recta por oito produz
  \widehat f(x,y)=x+8y+4.
 \]
 O coeficiente de \(x\) é agora um. Esta \emph{normalização}
-selecciona uma representante da família e garante que a função é
+selecciona um representante da família e garante que a função é
 não nula. Uma construção que use sempre a mesma posição para
 normalizar aplica-se à família de testemunhas em que esse coeficiente
 é não nulo. As restantes posições guardam os coeficientes secretos.
@@ -1143,24 +1086,24 @@ cada contagem possível corresponde a um elemento distinto do corpo.
 Esta limitação acompanhará a passagem para identidades que usam
 multiplicidades como coeficientes \cite{eagen-divisors}.
 
-Temos, pois, uma função de tamanho controlado, uma lista de lugares
-com multiplicidades e condições exactas que ligam ambas. Para obter
-uma prova pequena, resta organizar a verificação dessas condições.
-A próxima passagem avaliará funções sobre divisores e aproveitará
-uma identidade que troca numerosas avaliações de uma função com
-muitos coeficientes por avaliações de uma função simples.
+Se Alice entregasse os coeficientes de \(f\) a Bruno, ele poderia
+fazer estas avaliações. Poderia também procurar os zeros e descobrir
+as posições da tabela usadas para formar \(W\). Para conservar esses
+dados secretos, Alice vincula-se aos coeficientes e aos pontos. Resta
+escolher uma condição aritmética que Bruno possa exigir sobre aquilo
+a que ela se vinculou.
 
-\section{Um produto que guarda os lugares do divisor}
+\section{A reciprocidade de Weil e a escolha da recta de desafio}
 \label{sec:divisors-evaluation}
 \index{divisor@divisor!avaliacao de uma funcao@avaliação de uma função}
 \index{f d@\(f(D)\), avaliação num divisor}
 \index{weil, reciprocidade de@Weil, reciprocidade de}
 
-A função testemunha está construída. Para verificar a lista dos seus
-zeros, podemos reunir as avaliações num produto: cada lugar entra
-tantas vezes quantas a multiplicidade indicada. Esta operação permite
-comparar duas maneiras de percorrer os mesmos dados, avaliando uma
-função nos lugares da outra.
+Se Bruno soubesse avaliar a função num punhado de pontos públicos,
+quanto ficaria a saber acerca da lista dos seus zeros? A reciprocidade
+de Weil dá uma resposta quando esses pontos constituem os zeros de
+outra função. Para a enunciar, comecemos por reunir as avaliações
+num só elemento do corpo.
 
 Seja \(D=\sum_A m_A[A]\), e seja \(f\) uma função com valores
 finitos e não nulos em todos os lugares do suporte de \(D\).
@@ -1197,7 +1140,6 @@ As verticais já conhecidas dão
  \operatorname{div}(f)&=[P]+[-P]-2[\mathcal O_\infty],\\
  \operatorname{div}(g)&=[2P]+[-2P]-[Q]-[-Q].
 \end{align*}
-\Needspace{8\baselineskip}
 Os dois suportes são disjuntos. Na identidade, a razão que define
 \(g\) tem valor um: numerador e denominador têm pólo de ordem dois
 e o mesmo coeficiente inicial. Assim,
@@ -1233,8 +1175,6 @@ recta percorrer a lista dos zeros. Como ambas as funções polinomiais
 têm pólo na identidade, começaremos por dar uma expressão precisa à
 contribuição desse lugar comum.
 
-\section{A contribuição do ponto no infinito}
-\label{sec:divisors-reciprocity-infinity}
 \index{simbolo local@símbolo local}
 \index{weil, reciprocidade de@Weil, reciprocidade de!ponto no infinito@ponto no infinito}
 
@@ -1296,7 +1236,7 @@ maior peso. Usaremos também as notações
 Uma constante não nula tem peso zero e é o seu próprio coeficiente
 inicial. A sigla \(\operatorname{lc}\) designa esse coeficiente.
 
-Na secção \ref{sec:divisors-poles}, o parâmetro
+Na identidade, o parâmetro
 \(t=x/y\) deu \(x=t^{-2}(1+\cdots)\) e
 \(y=t^{-3}(1+\cdots)\). Portanto,
 \[
@@ -1336,32 +1276,30 @@ um zero afim comum, os dois produtos que definem o resultante valem
 zero; as razões da lei local continuam a ser interpretadas através
 das unidades.
 
-Esta é a identidade geral que orienta a construção. Para a função
-de uma recta, podemos demonstrar a troca directamente pelas contas
-polinomiais já estabelecidas. Essa demonstração mostrará de onde
-vem o sinal e como os cancelamentos da construção da testemunha
-se conservam nas avaliações.
+Tomemos para \(g\) a recta de Bruno. Há valores imediatamente
+conhecidos no resultante \eqref{eq:fcmp-weil-reciprocity}. O pólo de
+uma recta não vertical tem ordem \(e=3\). Se o coeficiente de \(y\)
+na sua equação for um, teremos também \(\beta=1\). A reciprocidade
+passará a exprimir três avaliações da função secreta de Alice pelos
+valores de uma função linear em todos os seus zeros.
 
-\section{Três avaliações da função}
-\label{sec:divisors-line-product}
 \index{divisor@divisor!avaliacoes numa recta@avaliações numa recta}
-
-Fixemos o declive \(c_{\rm declive}\) e a ordenada na origem
-\(c_{\rm corte}\) de uma recta. Definimos
+Fixemos o declive \(m\) e a ordenada na origem
+\(\mu\) de uma recta. Definimos
 \begin{equation}
- Z(x,y)=y-c_{\rm declive}x,
+ Z(x,y)=y-mx,
  \qquad
- \mathcal L(x,y)=Z(x,y)-c_{\rm corte}.
+ \mathcal L(x,y)=Z(x,y)-\mu.
  \label{eq:fcmp-random-line}
 \end{equation}
 Num ponto afim \(A\), o valor é
-\(Z(A)=y_A-c_{\rm declive}x_A\). Os pontos da recta são aqueles para os quais
-\(Z=c_{\rm corte}\). Chamemos \(B_0,B_1,B_2\) aos seus
+\(Z(A)=y_A-mx_A\). Os pontos da recta são aqueles para os quais
+\(Z=\mu\). Chamemos \(B_0,B_1,B_2\) aos seus
 encontros com a curva, contados com multiplicidade. Substituir a
 ordenada na equação da curva dá o polinómio cúbico
 \[
  S(x)=x^3+a_{\mathbb E}x+b_{\mathbb E}
-      -(c_{\rm declive}x+c_{\rm corte})^2.
+      -(mx+\mu)^2.
 \]
 As suas raízes são as três abscissas. O coeficiente de \(x^3\)
 é um, pelo que
@@ -1369,103 +1307,40 @@ As suas raízes são as três abscissas. O coeficiente de \(x^3\)
  S(x)=\prod_{r=0}^2(x-x_{B_r}).
 \]
 
-Comecemos por comparar duas rectas não verticais,
-\(h_1=y-m_1x-b_1\) e \(h_2=y-m_2x-b_2\). Seja
-\(S_j(x)=x^3+a_{\mathbb E}x+b_{\mathbb E}-(m_jx+b_j)^2\)
-o cúbico dos encontros da recta \(j\). Se os declives são
-distintos, as duas rectas cruzam-se na abscissa
-\[
- u=\frac{b_1-b_2}{m_2-m_1},\qquad \delta=m_2-m_1.
-\]
-No ponto de cruzamento têm a mesma ordenada; logo,
-\(S_1(u)=S_2(u)\). Sobre a recta \(h_2=0\), a função
-\(h_1\) vale \(\delta(x-u)\). Sobre a recta \(h_1=0\),
-a função \(h_2\) vale \(-\delta(x-u)\). Assim,
-\begin{align*}
- \prod_{h_2(B)=0}h_1(B)
- &=\delta^3\prod_{h_2(B)=0}(x_B-u)=-\delta^3S_2(u),\\
- \prod_{h_1(A)=0}h_2(A)
- &=(-\delta)^3\prod_{h_1(A)=0}(x_A-u)=\delta^3S_1(u).
-\end{align*}
-Cada produto contém três factores, contando as multiplicidades.
-Os resultados são opostos. O sinal coincide com
-\((-1)^{3\cdot3}=-1\), pois ambas as funções têm pólo triplo.
-Para rectas paralelas distintas, \(h_1\) toma o valor constante
-\(b_2-b_1\) na segunda, e \(h_2\) toma o valor oposto na
-primeira; os dois produtos cúbicos voltam a ser opostos. Para rectas
-coincidentes, ambos os produtos valem zero.
-
-A vertical fornece o outro caso necessário. Seja \(h=x-u\),
-e sejam \((u,v)\), \((u,-v)\) os seus encontros com a curva.
-Então
-\begin{align*}
- \prod_{r=0}^2 h(B_r)&=\prod_{r=0}^2(x_{B_r}-u)=-S(u),\\
- \mathcal L(u,v)\mathcal L(u,-v)
- &=(c_{\rm declive}u+c_{\rm corte})^2-v^2=-S(u).
-\end{align*}
-Na última igualdade usámos
-\(v^2=u^3+a_{\mathbb E}u+b_{\mathbb E}\). Se \(v=0\),
-as duas ocorrências pertencem ao mesmo ponto, com multiplicidade
-dois. Os produtos são iguais, como determina o sinal
-\((-1)^{2\cdot3}=1\).
-
-Temos, portanto, a identidade para cada factor elementar: uma
-recta não vertical, de peso três, ou uma vertical, de peso dois.
-Para chegar a uma função polinomial \(f\), retomemos a construção
-por rectas das secções \ref{sec:divisors-addition-function} e
-\ref{sec:divisors-principal-criterion}. Ela permite escrever
-\[
- f=\alpha\prod_\nu h_\nu^{n_\nu},\qquad n_\nu\in\mathbb Z,
-\]
-onde os \(h_\nu\) são funções dessas rectas, com coeficiente
-inicial um. A razão entre \(f\) e esse produto tem divisor zero
-e é, portanto, uma constante não nula. A comparação no infinito fixa-a em
-\(\alpha=\operatorname{lc}(f)\).
-
-Multiplicar as identidades dos factores, elevadas aos inteiros
-\(n_\nu\), conserva toda a contabilidade. Os pesos somam-se:
-\[
- d=\deg_\infty(f)=\sum_\nu n_\nu\deg_\infty(h_\nu).
-\]
-Em cada lugar afim, os expoentes somam-se da mesma maneira e dão
-\(\operatorname{ord}_A(f)\). Os lugares intermédios com soma
-de expoentes zero cancelam-se. Se
+Escrevamos agora o divisor verdadeiro da função comprometida como
 \[
  \operatorname{div}(f)=\sum_j m_j[P_j]-d[\mathcal O_\infty],
- \qquad m_j>0,\quad\sum_jm_j=d,
+ \qquad m_j>0,\quad\sum_jm_j=d.
 \]
-a identidade resultante é
+Ao substituir \(g=\mathcal L\), \(e=3\) e \(\beta=1\) no resultante,
+o produto sobre os zeros de \(g\) corre precisamente por
+\(B_0,B_1,B_2\). Do outro lado encontramos
+\(\mathcal L(P_j)\) tantas vezes quantas as ocorrências de \(P_j\).
+Segue-se
 \begin{equation}
  \prod_{r=0}^2 f(B_r)
  =(-1)^{3d}\alpha^3\prod_j\mathcal L(P_j)^{m_j}.
  \label{eq:divisors-line-product-signed}
 \end{equation}
-O factor \(\alpha^3\) vem das três avaliações da constante.
-Podemos efectuar esta dedução tomando os parâmetros da recta como
-indeterminadas: as divisões intermédias são operações no corpo de
-funções desses parâmetros. Depois dos cancelamentos, os dois lados
-são expressões polinomiais. A identidade assim obtida conserva-se
-também nos valores em que alguma expressão intermédia tenha
-numerador e denominador nulos.
+O factor \(\alpha^3\) conserva a escala da função testemunha. O
+expoente \(3d\) no sinal provém do pólo partilhado no infinito.
 
 Por fim,
-\(\mathcal L(P_j)=-(c_{\rm corte}-Z(P_j))\). Trocar o sinal
+\(\mathcal L(P_j)=-(\mu-Z(P_j))\). Trocar o sinal
 de cada factor introduz \((-1)^{\sum_jm_j}=(-1)^d\).
 Com o sinal anterior, fica \((-1)^{3d+d}=1\). Obtemos a forma
 que usaremos na prova:
 \begin{equation}
  \prod_{r=0}^2 f(B_r)
- =\alpha^3\prod_j(c_{\rm corte}-Z(P_j))^{m_j}.
+ =\alpha^3\prod_j(\mu-Z(P_j))^{m_j}.
  \label{eq:divisors-line-product}
 \end{equation}
 A função de muitos coeficientes aparece em três avaliações. Do
 outro lado, cada zero prescrito contribui com a avaliação da função
-linear \(c_{\rm corte}-y+c_{\rm declive}x\), elevada à sua
+linear \(\mu-y+mx\), elevada à sua
 multiplicidade. Esta troca é a aplicação da reciprocidade usada
 nos certificados de divisores \cite{eagen-divisors}.
 
-\section{A recta como desafio público}
-\label{sec:divisors-line-challenge}
 \index{norma de uma funcao@norma de uma função}
 \index{desafio@desafio!recta publica@recta pública}
 
@@ -1499,7 +1374,7 @@ base. A expressão factorizada mostra exactamente que valores de
 O declive regula a distinção entre os pontos projectados. Para dois
 pontos afins \(U,V\),
 \[
- Z(U)-Z(V)=(y_U-y_V)-c_{\rm declive}(x_U-x_V).
+ Z(U)-Z(V)=(y_U-y_V)-m(x_U-x_V).
 \]
 Se as abscissas são distintas, há exactamente um declive que iguala
 as duas imagens: \((y_U-y_V)/(x_U-x_V)\). Se as abscissas
@@ -1521,8 +1396,8 @@ Para efectuar as três avaliações em \(\mathbb F\), uma
 construção útil começa por dois pontos públicos da curva,
 \(B_0,B_1\), com abscissas distintas. A recta por eles tem
 \[
- c_{\rm declive}=\frac{y_{B_1}-y_{B_0}}{x_{B_1}-x_{B_0}},
- \qquad c_{\rm corte}=y_{B_0}-c_{\rm declive}x_{B_0},
+ m=\frac{y_{B_1}-y_{B_0}}{x_{B_1}-x_{B_0}},
+ \qquad \mu=y_{B_0}-mx_{B_0},
 \]
 e o terceiro encontro é
 \[
@@ -1564,22 +1439,14 @@ Também podemos conferir o sinal da forma
 \(-7=10\). O cálculo inclui, assim, a contribuição dos dois
 pólos triplos no infinito.
 
-A ordem das operações fica estabelecida: fixar a função e os dados
-da lista, obter a recta de desafio e provar a identidade das
-avaliações. Em FCMP++, esses dados permanecerão ligados à testemunha
-secreta da prova maior. A passagem seguinte converterá os produtos
-em somas de razões, fazendo as multiplicidades aparecer linearmente
-nas condições aritméticas.
+Na conta anterior, cada factor correspondia a uma ocorrência. Uma
+multiplicidade secreta \(m_j\) obrigaria a calcular uma potência com
+expoente secreto. Alice já tem as multiplicidades nas posições do seu
+vector. Para que Bruno possa usá-las como coeficientes, convém passar
+do produto a uma soma em que a parcela do lugar \(P_j\) apareça
+multiplicada por \(m_j\). É o que se obtém derivando em ordem a \(z\).
 
-\section{Dos produtos às somas: a derivada logarítmica}
-\label{sec:divisors-logarithmic-derivative}
 \index{derivada logaritmica@derivada logarítmica}
-
-A identidade \eqref{eq:divisors-line-product} reúne os zeros num
-produto. Para a prova, interessa uma expressão em que cada multiplicidade
-entre como coeficiente de uma soma. A derivação formal proporciona
-precisamente essa passagem.
-
 Comecemos pelo significado da operação. Substituir \(z\) por \(z+h\)
 num polinómio \(R\), com \(h\) uma nova indeterminada, produz
 \[
@@ -1658,14 +1525,11 @@ conserva, portanto, o seu valor inteiro de maneira unívoca. Esta
 hipótese dará conteúdo à conclusão extraída da
 identidade~\cite{eagen-divisors}.
 
-\section{Calcular as três parcelas na curva}
-\label{sec:divisors-curve-derivative}
 \index{derivada@derivada!ao longo da curva@ao longo da curva}
 
 Uma parcela da soma da esquerda acompanha um ponto que pertence à curva
-e à recta ao mesmo tempo. Escrevamos \(B(z)=(x(z),y(z))\) e
-abreviemos o declive fixo por \(m=c_{\rm declive}\). As duas
-relações são
+e à recta ao mesmo tempo. Escrevamos \(B(z)=(x(z),y(z))\) e conservemos o declive \(m\)
+fixo. As duas relações são
 \[
  y(z)^2=x(z)^3+a_{\mathbb E}x(z)+b_{\mathbb E},
  \qquad y(z)-mx(z)=z.
@@ -1748,60 +1612,113 @@ A soma das três razões dá
 precisamente o valor já obtido pela norma e pelas parcelas dos zeros.
 Ficam assim ligadas as três maneiras de calcular a mesma quantidade.
 
-\section{Da identidade à multiplicação certificada}
+\section{O que o verificador pode concluir de uma só recta}
 \label{sec:divisors-arithmetic-certificate}
+\label{sec:divisors-cost-and-composition}
 \index{certificado de multiplicacao@certificado de multiplicação!condicoes aritmeticas@condições aritméticas}
 \index{extraccao de testemunhas@extracção de testemunhas!divisores@divisores}
 \index{residuo de uma funcao racional@resíduo de uma função racional}
 
-Podemos agora escrever as condições da prova. A base \(A\), a sua
-ordem \(\ell\), a tabela \(A_i=2^iA\) e o limite \(d\) são
-públicos. Os dados a conservar secretos podem incluir as coordenadas
-de \(W\), os coeficientes de \(f\) e os coeficientes que seleccionam
-a tabela. Chamemos \(u_i\in\mathbb F\) a estes últimos, para
-distinguir as variáveis do corpo das multiplicidades inteiras \(m_i\)
-usadas na construção. O provador honesto representa \(m_i\) por
-\(u_i\); demonstraremos também como recuperar inteiros a partir de
-uma identidade válida.
-
-Os dados ficam fixados antes do desafio. A função pertence ao espaço
-de peso até \(d\), e uma normalização válida assegura \(f\ne0\).
-As coordenadas de \(W\) satisfazem a equação da curva. O desafio
-determina a recta e os três encontros públicos simples \(B_r\).
-Definimos os pesos públicos
+Bruno conhece a base \(A\), a sua ordem \(\ell\), a tabela
+\(A_i=2^iA\) e o limite \(d\) para o pólo. Recebe compromissos de
+Alice, isto é, pontos públicos que a vinculam a certos valores e
+permitem conservar esses valores secretos. Neles estão fixadas as
+coordenadas afins de \(W\), as entradas \(u_i\) do vector e os
+coeficientes livres de uma única função normalizada \(f\) de peso
+até \(d\). O que Alice pretende estabelecer acerca desses dados é
 \[
- \gamma_i=\frac1{c_{\rm corte}-Z(A_i)},
+ W=\Bigl(\sum_i 2^i\widetilde m_i\Bigr)A,
 \]
-para uma recta que evite os pontos da tabela. Todas as avaliações de
-\(f,f_x,f_y\) usam a mesma lista de coeficientes já fixada.
+onde cada \(\widetilde m_i\) representa a entrada \(u_i\) por um
+inteiro do intervalo que a relação permite. Para a testemunha construída
+atrás, esses inteiros são as multiplicidades \(m_i\) de soma fixa.
+Duas bases da mesma ordem poderão usar as mesmas entradas ocultas.
 
-Para cada encontro, a prova introduz uma variável auxiliar \(o_r\) e
-impõe
+A primeira operação de Bruno é obter a recta. Num protocolo
+interactivo, sorteia os pontos \(B_0,B_1\) depois de receber os
+compromissos. Na forma não interactiva, reconstrói-os a partir da
+transcrição pública que já inclui os compromissos. Em ambas as descrições calcula
+\(m,\mu\) e \(B_2=-(B_0+B_1)\). Para uma recta de três encontros
+simples que evite a tabela, pode calcular por si todos os números
+\[
+ \Delta_r=3x_{B_r}^2+a_{\mathbb E}-2my_{B_r},
+ \qquad \gamma_i=\frac1{\mu-Z(A_i)},
+ \qquad Z(x,y)=y-mx .
+\]
+O valor \(\gamma_i\) é o peso com que o ponto \(A_i\) responde
+àquela recta. Cada ocorrência suplementar de \(A_i\) acrescenta
+\(\gamma_i\) à soma. Os coeficientes \(u_i\) continuam com Alice.
+
+A segunda operação de Bruno é formar as condições que a prova terá
+de satisfazer com os valores comprometidos. Uma delas é a equação
+da curva para as coordenadas de \(W\). Outras três exprimem as
+razões que acabámos de calcular. Para cada encontro, a prova introduz
+uma variável auxiliar \(o_r\) e impõe
 \begin{align}
  p_{\rm den}^{(r)}o_r&=p_{\rm num}^{(r)},\nonumber\\
  p_{\rm num}^{(r)}&=2y_{B_r}f_x(B_r)
  +(3x_{B_r}^{\,2}+a_{\mathbb E})f_y(B_r),\nonumber\\
  p_{\rm den}^{(r)}&=f(B_r)
  (3x_{B_r}^{\,2}+a_{\mathbb E}
-                  -2c_{\rm declive}y_{B_r}).
+                  -2my_{B_r}).
  \label{eq:fcmp-divisor-cross-multiplication}
 \end{align}
 No domínio \(p_{\rm den}^{(r)}\ne0\), a igualdade determina
 unicamente a razão \(o_r\). Para a parcela secreta de \(-W\),
 introduzimos uma inversa \(v_W\) e verificamos
 \begin{equation}
- d_W=c_{\rm corte}+y_W+c_{\rm declive}x_W,
+ d_W=\mu+y_W+mx_W,
  \qquad d_Wv_W=1.
  \label{eq:fcmp-output-denominator-inverse}
 \end{equation}
-A segunda igualdade garante simultaneamente a não nulidade e o valor
-da inversa. A comparação final é
+O sinal de \(y_W\) vem de se avaliar a recta em \(-W=(x_W,-y_W)\).
+A segunda igualdade garante que o denominador admite inversa e fixa
+o valor dessa inversa. A comparação final é
 \begin{equation}
  o_0+o_1+o_2=\sum_{i=0}^{L_A-1}\gamma_i u_i+v_W.
  \label{eq:divisors-final-linear-check}
 \end{equation}
-O lado esquerdo percorre os zeros efectivos de \(f\), através da
-norma; o direito percorre a tabela seleccionada e o ponto \(-W\).
+Bruno conhece os coeficientes públicos destas condições. Os números
+\(o_r\), \(v_W\), \(u_i\) e as avaliações de \(f\) permanecem
+na testemunha. Para decidir, Bruno verifica o argumento aritmético
+que Alice lhe envia, com os compromissos iniciais e estas condições.
+Em Generalized Bulletproofs, essa verificação reduz-se a igualdades
+entre pontos calculados a partir da prova e da transcrição
+\cite{generalized-bulletproofs-fixed,monero-oxide-fcmp-source}.
+A secção~\ref{sec:gbp-divisor} seguirá a avaliação em \((0,6)\)
+até às equações públicas da prova, entre elas a igualdade de produto
+interno~\eqref{eq:gbp-ipa-final}. Uma prova aceite atesta, sob as
+hipóteses de conhecimento do argumento, que as restrições têm uma
+testemunha ligada àqueles compromissos.
+Por que motivo há-de uma igualdade para a recta sorteada assegurar
+a relação entre a tabela e \(W\)?
+
+Voltemos a \(\mathbb F_{17}\) e sigamos a decisão com números à vista.
+Alice emprega \(f=y-2x+9\) e \(u=(1,1,0,0,0)\). Pode usar a função
+normalizada \(8f\), pois o factor oito cancela-se em cada razão.
+O ponto que corresponde a este vector é \(W=3P=(10,6)\). Suponhamos
+que Alice conservou a função e os coeficientes, mas se vinculou ao
+ponto errado \(W'=(0,6)\), também na curva. Para a recta \(y=6\),
+ambos os inversos \(-W=(10,11)\) e \(-W'=(0,11)\) têm imagem
+\(Z=11\). A parcela final vale \((6-11)^{-1}=10\) em ambos os
+casos. O lado direito dá \(7+6+10=6\), exactamente o valor que a
+função forneceu na tabela anterior. Para este desafio, a comparação
+tem êxito apesar da troca do ponto.
+
+Com os mesmos dados já fixos, consideremos o desafio \(y=6x+15\).
+Os seus encontros são \((3,16),(7,6),(9,1)\). Os denominadores
+\(15-y+6x\), calculados em \(P,2P,-W\), valem \(10,14,13\),
+com inversas \(12,11,4\). A soma prescrita pelo divisor verdadeiro
+é \(12+11+4=10\pmod{17}\). Podemos conferi-la pela própria
+função. Nos três encontros, os pares de numerador e denominador de
+\eqref{eq:fcmp-divisor-cross-multiplication}, para \(f=y-2x+9\),
+são \((16,14),(6,9),(3,6)\). As razões \(6,12,9\) somam
+\(27=10\pmod{17}\). Com \(-W'=(0,11)\), a última parcela
+passa a \((15-11)^{-1}=13\). A soma proposta é então
+\(12+11+13=2\pmod{17}\). A igualdade final exige \(10=2\) e a
+prova falha. As razões auxiliares estão determinadas pelos seus
+denominadores, todos não nulos neste exemplo. Para alterar a soma,
+Alice teria de alterar os dados a que se vinculou antes da recta.
 
 Examinemos primeiro o significado da igualdade como identidade
 racional na ordenada \(z\), para um declive que separe todos os
@@ -1862,9 +1779,10 @@ de levantamento e bases de igual ordem, conserva os mesmos inteiros
 consistência liga as multiplicações de
 FCMP++~\cite{eagen-divisors,monero-oxide-fcmp-source}.
 
-Resta justificar a passagem da identidade racional a um só desafio.
-Podemos fazê-lo com uma contagem explícita. Trabalhemos sobre
-\(\mathbb F_q\) e consideremos uma escolha uniforme entre os pares
+O exemplo mostrou uma recta que aceita o ponto errado. A garantia
+criptográfica consiste em limitar, entre todas as rectas possíveis, a
+proporção das que permitem tal coincidência para dados já fixos.
+Trabalhemos sobre \(\mathbb F_q\) e consideremos uma escolha uniforme entre os pares
 ordenados de pontos afins racionais que determinem uma recta não
 vertical com três encontros distintos. Seja \(M\) a quantidade
 desses pares. Cada recta admissível corresponde exactamente a seis
@@ -1885,8 +1803,14 @@ uma avaliação de \(f\) ou um denominador prescrito vale zero.
 Para um declive que separe os lugares, subtrair os lados de
 \eqref{eq:divisors-residue-identity} e reunir os denominadores produz
 uma fracção cujo numerador tem grau, no máximo, \(s-1\).
-Se a identidade for falsa, esse numerador é um polinómio não nulo;
-tem, portanto, no máximo \(s-1\) raízes. Somando sobre os
+Com efeito, se \(a_1,\ldots,a_t\) são as imagens distintas,
+a diferença tem a forma \(\sum_k e_k/(z-a_k)\). O numerador sobre
+o denominador comum é \(\sum_k e_k\prod_{j\ne k}(z-a_j)\).
+Uma discrepância no lugar \(k\) dá \(e_k\ne0\). Avaliado em
+\(a_k\), o numerador vale então
+\(e_k\prod_{j\ne k}(a_k-a_j)\ne0\). É, pois, um polinómio
+não nulo de grau até \(t-1\leq s-1\) e tem no máximo
+\(s-1\) raízes. Somando sobre os
 \(q\) declives, há no máximo \(q(s-1)\) rectas adicionais em
 que a comparação pode coincidir. Pela soma destas três contagens,
 um limite conservador para a probabilidade de aceitação de dados
@@ -1910,12 +1834,58 @@ há no máximo \(N\) pontos racionais de tangência nessas rectas.
 Consequentemente, \(M\geq N(N-4)\). Quando \(N\) é da ordem
 de \(q\), como nas curvas criptográficas consideradas, o limite
 \eqref{eq:divisors-challenge-error-bound} é da ordem de \(s^2/q\).
-A distribuição uniforme aqui especificada dá sentido exacto à conta.
-Outra maneira de obter os pontos exige usar as suas probabilidades
-efectivas e incluir os desafios excepcionais na análise.
+No nosso exemplo, podemos contar a probabilidade exacta. As abscissas
+com pontos em \(\mathbb F_{17}\) são \(0,3,5,6,7,9,10,13,16\),
+cada qual com duas ordenadas opostas. Há \(18\cdot16=288\) pares
+ordenados de pontos com abscissas distintas. Cada um dos dezoito pontos afins
+tem uma tangente não vertical, cujo outro encontro é \(-2B\) se o
+ponto de tangência é \(B\). Estes encontros são distintos, pois
+\(3B=\mathcal O_\infty\) exigiria um elemento de ordem três num
+grupo de ordem dezanove. Cada tangente retira dois pares.
+Sobram, pois, \((288-36)/6=42\) rectas com três encontros simples.
 
-\section{O custo e a função da prova exterior}
-\label{sec:divisors-cost-and-composition}
+Consideremos de novo a troca de \(W=(10,6)\) por \(W'=(0,6)\)
+e contemos como rejeição todo o denominador nulo. Para passar, a parcela
+de \(-W'\) teria de conservar a de \(-W\). A igualdade
+\[
+ Z(-W)=11-10m=11=Z(-W')
+\]
+exige \(m=0\). Há quatro horizontais com três encontros, as de
+ordenadas \(1,6,11,16\). Para \(y=1,16\) as abscissas são
+\(3,5,9\), e para \(y=6,11\) são \(0,7,10\). As horizontais
+\(y=1\) e \(y=11\) atravessam pontos da tabela, pelo que um peso
+público fica indefinido. Sobram \(y=6\) e \(y=16\). O ensaio
+uniforme sobre as quarenta e duas rectas aceita estes dados errados
+com probabilidade \(2/42=1/21\).
+
+Para dar uma escala à estimativa geral, suponhamos
+\(q\geq2^{250}\), \(s\leq512\) e amostragem uniforme dos \(M\)
+pares indicados. O limite de Hasse dá \(N\geq q-2\sqrt q\) e,
+nestes tamanhos, \(N(N-4)>q^2/2\). Temos então
+\[
+ \varepsilon
+ <\frac{12}{q}\left(\binom{512}{2}+1023\right)
+ =\frac{1\,582\,068}{q}<2^{-229}.
+\]
+Esta conta respeita a \emph{um teste algébrico} com os dados fixados
+antes do sorteio. Se o número de posições cresce polinomialmente em
+\(\log_2 q\), a estimativa \(O(s^2/q)\) decresce mais depressa do que
+qualquer potência inversa desse comprimento. É este o sentido de
+\emph{negligível}.
+
+Na forma de Fiat--Shamir, Bruno obtém a mesma recta de cada vez que
+volta a ler uma dada transcrição. A probabilidade mede-se sobre as
+respostas do oráculo aleatório às consultas que produzem os desafios.
+Se Alice puder experimentar \(T\) compromissos distintos e cada
+tentativa receber um desafio fresco com probabilidade condicional de
+coincidência no máximo \(\varepsilon\), a probabilidade de encontrar
+uma coincidência entre essas tentativas é no máximo
+\(T\varepsilon\), pela união dos respectivos acontecimentos.
+Uma estimativa da prova inteira exige ainda a distribuição efectiva
+dos pontos, a vinculação dos compromissos e a garantia de conhecimento
+do argumento que verifica as restrições
+\cite{eagen-divisors,generalized-bulletproofs-fixed}.
+
 \index{certificado de multiplicacao@certificado de multiplicação!custo@custo}
 \index{circuito aritmetico@circuito aritmético!produtos secretos@produtos secretos}
 
@@ -1979,37 +1949,23 @@ parâmetros. A economia está nas relações multiplicativas secretas;
 a construção da testemunha e o tratamento dos seus coeficientes
 conservam o seu custo próprio.
 
-Para que esses valores permaneçam secretos, a prova exterior emprega
-\emph{compromissos}: objectos públicos que vinculam o provador a
-dados, mantendo-os ocultos. Os capítulos seguintes desenvolverão as
-suas construções. Aqui, a ordem é decisiva: comprometer as coordenadas,
-o vector e a função; obter o desafio; provar as relações usando os
-mesmos dados comprometidos. As variáveis auxiliares das razões são
-calculadas depois do desafio. A vinculação conserva o objecto a
-testar, e a propriedade de conhecimento zero protege o conteúdo
-da testemunha, incluindo os coeficientes que determinam os seus zeros.
+Quando os compromissos vinculam Alice, uma alteração posterior do
+declive pode mudar todos os pesos \(\gamma_i\), mas encontra sempre
+o mesmo vector, o mesmo ponto e a mesma função. Uma testemunha
+honesta que admita a normalização escolhida satisfaz a equação para
+cada desafio onde estejam definidas as razões. Os casos em que uma
+inversão é impossível têm de ser tratados pela regra de amostragem
+ou incluídos na probabilidade de insucesso.
 
-A completude do certificado reúne igualmente condições concretas:
-a função construída cabe no espaço de peso previsto, a posição
-escolhida para a normalização tem coeficiente não nulo, e o desafio
-permite as inversões usadas pelo provador. Uma normalização fixa
-aplica-se à família que satisfaz essa condição sobre o coeficiente;
-a amostragem dos desafios e as suas excepções pertencem à definição
-do protocolo. A solidez combina a vinculação anterior ao desafio,
-a análise algébrica e probabilística acima e a garantia de que a
-prova exterior demonstra todas as restrições sobre os mesmos valores.
-
-Em FCMP++, os certificados ligarão máscaras escalares aos pontos
-que elas produzem. A representação consistente do escalar permitirá
-usar a mesma máscara em várias relações; as provas de pertença
-incorporarão essas relações na abertura de ramos da árvore. O
-capítulo~\ref{chapter:fcmp-plus-plus} partirá desta construção
-para explicar a sua composição com os compromissos e os argumentos
-de produto interno.
-
-O percurso algébrico está completo: a soma de pontos determina um
-divisor principal; a função testemunha esse divisor; a reciprocidade
-condensa as avaliações em três pontos; a derivada logarítmica torna
-as multiplicidades lineares; o desafio verifica a identidade com
-erro limitado. A prova em conhecimento zero mantém esta ligação
-enquanto conserva secretos os dados que a relação permite esconder.
+Em FCMP++, uma máscara secreta pode aparecer primeiro em relação a
+uma base \(A\) e depois em relação a outra base \(A'\) da mesma
+ordem \(\ell\). A segunda tabela terá outros pontos e a recta
+dar-lhes-á outros pesos. Se as duas provas usam as mesmas entradas
+comprometidas \(u_i\) e o mesmo intervalo de levantamento, a
+equação~\eqref{eq:divisors-extracted-scalar} dá em ambas o escalar
+\(\sum_i2^i\widetilde m_i\bmod\ell\). Alice pode assim provar a
+Bruno que dois pontos escondidos são \(s_AA\) e \(s_AA'\), conservando
+consigo o escalar que usou para obter os dois pontos. No
+capítulo~\ref{chapter:fcmp-plus-plus}, essa igualdade de escalares ligará
+a abertura de um ramo da árvore aos pontos mascarados que a transacção
+apresenta.

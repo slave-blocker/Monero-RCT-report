@@ -75,7 +75,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-dir", type=Path, default=Path("/tmp/ztm-editorial-build"))
     parser.add_argument("--tex-deps", type=Path, default=Path("/tmp/ztm-latex-deps"))
-    parser.add_argument("--export", action="store_true", help="Actualiza os três PDFs do repositório.")
+    parser.add_argument("--export", action="store_true", help="Actualiza o livro e os excertos dos capítulos.")
     args = parser.parse_args()
     build = args.build_dir.resolve()
     build.mkdir(parents=True, exist_ok=True)

@@ -26,7 +26,8 @@ def main():
     destinations = {name: int(page) for page, name in
                     re.findall(r'^\s*(\d+)\s+\[.*\]\s+"([^"]+)"', raw, re.M)}
     chapters = [("Divisores-pt.pdf", "chapter.3", "chapter.4"),
-                ("FCMP-pt.pdf", "chapter.11", "chapter.12")]
+                ("Generalized-Bulletproofs-pt.pdf", "chapter.11", "chapter.12"),
+                ("FCMP-pt.pdf", "chapter.12", "chapter.13")]
     with tempfile.TemporaryDirectory(prefix="ztm-export-") as temporary:
         work = Path(temporary)
         for name, start, following in chapters:

@@ -1,4 +1,18 @@
-# Estado final
+# Edição de 17 de Novembro de 2026
+
+O livro português tem 326 páginas. Generalized Bulletproofs é o capítulo 11, entre Dandelion++ e FCMP++. Os três excertos correspondem às seguintes páginas do livro (numeração impressa).
+
+| Capítulo | Páginas | Excerto |
+|---|---|---|
+| Divisores e certificados de multiplicação escalar | 28–55 | `translations/pt/Divisores-pt.pdf` |
+| Generalized Bulletproofs | 179–193 | `translations/pt/Generalized-Bulletproofs-pt.pdf` |
+| Pertença e autorização de gasto em FCMP++ | 194–231, poster na 232 | `translations/pt/FCMP-pt.pdf` |
+
+O capítulo 11 usa a relação de *Fixed Protocol* com compromissos escalares e vectoriais. O exemplo dos dois quadrados segue o valor de um compromisso escalar e a sua máscara até à equação de avaliação, e os operandos até à última dobra. O programa `checks/gbp-F3.py` confere o caso geral, incluindo a especialização com a lista de compromissos escalares vazia usada em FCMP++. O ensaio do divisor sobre uma recta e a verificação da prova exterior têm hipóteses e limites distintos.
+
+A composição estabilizou sem avisos de caixas nem remissões por resolver. O índice aceitou 376 entradas sem avisos. A exportação conferiu por texto e imagem todas as páginas dos três excertos.
+
+# Edição de 16 de Novembro de 2026
 
 Revisão concluída e verificada em 16 de Novembro de 2026. O livro português tem **314 páginas**. Não resta trabalho pendente no âmbito autorizado registado nesta sessão. As fontes, os registos de revisão e os três PDFs finais constituem o resultado. Os commits são locais; não foi feito push.
 

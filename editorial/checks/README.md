@@ -5,7 +5,7 @@ Estes programas reproduzem identidades, dimensões e exemplos da exposição. Us
 Executar cada ficheiro com `python3 editorial/checks/NOME.py`:
 
 - `sal-F2.py`: completude, extracção e simulação das relações de SAL.
-- `gbp-F3.py`: coeficientes distinguidos, avaliação polinomial e relação de entrada do IPA.
+- `gbp-F3.py` verifica o coeficiente reservado, a contribuição dos compromissos escalares e das suas máscaras na avaliação pública, os sinais das correcções vectoriais e as dobras do IPA até à igualdade final. No circuito dos dois quadrados, compara as saídas correctas \((9,16)\) com \((10,15)\) e verifica também o resíduo obtido quando o compromisso escalar guarda \(24\) em lugar de \(25\).
 - `tree-F4.py`: parâmetros e transformações de curvas, projecção da torção, árvore e fecho da raiz.
 - `divisor-costs-F5.py`: contagens, interpolação de Lagrange e sinais das máscaras.
 - `circuits-F6.py`: somas afins, pertença, compressão e dimensões dos circuitos.

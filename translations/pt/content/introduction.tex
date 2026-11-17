@@ -124,8 +124,10 @@ provas Bulletproof nas transacções activas.
 
 Começamos pelas ferramentas criptográficas necessárias. O capítulo
 \ref{chapter:basicConcepts} desenvolve aritmética modular, curvas elípticas,
-chaves, assinaturas de Schnorr e a notação usada no resto do livro. O capítulo
-\ref{chapter:advanced-schnorr} prolonga essa construção até às assinaturas em
+chaves, assinaturas de Schnorr e a notação usada no resto do livro. No
+capítulo \ref{chapter:divisors}, a adição de pontos conduz aos divisores
+que certificam uma multiplicação escalar. O capítulo
+\ref{chapter:advanced-schnorr} prolonga a construção de Schnorr até às assinaturas em
 anel. No capítulo \ref{chapter:addresses}, vemos como os endereços controlam a
 recepção de fundos e por que uma saída não revela publicamente o destinatário.
 
@@ -140,10 +142,12 @@ por que programas aleatórios e memória abundante procuram reduzir a vantagem
 de máquinas especializadas. O capítulo \ref{chapter:dandelion} acompanha
 a propagação das transacções: Dandelion++ procura afastar a origem do ponto
 onde começa a difusão pública, sob hipóteses explícitas sobre o adversário e
-o grafo de ligações. O capítulo \ref{chapter:fcmp-plus-plus} analisa a
-composição FCMP++: parte das provas de Schnorr e das árvores de curvas para
-explicar como se prova privadamente que uma entrada pertence ao conjunto de
-saídas admitidas de toda a lista de blocos. Como fecho dos ``Essenciais'', o capítulo
+o grafo de ligações. O capítulo \ref{chapter:generalized-bulletproofs}
+acompanha os pesos de CLSAG e das provas de intervalo até às igualdades
+que permitem verificar um circuito sobre valores comprometidos. O capítulo
+\ref{chapter:fcmp-plus-plus} aplica estas provas aos ramos de uma árvore
+de curvas e liga a autorização do gasto à pertença de uma saída ao
+conjunto admitido. Como fecho dos ``Essenciais'', o capítulo
 \ref{chapter:dlog-relations} pergunta o que aconteceria se alguém descobrisse
 as relações supostamente desconhecidas entre os geradores: quando se perde só
 privacidade, quando se torna possível o gasto duplo e quando aparece inflação.

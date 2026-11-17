@@ -1,603 +1,254 @@
-\newgeometry{outer=1.65cm,inner=1.65cm,top=1.75cm,bottom=1.75cm,
-  marginparwidth=1.1cm,marginparsep=.2cm}
 \chapter{Relações de logaritmo discreto entre geradores}
 \label{chapter:dlog-relations}
+\label{page:dlog-relations-start}
 \index{armadilha de parametros@armadilha de parâmetros}
 \index{gerador@gerador!relacoes de logaritmo discreto@relações de logaritmo discreto}
-\label{page:dlog-relations-start}
 
-\begingroup
-\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+Já encontrámos a igualdade \(P=xG\) em dois lugares muito diferentes.
+Quando \(P\) é uma chave pública, a assinatura só é possível porque alguém
+conhece \(x\). Quando \(P\) e \(G\) são as duas bases de um compromisso
+de Pedersen, a sua capacidade de vincular um montante à abertura depende de
+ser difícil descobrir esse mesmo \(x\). A igualdade tem a mesma forma.
+O que mudou foi a afirmação que o verificador espera poder deduzir dela.
 
-Estas relações são por vezes designadas «chaves privadas dos geradores». É
-necessário distinguir dois casos. Uma
-chave privada vulgar é intencional:
+Fixemos um grupo cíclico de ordem prima \(\ell\). Para cada ponto \(H\)
+e cada gerador \(G\), existe um único \(t\in\mathbb F_\ell\) tal que
+\(H=tG\). A expressão habitual «geradores independentes» designa aqui
+uma hipótese sobre conhecimento. Dados os pontos públicos, deve ser
+computacionalmente difícil encontrar coeficientes, nem todos nulos,
+cuja combinação dos pontos dê a identidade \(\mathcal O\).
+A hipótese abrange todos os geradores que a demonstração de segurança
+trata conjuntamente. Um parâmetro escolhido de modo que o seu criador
+guarde tais coeficientes contém uma \emph{armadilha}.
+
+\section{A diferença de duas aberturas}
+\index{vinculacao@vinculação!duas aberturas@duas aberturas}
+\index{logaritmo discreto@logaritmo discreto!entre geradores@entre geradores}
+
+Tomemos o compromisso de montante \(C=aG+bH\), onde \(a\) é a máscara
+e \(b\) o montante. Suponhamos que se conhecem duas aberturas do mesmo
+ponto. A sua diferença satisfaz
 \[
- P=xG,
+          (a-a')G+(b-b')H=\mathcal O .
 \]
-e o dono deve conhecer \(x\). Uma armadilha de parâmetros é antes uma relação
-que o protocolo precisava que ninguém soubesse, por exemplo
+Se \(b=b'\), a igualdade reduz-se a \((a-a')G=\mathcal O\), donde
+\(a=a'\) em \(\mathbb F_\ell\). Duas aberturas distintas teriam,
+portanto, de diferir no montante. Nesse caso \(b-b'\) admite inversa
+e podemos fazer a divisão em \(\mathbb F_\ell\). Obtemos
 \[
- B=qA,
+                  \log_G H=(a'-a)(b-b')^{-1}.
 \]
-ou, com mais bases,
+Dois pares de números que abrissem o ponto para valores diferentes
+dariam, assim, um meio de calcular a relação entre os geradores.
+Esta é a demonstração
+da \emph{vinculação computacional}. Se encontrar aquele logaritmo é
+difícil, também o é produzir duas aberturas distintas.
+
+A ocultação do montante tem uma demonstração diferente. Fixo \(b\),
+a máscara uniforme \(a\) faz \(aG\) percorrer todos os pontos do grupo
+com a mesma probabilidade. Somar o ponto fixo \(bH\) permuta esses
+pontos. Assim, cada valor de \(b\) dá a mesma distribuição de \(C\).
+A dificuldade de encontrar duas aberturas entrou só na primeira
+demonstração. A uniformidade de uma máscara independente entrou só
+na segunda. Distinguir as hipóteses permite interpretar o alcance de
+uma falha de parâmetros \cite{Pedersen1992}.
+
+Considere-se agora o balanço de uma transacção. De um lado somam-se
+os pseudo-compromissos das entradas. Do outro, os compromissos das
+saídas e a taxa na sua base. O nó verifica uma igualdade de pontos.
+Para a interpretar como conservação dos montantes, precisa de três
+elos. A prova de gasto liga cada entrada ao montante de uma saída
+anterior. As provas de intervalo ligam os montantes das novas saídas a
+representantes inteiros admitidos. A vinculação conserva o sentido do
+coeficiente do montante sempre que volta a ser usado. As regras sobre
+os intervalos e as somas permitem então passar da congruência entre
+escalares para a igualdade de inteiros já estudada. A simples
+igualdade de pontos pode continuar a verificar-se mesmo quando ficou
+por justificar algum destes elos. A conclusão monetária depende de
+todos eles.
+
+A mesma pergunta esclarece a função das bases de uma chave de saída.
+Em FCMP++ temos \(O=xG+yT\) e \(I=xJ\). Uma saída e uma abertura
+fixadas produzem o mesmo \(I\) em gastos sucessivos, porque \(J\)
+está determinado pelo registo e a multiplicação por \(x\) é
+determinística. Para que esta etiqueta se prenda à própria saída,
+é preciso ainda que duas aberturas conhecidas do mesmo \(O\)
+concordem no coeficiente \(x\). Subtraí-las dá
 \[
- a_1J_1+\cdots+a_nJ_n=\mathcal O.
+          (x-x')G+(y-y')T=\mathcal O .
 \]
-A segunda relação pode ser conhecida sem fornecer o logaritmo entre um par
-escolhido, porque os restantes termos continuam presentes. A hipótese de
-segurança pertinente é a \emph{vinculação por logaritmo discreto
-generalizado}: exige dificuldade de encontrar uma relação não
-trivial em toda a família de bases.
+A hipótese sobre \(G,T\) dá precisamente essa vinculação.
+Escolher as bases com procedência pública e conferir a imagem no
+subgrupo primo são salvaguardas com funções diferentes. A primeira
+sustenta a comparação de aberturas. A segunda dá sentido à
+comparação de imagens que o nó faz entre a entrada e o estado já
+validado \cite{fcmp-plus-plus-paper,fcmp-composition-review}.
 
-Também importa \emph{quem} conhece a relação. Uma relação deliberadamente
-pública pode ser parte do protocolo; uma relação conservada em segredo pelo
-criador dos parâmetros é uma armadilha; uma descoberta posterior torna a
-relação pública daquele momento em diante. Esta última não extrai
-retroactivamente todas as chaves ordinárias. Para calcular uma abertura
-alternativa de um ponto continua geralmente a ser necessária uma abertura
-inicial.
+A base da imagem também pede cuidado. Para uma saída histórica
+\(O=xG\) no subgrupo primo, a imagem é obtida aplicando \(x\) a um
+ponto derivado da codificação da chave por hash para a curva. A
+propriedade de privacidade exige que o observador não possa
+reconhecer eficientemente qual das saídas públicas originou a imagem.
+Conhecer um logaritmo entre a base de uma imagem e \(G\) comprometeria
+a ocultação dessa associação para a saída daquela forma. Já o
+conhecimento do próprio \(x\), que autoriza o gasto, é objecto de
+outra afirmação. A derivação pública de \(J\) deve conservar a
+codificação da chave original, inclusive quando a árvore usa uma
+representação dessa chave no subgrupo primo
+\cite{monero-source-current-fcmp-tree}.
 
-\begin{center}
-\begin{tikzpicture}[>=stealth,thick,
-  every node/.style={circle,draw,minimum size=7mm,inner sep=1pt}]
- \node (G) at (0,0) {\(G\)};
- \node (H) at (2.2,0) {\(H\)};
- \node (T) at (4.4,0) {\(T\)};
- \node (U) at (6.6,0) {\(U\)};
- \node (V) at (8.8,0) {\(V\)};
- \draw[->] (H) -- node[draw=none,rectangle,above] {\scriptsize \(q\)} (T);
- \draw[->] (T) -- node[draw=none,rectangle,above] {\scriptsize \(s\)} (U);
-\end{tikzpicture}
+\section{Uma hipótese para várias bases}
 
-\vspace{2pt}
-\(\displaystyle H\xrightarrow{q}T\xrightarrow{s}U
-       \Longrightarrow U=(sq)H.\)
-\end{center}
-
-Este é o \emph{grafo de relações}. Os vértices são geradores; uma aresta
-\(A\xrightarrow{q}B\) significa \(B=qA\). Como os escalares não nulos têm
-inverso, o caminho pode ser percorrido para trás, e os rótulos dos caminhos
-são os produtos dos escalares das arestas.
-Cada componente ligada entrega todos os logaritmos aos pares \emph{dentro}
-dela. No desenho, porém, \(G\) e \(V\) continuam em componentes desligadas:
-conhecer a aresta \(H-T\) não revela \(\log_GH\). Uma relação de aridade
-superior é representada por uma hiper-aresta.
-
-Convém ainda separar as consequências. Neste capítulo usaremos cinco
-classificações:
-\emph{exploração algébrica directa}; \emph{exploração provável que exige
-composição}; \emph{falha só de privacidade}; \emph{hipótese de segurança
-invalidada sem exploração concreta demonstrada}; e \emph{relação inofensiva
-ou deliberadamente conhecida}. Roubo, gasto duplo, pertença falsa, prova de
-intervalo falsa e inflação são resultados distintos. A invalidação de uma
-hipótese de segurança não demonstra automaticamente uma exploração concreta.
-
-Aplicaremos estas relações aos compromissos de montante e à composição
-FCMP++ já estabelecida. As contas decorrem nos respectivos subgrupos
-primos; nas relações por pares, o escalar conhecido é não nulo.
-As aberturas alternativas terão de satisfazer as restantes condições
-da transacção e o domínio das provas
-\cite{monero-source-v16,fcmp-plus-plus-paper,fcmp-composition-review}.
-
-\section{Relações que envolvem montantes e saídas}
-
-\subsection*{Se \(H=\gamma G\)}
-
-Um compromisso de montante é
+Num compromisso vectorial cada coordenada tem a sua própria base.
+Reunamos todas as bases numa lista pública \((J_1,\ldots,J_n)\) e
+definamos a aplicação
 \[
- C=aG+bH=(a+b\gamma)G.
+ \Phi:\mathbb F_\ell^n\longrightarrow\mathcal G,\qquad
+ (v_1,\ldots,v_n)\longmapsto\sum_{i=1}^n v_iJ_i .
 \]
-Quem conhece uma abertura \((a,b)\) e a armadilha escolhe \(b'\) e calcula
+A máscara, quando exista, conta como mais uma coordenada, com base
+própria. A aplicação é linear. Por isso, duas aberturas
+\(\boldsymbol v,\boldsymbol v'\) para o mesmo ponto satisfazem
 \[
- \boxed{\quad b\longmapsto b',\qquad
-        a'=a+(b-b')\gamma\quad}
+              \Phi(\boldsymbol v-\boldsymbol v')=\mathcal O.
 \]
-porque \(a'G+b'H=aG+bH\). Perdeu-se a vinculação do montante, não a sua
-ocultação. Um estranho que só vê \(C\) ainda precisa de
-\(\log_G C=a+b\gamma\); o dono de uma saída, pelo contrário, já conhece
-\((a,b)\). Pode reabri-la como uma entrada maior, criar novas saídas com
-montantes honestamente dentro de 64 bits, produzir as provas de intervalo e
-fechar a equação de balanço com a máscara \(a'\). A autorização continua a
-ser da sua moeda; o valor inventado é que não era dela.
+O \emph{núcleo} é o conjunto dos vectores que dão a identidade.
+Um vector não nulo do núcleo constitui uma relação entre as bases.
 
-\textbf{Conclusão --- exploração algébrica directa:} \(G-H\) destrói a
-vinculação de compromissos existentes cujas aberturas o atacante conhece e,
-composta com o balanço e as provas de intervalo normais, permite inflação
-oculta. Não dá ao portador de \(\gamma\) a chave de gasto de uma saída alheia.
-O capítulo \ref{chapter:transactions} deriva esta transacção passo a passo.
+Quantos vectores há no núcleo? Se pelo menos um dos pontos gera o
+grupo, fixemos livremente as outras \(n-1\) coordenadas. Há uma
+única escolha da coordenada restante que leva a soma à identidade,
+pois os múltiplos do gerador percorrem o grupo uma vez. Há, portanto,
+\(\ell^{n-1}\) vectores no núcleo, incluindo o nulo. Este cálculo
+mostra por que a palavra «independentes» exige a interpretação
+computacional. Há muitas relações em sentido algébrico. O que a
+construção requer é que, a partir das bases públicas, seja difícil
+exibir uma não trivial.
 
-\subsection*{Se \(T=\tau G\)}
+No argumento de produto interno, o verificador introduz deliberadamente
+relações entre certas bases. Por exemplo, substitui \(h_i\) por
+\(h'_i=y_i^{-1}h_i\) para casar com a ponderação do vector direito.
+O transcrito fixa \(y_i\) e especifica o coeficiente que a mudança
+transporta. Uma segunda relação pública já conhecida é a das tabelas
+\(A_i=2^iA\) dos certificados de divisores. Nestas tabelas é justamente
+a duplicação sucessiva que permite interpretar os coeficientes como
+um escalar. Em ambos os casos, as relações são parte da declaração
+matemática. A exigência de vinculação incide sobre a família original
+em que o protocolo pretende fixar aberturas livres.
 
-A chave de saída da relação FCMP++ é
+Aplicada a Generalized Bulletproofs, a distinção é concreta.
+O compromisso admite na sua declaração as duas famílias
+\(\boldsymbol g,\boldsymbol h\) e a máscara em \(h\). A matriz das
+restrições pode consultar certas coordenadas de \(\boldsymbol g\)
+sem consultar as da outra família. Ainda assim, a abertura extraída
+contém as duas. Para a comparar com uma abertura conhecida de um ramo
+da árvore, subtraem-se os \emph{vectores completos}. Uma hipótese
+que cobrisse apenas pares da primeira família deixaria por justificar
+a passagem dessa subtracção à igualdade de todas as coordenadas
+\cite{generalized-bulletproofs-fixed}.
+
+Os pesos dos desafios também são públicos, depois de fixado o
+transcrito. A sua função é escolher combinações das condições que o
+provador já se comprometeu a satisfazer. A prova de solidez combina
+assim duas razões diferentes. A vinculação fixa os dados antes do
+desafio. A contagem de raízes limita a frequência com que combinações
+de dados errados poderiam coincidir. A escolha aleatória dos pesos
+pressupõe a primeira garantia para poder fornecer a segunda.
+
+\section{As bases de uma entrada de FCMP++}
+
+Na autorização de gasto, a prova de produto e as três relações de
+representação partilham compromissos. Uma maneira de ler a sua
+demonstração de segurança é pegar numa testemunha extraída de cada
+parte e perguntar em que ponto se podem comparar. A imagem
+\(I=x\widetilde J-wU\) só se reduz a \(xJ\) se a máscara
+\(r_J\) de \(\widetilde J\) for a que entrou no produto \(w=xr_J\).
+O ponto \(R=r_JV+r_RT\) e a abertura do compromisso de produto
+fazem essa ligação. A demonstração do
+capítulo~\ref{chapter:fcmp-plus-plus} subtraiu duas representações
+do mesmo ponto nas bases \(G,T,U,V\). A dificuldade de encontrar
+uma relação não trivial na família permitiu identificar os
+coeficientes correspondentes \cite{fcmp-composition-review}.
+
+Aqui reside uma distinção entre passar um teste e saber o que ele
+demonstra. O verificador pode repetir todas as somas de pontos de SAL
+conhecendo apenas as bases, os dados públicos da entrada e a prova.
+Dessas igualdades, sob as hipóteses de conhecimento das subprovas e
+de vinculação das bases, deduz-se a existência de uma abertura
+coerente. Se a hipótese acerca da família deixar de ser sustentável,
+aquela dedução pede uma nova justificação. Para a avaliar interessa
+saber quais os termos comparados e quais as coordenadas comuns que
+as restantes equações ainda fixam. A ocultação do montante, a
+autorização de uma chave e a estabilidade da imagem têm declarações
+próprias.
+
+Também as duas curvas da árvore têm famílias próprias. Para uma
+curva \(\mathcal E\), o nó público de um ramo é
 \[
- O=xG+yT=(x+y\tau)G.
+ Q=B_{\mathcal E}+\langle\boldsymbol v,\boldsymbol g_{\mathcal E}\rangle .
 \]
-De uma abertura sai uma família inteira:
-\[
- y\longmapsto y',\qquad x'=x+(y-y')\tau,\qquad
- O=x'G+y'T.
-\]
-Mas um estranho diante de um \(O\) arbitrário ainda não conhece
-\(k=\log_GO=x+y\tau\). Portanto \(\tau\), sozinho, não rouba essa saída. O
-que desaparece é a vinculação das duas coordenadas, necessária para lhes
-atribuir poderes distintos. Em particular,
-uma prova SAL de «conheço \(x,y\)» deixa de provar a abertura pretendida.
+O compromisso usado na prova contém ainda uma máscara em
+\(h_{\mathcal E}\). A abertura pública da raiz permite ao argumento
+de conhecimento começar a descida. Em cada nível superior, o pai
+guarda a abscissa do filho. Os dois pontos com essa abscissa são
+inversos um do outro, ou coincidem se a ordenada for zero. Comparar
+dois nós com o mesmo sinal cancela o inicializador \(B_{\mathcal E}\)
+e deixa a diferença das aberturas. Comparar sinais opostos traz duas
+cópias do inicializador para o mesmo membro da igualdade. Como a
+ordem é prima ímpar, o coeficiente dois é não nulo. A hipótese de
+vinculação precisa de abranger também \(B_{\mathcal E}\) para que
+esta comparação fixe o sinal do filho
+\cite{fcmp-plus-plus-paper,monero-oxide-fcmp-source}.
 
-Há uma consequência concreta para o próprio dono. Numa saída histórica
-\(O=xG\), a árvore conserva também
-\(J=\mathcal H_p(O_{\rm original})\), onde \(O_{\rm original}\) é a chave
-publicada antes da eventual limpeza de torsão, e a SAL publica
-\(I=xJ\). Com \(\tau\), o dono escolhe aberturas alternativas \(x'\) do mesmo
-\(O\) e obtém marcadores \(I'=x'J\) diferentes. A autorização não passou para
-um estranho; a detecção do segundo gasto deixou de reconhecer o primeiro.
+A alternância das curvas conserva uma igualdade de corpos. Permite
+que as coordenadas de um ponto de Selene sejam dados escalares do
+circuito em Helios, e reciprocamente. As comparações de relações de
+grupo, porém, são feitas em cada curva. A solidez da pertença pede
+a vinculação nas duas famílias, a correcção dos certificados de
+divisores e uma raiz admitida. A autorização junta a essa conclusão
+o conhecimento da chave e a mensagem. A igualdade de corpos explica
+como se faz a conta. As hipóteses de segurança explicam a
+interpretação da conta.
 
-\textbf{Conclusão --- exploração algébrica directa:} \(G-T\) permite ao dono
-de uma saída afectada quebrar a ligação SAL e tentar o gasto duplo. O roubo
-por um observador não foi demonstrado; falta-lhe uma abertura de \(O\).
+\section{A escolha verificável dos parâmetros}
 
-\subsection*{Relações de \(H\) com \(T\), \(U\) e \(V\)}
+Para conferir parâmetros, um participante deve poder partir dos dados
+públicos da construção e obter de novo cada ponto. Uma derivação
+transparente especifica a curva, a função de hash para pontos, o
+rótulo da família e a codificação do índice, quando o haja. Rótulos
+distintos distinguem usos com significados distintos. A operação
+de hash para pontos pertence à construção seleccionada. Em
+particular, para famílias que exigem vinculação, o procedimento deve
+produzir pontos cujos logaritmos relativos sejam desconhecidos,
+também a quem calculou as bases pela primeira vez.
 
-Se \(H=qT\), \(H=qU\) ou \(H=qV\), a aresta liga a família de montantes à
-família FCMP++, mas \(H\) e a outra base não aparecem juntas num compromisso
-de montante com coeficientes variáveis. A aresta isolada não dá
-\(\log_GH\), não reabre \(C=aG+bH\) e não é inflação. Se outra aresta ligar
-essa componente a \(G\), o caminho compõe-se: por exemplo,
-\(H=qU,\ U=uG\) dá \(H=(qu)G\), e regressamos ao ataque de \(\gamma\).
+Há verificações que o próprio grupo resolve exactamente. A
+codificação deve identificar um elemento válido do grupo exigido.
+Uma família de \(m\) bases tem de apresentar os \(m\) elementos
+esperados, na ordem que associa cada posição à respectiva coordenada.
+As bases destinadas a vincular coordenadas distintas devem ser não
+nulas e distintas. Na construção de Generalized Bulletproofs, as
+duas famílias vectoriais têm o mesmo comprimento, uma potência de
+dois. O verificador pode conferir estes requisitos e comparar os
+pontos com os que obtém da derivação especificada
+\cite{monero-oxide-fcmp-source,generalized-bulletproofs-fixed}.
 
-\textbf{Conclusão --- hipótese invalidada sem exploração concreta
-demonstrada:} cada uma de \(H-T,H-U,H-V\), sozinha. Com um caminho adicional
-até \(G\), a inflação passa a ser a exploração directa anterior.
+Que confiança oferece essa repetição? Permite descobrir uma troca
+de pontos, um índice mal codificado ou uma discrepância entre
+participantes. Permite ainda conhecer a procedência de uma tabela
+antes de a usar numa prova. A dificuldade de descobrir uma relação
+multibase permanece uma hipótese criptográfica. Inspeccionar a
+codificação de um ponto atesta a sua pertença ao grupo. A derivação
+transparente e a escolha das primitivas sustentam a crença de que a
+família não contém uma relação conhecida fora das que a declaração
+prevê.
 
-\subsection*{A base que muda com a saída}
-
-\(\mathcal H_p(O_{\rm original})\) não é um sexto parâmetro estático. Se,
-para uma saída histórica, alguém descobre
-\[
- \mathcal H_p(O_{\rm original})=\eta_OG,\qquad O=xG,\qquad
- I=x\mathcal H_p(O_{\rm original}),
-\]
-então
-\[
- \boxed{I=\eta_OO.}
-\]
-O marcador da saída passa a ser calculável a partir de dados públicos. Conhecer
-\(\eta_O\) para uma saída permite reconhecê-la quando \(I\) aparece; conhecer
-as relações para todas permite testar todas as saídas da lista de blocos. Não revela \(x\), não assina
-uma transacção e não faz \(I\) deixar de repetir.
-
-\textbf{Conclusão --- falha só de privacidade:} identificação retroactiva da
-saída gasta; sem roubo, quebra da autorização ou inflação demonstrada.
-
-\section{Consequências de relações entre as bases da SAL}
-
-Retomemos os pontos da apresentação e o compromisso do produto secreto.
-Para \(\widetilde O=xG+\bar yT\), as relações são
-\begin{align*}
- \widetilde J&=J+r_JU,&
- R&=r_JV+r_RT,\\
- P&=xG+r_JV+wU+r_P T,& w&=xr_J,\\
- P-\widetilde O-R&=wU+\eta T,&
- I&=x\widetilde J-wU.
-\end{align*}
-Aqui \(\eta=r_P-\bar y-r_R\).
-A prova de produto vincula \(w=xr_J\) a \(P\); três provas de
-representação vinculam \(x\) a \(\widetilde O\), \(w\) à terceira linha e
-\((x,w)\) a \(I\). A pertença FCMP vincula o mesmo \(r_J\) a
-\(\widetilde J\) e \(R\). Sob a hipótese de vinculação conjunta das
-bases, estas relações fixam a consistência das testemunhas extraídas,
-como foi demonstrado na secção~\ref{sec:fcmp-sal-knowledge}.
-
-\subsection*{\(U=qT\): muda o coeficiente de \(U\)}
-
-Para quaisquer \(a,b,\Delta\),
-\[
- aU+bT=(a+\Delta)U+(b-q\Delta)T.
-\]
-Assim, \(wU+\eta T\) aceita um \(w_{\rm lig}\) diferente do
-\(w_{\rm prod}=xr_J\) provado dentro de \(P\), ajustando a máscara em \(T\).
-A última equação publica então
-\[
- I=x\widetilde J-w_{\rm lig}U,
-\]
-que o dono pode variar entre gastos da mesma folha. A relação conhecida não muda
-\(r_J\) em \(\widetilde J=J+r_JU\); muda a interpretação do coeficiente de
-\(U\) na representação conjunta nas bases \(U,T\).
-
-\textbf{Conclusão --- exploração algébrica directa:} falha de ligação SAL e
-gasto duplo pelo dono; não roubo de uma saída arbitrária.
-
-\subsection*{\(V=qT\): \(R\) já não se compromete com \(r_J\)}
-
-Agora
-\[
- r_JV+r_RT=(r_J+\Delta)V+(r_R-q\Delta)T.
-\]
-A prova FCMP pode usar o \(r_J\) que abre \(\widetilde J\), enquanto a SAL
-usa \(r_J'=r_J+\Delta\) no produto \(w'=xr_J'\); o mesmo ponto \(R\) admite as duas aberturas. O termo extra em \(V\) é absorvido
-pela máscara em \(T\) de \(P\). Resulta
-\(I=x\widetilde J-xr_J'U\), variável com \(\Delta\).
-
-\textbf{Conclusão --- exploração algébrica directa:} perdeu-se a vinculação do compromisso a \(r_J\) que compunha pertença e SAL; o dono pode produzir
-marcadores diferentes.
-
-\Needspace{10\baselineskip}
-\subsection*{\(V=qU\): inconsistência entre produto e ligação}
-
-No ponto \(P\),
-\[
- r_JV+wU=(r_J+\Delta)V+(w-q\Delta)U.
-\]
-Mais explicitamente, deixe a pertença usar \(r\), a prova de produto usar
-\(r'\) e \(w'=xr'\). Depois de subtrair \(R\), a prova de
-representação lê
-\[
- w_{\rm lig}=xr'+q(r'-r),
-\]
-logo
-\[
- I=xJ+(x+q)(r-r')U.
-\]
-Escolher \(r'\) muda \(I\), salvo o caso degenerado \(x=-q\).
-
-\textbf{Conclusão --- exploração algébrica directa:} novamente gasto duplo
-por quebra da ligação; ainda exige conhecer uma abertura autorizada da saída.
-
-\subsection*{\(U=qG\) e \(V=qG\) consideradas isoladamente}
-
-Se \(U=qG\), \(xG+wU\) admite
-\((x,w)\mapsto(x-q\Delta,w+\Delta)\). Se \(V=qG\), \(xG+r_JV\)
-admite o mesmo deslocamento em \((x,r_J)\). A vinculação interna de \(P\)
-desaparece. Isoladamente, porém, \(\widetilde O=xG+\bar yT\) fixa \(x\),
-\(R=r_JV+r_RT\) fixa \(r_J\), e a equação em \(U,T\) fixa \(w\),
-sob as relações restantes desconhecidas. Não obtivemos uma transacção falsa.
-
-\textbf{Conclusão --- hipótese de segurança invalidada sem exploração
-concreta demonstrada:} \(G-U\) e \(G-V\) isoladas; outra aresta que permita
-absorver uma destas diferenças pode completar o ataque.
-
-\subsection*{Relação multibase geral}
-
-Se for conhecida
-\[
- aG+bT+cU+dV=\mathcal O,
-\]
-então qualquer compromisso multibase
-\[
- M=xG+pT+wU+rV
-\]
-conserva o ponto sob a transformação
-\[
- (x,p,w,r)\longmapsto
- (x,p,w,r)+\lambda(a,b,c,d).
-\]
-Isto é perda directa de vinculação do vector-testemunho. A consequência final
-depende dos coeficientes que as equações externas voltam a fixar; os três
-ataques acima mostram relações cujo suporte elimina a vinculação necessária. Uma relação
-de aridade superior não deve ser promovida automaticamente a inflação, nem
-ignorada por não fornecer isoladamente \(\log_GT\).
-
-\begin{landscape}
-\hypersetup{pdfview=Fit}
-\section{Análise das dez relações por pares}
-
-\begingroup
-\footnotesize
-\setstretch{1.0}
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.12}
-\begin{center}
-\begin{tabular}{|L{2.0cm}|L{5.3cm}|L{6.3cm}|L{4.6cm}|L{4.3cm}|}
-\hline
-\textbf{Relação conhecida} & \textbf{Equação pública e abertura alternativa}
-& \textbf{Quem a explora; saídas já existentes} & \textbf{Resultado isolado}
-& \textbf{Outra armadilha?}\\ \hline
-\(H=\gamma G\) & \(C=aG+bH\);
-\(b'\), \(a'=a+(b-b')\gamma\). & Quem conhece a abertura; sim, compromissos
-próprios antigos continuam reabríveis. & Montante não vinculante; inflação
-oculta pela transacção normal. & Não; requer apenas autorização de uma entrada
-e as provas normais.\\ \hline
-\(T=\tau G\) & \(O=xG+yT\);
-\(y'\), \(x'=x+(y-y')\tau\). & Só quem conhece uma abertura; sim, saídas
-históricas próprias migradas. & Autorização ambígua; \(I\) variável, gasto
-duplo. Não rouba \(O\) arbitrário. & Não para o dono; ao estranho falta
-\(\log_GO\).\\ \hline
-\(U=qG\) & \(P\) contém \(xG+wU\);
-\((x,w)\mapsto(x-q\Delta,w+\Delta)\). & Provador com uma abertura; pontos
-existentes têm duas descrições locais. & Vinculação de \(P\) perdida, mas
-\(\widetilde O\) e a equação \(U,T\) bloqueiam a falsificação completa. & Sim,
-uma relação que absorva a diferença externa.\\ \hline
-\(V=qG\) & \(P\) contém \(xG+r_JV\);
-\((x,r_J)\mapsto(x-q\Delta,r_J+\Delta)\). & Provador com uma abertura; a
-descrição local de \(P\) muda. & Redução SAL invalidada; \(\widetilde O\) e
-\(R\) fixam os coeficientes em isolamento. & Sim.\\ \hline
-\(H=qT\) & \(C\) usa \(G,H\); saída/SAL usa \(G,T\). Não há compromisso
-variável comum a \(H,T\). & Ninguém obtém nova abertura só com a aresta; saídas
-existentes inalteradas. & Famílias ligadas; sem inflação ou roubo demonstrado.
-& Sim: caminho de \(T\) até \(G\) dá \(\log_GH\).\\ \hline
-\(H=qU\) & \(C\) usa \(G,H\); SAL usa \(G,T,U,V\). Aresta não basta para
-deslocar \(a,b\). & Idem; sem efeito concreto retroactivo isolado. & Hipótese
-global invalidada, sem exploração concreta. & Sim: caminho de \(U\) até
-\(G\).\\ \hline
-\(H=qV\) & Mesma separação: \(H\) não aparece nas equações SAL. & Idem. & Sem
-exploração concreta demonstrada. & Sim: caminho de \(V\) até \(G\).\\ \hline
-\(U=qT\) & \(wU+\eta T=(w+\Delta)U+(\eta-q\Delta)T\). & Dono/provador autorizado;
-sim, pode gastar a mesma folha existente com outro \(I\). & Coeficiente \(w\)
-da ligação difere do produto; gasto duplo. & Não.\\ \hline
-\(V=qT\) & \(R=r_JV+r_RT=(r_J+\Delta)V+(r_R-q\Delta)T\). & Dono/provador;
-sim, FCMP e SAL podem abrir o mesmo \(R\) com \(r_J\) diferentes. & Compromisso
-a \(r_J\) perdido; \(I\) variável, gasto duplo. & Não.\\ \hline
-\(V=qU\) & \(r_JV+wU=(r_J+\Delta)V+(w-q\Delta)U\). & Dono/provador; sim,
-uma folha autorizada basta. & Produto e ligação recebem aberturas distintas;
-gasto duplo para \(x\ne-q\). & Não.\\ \hline
-\end{tabular}
-\end{center}
-
-\endgroup
-\small
-«Existentes» não quer dizer que um estranho possa escolher uma saída de
-terceiro. Quer dizer que, depois da descoberta, o titular que ainda conserva a abertura
-consegue aplicá-la ao ponto já publicado. O criador malicioso dos parâmetros
-teve essa possibilidade desde o princípio; uma descoberta pública dá-a a
-todos os titulares e simultaneamente dá aos verificadores a oportunidade de
-parar, actualizar regras ou rejeitar a família comprometida. As provas antigas permanecem registadas.
-\end{landscape}
-
-\normalsize
-\section{Consequências para as provas de intervalo}
-
-As bases indexadas das Bulletproofs e Bulletproofs+ formam compromissos do
-género
-\[
- Q=\rho G+\langle\boldsymbol a,\boldsymbol G\rangle
-       +\langle\boldsymbol b,\boldsymbol H\rangle.
-\]
-Aqui \(G\) é a base da máscara, como no capítulo dos montantes ocultos.
-Suponhamos conhecida uma relação não trivial
-\[
- \rho_0G+\langle\boldsymbol u,\boldsymbol G\rangle
-       +\langle\boldsymbol v,\boldsymbol H\rangle=\mathcal O.
-\]
-Então, sem mudar \(Q\), existe a seta
-\[
- (\rho,\boldsymbol a,\boldsymbol b)\longmapsto
- (\rho,\boldsymbol a,\boldsymbol b)
-       +\lambda(\rho_0,\boldsymbol u,\boldsymbol v).
-\]
-Uma abertura vectorial deixa de fixar os bits, os vectores de produtos ou as
-máscaras vinculadas pelas equações de produto interno. É a perda de vinculação
-de Pedersen aplicada a um compromisso multibase
-\cite{Bulletproofs_paper}.
-
-Isto não implica que qualquer relação vectorial permita criar valor. Uma
-relação pode cair numa direcção que não altera a coordenada constrangida, ou
-invalidar apenas a redução sem oferecer uma transcrição falsa. Se a direcção
-permite trocar um vector inválido por uma abertura que satisfaz as equações da
-prova, porém, perde-se a garantia que liga a prova ao montante: o provador
-pode apresentar uma prova aceite para um compromisso cuja abertura usada
-no balanço tem um montante fora de \([0,2^{64}-1]\). O intervalo restringe
-o representante inteiro do escalar do montante, associado à abertura; o
-ponto do compromisso pertence ao grupo elíptico.
-
-\begin{center}
-\begin{tikzpicture}[>=stealth,node distance=8mm,
- box/.style={draw,rounded corners,align=center,text width=3.0cm,
- minimum height=9mm,inner sep=3pt}]
- \node[box,fill=yellow!18] (rel) {relação vectorial\\utilizável};
- \node[box,fill=orange!18,right=of rel,xshift=5mm] (proof)
- {abertura alternativa\\prova de intervalo falsa};
- \node[box,fill=red!12,right=of proof,xshift=5mm] (bal)
- {balanço modular\\saídas válidas};
- \draw[->] (rel) -- (proof);
- \draw[->] (proof) -- (bal);
- \node[draw=none,below=2mm of bal] {\(\Downarrow\) inflação};
-\end{tikzpicture}
-\end{center}
-
-A relação \(G-H\) fornece o primeiro mecanismo directo. Uma prova de
-intervalo falsa dá outra: permite que a aritmética módulo \(l\) esconda um
-valor negativo ou transbordado, enquanto as saídas recebidas parecem montantes
-canónicos. É uma \emph{exploração provável que exige composição} com uma
-relação que atinja os testemunhos certos, o balanço da transacção e a criação
-de novos compromissos. Não rouba por si só uma chave de saída e não torna
-falsas, retroactivamente, todas as provas antigas.
-
-\Needspace{9\baselineskip}
-\subsection*{O controlo negativo}
-
-As tabelas
-\[
- J, 2J, 4J,\ldots,2^{n-1}J
-\]
-usadas pelo dispositivo de logaritmo discreto têm relações públicas por
-desenho: os dígitos recompõem um múltiplo. Também \(P=xG\), um nonce \(R=rH\)
-e qualquer ponto construído com testemunho conhecido são declarações, não
-falhas de parâmetros. A solidez vem da prova de conhecimento e das restantes restrições; as relações
-públicas entre os múltiplos fazem parte da declaração. \textbf{Conclusão ---
-relação inofensiva ou deliberadamente conhecida.}
-
-\section{Consequências para Curve Trees, Selene e Helios}
-
-Cada curva \(\mathcal E\) tem a sua própria família de bases,
-que reunimos na notação
-\[
- \mathcal B_{\mathcal E}=
- (g_{\mathcal E},h_{\mathcal E},
- \boldsymbol g_{\mathcal E},\boldsymbol h_{\mathcal E},B_{\mathcal E}).
-\]
-Selene e Helios são grupos distintos: uma relação dentro de uma curva não se
-estende à outra. Em cada uma, os compromissos da prova têm
-a forma
-\[
- K=rh_{\mathcal E}+\langle\boldsymbol a,\boldsymbol g_{\mathcal E}\rangle
-       +\langle\boldsymbol b,\boldsymbol h_{\mathcal E}\rangle,
-\]
-e um nó que compromete os filhos tem a forma
-\[
- Q=B_{\mathcal E}+\sum_{i=0}^{w-1}v_i g_{\mathcal E,i}.
-\]
-As famílias são derivadas de rótulos separados por procedimentos públicos.
-Esta geração transparente torna os pontos reproduzíveis; a vinculação
-continua a depender da dificuldade de encontrar relações entre as bases
-\cite{curve-trees,generalized-bulletproofs-review}.
-
-Uma relação entre
-\(h_{\mathcal E},\boldsymbol g_{\mathcal E},\boldsymbol h_{\mathcal E}\)
-dá aberturas alternativas
-dos compromissos da prova, como na secção anterior. Uma relação
-\(\sum_i d_i g_{\mathcal E,i}=\mathcal O\), com algum \(d_i\ne0\),
-dá uma colisão explícita entre vectores de
-filhos:
-\[
- (v_0,\ldots,v_{w-1})\longmapsto
- (v_0,\ldots,v_{w-1})+\lambda(d_0,\ldots,d_{w-1}),
- \qquad Q\ \hbox{inalterado}.
-\]
-Se essa colisão troca um filho honesto por outro compromisso, pode produzir
-uma passagem falsa numa camada e propagá-la até à raiz. Relações
-que envolvem \(g_{\mathcal E}\) ou as bases vectoriais podem, em vez disso, falsificar as
-restrições de selecção e re-randomização. O resultado possível é uma prova de
-pertença de uma saída que nunca esteve na árvore.
-
-O caso de \(B_{\mathcal E}\) deve ser tratado separadamente. Se o seu coeficiente é sempre exactamente
-um, ele cancela ao comparar dois nós bem formados; conhecer apenas
-\(B_{\mathcal E}=qg_{\mathcal E,0}\) não produz automaticamente dois vectores de filhos com o
-mesmo nó. A relação torna-se utilizável se o inicializador puder ser absorvido
-por uma máscara da prova, se colidir uma codificação inicializada com uma soma
-crua, ou se vier acompanhada de uma relação entre os \(g_{\mathcal E,i}\). Sem essa
-composição, temos hipótese invalidada, não uma árvore falsa demonstrada.
-
-\Needspace{8\baselineskip}
-No topo há ainda a prova Schnorr da abertura da raiz. Se
-\[
- X=\widetilde Q_L-\rho=\beta_Lh_{\mathcal E},
-\]
-o verificador exige
-\[
- A_{\rm raiz}+c_{\rm raiz}X=s_{\rm raiz}h_{\mathcal E}.
-\]
-Uma armadilha que permita converter uma diferença de \emph{conteúdo} falsa
-num múltiplo conhecido de \(h_{\mathcal E}\) faz esta equação aceitar a raiz comprometida.
-Conhecer apenas um caminho verdadeiro permite provar a pertença do membro
-correspondente, que é a propriedade pretendida.
-
-\begin{center}
-\begin{tikzpicture}[>=stealth,node distance=7mm,
- box/.style={draw,rounded corners,align=center,text width=2.55cm,
- minimum height=9mm,inner sep=3pt}]
- \node[box,fill=yellow!17] (trap) {relação utilizável\\numa das curvas};
- \node[box,fill=orange!15,right=of trap,xshift=4mm] (path)
- {colisão ou restrição falsa\\caminho FCMP falso};
- \node[box,fill=blue!12,right=of path,xshift=4mm] (sal)
- {saída fabricada, mas própria\\SAL válida};
- \draw[->] (trap) -- (path);
- \draw[->] (path) -- (sal);
- \node[draw=none,below=2mm of sal] {\(\Downarrow\) entrada inexistente \(\Rightarrow\) inflação};
-\end{tikzpicture}
-\end{center}
-
-Pertença falsa, isoladamente, não é autorização. Provar a pertença de uma
-saída alheia não revela \(x\) e não produz a SAL. Para chegar à inflação, o
-atacante constrói uma tupla que ele próprio sabe abrir, atribui-lhe um
-compromisso de montante, usa a armadilha para provar um caminho inexistente e
-produz uma SAL válida. A entrada sem antepassado financia saídas novas. É uma
-\emph{exploração provável que exige composição}: relação utilizável em
-Selene \emph{ou} Helios, pertença falsa concreta, saída fabricada possuída e
-balanço válido. Roubo de uma saída alheia não resulta da pertença falsa.
-
-Esta conclusão vale separadamente nas duas curvas. Uma colisão utilizável numa
-camada Selene pode bastar sem uma segunda relação Helios, e vice-versa; uma
-relação que apenas reabre um compromisso auxiliar mas não altera uma restrição relevante
-pode ficar no nível «solidez assumida, exploração não demonstrada».
-
-\begin{landscape}
-\hypersetup{pdfview=Fit}
-\section{Matriz de consequências}
-
-\small
-Nas tabelas, «sim» indica a consequência algébrica derivada; «cond.» exige a
-composição indicada; «não» assinala que a relação isolada não fornece esse
-efeito pelas equações analisadas. A coluna de ligação refere-se à capacidade
-de apresentar imagens diferentes para a mesma saída. «Roubo» significa
-obter autorização sobre uma saída alheia cuja abertura é desconhecida;
-«n/d» indica um efeito não demonstrado.
-
-\begingroup
-\footnotesize
-\setstretch{1.0}
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.16}
-\begin{center}
-\begin{tabular}{|L{2.5cm}|L{3.6cm}|L{1.5cm}|L{1.2cm}|L{1.6cm}|L{1.6cm}|L{1.4cm}|L{1.4cm}|L{5.6cm}|}
-\hline
-\textbf{Relação conhecida} & \textbf{Vinculação afectada}
-& \textbf{Privaci-dade} & \textbf{Roubo} & \textbf{Pertença falsa}
-& \textbf{Intervalo falso} & \textbf{Ligação quebrada}
-& \textbf{Inflação} & \textbf{Condições e composição}\\ \hline
-\(H=\gamma G\) & Compromisso de montante & não & não & não & não & não & sim
-& Abertura conhecida, autorização da entrada e provas normais para as saídas.\\ \hline
-\(T=\tau G\) & Abertura \((x,y)\) da saída & não & não & não & não & sim & cond.
-& Abertura própria; aberturas alternativas admissíveis; segundo gasto.\\ \hline
-\(U=qG\) & Coeficientes \((x,w)\) de \(P\) & não & não & não & não & cond. & cond.
-& Outra relação que permita satisfazer também as restrições nas bases \(G,T\) e \(U,T\).\\ \hline
-\(V=qG\) & Coeficientes \((x,r_J)\) de \(P\) & não & não & não & não & cond. & cond.
-& Outra relação que permita satisfazer também as aberturas de \(\widetilde O\) e \(R\).\\ \hline
-\(H=qT\) & Nenhuma das equações isoladas & não & não & não & não & não & cond.
-& Um caminho adicional de \(T\) até \(G\) fornece \(\log_GH\).\\ \hline
-\(H=qU\) & Nenhuma das equações isoladas & não & não & não & não & não & cond.
-& Um caminho adicional de \(U\) até \(G\) fornece \(\log_GH\).\\ \hline
-\(H=qV\) & Nenhuma das equações isoladas & não & não & não & não & não & cond.
-& Um caminho adicional de \(V\) até \(G\) fornece \(\log_GH\).\\ \hline
-\(U=qT\) & Coeficiente de \(U\) em \(wU+\eta T\) & não & não & não & não & sim & cond.
-& Abertura própria; o produto e a ligação usam aberturas distintas; segundo gasto.\\ \hline
-\(V=qT\) & Abertura de \(R\) em \(r_J\) & não & não & não & não & sim & cond.
-& Abertura própria; pertença e produto usam valores diferentes de \(r_J\); segundo gasto.\\ \hline
-\(V=qU\) & Coeficientes de \(r_JV+wU\) & não & não & não & não & sim & cond.
-& Abertura própria e \(x\ne-q\); segundo gasto.\\ \hline
-\end{tabular}
-\end{center}
-\endgroup
-
-\clearpage
-\subsection*{Relações vectoriais e bases dependentes da saída}
-
-\begingroup
-\footnotesize
-\setstretch{1.0}
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.18}
-\begin{center}
-\begin{tabular}{|L{2.5cm}|L{3.6cm}|L{1.5cm}|L{1.2cm}|L{1.6cm}|L{1.6cm}|L{1.4cm}|L{1.4cm}|L{5.6cm}|}
-\hline
-\textbf{Relação conhecida} & \textbf{Vinculação afectada}
-& \textbf{Privaci-dade} & \textbf{Roubo} & \textbf{Pertença falsa}
-& \textbf{Intervalo falso} & \textbf{Ligação quebrada}
-& \textbf{Inflação} & \textbf{Condições e composição}\\ \hline
-\(aG+bT+cU+dV=\mathcal O\) & Compromisso multibase & cond. & n/d & cond. & não & cond. & cond.
-& O suporte da relação tem de vencer as restantes equações. A relação, por si só, fornece aberturas alternativas; os efeitos dependem desse suporte.\\ \hline
-\(J=\eta_OG\) & Bases da igualdade de logaritmos relacionadas & sim & não & não & não & não & não
-& Saída \(O=xG\); a relação conhecida dá \(I=\eta_OO\), identificável nos dados públicos.\\ \hline
-Relação em \(G,\boldsymbol G,\boldsymbol H\) & Compromisso vectorial de Bulletproofs ou Bulletproofs+ & não & não & não & cond. & não & cond.
-& Direcção utilizável para alterar a testemunha constrangida; prova aceite e balanço da transacção.\\ \hline
-Relação em \(\mathcal B_{\rm S}\) & Nó ou compromisso sobre Selene & não & não & cond. & não & não & cond.
-& Colisão entre filhos admissíveis ou restrição falsificada; caminho completo, saída própria e SAL.\\ \hline
-Relação em \(\mathcal B_{\rm H}\) & Nó ou compromisso sobre Helios & não & não & cond. & não & não & cond.
-& As mesmas condições na outra curva; uma relação utilizável numa das camadas pode bastar.\\ \hline
-\(J,2J,\ldots\); \(P=xG\); \(R=rH\) & Relações deliberadas da declaração & não & não & não & não & não & não
-& Múltiplos usados pelo dispositivo e pontos com testemunha conhecida, sujeitos às suas provas e restrições.\\ \hline
-\end{tabular}
-\end{center}
-\endgroup
-
-A relação \(G-H\) fornece directamente a abertura alternativa necessária
-à inflação. As relações SAL assinaladas quebram a ligação; a criação de
-valor exige ainda que o segundo gasto seja aceite. Nas famílias vectoriais,
-a utilidade da relação depende das coordenadas que ela altera e das
-restrições exteriores que continuam a fixá-las. Estes requisitos permitem
-avaliar uma relação concreta pela sequência completa de equações que o
-verificador exige.
+Assim se lê uma igualdade de pontos em contexto. Num compromisso,
+ela compara aberturas. Num certificado, dá significado a uma tabela
+de duplicações. Na última ronda de um produto interno, confere a
+combinação de coordenadas e de bases escolhida pelos desafios. Em
+cada caso, a pergunta decisiva é quais os coeficientes que a própria
+declaração fixou e quais se pretende que uma testemunha conserve
+secretos e vinculados.
 
 \label{page:dlog-relations-end}
-\end{landscape}
-\endgroup
-\restoregeometry

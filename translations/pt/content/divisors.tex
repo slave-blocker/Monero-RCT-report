@@ -1,48 +1,40 @@
-\chapter{Divisores e certificados de multiplicação escalar}
+\chapter{Funções e divisores em curvas elípticas}
 \label{chapter:divisors}
 \label{sec:fcmp-divisors}
+\hypertarget{excerto.divisores.inicio}{}
 
-Alice calcula \(Q=nP\). Se der a Bruno o inteiro \(n\) e os pontos
-\(P,Q\), ele pode repetir as duplicações e as adições e comparar o
-resultado com \(Q\). Suponhamos, porém, que Alice quer provar que
-usou o mesmo escalar secreto em duas multiplicações. O que poderá
-Bruno conferir conservando o escalar oculto?
+Alice soma a um ponto \(P\) o seu dobro. Chamemos \(Q\) ao resultado.
+Na curva de Weierstrass, a recta por \(P\) e \(2P\) encontra ainda
+\(-Q\). Toda a conta
+\[
+                   P+2P-Q=\mathcal O_\infty
+\]
+ficou assim escrita em três lugares da curva. Se Alice entregar a Bob
+uma função cujos zeros sejam esses lugares, a própria lista dos zeros
+conservará a relação. Para \(Q=3P\) bastará a equação da recta. Para
+centenas de somandos convém saber como se constrói uma função só e
+como se contam os seus zeros quando vários coincidem.
 
-Comecemos pela adição que já conhecemos. A recta por \(P\) e \(2P\)
-encontra a curva em \(-3P\). Alice pode guardar esta conta nos
-coeficientes da equação da recta. Quem souber que os seus três zeros
-são \(P,2P,-Q\) poderá somá-los na curva e concluir que
-\(P+2P-Q=\mathcal O_\infty\). Para uma multiplicação de muitas
-parcelas, uma função toma o lugar da recta. O seu \emph{divisor}
-regista os zeros com as respectivas multiplicidades e os pólos que
-fixam o total. A questão para Bruno passa a ser como reconhecer os
-zeros de uma função que Alice guarda consigo. No método de
-Eagen, Bruno escolherá uma recta depois de Alice se ter vinculado aos
-seus dados. A mesma conta feita pelos pontos da recta e pelos zeros
-da função terá de dar o mesmo elemento do corpo \cite{eagen-divisors}.
+Esta é a razão para introduzir os divisores. A função terá pólos, e
+a sua ordem limitará o número de zeros que Alice lhe pode atribuir.
+Ao fim do capítulo, Bob poderá mesmo conferir uma condição sobre os
+zeros de uma função cujos coeficientes lhe ficam ocultos. Para lá
+chegar, começaremos por uma curva pequena em que se podem ver os
+pontos, a função e as duas contas do verificador
+\cite{eagen-divisors}.
 
 \section{Como uma função conta os encontros com a curva}
 \label{sec:divisors-functions}
+\index{certificado de divisor@certificado de divisor}
 \index{funcao@função!sobre uma curva@sobre uma curva}
 \index{fecho algebrico@fecho algébrico}
 
-Retomemos o corpo finito do capítulo \ref{chapter:basicConcepts}. Os seus
-elementos podem ser somados, multiplicados e, quando são não nulos,
-invertidos. Um \emph{polinómio} acrescenta a essas operações uma variável:
-\[
- p(x)=c_0+c_1x+\cdots+c_dx^d.
-\]
-Os \(c_i\) são os coeficientes, pertencentes ao corpo. Quando
-\(c_d\ne0\), o maior expoente \(d\) é o \emph{grau} do polinómio.
-\emph{Avaliar} \(p\) num elemento \(u\) significa substituir \(x\)
-por \(u\) e efectuar as operações no corpo. Um valor \(u\) para o qual
-\(p(u)=0\) é uma \emph{raiz}, ou um zero, do polinómio.
-
-Por exemplo, em \(\mathbb F_{17}\), o polinómio
-\(p(x)=(x-5)(x-6)\) anula-se em \(5\) e em \(6\). Em \(7\), dá
-\(p(7)=2\cdot1=2\). A expressão factorada deixa ver onde estão os zeros;
-a expressão desenvolvida, \(x^2+6x+13\), dá os mesmos resultados.
-As operações sobre os coeficientes seguem a aritmética módulo \(17\).
+Em \(\mathbb F_{17}\) o produto \((x-5)(x-6)\) dá zero em 5 e
+em 6. Na forma desenvolvida, \(x^2+6x+13\), é o mesmo polinómio.
+A primeira escrita dá a ver os zeros e a segunda dá os coeficientes
+com que se pode calcular o valor em qualquer ponto. Numa curva
+teremos o mesmo interesse pelas duas descrições. Há, porém, uma
+relação entre as duas coordenadas do ponto de avaliação.
 
 Passemos a uma curva elíptica na forma de Weierstrass. Trabalhamos sobre
 um corpo \(\mathbb F\) de característica maior que três e fixamos
@@ -464,7 +456,7 @@ Multiplicar as funções soma estas linhas. O divisor do produto é
 \]
 As duas ocorrências de \([2P]\) cancelaram-se porque \(2P\) era a saída de
 uma adição e a entrada da outra. Alice sabe assim construir uma função
-partindo de operações correctas. Para Bruno, a implicação decisiva é a
+partindo de operações correctas. Para Bob, a implicação decisiva é a
 recíproca. Se uma função tiver precisamente o divisor que Alice lhe
 atribui, que relação entre pontos é obrigatória? \cite{eagen-divisors}
 
@@ -743,7 +735,7 @@ contados com multiplicidade. Na multiplicação habitual, porém,
 duzentas posições binárias bastam para escrever o escalar. Podemos
 conservar essa economia se dermos a cada posição um lugar na curva.
 
-\section{Uma testemunha para um escalar de muitas posições}
+\section{O escalar e a tabela de duplicações}
 \label{sec:divisors-scalar-table}
 \label{sec:divisors-function-bound}
 \index{decomposicao de escalares@decomposição de escalares}
@@ -1086,11 +1078,11 @@ cada contagem possível corresponde a um elemento distinto do corpo.
 Esta limitação acompanhará a passagem para identidades que usam
 multiplicidades como coeficientes \cite{eagen-divisors}.
 
-Se Alice entregasse os coeficientes de \(f\) a Bruno, ele poderia
+Se Alice entregasse os coeficientes de \(f\) a Bob, ele poderia
 fazer estas avaliações. Poderia também procurar os zeros e descobrir
 as posições da tabela usadas para formar \(W\). Para conservar esses
 dados secretos, Alice vincula-se aos coeficientes e aos pontos. Resta
-escolher uma condição aritmética que Bruno possa exigir sobre aquilo
+escolher uma condição aritmética que Bob possa exigir sobre aquilo
 a que ela se vinculou.
 
 \section{A reciprocidade de Weil e a escolha da recta de desafio}
@@ -1099,7 +1091,7 @@ a que ela se vinculou.
 \index{f d@\(f(D)\), avaliação num divisor}
 \index{weil, reciprocidade de@Weil, reciprocidade de}
 
-Se Bruno soubesse avaliar a função num punhado de pontos públicos,
+Se Bob soubesse avaliar a função num punhado de pontos públicos,
 quanto ficaria a saber acerca da lista dos seus zeros? A reciprocidade
 de Weil dá uma resposta quando esses pontos constituem os zeros de
 outra função. Para a enunciar, comecemos por reunir as avaliações
@@ -1276,7 +1268,7 @@ um zero afim comum, os dois produtos que definem o resultante valem
 zero; as razões da lei local continuam a ser interpretadas através
 das unidades.
 
-Tomemos para \(g\) a recta de Bruno. Há valores imediatamente
+Tomemos para \(g\) a recta de Bob. Há valores imediatamente
 conhecidos no resultante \eqref{eq:fcmp-weil-reciprocity}. O pólo de
 uma recta não vertical tem ordem \(e=3\). Se o coeficiente de \(y\)
 na sua equação for um, teremos também \(\beta=1\). A reciprocidade
@@ -1442,7 +1434,7 @@ pólos triplos no infinito.
 Na conta anterior, cada factor correspondia a uma ocorrência. Uma
 multiplicidade secreta \(m_j\) obrigaria a calcular uma potência com
 expoente secreto. Alice já tem as multiplicidades nas posições do seu
-vector. Para que Bruno possa usá-las como coeficientes, convém passar
+vector. Para que Bob possa usá-las como coeficientes, convém passar
 do produto a uma soma em que a parcela do lugar \(P_j\) apareça
 multiplicada por \(m_j\). É o que se obtém derivando em ordem a \(z\).
 
@@ -1614,12 +1606,13 @@ Ficam assim ligadas as três maneiras de calcular a mesma quantidade.
 
 \section{O que o verificador pode concluir de uma só recta}
 \label{sec:divisors-arithmetic-certificate}
+\index{certificado de divisor@certificado de divisor!secante de desafio@secante de desafio}
 \label{sec:divisors-cost-and-composition}
 \index{certificado de multiplicacao@certificado de multiplicação!condicoes aritmeticas@condições aritméticas}
 \index{extraccao de testemunhas@extracção de testemunhas!divisores@divisores}
 \index{residuo de uma funcao racional@resíduo de uma função racional}
 
-Bruno conhece a base \(A\), a sua ordem \(\ell\), a tabela
+Bob conhece a base \(A\), a sua ordem \(\ell\), a tabela
 \(A_i=2^iA\) e o limite \(d\) para o pólo. Recebe compromissos de
 Alice, isto é, pontos públicos que a vinculam a certos valores e
 permitem conservar esses valores secretos. Neles estão fixadas as
@@ -1634,7 +1627,7 @@ inteiro do intervalo que a relação permite. Para a testemunha construída
 atrás, esses inteiros são as multiplicidades \(m_i\) de soma fixa.
 Duas bases da mesma ordem poderão usar as mesmas entradas ocultas.
 
-A primeira operação de Bruno é obter a recta. Num protocolo
+A primeira operação de Bob é obter a recta. Num protocolo
 interactivo, sorteia os pontos \(B_0,B_1\) depois de receber os
 compromissos. Na forma não interactiva, reconstrói-os a partir da
 transcrição pública que já inclui os compromissos. Em ambas as descrições calcula
@@ -1649,7 +1642,7 @@ O valor \(\gamma_i\) é o peso com que o ponto \(A_i\) responde
 àquela recta. Cada ocorrência suplementar de \(A_i\) acrescenta
 \(\gamma_i\) à soma. Os coeficientes \(u_i\) continuam com Alice.
 
-A segunda operação de Bruno é formar as condições que a prova terá
+A segunda operação de Bob é formar as condições que a prova terá
 de satisfazer com os valores comprometidos. Uma delas é a equação
 da curva para as coordenadas de \(W\). Outras três exprimem as
 razões que acabámos de calcular. Para cada encontro, a prova introduz
@@ -1678,9 +1671,9 @@ o valor dessa inversa. A comparação final é
  o_0+o_1+o_2=\sum_{i=0}^{L_A-1}\gamma_i u_i+v_W.
  \label{eq:divisors-final-linear-check}
 \end{equation}
-Bruno conhece os coeficientes públicos destas condições. Os números
+Bob conhece os coeficientes públicos destas condições. Os números
 \(o_r\), \(v_W\), \(u_i\) e as avaliações de \(f\) permanecem
-na testemunha. Para decidir, Bruno verifica o argumento aritmético
+na testemunha. Para decidir, Bob verifica o argumento aritmético
 que Alice lhe envia, com os compromissos iniciais e estas condições.
 Em Generalized Bulletproofs, essa verificação reduz-se a igualdades
 entre pontos calculados a partir da prova e da transcrição
@@ -1696,8 +1689,8 @@ a relação entre a tabela e \(W\)?
 Voltemos a \(\mathbb F_{17}\) e sigamos a decisão com números à vista.
 Alice emprega \(f=y-2x+9\) e \(u=(1,1,0,0,0)\). Pode usar a função
 normalizada \(8f\), pois o factor oito cancela-se em cada razão.
-O ponto que corresponde a este vector é \(W=3P=(10,6)\). Suponhamos
-que Alice conservou a função e os coeficientes, mas se vinculou ao
+O ponto que corresponde a este vector é \(W=3P=(10,6)\). Para medir o alcance do teste, suponhamos agora que Oscar se
+vinculou à mesma função e ao mesmo vector, acompanhados pelo
 ponto errado \(W'=(0,6)\), também na curva. Para a recta \(y=6\),
 ambos os inversos \(-W=(10,11)\) e \(-W'=(0,11)\) têm imagem
 \(Z=11\). A parcela final vale \((6-11)^{-1}=10\) em ambos os
@@ -1718,7 +1711,7 @@ passa a \((15-11)^{-1}=13\). A soma proposta é então
 \(12+11+13=2\pmod{17}\). A igualdade final exige \(10=2\) e a
 prova falha. As razões auxiliares estão determinadas pelos seus
 denominadores, todos não nulos neste exemplo. Para alterar a soma,
-Alice teria de alterar os dados a que se vinculou antes da recta.
+Oscar teria de alterar os dados a que se vinculou antes da recta.
 
 Examinemos primeiro o significado da igualdade como identidade
 racional na ordenada \(z\), para um declive que separe todos os
@@ -1873,10 +1866,10 @@ antes do sorteio. Se o número de posições cresce polinomialmente em
 qualquer potência inversa desse comprimento. É este o sentido de
 \emph{negligível}.
 
-Na forma de Fiat--Shamir, Bruno obtém a mesma recta de cada vez que
+Na forma de Fiat--Shamir, Bob obtém a mesma recta de cada vez que
 volta a ler uma dada transcrição. A probabilidade mede-se sobre as
 respostas do oráculo aleatório às consultas que produzem os desafios.
-Se Alice puder experimentar \(T\) compromissos distintos e cada
+Se Oscar puder experimentar \(T\) compromissos distintos e cada
 tentativa receber um desafio fresco com probabilidade condicional de
 coincidência no máximo \(\varepsilon\), a probabilidade de encontrar
 uma coincidência entre essas tentativas é no máximo
@@ -1964,8 +1957,8 @@ dar-lhes-á outros pesos. Se as duas provas usam as mesmas entradas
 comprometidas \(u_i\) e o mesmo intervalo de levantamento, a
 equação~\eqref{eq:divisors-extracted-scalar} dá em ambas o escalar
 \(\sum_i2^i\widetilde m_i\bmod\ell\). Alice pode assim provar a
-Bruno que dois pontos escondidos são \(s_AA\) e \(s_AA'\), conservando
+Bob que dois pontos escondidos são \(s_AA\) e \(s_AA'\), conservando
 consigo o escalar que usou para obter os dois pontos. No
 capítulo~\ref{chapter:fcmp-plus-plus}, essa igualdade de escalares ligará
 a abertura de um ramo da árvore aos pontos mascarados que a transacção
-apresenta.
+apresenta.\hypertarget{excerto.divisores.fim}{}

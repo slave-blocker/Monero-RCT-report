@@ -1,14 +1,16 @@
-\chapter{Transacções conjuntas ({\tt TxTangle})}
+\chapter{A construção colectiva de transacções com TxTangle}
 \label{chapter:txtangle}
 \index{txtangle@TxTangle}
 \index{transaccao@transacção!conjunta@conjunta}
 
-Uma transacção não conta histórias; deixa, contudo, relações. Mineiros,
-reservas de mineração, mercados com garantia e bolsas produzem ritmos e
-estruturas próprios, e esses hábitos podem alimentar heurísticas de grafos
-mesmo quando os montantes e os verdadeiros membros dos anéis permanecem
-ocultos (veja-se a secção 5.1 de \cite{AnalysisOfLinkability}). A álgebra cala
-muito, mas não corrige por si só os costumes de quem a usa.
+Alice e Bob podem concordar em fazer pagamentos distintos dentro de
+uma só transacção. À vista de quem a recebe há uma lista de entradas,
+uma lista de saídas e uma só taxa. O balanço geral mostra que o
+conjunto fecha. Se também se pudesse reconhecer publicamente um
+pequeno grupo de entradas e saídas que fechasse por si, esse grupo
+sugeriria quais os pagamentos de Alice. O mesmo raciocínio aplicar-se-ia
+a Bob. As informações sobre hábitos de gasto podem reforçar uma tal
+inferência \cite{AnalysisOfLinkability}.
 
 Na proposta \emph{TxTangle}, inspirada no CoinJoin de
 Bitcoin \cite{coinjoin-wiki}, vários participantes constroem uma única
@@ -57,24 +59,25 @@ adiciona \(\delta_uG\) ao próprio pseudo-compromisso. Então
  \sum_{u=1}^{N}\delta_u
  &=\sum_{\{u,v\}}(s_{u,v}+s_{v,u})=0.           \label{eq:txtangle-offset-zero}
 \end{align}
-Logo, a Equação~\eqref{eq:txtangle-global-balance} continua válida. Para um
-subconjunto próprio \(S\subsetneq\{1,\ldots,N\}\), porém,
+Logo, a Equação~\eqref{eq:txtangle-global-balance} continua válida. Fixemos um
+subconjunto próprio não vazio \(S\subsetneq\{1,\ldots,N\}\). Temos
 \begin{align}
  \sum_{u\in S}\delta_u
    =\sum_{\substack{u\in S\\v\notin S}}s_{u,v}, \label{eq:txtangle-cut}
 \end{align}
-porque os termos internos de \(S\) se cancelam aos pares. Sob a hipótese de
-que pelo menos um termo de corte é desconhecido e uniforme, o lado direito é
-uniforme em \(\mathbb Z_l\). Um balanço parcial deixa, portanto, um resíduo
-aleatório; só a reunião de todos os participantes faz desaparecer a dívida.
+porque os termos internos de \(S\) se cancelam aos pares. Suponhamos que
+pelo menos um termo do corte é uniforme, condicionalmente aos restantes
+termos e à informação do observador. O lado direito é então uniforme em
+\(\mathbb Z_l\): somar-lhe uma constante apenas permuta os escalares.
+Para este subconjunto fixado, o resíduo é zero com probabilidade \(1/l\).
+A soma de todos os participantes, por sua vez, anula-se identicamente.
 
-É esta a parte verdadeiramente matemática de TxTangle. Os \emph{offsets}
-alteram as máscaras, não os montantes, e cancelam-se apenas no agregado. Não
-demonstram, todavia, que o protocolo distribuído que os produz seja seguro:
-essa conclusão exige autenticação, vinculação do transcrito, resistência a
-abortos e um modelo explícito do adversário.
+Os \emph{offsets} modificam o coeficiente de \(G\) nos compromissos e
+conservam o coeficiente do montante em \(H\). A segurança do protocolo
+distribuído acrescenta a estas identidades a autenticação, a vinculação
+do transcrito e o tratamento de abortos, sob um modelo explícito do adversário.
 
-\section{Construção descentralizada histórica}
+\section{Construção descentralizada}
 
 \subsection{Canal de comunicação em grupo}
 \label{subsec:n-way-channel}
@@ -103,7 +106,7 @@ ligar de menos permite substituições; ligar de mais recompõe o participante.
 \subsection{Cinco rondas de mensagens}
 \label{subsec:message-rounds-txtangle}
 
-O protocolo histórico divide a construção em cinco rondas. Cada ronda tem um
+O protocolo divide a construção em cinco rondas. Cada ronda tem um
 intervalo próprio, e as publicações são espalhadas dentro dele para que a
 proximidade temporal não denuncie grupos de entradas ou saídas.
 

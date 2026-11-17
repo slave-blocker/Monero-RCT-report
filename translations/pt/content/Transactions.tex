@@ -1,36 +1,86 @@
-\chapter{Transacções Confidenciais em Anel (RingCT)}
+\chapter{A construção de uma transacção RingCT}
 \label{chapter:transactions}
 
-Os capítulos \ref{chapter:addresses} e
-\ref{chapter:pedersen-commitments} definiram os componentes necessários a uma
-transacção RingCT. Cada saída contém uma chave de utilização única, uma
-etiqueta de vista, um montante cifrado e um compromisso. Uma prova
-Bulletproofs+ demonstra que os montantes de saída pertencem ao intervalo de 64
-bits. Cada entrada oculta a saída gasta entre quinze desvios; a CLSAG demonstra
-conhecimento da chave de gasto e da diferença correcta de máscaras na mesma
-posição do anel. A imagem de chave permite detectar gastos repetidos, e os
-pseudo-compromissos das entradas equilibram os compromissos das saídas e a
-taxa.
+Voltemos à saída de 11 unidades do capítulo~\ref{chapter:introduction}.
+Alice conhece a chave que a pode gastar e a abertura do compromisso
+que a acompanha. Quer que Bob receba 7, que lhe voltem 3 e que a taxa
+seja 1. Já sabemos construir cada peça do pagamento. Falta descobrir
+que dados passam de uma peça à seguinte para que o nó possa verificar
+a transacção inteira.
+\index{pagamento de Alice a Bob@pagamento de Alice a Bob}
+\index{equilibrio de montantes@equilíbrio de montantes}
+\index{prova de intervalo@prova de intervalo!num pagamento RingCT@num pagamento RingCT}
 
-É necessário verificar quatro propriedades: o remetente conhece uma chave de
-gasto em cada anel; o montante da saída real coincide com o usado no
-pseudo-compromisso; as saídas não criam valor; e a assinatura vincula à
-autorização os bytes exactos da transacção, incluindo as saídas, a taxa, os
-anéis e as provas.
+\section{As onze unidades vistas pelo nó}
+\label{sec:pagamento-ringct}
 
-As respostas vêm de três construções que já conhecemos:
+Escrevamos \(C=xG+11H\) para o compromisso antigo. A carteira de
+Alice usa o endereço de Bob para a primeira saída do exemplo e um
+endereço seu para o troco. Os segredos partilhados de cada destino
+dão as novas máscaras \(y_B,y_A\), segundo a
+secção~\ref{sec:pedersen_monero}. O nó receberá os pontos
+\[
+ C_B=y_BG+7H,\qquad C_A=y_AG+3H.
+\]
+Os índices de transmissão podem surgir em qualquer das duas ordens.
+Os índices \(A,B\) são aqui uma comodidade do leitor, que conhece os
+destinos. Nenhum deles figura como nome no pagamento.
 
-\begin{itemize}
-    \item os endereços ocultos e as imagens de chave do capítulo
-    \ref{chapter:addresses};
-    \item os compromissos, pseudo-compromissos e provas Bulletproofs+ do
-    capítulo \ref{chapter:pedersen-commitments};
-    \item a assinatura CLSAG da secção \ref{sec:CLSAG}.
-\end{itemize}
+A máscara de \(C\) estava fixada muito antes de Alice pensar nesta
+compra. Obtê-la somando \(y_B\) e \(y_A\) seria mera coincidência.
+Alice dá, pois, à entrada outra apresentação, com
+\(x'=y_B+y_A\pmod l\):
+\[
+                       \widetilde C=x'G+11H .
+\]
+\index{pseudo-compromisso@pseudo-compromisso!num pagamento RingCT@num pagamento RingCT}
+O nó tem ambos os compromissos de saída, o pseudo-compromisso
+\(\widetilde C\) e a taxa pública. Pode calcular \(C_B+C_A+H\)
+e compará-lo com \(\widetilde C\). A razão por que os pontos
+coincidem vê-se desenvolvendo a soma:
+\begin{align*}
+ C_B+C_A+H
+  &=(y_B+y_A)G+(7+3+1)H\\
+  &=x'G+11H=\widetilde C .
+\end{align*}
+O nó só teve de somar pontos e comparar o resultado. Os escalares \(x',y_B,y_A\) e os três montantes usados
+para explicar a igualdade continuam nas carteiras.
 
-As relações seguintes fixam a especialização de transacções admitida pelas
-regras da versão 16 \cite{monero-source-v16}. O formato dos bytes permite
-reconstruir os mesmos dados públicos que entram nas verificações algébricas.
+Falta ligar o ponto do membro esquerdo ao dinheiro que Alice possuía.
+O anel inclui \(C\) ao lado da chave da saída. Na posição que conhece,
+Alice pode calcular a diferença de máscaras \(z=x-x'\). O ponto
+correspondente é
+\[
+                 C-\widetilde C=(x-x')G+(11-11)H=zG.
+\]
+Assim se reencontram as duas testemunhas de CLSAG. Uma abre a chave
+da saída, a outra dá o logaritmo desta diferença, ambas na mesma
+coluna. Os pesos públicos associam as duas relações à lista concreta
+dos candidatos e ao pseudo-compromisso. A chave de uso único dá
+também a imagem que o nó procura no registo dos gastos. A
+secção~\ref{sec:CLSAG} demonstrou por que o ciclo de desafios se
+fecha com essas testemunhas.
+
+Ainda poderia a igualdade dos compromissos aceitar, só pela soma,
+quantidades impróprias para uma saída. No corpo \(\mathbb Z_l\),
+\(12+(l-2)+1=l+11\) tem o mesmo resíduo que 11. O representante
+\(l-2\) é, porém, muito maior que \(2^{64}-1\). A prova Bulletproofs+
+exige uma decomposição em 64 bits para \emph{cada} uma das duas
+saídas. Para os montantes honestos os primeiros bits, a começar nas
+unidades, são \((1,1,1)\) e \((1,1)\), e todos os restantes são zero.
+Dão \(1+2+4=7\) e \(1+2=3\). Um vector de 64 bits nunca recompõe
+\(l-2\).
+
+A prova de intervalo prende esses algarismos aos mesmos \(C_B,C_A\)
+que entram na soma. A vinculação dos compromissos depende da
+dificuldade de obter \(\log_G H\). No exemplo, mesmo contando duas
+saídas e uma taxa, cada qual inferior a \(2^{64}\), o total é menor
+que \(3\cdot2^{64}<l\). Entre somas inteiras nesse domínio, a
+igualdade de resíduos implica igualdade de inteiros. O nó pôde assim
+passar da igualdade de pontos à contabilidade do primeiro capítulo.
+A assinatura, a prova de intervalo e o equilíbrio têm, cada qual,
+um papel indispensável nessa passagem
+\cite{MRL-0011-CLSAG,bulletproofs-plus-paper,monero-source-v16}.
 
 \section{Formato RingCT com Bulletproofs+}
 \label{sec:RCTTypeBulletproofPlus}
@@ -564,219 +614,37 @@ Uma transacção de mineiro criada à altura \(h\) tem obrigatoriamente
 partir dessa altura; o bloqueio de 60 domina a maturação ordinária de 10.
 
 
-\subsection{A relação desconhecida \texorpdfstring{$\gamma=\log_GH$}{gamma}}
+\subsection{Da igualdade de pontos ao valor conservado}
 \label{gamma}
+\index{compromisso@compromisso!vinculacao no equilibrio@vinculação no equilíbrio}
 
-O ponto \(H\) é público e, por pertencer ao subgrupo gerado por \(G\), existe
-matematicamente um escalar \(\gamma\) tal que
-\begin{align*}
- H=\gamma G.
-\end{align*}
-A segurança exige que esse escalar seja desconhecido. A construção de \(H\)
-por \emph{hash} para ponto procura impedir que algum participante conheça a
-relação durante a escolha dos parâmetros. Daqui em diante, toda a aritmética
-escalar desta secção é módulo \(l\).
+A equação~\eqref{eq:transaction-commitment-balance} é a mesma
+qualquer que seja o número de entradas. De um lado está uma soma de
+compromissos cujos montantes vêm de saídas anteriores, do outro a soma
+dos compromissos novos e a taxa. Denotemos por \(d\) a diferença das
+duas somas inteiras de montantes e por \(u\) a diferença das somas
+de máscaras. O significado da comparação é
+\[
+                            uG+dH=\mathcal O.
+\]
+As máscaras honestas dão \(u=0\). Se alguém apresentasse aberturas
+conhecidas para as quais \(d\ne0\pmod l\), a igualdade daria
+\(H=-u d^{-1}G\). É neste passo que intervém a hipótese de vinculação.
+A extracção das aberturas nas provas e a dificuldade de encontrar a
+relação entre \(G\) e \(H\) permitem interpretar a igualdade como
+\(d=0\pmod l\).
 
-Suponha-se, contudo, que o Óscar conhece \(\gamma\). Compra ou recebe
-\(0{,}1\) XMR numa saída já gastável que possui. Conhece a chave de gasto, o
-montante
-\(b\), a máscara \(y\) e o compromisso histórico
-\begin{align*}
- C^a=yG+bH.
-\end{align*}
-Não precisa de publicar um novo ponto \(C^a_{\mathrm{mau}}\). Escolhe um
-montante alternativo de 64 bits, por exemplo
-\(b_{\mathrm{mau}}=100\) XMR, e calcula uma segunda abertura do mesmo ponto:
-\begin{align}
- y_{\mathrm{mau}}
-   =y+(b-b_{\mathrm{mau}})\gamma\pmod l.
- \label{eq:gamma-bad-mask}
-\end{align}
-Então
-\begin{align*}
- y_{\mathrm{mau}}G+b_{\mathrm{mau}}H
- &=\bigl(y+(b-b_{\mathrm{mau}})\gamma\bigr)G
-      +b_{\mathrm{mau}}\gamma G\\
- &=yG+b\gamma G\\
- &=C^a.
-\end{align*}
-As duas aberturas representam montantes diferentes no mesmo ponto publicado na
-lista de blocos.
-
-Ao gastar a saída, o Óscar trata \(C^a\) como compromisso a
-\(b_{\mathrm{mau}}\). Escolhe uma pseudo-máscara \(x'\) e publica
-\begin{align*}
- \widetilde C^a=x'G+b_{\mathrm{mau}}H.
-\end{align*}
-Na coluna real do anel,
-\begin{align*}
- C^a-\widetilde C^a
-   =(y_{\mathrm{mau}}-x')G,
-\end{align*}
-portanto conhece o segundo testemunho CLSAG
-\(z=y_{\mathrm{mau}}-x'\). Continua a precisar de \(p\), a chave de gasto da
-saída: conhecer \(\gamma\) não rouba moedas alheias por si só. Mas permite
-reabrir as próprias moedas com montantes inventados.
-
-O Óscar cria, por exemplo, duas saídas cuja soma, mais a taxa, é
-\(b_{\mathrm{mau}}\). Escolhe as máscaras de saída, satisfaz
-\eqref{eq:transaction-commitment-balance}, produz uma Bulletproofs+ válida
-para esses dois novos montantes de 64 bits e assina cada entrada. Tudo passa:
-a CLSAG conhece \(p\) e \(z\), o equilíbrio usa a abertura falsa e a prova de
-domínio só pergunta se os \emph{novos} montantes de saída estão no domínio.
-A prova de domínio que acompanhou \(C^a\) quando este foi criado demonstrava que
-existia uma abertura antiga em 64 bits; não demonstrava que essa abertura
-era única, e o gasto não volta a provar o domínio das entradas.
-
-Sem \(\gamma\), obter uma abertura alternativa exigiria
-\begin{align*}
- y_{\mathrm{mau}}
-  =\log_G\!\left(C^a-b_{\mathrm{mau}}H\right),
-\end{align*}
-o cálculo de um logaritmo discreto.
-
-\subsubsection*{Extracção a partir de duas aberturas}
-
-O ponto essencial é que não conseguimos calcular \(\gamma\) olhando apenas
-para \(C^a\). Precisamos de conhecer duas descrições completas do mesmo ponto:
-\begin{align*}
- C^a&=yG+bH,\\
- C^a&=y_{\mathrm{mau}}G+b_{\mathrm{mau}}H.
-\end{align*}
-Ou seja, precisamos dos quatro números
-\begin{align*}
- (y,b)\qquad\text{e}\qquad
- (y_{\mathrm{mau}},b_{\mathrm{mau}}).
-\end{align*}
-Como as duas expressões dão exactamente o mesmo compromisso, subtraímos uma
-da outra:
-\begin{align*}
- 0
- &=(y-y_{\mathrm{mau}})G
-   +(b-b_{\mathrm{mau}})H \\
- &=\bigl(y-y_{\mathrm{mau}}
-   +(b-b_{\mathrm{mau}})\gamma\bigr)G.
-\end{align*}
-Na segunda linha substituímos simplesmente \(H=\gamma G\). Como \(G\) tem
-ordem prima \(l\), o escalar entre parênteses tem de ser zero módulo \(l\).
-Podemos então isolar \(\gamma\):
-\begin{align}
- \gamma=
- (y_{\mathrm{mau}}-y)
- (b-b_{\mathrm{mau}})^{-1}\pmod l.
- \label{eq:gamma-extraction}
-\index{gamma@\(\gamma=\log_GH\)}
-\index{compromisso@compromisso!duas aberturas@duas aberturas}
-\index{inflacao@inflação!relacao entre geradores@relação entre geradores}
-\end{align}
-O inverso existe: dois montantes distintos de 64 bits têm diferença não
-nula módulo o primo \(l\). Encontrar uma segunda abertura não trivial quebra,
-pois, a vinculação computacional e revela exactamente
-\(\gamma=\log_GH\), a relação de logaritmo discreto entre os geradores.
-
-\subsubsection*{Exemplo num grupo de ordem 11}
-
-Considere-se um grupo de ordem \(11\) no qual a relação
-secreta é
-\begin{align*}
- H=4G.
-\end{align*}
-Neste exemplo, \(\gamma=4\). Uma primeira abertura é
-\begin{align*}
- y=2,\qquad b=3.
-\end{align*}
-O compromisso correspondente é
-\begin{align*}
- C^a
- &=2G+3H \\
- &=2G+3(4G) \\
- &=14G=3G
-   \qquad\bigl(\text{pois }14\equiv3\pmod{11}\bigr).
-\end{align*}
-Suponhamos que alguém encontra outra abertura do mesmo \(C^a\):
-\begin{align*}
- y_{\mathrm{mau}}=5,\qquad b_{\mathrm{mau}}=5.
-\end{align*}
-Com efeito,
-\begin{align*}
- 5G+5H
- &=5G+5(4G) \\
- &=25G=3G
-   \qquad\bigl(\text{pois }25\equiv3\pmod{11}\bigr).
-\end{align*}
-As duas aberturas dão o mesmo ponto \(C^a=3G\). Agora usamos os quatro
-números na equação \eqref{eq:gamma-extraction}:
-\begin{align*}
- \gamma
- &=(5-2)(3-5)^{-1}\pmod{11}.
-\end{align*}
-Temos \(3-5=-2\equiv9\pmod{11}\). O inverso de \(9\) módulo \(11\) é \(5\),
-porque \(9\cdot5=45\equiv1\pmod{11}\). Assim,
-\begin{align*}
- \gamma=3\cdot5=15\equiv4\pmod{11}.
-\end{align*}
-Recuperámos precisamente a relação usada para construir o exemplo.
-
-As duas implicações são:
-\begin{itemize}
- \item se o Óscar conhece \(\gamma\), consegue fabricar uma segunda abertura;
- \item se alguém consegue fabricar uma segunda abertura diferente e
- conhecemos as duas aberturas, conseguimos extrair \(\gamma\).
-\end{itemize}
-Um algoritmo que recebesse a primeira abertura e encontrasse eficientemente a
-segunda dar-nos-ia, pela equação \eqref{eq:gamma-extraction}, um algoritmo para
-calcular \(\log_GH\). Portanto, encontrar uma segunda abertura é pelo menos tão
-difícil quanto resolver o PLD. \(\gamma\) não pode ser extraído apenas de
-\(C^a\); a extracção usa duas aberturas distintas do mesmo compromisso.
-
-Os 64 bits dos montantes também não encolhem o problema para 64 bits. Depois
-de escolher um candidato \(b_{\mathrm{mau}}\), o Óscar consegue calcular o
-ponto
-\begin{align*}
- P=C^a-b_{\mathrm{mau}}H,
-\end{align*}
-mas continua a precisar do escalar \(y_{\mathrm{mau}}\) tal que
-\(P=y_{\mathrm{mau}}G\). Como \(G\) gera o subgrupo, qualquer montante candidato
-produz um ponto que tem algum logaritmo; o compromisso não indica se esse
-montante corresponde à abertura original. O obstáculo é calcular o logaritmo
-correspondente, um PLD no grupo inteiro, cujo tamanho é \(l\), não uma busca no
-intervalo dos montantes.
-
-Os melhores ataques \emph{genéricos} clássicos conhecidos, como o método rho
-de Pollard, precisam
-de uma ordem de grandeza de
-\begin{align*}
- \sqrt l
-\end{align*}
-operações de grupo, devido à complexidade de colisão de ordem \(\sqrt l\).
-Aqui \(l\) está um pouco acima de \(2^{252}\), logo \(\sqrt l\) está perto de
-\(2^{126}\), cerca de \(8{,}5\times10^{37}\) operações. À taxa hipotética de
-\(10^{18}\) operações de grupo por segundo, o cálculo levaria cerca de
-\(2{,}7\times10^{12}\) anos. Uma operação de grupo real também custa mais do
-que uma instrução elementar de processador.
-
-``Genérico'' quer dizer que o ataque usa apenas as operações do grupo e não
-uma fraqueza especial da curva, da geração de \(H\) ou da implementação. A
-estimativa \(2^{126}\) não é uma prova de que nunca surgirá matemática melhor;
-é o nível de segurança clássico que resulta dos melhores métodos conhecidos.
-Um algoritmo assintoticamente ou estruturalmente melhor afectaria todas as
-construções que dependem do mesmo PLD; aumentar moderadamente os recursos
-computacionais não altera a ordem de grandeza deste custo.
-
-O segredo de \(\gamma\) é, pois, a hipótese de \emph{vinculação} dos
-compromissos e da oferta monetária. Não é a hipótese de ocultação: com uma
-máscara uniforme, \(yG+bH\) esconde perfeitamente \(b\) mesmo de quem
-conhecesse \(\gamma\). Os logaritmos que aparecem ao variar
-\(b_{\mathrm{mau}}\) não são segredos independentes; são transformações
-afins da mesma relação \(\gamma\). Se a relação for conhecida, torna-se
-possível criar montantes; se permanecer desconhecida, cada transformação exige
-resolver um PLD.
-
-Três utilizações da letra gamma designam objectos diferentes. Este
-\(\gamma=\log_GH\) é a relação desconhecida entre geradores. A distribuição
-gamma da \texttt{gamma\_picker} escolhe idades de desvios. E os símbolos
-\(\gamma_j\) usados por vezes na literatura de Bulletproofs para máscaras de
-compromissos são apenas escalares escolhidos pelo provador.
+As saídas ordinárias admitem montantes em \([0,2^{64})\), e o seu
+número por transacção está limitado. Do lado das entradas, a
+assinatura liga cada montante a uma saída válida anterior, e o peso
+da transacção limita o número de referências que ela pode conter.
+Mesmo a cota grosseira de uma entrada por byte, no limite de
+\(10^6\) bytes da serialização considerada, deixa ambas as somas
+muito aquém de \(l>2^{252}\). Assim, dois totais diferentes dentro
+dos limites admitidos têm resíduos diferentes. A conclusão acerca
+dos inteiros exige tanto estes limites como as provas de intervalo.
+No capítulo~\ref{chapter:dlog-relations}, a mesma equação reaparecerá
+na comparação de duas aberturas de uma família de bases.
 
 \section{Resumo conceptual}
 \label{sec:transaction_summary}
@@ -979,3 +847,8 @@ transacção admitida e dados que o destinatário consiga reconhecer e
 abrir. Esta separação explica por que a integridade assinada de
 \texttt{extra} e a correcção das suas relações de derivação são
 propriedades distintas~\cite{monero-source-v16}.
+
+Uma vez aceites os dados pela carteira e pelo nó, Bob pode já reconhecer
+os seus 7, e Alice os 3 de troco. Para contar uma confirmação, Bob terá
+ainda de encontrar a transacção num bloco do ramo que a sua rede aceita.
+É aí que a ordem dos gastos adquire significado comum.

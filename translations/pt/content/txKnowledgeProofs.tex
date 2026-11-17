@@ -1,17 +1,29 @@
-\chapter{Provas sobre transacções}
+\chapter{Provas de pagamento, de despesa e de reservas}
 \label{chapter:tx-knowledge-proofs}
 \index{prova@prova!sobre transaccoes@sobre transacções}
 % Original draft by Sarang Noether, Ph.D.; implementation review for this
 % edition against Monero revision 3646f648db57f60cca86430e25a635d19fa9b92a.
 
-Uma carteira pode divulgar provas limitadas acerca de uma transacção ou de
-um conjunto de saídas, conservando reservados os segredos que as produzem.
-Cada prova fixa uma afirmação, os dados públicos necessários para a testar e
-o conhecimento exigido ao provador.
+Alice pagou 7 a Bob. Mais tarde, precisa de mostrar a um terceiro
+que aquele pagamento satisfez uma factura. A lista de blocos conserva
+a transacção, mas o terceiro que a consulta vê duas saídas e uma taxa.
+Como há-de distinguir os 7 de Bob dos 3 de troco?
 
-Estes artefactos são transmitidos entre o provador e um observador, que os
-verifica com os dados da lista de blocos. A sua função é fornecer evidência
-sobre transacções já existentes \cite{monero-source-v16}.
+Alice conservou o escalar efémero com que construiu a chave pública
+da transacção. Bob conserva a chave de vista com que reconheceu a
+saída. Cada um pode, por uma via própria, mostrar ao terceiro o ponto
+partilhado que permite a leitura. A prova de igualdade de logaritmos
+do capítulo~\ref{chapter:advanced-schnorr} dá a esse ponto uma origem
+verificável. O terceiro poderá procurar no pagamento as saídas do
+endereço indicado e abrir os respectivos montantes.
+
+Se a pergunta for quem conhece as chaves de uma entrada, o segredo
+necessário já é outro. E se for quanto controla uma carteira,
+será preciso indicar as saídas a contar e ver quais das suas imagens
+já figuram entre os gastos. Estas perguntas dão lugar a provas com
+destinatários e alcances diferentes \cite{monero-source-v16}.
+\index{pagamento de Alice a Bob@pagamento de Alice a Bob!prova a terceiros@prova a terceiros}
+\index{prova de pagamento@prova de pagamento}
 
 \section{Interface e alcance}
 \label{sec:proofs-monero-proofs}
@@ -349,7 +361,7 @@ novo, porque pode mudar depois da geração.
 \section{Afirmações de pagamento e identidade}
 
 As provas anteriores tratam relações entre chaves. Não autenticam nomes,
-empresas, facturas ou contractos. Para ligar uma prova a uma identidade, o
+empresas, facturas ou contratos. Para ligar uma prova a uma identidade, o
 verificador deve fornecer uma mensagem específica e exigir, separadamente,
 uma assinatura autenticada dessa mensagem. A mensagem deve incluir pelo menos
 o ID da transacção, o endereço, a finalidade da prova e um desafio fresco.

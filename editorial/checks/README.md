@@ -4,6 +4,7 @@ Estes programas reproduzem identidades, dimensões e exemplos da exposição. Us
 
 Executar cada ficheiro com `python3 editorial/checks/NOME.py`:
 
+- `worked-examples.py`: pagamento de 11 unidades, pesos de Bulletproofs+, zeros e multiplicidades dos exemplos sobre F17, identidades em 75 secantes, razões e porta do certificado, interpolação, árvore de 684/685 saídas, cotas exactas e uniformidade do resíduo de TxTangle num corpo pequeno.
 - `sal-F2.py`: completude, extracção e simulação das relações de SAL.
 - `gbp-F3.py` verifica o coeficiente reservado, a contribuição dos compromissos escalares e das suas máscaras na avaliação pública, os sinais das correcções vectoriais e as dobras do IPA até à igualdade final. No circuito dos dois quadrados, compara as saídas correctas \((9,16)\) com \((10,15)\) e verifica também o resíduo obtido quando o compromisso escalar guarda \(24\) em lugar de \(25\).
 - `tree-F4.py`: parâmetros e transformações de curvas, projecção da torção, árvore e fecho da raiz.

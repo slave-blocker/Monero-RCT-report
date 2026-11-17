@@ -1,15 +1,19 @@
-\chapter{Mercados garantidos por terceiros}
+\chapter{O depósito em garantia}
 \label{chapter:escrowed-market}
 
-Uma garantia 2-de-3 coloca comprador, vendedor e moderador no mesmo endereço
-multi-assinatura. Qualquer par pode autorizar um gasto; nenhum participante
-pode fazê-lo sozinho. Esta propriedade permite liquidar uma compra por acordo
-directo ou por uma decisão apoiada pelo moderador.
+Alice quer comprar um bem a Bob. Bob gostaria de ter a certeza do
+pagamento antes de o enviar. Alice gostaria de o receber antes de
+entregar definitivamente o preço. Podem pôr os fundos numa saída
+cuja despesa exija a cooperação de dois entre três participantes,
+contando com um moderador escolhido por ambos.
 
-A assinatura autoriza o movimento dos fundos. A ordem de compra, a entrega,
-o prazo e as provas de uma disputa pertencem ao acordo comercial e ao
-protocolo de comunicação entre os participantes. O consenso verifica a
-transacção RingCT resultante; a aplicação relaciona-a com esse acordo.
+Enquanto estiverem de acordo, Alice e Bob bastam para decidir a
+liquidação. Se houver disputa, o moderador pode juntar-se a um dos
+dois para autorizar a solução prevista. Um nó consegue verificar a
+autorização da despesa. Saber se o bem chegou em condições exige
+outras provas, guardadas pelos participantes no acordo comercial.
+Esta divisão de responsabilidades dá sentido ao depósito em garantia.
+\index{deposito sob garantia@depósito sob garantia}
 
 \section{Distribuição de responsabilidades}
 \label{sec:escrow-implementation-status}
@@ -39,7 +43,7 @@ comerciais e a transacção que cada par pode autorizar.
 \index{escrow@escrow|see{depósito sob garantia}}
 \index{arbitro@árbitro}
 
-Sejam \(B\), \(V\) e \(M\) o comprador, o vendedor e o moderador. A política
+Na notação dos papéis, \(B\) designa a parte compradora (Alice), \(V\) a parte vendedora (Bob) e \(M\) o moderador. A política
 de autorização é
 \begin{align}
  \mathcal A
@@ -120,7 +124,7 @@ No nível RingCT, sejam \(C_j^{\rm in}\) os pseudo-compromissos das entradas e
  \label{eq:escrow-ringct-balance}
 \end{align}
 A equação prova o equilíbrio dos compromissos; não prova que
-\(\mathbf v\) corresponde ao contracto comercial.
+\(\mathbf v\) corresponde ao contrato comercial.
 
 \subsection{Identidade de uma ordem}
 

@@ -1,13 +1,13 @@
-\chapter{Assinaturas tipo Schnorr avançadas}
+\chapter{As assinaturas em anel, de SAG a CLSAG}
 \label{chapter:advanced-schnorr}
 
-Entre as ferramentas do capítulo anterior, construímos uma prova de Schnorr a
-partir de uma só relação \(K=kG\). Podemos agora ligar várias relações ao mesmo desafio,
-esconder a posição da relação verdadeira num anel e, por fim, tornar as
-assinaturas ligáveis. SAG e bLSAG servirão de antepassados conceptuais; MLSAG
-explica a evolução histórica de RingCT; CLSAG é a construção usada pelas
-transacções activas na versão 16 do protocolo. Esta ordem apresenta a extensão
-progressiva do mecanismo sem confundir história com consenso actual.
+Alice já sabe assinar com uma única chave. Se a assinatura
+acompanhasse essa chave no pagamento a Bob, qualquer pessoa saberia
+de que saída vieram os 11. Suponhamos que Alice apresenta algumas
+chaves juntas e demonstra conhecer o segredo de uma delas. Para
+construir tal assinatura, seguiremos primeiro o que acontece quando
+uma resposta de Schnorr serve em várias igualdades. Depois faremos
+o desafio passar de chave em chave, até voltar à primeira.
 
 Em todo o capítulo trabalhamos no subgrupo de ordem prima \(l\) e escrevemos
 \(\mathbb Z_l\) para os escalares. As listas passadas a uma função hash têm
@@ -328,7 +328,7 @@ signatário. Na posição verdadeira,
 Assim, também essa ronda devolve o compromisso inicial e a cadeia inteira
 fecha.
 
-Vejamos o antigo exemplo de três membros, agora com os índices bem à vista.
+Tomemos um anel de três membros em que Alice ocupa o segundo lugar.
 Se \(\pi=2\), o signatário escolhe \(\alpha,r_1,r_3\) e calcula
 \begin{align*}
 c_3&=\mathcal H_n(\mathsf{SAG},\mathcal R,M,[\alpha G]),\\
@@ -390,8 +390,7 @@ independente dos chamarizes escolhidos. A adaptação foi exposta em
 \cite{MRL-0005-ringct} a partir de uma observação de Adam Back
 \cite{AdamBack-ring-efficiency} sobre a assinatura CryptoNote
 \cite{cryptoNoteWhitePaper}, por sua vez relacionada com o trabalho de
-Fujisaki e Suzuki \cite{Fujisaki2007}. É um antepassado conceptual: não é a
-assinatura usada pelas transacções Monero activas.
+Fujisaki e Suzuki \cite{Fujisaki2007}. A construção CLSAG da versão 16 conservará a mesma imagem.
 
 \subsection*{Propriedades pretendidas}
 
@@ -489,7 +488,7 @@ A assinatura é
 \sigma=(I,c_1,r_1,\ldots,r_n).
 \]
 Incluímos \(\mathcal R\) e \(I\) no prefixo de cada desafio. A apresentação
-original de bLSAG omitia o anel nesse hash; o prefixo explícito é a práctica
+original de bLSAG omitia o anel nesse hash; o prefixo explícito é a prática
 prudente para assinaturas deste género e evita depender de uma interpretação
 implícita da transcrição \cite{key-prefix-paper}.
 
@@ -570,86 +569,22 @@ A unicidade resulta de a intersecção dos dois subgrupos conter apenas a
 identidade: a ordem de um ponto dessa intersecção teria de dividir
 simultaneamente \(8\) e \(l\).
 
-Seja agora \(J=\mathcal H_p(K_\pi)\) e \(I=k_\pi J\) a imagem legítima.
-O proprietário da chave pode formar
+A carteira honesta forma \(I=k_\pi\mathcal H_p(K_\pi)\), que já
+pertence ao subgrupo primo. O nó recebe apenas uma sequência de bytes.
+Decodificar um ponto da curva estabelece a sua equação em coordenadas.
+Para reconhecer precisamente o domínio da imagem há ainda uma conta
+a fazer nessa decomposição:
 \[
- I^\star=I+T
+               [l]I=[l](I_l+T)=[l]T .
 \]
-com \(T\ne\mathcal O\) de ordem \(t\mid8\). Esta imagem tem uma codificação
-válida de ponto e difere de \(I\). Um registo que guardasse apenas os bytes
-das imagens aceites consideraria \(I\) e \(I^\star\) identificadores
-diferentes do gasto.
-
-Vejamos como a componente adicional entra na assinatura. O proprietário
-inicia a ronda verdadeira com \(\alpha G\) e \(\alpha J\), inclui
-\(I^\star\) no enunciado público e percorre as outras rondas usando essa
-mesma imagem. Depois de obter \(c_\pi\), calcula
-\[
- r_\pi=\alpha-c_\pi k_\pi\pmod l.
-\]
-O primeiro ponto recompõe-se como antes. O segundo passa a ser
-\begin{align*}
- \widehat R_\pi
-   &=r_\pi J+c_\pi I^\star\\
-   &=(\alpha-c_\pi k_\pi)J+c_\pi(k_\pi J+T)\\
-   &=\alpha J+c_\pi T.
-\end{align*}
-A redução módulo \(l\) usada na resposta é válida nos termos em \(J\),
-que tem ordem \(l\). No termo \(c_\pi T\), conta o representante inteiro
-canónico do desafio e o seu resto módulo \(t\).
-
-Se \(c_\pi\) for divisível por \(t\), esse último termo desaparece e a
-assinatura fecha. Para o ponto de ordem dois, por exemplo,
-\[
- [6](I+T)=[6]I,\qquad [5](I+T)=[5]I+T.
-\]
-O proprietário pode repetir a escolha dos valores efémeros até obter
-o resto pretendido. No modelo em que cada tentativa fornece um novo
-desafio independente e uniforme em \(\mathbb Z_l\), há
-\(\lceil l/t\rceil\) múltiplos de \(t\) entre \(0\) e \(l-1\);
-a probabilidade de êxito por tentativa é, portanto,
-\(\lceil l/t\rceil/l\), aproximadamente \(1/t\).
-O trabalho esperado fica próximo de duas, quatro ou oito tentativas.
-A imagem alterada participa desde o início nos hashes: a construção
-produz uma assinatura própria para essa imagem.
-
-Os oito pontos de torção dão oito imagens distintas \(I+T\) para a
-mesma saída. Uma delas é a imagem legítima; as outras sete permitiriam
-novos gastos se a validação aceitasse tais assinaturas e procurasse
-repetições apenas pela igualdade das imagens. Cada gasto poderia conservar
-as suas igualdades de montantes: a falha está na unicidade do identificador
-que liga o gasto à saída.
-
-O teste de subgrupo fecha precisamente esta possibilidade. Para
-\(I^\star=I+T\),
-\[
- [l]I^\star=[l]T.
-\]
-A multiplicação por \(l\) é invertível no subgrupo de ordem \(t\), porque
-\(\gcd(l,t)=1\). Logo \([l]T=\mathcal O\) equivale a \(T=\mathcal O\).
-Ao exigir \([l]I^\star=\mathcal O\), o verificador aceita apenas imagens
-com \(T=\mathcal O\); a condição adicional
-\(I^\star\ne\mathcal O\) exclui a imagem nula
-\cite{monero-source-v16}.
-
-Multiplicar apenas por oito teria outro efeito:
-\[
- [8](I+T)=[8]I.
-\]
-Essa operação elimina a diferença entre as variantes. É útil para
-levar pontos ao subgrupo, como fizemos nas funções hash, e exige que qualquer
-registo de ligação use uma representação coerente com essa projecção.
-O teste \([l]I=\mathcal O\) permite validar directamente a imagem que será
-guardada e comparada.
-
-A divulgação pública de 17 de Maio de 2017 relata que o exame da lista de
-blocos de Monero, efectuado em 20 de Fevereiro desse ano, não encontrou
-exploração desta falha \cite{key-image-bug}. A conclusão refere-se ao
-histórico examinado e ao mecanismo identificado. O fundamento matemático
-da investigação é público: cada imagem registada pode ser submetida ao
-teste de subgrupo, sem revelar qual membro do anel foi gasto nem conhecer
-a sua chave secreta. A ausência de imagens com componente de torção exclui,
-nesse histórico, os gastos adicionais construídos por este mecanismo.
+Sobre o grupo de torção de ordem oito, multiplicar pelo primo ímpar
+\(l\) é uma bijecção. Logo \([l]I=\mathcal O\) equivale a \(T=\mathcal O\).
+Exigindo também \(I\ne\mathcal O\), o nó obtém um ponto de ordem
+exactamente \(l\). É esse mesmo ponto, na sua codificação canónica,
+que entrará no teste de repetição. A multiplicação por oito empregada
+para produzir a base e a multiplicação por \(l\) empregada para
+validar a imagem têm assim objectivos distintos
+\cite{key-image-bug,monero-source-v16}.
 
 \subsection*{Ligação e hipóteses de segurança}
 
@@ -947,6 +882,7 @@ de anonimidade cresce com o número de colunas. Na aplicação de Monero
 considerada, cada anel tem 16 membros.
 
 \subsection*{Pesos de agregação}
+\index{peso@peso!agregacao em CLSAG@agregação em CLSAG}
 \index{clsag@CLSAG!pesos de agregacao@pesos de agregação}
 
 CLSAG vincula a combinação das linhas à matriz pública e às imagens.
@@ -1285,7 +1221,7 @@ devem ficar ligados à mesma execução.
 
 Na forma geral, CLSAG guarda \(n+1\) escalares e \(m\) imagens, usando
 \(nm\) chaves públicas. A redução de \(mn+1\) para \(n+1\) escalares é a
-vantagem concisa em relação a MLSAG. Na especialização Monero, a imagem
+vantagem concisa em relação a MLSAG. Na especialização de Monero, a imagem
 primária acompanha a entrada e a assinatura serializa apenas a imagem
 auxiliar, além desses \(n+1\) escalares.
 

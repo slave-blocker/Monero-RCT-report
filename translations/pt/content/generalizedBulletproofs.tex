@@ -1,5 +1,6 @@
-\chapter{Generalized Bulletproofs}
+\chapter{Generalized Bulletproofs e a prova de relações algébricas}
 \label{chapter:generalized-bulletproofs}
+\hypertarget{excerto.generalizadas.inicio}{}
 \index{generalized bulletproofs@Generalized Bulletproofs}
 \index{gbp@GBP|see{Generalized Bulletproofs}}
 
@@ -431,7 +432,8 @@ verificador fornece dois desafios não nulos, \(\lambda\) e \(\zeta\).
 
 \section{De muitas igualdades a um só coeficiente}
 \label{sec:gbp-coeficiente}
-\index{pesos@pesos!portas e restricoes@portas e restrições}
+\index{peso@peso!das linhas de um circuito@das linhas de um circuito}
+\index{peso@peso!das portas de multiplicacao@das portas de multiplicação}
 
 Quanto se enganou a primeira porta? A diferença
 \(a_{L,1}a_{R,1}-a_{O,1}\) mede-o exactamente. Façamos a mesma pergunta
@@ -814,11 +816,12 @@ visível quando o próprio circuito depende de um primeiro desafio.
 
 \section{O certificado de divisor dentro da prova}
 \label{sec:gbp-divisor}
-\index{divisor principal@divisor principal!verificacao em circuito@verificação em circuito}
+\index{divisor@divisor!verificacao em circuito@verificação em circuito}
+\index{certificado de divisor@certificado de divisor!verificacao em circuito@verificação em circuito}
 
-No capítulo~\ref{chapter:divisors}, Bruno escolhia uma recta e obtinha
+No capítulo~\ref{chapter:divisors}, Bob escolhia uma recta e obtinha
 três pontos de encontro. Alice conhecia os coeficientes da função a
-avaliar nesses pontos. Que números pode Bruno escrever nas matrizes
+avaliar nesses pontos. Que números pode Bob escrever nas matrizes
 do circuito quando esses coeficientes lhe ficam ocultos?
 Na curva \(y^2=x^3+2x+2\) sobre \(\mathbb F_{17}\), a recta \(y=6\)
 corta a curva, entre outros lugares, em \(B=(0,6)\). A função
@@ -960,4 +963,4 @@ Fiat--Shamir~\cite{eagen-divisors,generalized-bulletproofs-fixed,fcmp-plus-plus-
 Em FCMP++ a abertura oculta servirá para retirar a máscara de um ponto
 e reconhecer esse ponto entre os filhos de um ramo. O verificador
 conservará em cada passagem o que lhe é indispensável para a próxima,
-a ligação ao mesmo compromisso.
+a ligação ao mesmo compromisso.\hypertarget{excerto.generalizadas.fim}{}

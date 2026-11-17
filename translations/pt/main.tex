@@ -32,7 +32,7 @@
 
 % Color management package
 % -------------------------------------
-\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[dvipsnames]{xcolor}
 
 % Control line spacing 
 % -------------------------------------
@@ -189,7 +189,7 @@
 \vfill{}
 {\par\centering \textsc{\huge Zero a Monero: Segunda Edição}\par}
 \bigskip \bigskip
-{\par\centering \textsc{\LARGE Um guia técnico para uma moeda digital privada; para principiantes, amadores e especialistas}\par}
+{\par\centering \textsc{\LARGE Um guia técnico para uma moeda digital privada para principiantes, amadores e especialistas}\par}
 \bigskip
 {\par\centering \textsc{\LARGE Tradução portuguesa, \today{}}\par}
 %{\par\centering \textsc{\LARGE \today{}, Pre-Publication Draft 1.2.0}\par}
@@ -222,8 +222,14 @@
 \end{center}
 \begin{center} \vrule width 4.5in height 0.4pt \end{center} 
 \parindent=0pt 
-\include{front/abstract}
-\begin{center} \vrule width 4.5in height 0.4pt \end{center} 
+\input{front/abstract}
+\begin{center} \vrule width 4.5in height 0.4pt \end{center}
+\bigskip
+{\small\textbf{Reconhecimentos.} A obra de koe, Kurt M. Alonso e
+Sarang Noether nasceu da tese de mestrado de Alonso \cite{kurt-original}.
+No seu agradecimento, koe recorda Brandon Goodell e Sarang Noether pelas discussões
+no laboratório de investigação de Monero, moneromooo pela ajuda na leitura
+do código e os colaboradores e leitores pelas suas observações.\par}
 \end{minipage} 
 \vspace*{\fill}
 \end{center}
@@ -241,31 +247,34 @@
 \newpage
 \pagenumbering{arabic}
 \pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter\quad #1}{}}
 
 % -------- Chapters ----------------------------
 
+\part{A transacção confidencial}
 \include{content/introduction}
-
-\part{Essenciais}
 \include{content/basicConcepts}
-\include{content/divisors}
 \include{content/advancedSchnorr}
 \include{content/addresses}
 \include{content/commitments}
 \include{content/Transactions}
+
+\part{A rede e a confirmação dos pagamentos}
 \include{content/blockchain}
 \include{content/randomX}
 \include{content/dandelion}
+
+\part{Divisores e provas de pertença}
+\include{content/divisors}
 \include{content/generalizedBulletproofs}
 \include{content/fcmpPlusPlus}
 \include{content/dlogRelations}
 
-\part{Extensões}
+\part{Provas de pagamento e acordos entre participantes}
 \include{content/txKnowledgeProofs}
 \include{content/multisig}
 \include{content/escrowedMarket}
 \include{content/txTangle}
-
 % ___________________________________________________________________________________________________________
 %
 %				BACKMATTER

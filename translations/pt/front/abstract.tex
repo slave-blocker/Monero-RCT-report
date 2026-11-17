@@ -1,29 +1,19 @@
-A criptografia usa construções matemáticas e computacionais para estabelecer
-propriedades de segurança. Muitos dos conceitos fundamentais necessários neste
-livro podem ser apresentados a partir de álgebra linear básica e ciência da
-computação.
+Alice gasta uma saída de 11 unidades. Bob recebe 7, Alice recebe 3 de
+troco e a taxa é 1. A rede tem de conferir esta conta sem conhecer
+os montantes das saídas. Uma assinatura em anel autoriza o gasto, a
+imagem de chave torna reconhecível a sua repetição e os compromissos
+permitem somar quantidades ocultas. Das primeiras somas de pontos até
+à verificação de uma transacção RingCT, estas operações nascem das
+perguntas que o pagamento suscita \cite{MRL-0005-ringct}.
 
-Uma cripto-moeda usa criptografia para definir e transferir a posse de fundos.
-Para impedir que a mesma moeda seja gasta duas vezes ou que novas moedas sejam
-criadas arbitrariamente, as transacções são registadas numa lista de blocos: um registo público e distribuído que terceiros
-podem verificar \cite{Nakamoto_bitcoin}. A verificabilidade pública não exige
-que remetentes, destinatários e montantes fiquem expostos: Monero oculta
-remetentes e destinatários segundo o protocolo CryptoNote
-\cite{cryptoNoteWhitePaper}, e os montantes mediante RingCT
-\cite{MRL-0005-ringct}, permitindo ainda que a rede confirme a validade das
-transacções.
+A lista de blocos dá uma ordem aos pagamentos. RandomX associa trabalho
+à proposta de um bloco, e Dandelion++ rege os primeiros passos da
+transacção na rede. A construção FCMP++ permite estudar, por sua vez,
+o que muda quando a escolha secreta abrange todas as saídas de um
+conjunto representado por uma raiz. Os divisores em curvas elípticas
+e as Generalized Bulletproofs fornecem a linguagem dessa prova
+\cite{eagen-divisors,curve-trees,fcmp-plus-plus-paper}.
 
-A construção RingCT aqui estudada combina a curva Edwards25519
-\cite{Bernstein2008}, endereços de utilização única, assinaturas em anel
-CLSAG, compromissos de Pedersen e provas de intervalo Bulletproofs+.
-Na especialização de consenso da versão 16, os anéis têm 16 membros e as
-saídas incluem etiquetas de vista \cite{monero-source-v16}. RandomX fornece
-a função de prova de trabalho e Dandelion++ organiza a difusão inicial de
-transacções.
-
-A exposição apresenta os fundamentos antes de desenvolver estas
-composições. O estudo dos divisores prepara os certificados de logaritmo
-discreto usados por FCMP++; a árvore de curvas e as provas aritméticas
-estabelecem a pertença, e a autorização SAL liga-a à imagem de chave.
-As hipóteses de segurança acompanham cada construção, desde as operações
-elementares até às relações verificadas numa transacção completa.
+Por fim, as mesmas relações entre chaves servem para provar a um
+terceiro que se pagou, repartir a autorização de uma despesa, guardar
+um depósito em garantia e reunir vários participantes numa transacção.

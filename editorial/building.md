@@ -2,7 +2,7 @@
 
 Executar `python3 editorial/build-pt.py` a partir do repositório. O programa usa pdflatex e bibtex, estabiliza as remissões e termina se encontrar referências ou citações por resolver. Se existir um índice remissivo, executa também makeindex. O resultado fica em `/tmp/ztm-editorial-build/main.pdf`.
 
-Acrescentar `--export` actualiza `Zero-to-Monero-2-0-0-pt.pdf` e os excertos de divisores, de Generalized Bulletproofs e de FCMP++. O programa de exportação usa os destinos dos capítulos no PDF, compara o texto e a rasterização a 100 dpi de todas as páginas, e só depois substitui cada excerto. Também pode executar-se separadamente com `python3 editorial/export-chapters.py`.
+Acrescentar `--export` actualiza `Zero-to-Monero-2-0-0-pt.pdf` e os excertos de divisores, de Generalized Bulletproofs e de FCMP++. O programa de exportação usa as marcas de início e fim de cada excerto no PDF, conserva o marcador do capítulo e as remissões entre as suas páginas, compara o texto e a rasterização a 100 dpi de todas as páginas, e só depois substitui cada excerto. As ligações para outras partes do livro abrem o PDF integral, pelo caminho relativo que liga o excerto ao volume no repositório. Também pode executar-se separadamente com `python3 editorial/export-chapters.py`.
 
 Os directórios temporários são configuráveis com `--build-dir` e `--tex-deps`. A exportação requer os utilitários pdfinfo, pdftotext, pdftoppm e mutool.
 

@@ -1,4 +1,4 @@
-\chapter{Endereços}
+\chapter{Endereços e chaves de uso único}
 \label{chapter:addresses}
 
 Um endereço de Monero é uma instrução pública que permite a um remetente criar
@@ -99,7 +99,7 @@ saída, mas não o endereço público do qual ela foi derivada.
 
 \subsection*{Uma saída para um endereço principal}
 
-Isolemos a saída de índice \(t=0\) em que Alice paga \(0{,}123\) XMR a Bob.
+Isolemos a saída de 7 unidades destinada a Bob no capítulo~\ref{chapter:introduction}. Suponhamos que ocupa a posição \(t=0\).
 Uma transacção RingCT comum da versão~16 tem pelo menos duas saídas, mas a
 construção de cada uma pode ser estudada separadamente. Alice conhece
 \((K_B^s,K_B^v)\) e procede assim:
@@ -185,7 +185,7 @@ chave pública de cada saída é uma codificação de ponto admissível e, na
 versão~16, que o alvo tem a variante com etiqueta. Não prova a relação entre
 \(K_t^o\), \(R\) e qualquer endereço, nem exige que uma chave pública de
 transacção semanticamente válida exista em \texttt{extra}; esses são
-contractos de interoperabilidade das carteiras. O teste de codificação
+contratos de interoperabilidade das carteiras. O teste de codificação
 aplicado pelo consenso admite pontos fora do subgrupo primo.
 Uma transacção deliberadamente defeituosa pode assim ser aceite pelo
 consenso e, ainda assim, criar uma saída que a carteira pretendida não
@@ -438,32 +438,23 @@ Nem o consenso confirma que o vector está alinhado, nem prova as relações
 \(R=rG\), \(R_t=r_tG\) ou \(R_t=r_tK^{s,\iota}\): estas são convenções
 necessárias à descoberta pelas carteiras.
 
-\subsubsection*{O limite de Janus}
+\subsubsection*{A confirmação de recepção}
 
-O teste de recepção acima confirma que a chave de gasto recuperada pertence à
-tabela de Bob; não confirma publicamente que as duas metades do endereço
-fornecido a Alice foram usadas como um par. Suponhamos que um remetente
-malicioso suspeita da relação entre
-\((D_1,C_1)=(K_B^{s,1},k_B^vD_1)\) e
-\((D_2,C_2)=(K_B^{s,2},k_B^vD_2)\). Pode escolher \(r\) e publicar
-\[
- R=rD_2,\qquad
- K_t^o=\mathcal H_n\bigl(8rC_2,\operatorname{varint}(t)\bigr)G+D_1.
-\]
-Bob calcula \(8k_B^vR=8rC_2\), recupera \(D_1\) e associa a saída ao primeiro
-sub-endereço. Se depois revelar ao remetente que recebeu esse pagamento, a
-resposta confirma que \(D_1\) e \(D_2\) usam a mesma chave de vista: é o
-chamado ataque de Janus \cite{janus-attack}.
+Quando a carteira de Bob encontra uma das suas chaves de gasto na
+tabela, pode creditar a saída à conta correspondente. A derivação que
+fez usou a chave de vista partilhada pelos seus sub-endereços. Daí
+resulta uma condição de privacidade conhecida pelo nome de Janus.
+Uma confirmação de recepção comunicada ao exterior pode dar a Oscar
+informação sobre a associação entre sub-endereços. A assinatura de
+gasto e a confidencialidade da chave privada têm aqui outro âmbito.
+O dado sensível é a própria resposta de Bob, que associa uma entrega
+observável a uma conta \cite{janus-attack}.
 
-Isto não entrega ao atacante a chave privada nem lhe permite gastar a saída;
-é uma possibilidade de ligação provocada activamente. Evitar confirmações
-externas automáticas reduz o oráculo, mas uma defesa criptográfica completa
-exige um contracto adicional entre remetente e carteira receptora. As
-propostas incluem publicar material que permita à carteira completa verificar
-que a chave de vista e a chave de gasto usadas pelo remetente pertencem ao
-mesmo sub-endereço \cite{janus-mitigation-issue-62}. Uma mitigação de carteira
-tem de fixar essa relação adicional e o tratamento das transacções que
-seguem as convenções anteriores.
+Para verificar a intenção do remetente, a carteira precisaria de
+conferir igualmente que a componente de vista e a de gasto
+usadas na saída pertencem ao mesmo sub-endereço. É essa relação
+adicional que se estuda nas propostas de mitigação
+\cite{janus-mitigation-issue-62}.
 
 \section{Endereços integrados}
 \label{sec:integrated-addresses}

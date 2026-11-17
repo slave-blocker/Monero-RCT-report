@@ -1,42 +1,28 @@
-\chapter{Conceitos Básicos}
+\chapter{Fundamentos algébricos da criptografia de Monero}
 \label{chapter:basicConcepts}
 
 
 
-%----------NOTATION
-\section{Algumas palavras sobre a notação}
+Entre os dados do pagamento de Alice há uma chave que todos podem
+ler e um segredo que só o dono deve poder usar. Precisamos de uma
+operação que seja fácil num sentido e difícil no outro. A soma
+repetida de um ponto de curva terá essa propriedade, sob uma hipótese
+que formularemos com precisão. Comecemos por distinguir o objecto
+matemático dos sinais com que se escreve.
 
-Um dos principais objectivos deste texto é reunir, corrigir e harmonizar a
-informação necessária para compreender os mecanismos internos de Monero. Ao
-mesmo tempo, queremos apresentar a matéria de forma construtiva: cada símbolo
-deve conservar o seu papel enquanto acrescentamos uma peça de cada vez.
+\section{Números, pontos e convenções de escrita}
 
-Salvo indicação em contrário, adoptamos as seguintes convenções:
+Usaremos em geral minúsculas para os escalares e maiúsculas para os
+pontos. Assim, em \(K=kG\), a letra \(k\) representa um número,
+\(G\) um ponto fixado publicamente e \(K\) o resultado da multiplicação.
+Escreveremos \(l\) para a ordem do subgrupo gerado por \(G\).
 
-\begin{itemize}
-\item letras minúsculas para inteiros, escalares, sequências de bits e valores
-simples;
-\item letras maiúsculas para pontos de curva elíptica e objectos compostos.
-\end{itemize}
-
-Tentamos também reservar os mesmos símbolos para os mesmos objectos. Um
-gerador de curva será normalmente \(G\), a ordem do seu subgrupo será \(l\), e
-um par de chaves privada e pública será escrito \(k/K\), respectivamente.
-
-A apresentação é deliberadamente {\em conceptual}. Um leitor de ciência da
-computação poderá sentir falta da representação exacta de certos objectos ou
-dos pormenores de uma implementação; um estudante de matemática poderá desejar
-mais álgebra abstracta. Daremos esses pormenores quando forem necessários ao
-raciocínio, sem os deixar esconder a construção principal.
-
-%Beyond that, we have aimed at being {\em conceptual} in our presentation of algorithms and schemes. A reader with a computer science background may feel we have neglected questions like the bit representation of items, or, in some cases, how to carry out concrete operations. Moreover, students of mathematics may find we disregarded explanations of abstract algebra.
-
-Um objecto simples, como um inteiro ou uma sequência de caracteres, pode ser
-codificado como uma sequência de bits. A ordem dos bytes, ou {\em endianness},
-é essencial para uma implementação interoperável, mas raramente altera as
-ideias estudadas neste capítulo; quando importar, será indicada.
-%However, we don’t see this as a loss. A simple object such as an integer or a string can always be represented by a bit string. So-called `endianness' is rarely relevant, and is mostly a matter of convention for our algorithms.
-%\footnote{In computer memory, each byte is stored in its own address (an address is akin to a numbered slot, which a byte can be stored in). A given `word' or variable is referenced by the lowest address of its bytes. If variable $x$ has 4 bytes, stored in addresses 10-13, address 10 is used to find $x$. The way bytes of $x$ are organized in its set of addresses depends on {\em endianness}, although each individual byte is always and everywhere stored the same way within its address. Basically, which end of $x$ is stored in the reference address? It could be the {\em big end} or {\em little end}. Given $x = $ 0x12345678 (hexadecimal, 2 hexadecimal digits occupy 1 byte e.g. 8 binary digits a.k.a. bits), and an array of addresses \{10, 11, 12, 13\}, the big endian encoding of $x$ is \{12, 34, 56, 78\} and the little endian encoding is \{78, 56, 34, 12\}. \cite{endianness}}
+Para passar de um inteiro a bytes é preciso fixar uma ordem. O inteiro
+\(1+2\cdot256=513\), escrito em dois bytes, dá
+\(\mathtt{01\ 02}\) se a unidade vier primeiro
+(\emph{little endian}) e \(\mathtt{02\ 01}\) na ordem inversa
+(\emph{big endian}). A indicação desta convenção faz parte da
+codificação \cite{endianness}.
 
 Um ponto de curva elíptica escreve-se habitualmente como um par \((x,y)\), mas
 isso não obriga a transmiti-lo como dois inteiros completos. Na secção

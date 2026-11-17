@@ -1,231 +1,133 @@
-\chapter{Introdução}
+\chapter{Um pagamento de Alice a Bob}
 \label{chapter:introduction}
 
-No mundo digital, copiar informação é trivial; alterá-la também. Para que uma
-moeda digital seja aceite, os seus utilizadores precisam de confiar em duas
-coisas: a quantidade total de moeda obedece às regras anunciadas e cada unidade
-só pode ser gasta uma vez. Quem recebe um pagamento tem, portanto, de poder
-verificar que as moedas não são contrafeitas nem foram já entregues a outra
-pessoa. Se não quisermos confiar essa tarefa a uma autoridade central, a oferta
-monetária e a história completa das transacções têm de ser verificáveis pelo
-público.
+Alice tem uma saída de 11 unidades e quer pagar 7 a Bob. A carteira
+consome a saída inteira, cria uma de 7 para Bob e outra de 3 para a
+própria Alice. A unidade que resta paga a taxa. Se os quatro números
+estivessem à vista, bastaria ao leitor fazer a conta
+\[
+                         11=7+3+1 .
+\]
+\index{pagamento de Alice a Bob@pagamento de Alice a Bob}
+\index{saida@saída!consumo e troco@consumo e troco}
+\index{taxa de transaccao@taxa de transacção}
+Em Monero, o nó que aceita a transacção conhece a taxa. Tem de chegar
+à mesma conclusão acerca das outras três quantidades sem as ler.
+Chamaremos \emph{unidade} à unidade de conta do exemplo. A taxa de
+uma transacção concreta depende também do seu peso e da política de
+quem a propaga.
 
-As cripto-moedas registam transacções numa lista de blocos, uma base de dados distribuída cuja história é muito
-difícil de alterar sem que a rede o detecte \cite{Nakamoto_bitcoin}. Muitas
-listas de blocos expõem os intervenientes e os montantes para tornar simples a
-verificação colectiva. O preço é evidente: perde-se privacidade e, com ela,
-fungibilidade.\footnote{Um bem é \textbf{fungível} quando uma unidade pode
-substituir outra no uso ou no cumprimento de um contracto
-\cite{mises-org-fungible}. Numa lista de blocos transparente como a de Bitcoin,
-as moedas podem ser distinguidas pela sua história. Se essa história incluir
-actores considerados suspeitos, certas moedas podem ser tratadas como
-``manchadas'' \cite{bitcoin-big-bang-taint}; inversamente, houve quem pagasse
-um prémio por moedas recém-mineradas, sem história anterior
-\cite{new-bitcoin-premium}.}
+\section{O que fica de um pagamento}
 
-Um utilizador de Bitcoin pode tentar ofuscar o percurso dos fundos com
-endereços intermédios \cite{DBLP:journals/corr/NarayananM17}. Ainda assim,
-ferramentas de análise conseguem muitas vezes estabelecer ligações entre
-remetentes e destinatários
-\cite{DBLP:journals/corr/ShenTuY15b, DK-police-tracing-btc,
-Andrew-Cox-Sandia, chainalysis-2020-report}.
+A saída de 11 nasceu num pagamento anterior. Ficou registada sob uma
+chave pública, e a carteira de Alice derivou o segredo que lhe permite gastá-la.
+O saldo que vê no ecrã resulta de a carteira reconhecer as saídas que
+lhe pertencem e somar as que estão disponíveis. Ao pagar, Alice
+escolhe quais delas consome. A saída escolhida pode, por isso, valer
+mais do que a compra. É essa a origem dos 3 de troco.
 
-Monero adopta outra estratégia. Endereços de utilização única escondem o
-destinatário na lista de blocos; assinaturas em anel tornam ambígua a saída que
-foi efectivamente gasta; e compromissos criptográficos ocultam os montantes sem
-impedir a verificação da contabilidade. O resultado é uma cripto-moeda com um
-elevado grau de privacidade e fungibilidade. Estas propriedades não eliminam a
-informação produzida pelo comportamento do utilizador ou disponível fora da
-lista de blocos, que pode permitir alguma análise.\footnote{Para um exemplo de heurísticas
-aplicadas às assinaturas em anel, veja-se \cite{monero-ring-heuristics-ryo}.}
+Bob entrega a Alice um endereço. A carteira de Alice combina esse
+endereço com um segredo novo e obtém a chave pública que escreverá na
+saída de 7. A carteira de Bob consegue reconhecer a mesma chave entre
+as saídas publicadas. O endereço pode servir-lhe amanhã para outra
+venda. A chave que aparecerá nessa ocasião será outra. Do lado de
+quem olha para a lista de blocos, os 7 de Bob e os 3 de Alice têm o
+mesmo aspecto, o de duas saídas novas, cada qual com a sua chave.
+A derivação que permite aos dois chegarem à mesma saída encontra-se
+no capítulo~\ref{chapter:addresses}.
+\index{endereco@endereço!e chave de uso unico@e chave de uso único}
 
-\section{Objectivos}
+Agora ponhamo-nos no lugar do nó. Se Alice apontasse para a saída de
+11 e assinasse com a chave correspondente, o nó saberia qual a saída
+gasta. Na construção RingCT que seguiremos, a carteira indica dezasseis
+saídas elegíveis. Uma é a de Alice. As outras quinze servem de \emph{chamarizes} e continuam à disposição dos respectivos donos. A assinatura
+permite verificar que alguém pode gastar numa posição deste anel, ao
+mesmo tempo que prende a autorização a este pagamento concreto.
+\index{anel@anel!saidas candidatas@saídas candidatas}
+\index{gasto duplo@gasto duplo}
+
+Que sucederia se amanhã aparecesse outra assinatura, com outros quinze
+candidatos? Um novo fecho do anel, por si só, daria ao nó o mesmo
+motivo de aceitação. É preciso poder reconhecer uma segunda utilização
+da chave de Alice. Da chave que autoriza a despesa deriva-se, pois, um
+ponto que volta a aparecer sempre que a chave é usada para gastar.
+Chama-se \emph{imagem de chave}. O nó verifica a assinatura e consulta
+as imagens dos gastos já admitidos. A permanência desta marca e a
+mudança dos companheiros de anel são compatíveis. No
+capítulo~\ref{chapter:advanced-schnorr} veremos a conta que o permite.
+\index{imagem de chave@imagem de chave}
+
+\section{Uma conta que o público possa conferir}
 \label{sec:goals}
 
-Este livro desenvolve a matemática que permite verificar uma moeda digital
-mantendo reservados os montantes e a escolha das saídas gastas. A exposição
-parte da aritmética modular e dos grupos elípticos, constrói assinaturas e
-compromissos e acompanha depois a sua composição numa transacção. Cada
-construção é apresentada com as relações que o verificador testa e as
-hipóteses que sustentam a sua segurança.
+Alice sabe quanto recebeu e quanto quer pagar. Bob poderá ler os seus
+7. Um terceiro deve poder certificar-se de que o pagamento não criou
+moeda, mesmo ignorando quanto coube a cada um. Para isso, a cada
+montante associa-se um objecto público que o fixa e o oculta,
+o \emph{compromisso}. Com estes objectos há uma operação de soma.
+Quando se somam os compromissos de 7 e de 3, os montantes somam-se
+também. O segredo que os oculta, chamado \emph{máscara}, intervém nessa
+mesma operação.
+\index{compromisso@compromisso!a um montante@a um montante}
+\index{mascara@máscara!de um montante@de um montante}
 
-As definições e os cálculos preparam os passos seguintes. As somas de pontos
-levam aos compromissos de Pedersen; as respostas lineares de Schnorr levam às
-assinaturas em anel e à autorização SAL; o produto interno e os divisores
-fornecem os instrumentos para provar relações maiores sem revelar as suas
-testemunhas. Os artigos primários e as especificações citadas permitem
-confrontar esta exposição com as construções que a fundamentam.
+A saída de 11 traz a máscara do pagamento em que nasceu. Usar o seu
+compromisso tal qual seria apontar a saída que Alice quis esconder
+no anel. A carteira apresenta o mesmo montante com outra máscara.
+Pode então ajustar essa máscara à soma das máscaras das duas novas
+saídas. A assinatura atesta que a substituição foi feita na mesma
+posição do anel em que Alice conhece a chave. Ao nó basta somar os
+dois compromissos novos, acrescentar a taxa na forma pública que lhe
+corresponde e comparar o resultado com o compromisso apresentado pela
+entrada. No capítulo~\ref{chapter:transactions} faremos esta conta
+termo a termo.
+\index{pseudo-compromisso@pseudo-compromisso}
+\index{equilibrio de montantes@equilíbrio de montantes}
 
-\section{Construções e âmbito técnico}
+Há ainda uma subtileza, que já se vê sem criptografia. Tanto
+\(7+3\) como \(12+(-2)\) dão 10. Aceite uma saída negativa,
+poder-se-ia atribuir 12 a um destinatário, reservar uma dívida de 2
+para outro e apresentar a mesma soma de 10 ao nó. Cada saída que
+circula deve representar, por si, uma quantidade legítima. Além da
+igualdade das somas, Alice fornece por isso uma prova de que os dois
+montantes são inteiros entre zero e um máximo convencionado. Na
+construção estudada esse máximo é \(2^{64}-1\). O
+capítulo~\ref{chapter:pedersen-commitments} mostrará como os algarismos
+binários de um montante permitem dar a prova conservando-os secretos.
+\index{prova de intervalo@prova de intervalo}
+
+\section{Do recibo à confirmação}
 \label{sec:technical-scope}
 
-A construção RingCT seleccionada usa as regras da versão 16: assinaturas
-CLSAG, provas de intervalo Bulletproofs+, anéis de 16 membros e etiquetas de
-vista \cite{monero-source-v16}. O campo de versão de uma transacção continua
-a identificar a serialização RingCT de versão 2. A versão das regras de
-consenso e a versão desse campo designam objectos diferentes: as regras
-fixam a validade, enquanto o campo participa na leitura dos bytes.
+Bob pode reconhecer a saída de 7 logo que receba os dados da
+transacção. Para saber se o pagamento entrou na história comum, há
+um segundo acontecimento a observar. Um mineiro inclui a transacção
+num bloco e os nós verificam o bloco. Os blocos que se lhe seguem
+acrescentam trabalho ao mesmo ramo. Se dois ramos válidos concorrem,
+é o trabalho acumulado que permite escolher entre eles. Reconhecer
+a saída, aceitar a transacção e contar as confirmações são, assim,
+três operações que Bob pode efectuar em momentos diferentes.
+\index{confirmacao@confirmação!de um pagamento@de um pagamento}
 
-As regras de consenso determinam que transacções e blocos são válidos. As
-convenções de carteira ligam os endereços às saídas e permitem recuperar os
-segredos necessários ao gasto. Os protocolos de comunicação determinam como
-os dados circulam entre os participantes. RandomX intervém na prova de
-trabalho; Dandelion++ intervém na difusão inicial das transacções. Cada
-camada será estudada com os seus próprios dados e condições.
+O nosso pagamento segue as regras ordinárias de RingCT da versão 16.
+A versão escrita no cabeçalho da transacção é 2. O primeiro número
+identifica as regras com que se decide a validade, o segundo indica
+como se lê a transacção. Uma política de carteira escolhe os
+companheiros de anel. Outra política leva a mensagem de nó em nó.
+A verificação do bloco obedece às regras comuns de consenso
+\cite{monero-source-v16}.
 
-FCMP++ constitui outra composição de pertença, autorização e ligação,
-apresentada a partir da especificação e das fontes fixadas na bibliografia
-\cite{fcmp-plus-plus-paper,monero-oxide-fcmp-source,fcmp-composition-review}.
-A sua árvore, os circuitos, as máscaras e os formatos são os objectos
-matemáticos definidos no respectivo capítulo. Carrot fornece uma hierarquia
-de chaves em que os poderes de vista e de autorização podem ser distribuídos
-separadamente \cite{carrot-specification}.
+Mais adiante voltaremos à questão que deu origem ao anel. Se toda a
+colecção de saídas elegíveis pudesse representar-se por um único
+ponto público, que teria Alice de provar acerca dele? A construção
+FCMP++ do capítulo~\ref{chapter:fcmp-plus-plus} dá uma resposta
+matemática a essa pergunta. Fixa uma raiz, prova a pertença de uma
+saída ao conjunto por ela representado e conserva a imagem que torna
+reconhecível a segunda despesa
+\cite{fcmp-plus-plus-paper,fcmp-composition-review}.
 
-As construções MLSAG, Borromean e Bulletproofs conservam interesse próprio:
-permitem interpretar formatos históricos e desenvolver, por passos, as
-relações usadas nas construções seguintes. Os exemplos de bytes identificam
-o formato a que pertencem. As propostas de aplicação, por seu turno,
-explicitam os requisitos de coordenação necessários para que as suas
-identidades algébricas se tornem protocolos seguros.
-
-\section{Aos leitores}
-
-Prevemos que muitos leitores cheguem a este relatório com pouco ou nenhum
-contacto com matemática discreta, estruturas algébricas, criptografia ou listas
-de blocos. Procurámos dar pormenor suficiente para que um leitor atento possa
-aprender sem depender constantemente de pesquisa externa.\footnote{Uma
-introdução extensa à criptografia aplicada encontra-se em
-\cite{applied-cryptography-textbook}.}
-
-A leitura acompanha os cálculos necessários a cada construção. As definições
-fixam os objectos, as derivações mostram as relações entre eles e as hipóteses
-delimitam as conclusões de segurança. As remissões permitem regressar a uma
-operação anterior quando ela reaparece num argumento mais composto.
-
-\section{Origens da cripto-moeda Monero}
-
-Monero, inicialmente chamado BitMonero, foi criado em Abril de 2014 a partir da
-prova de conceito CryptoNote \cite{bitmonero-launched}. \emph{Monero} significa
-``moeda'' em esperanto; o plural é \emph{moneroj}.
-
-CryptoNote foi desenvolvido por várias pessoas. O texto de referência que o
-descreve foi publicado sob o pseudónimo Nicolas van Saberhagen, em Outubro de
-2013 \cite{cryptoNoteWhitePaper}. Propunha endereços de utilização única para
-ocultar o destinatário e assinaturas em anel para tornar ambíguo o remetente.
-Desde então, Monero reforçou a privacidade com montantes confidenciais,
-inspirados, entre outros, no trabalho de Greg Maxwell
-\cite{Signatures2015BorromeanRS} e integrados em RingCT segundo as recomendações
-de Shen Noether \cite{MRL-0005-ringct}. As provas Bulletproof tornaram depois
-essa ocultação muito mais eficiente \cite{Bulletproofs_paper}; CLSAG reduziu o
-custo das assinaturas em anel \cite{MRL-0011-CLSAG}, e Bulletproofs+ sucedeu às
-provas Bulletproof nas transacções activas.
-
-\subsection{Parte 1: ``Essenciais''}
-
-Começamos pelas ferramentas criptográficas necessárias. O capítulo
-\ref{chapter:basicConcepts} desenvolve aritmética modular, curvas elípticas,
-chaves, assinaturas de Schnorr e a notação usada no resto do livro. No
-capítulo \ref{chapter:divisors}, a adição de pontos conduz aos divisores
-que certificam uma multiplicação escalar. O capítulo
-\ref{chapter:advanced-schnorr} prolonga a construção de Schnorr até às assinaturas em
-anel. No capítulo \ref{chapter:addresses}, vemos como os endereços controlam a
-recepção de fundos e por que uma saída não revela publicamente o destinatário.
-
-O capítulo \ref{chapter:pedersen-commitments} introduz compromissos e provas de
-intervalo para ocultar montantes. Em conjunto, o capítulo
-\ref{chapter:transactions} constrói uma transacção RingCT. O capítulo
-\ref{chapter:blockchain} abre por fim a lista de blocos: mineração, dificuldade,
-emissão, peso, taxas, sincronização e conservação da história em nós podados.
-O capítulo \ref{chapter:randomx} segue uma tentativa de
-RandomX desde a semente de época até ao hash de prova de trabalho e explica
-por que programas aleatórios e memória abundante procuram reduzir a vantagem
-de máquinas especializadas. O capítulo \ref{chapter:dandelion} acompanha
-a propagação das transacções: Dandelion++ procura afastar a origem do ponto
-onde começa a difusão pública, sob hipóteses explícitas sobre o adversário e
-o grafo de ligações. O capítulo \ref{chapter:generalized-bulletproofs}
-acompanha os pesos de CLSAG e das provas de intervalo até às igualdades
-que permitem verificar um circuito sobre valores comprometidos. O capítulo
-\ref{chapter:fcmp-plus-plus} aplica estas provas aos ramos de uma árvore
-de curvas e liga a autorização do gasto à pertença de uma saída ao
-conjunto admitido. Como fecho dos ``Essenciais'', o capítulo
-\ref{chapter:dlog-relations} pergunta o que aconteceria se alguém descobrisse
-as relações supostamente desconhecidas entre os geradores: quando se perde só
-privacidade, quando se torna possível o gasto duplo e quando aparece inflação.
-Esta ordem fornece a base criptográfica para a parte seguinte.
-
-\subsection{Parte 2: ``Extensões''}
-
-A segunda parte aplica as relações anteriores à divulgação selectiva de
-informação e à cooperação entre participantes. O capítulo
-\ref{chapter:tx-knowledge-proofs} define o que se pode demonstrar acerca de
-uma transacção. O capítulo \ref{chapter:multisignatures} reparte a autoridade
-de gasto por um grupo e constrói respostas comuns. O capítulo
-\ref{chapter:escrowed-market} associa um limiar 2-de-3 a um acordo comercial.
-O capítulo \ref{chapter:txtangle} estuda TxTangle, uma proposta para reunir
-entradas e saídas de várias pessoas numa transacção, com as condições de
-privacidade e de coordenação de que depende.
-
-\subsection{Conteúdo adicional}
-
-O apêndice \ref{appendix:RCTTypeBulletproof2} disseca uma transacção
-\texttt{RCTTypeBulletproof2}; é um exemplo histórico, não o formato que a v16
-aceita para novas transacções. O apêndice \ref{appendix:block-content} explica
-a estrutura de um bloco, incluindo o cabeçalho e a transacção de mineiro. O
-apêndice \ref{appendix:genesis-block} fecha o percurso com o bloco génese de
-Monero. O apêndice \ref{appendix:nota} fixa a notação vectorial e deriva o
-termo \(\delta(y,z)\) das Bulletproofs sem saltos algébricos. Em conjunto,
-ligam a teoria a objectos concretos da lista de blocos e às identidades que os
-verificam.
-
-\section{Aviso}
-
-Os esquemas de assinatura, as aplicações de curvas elípticas e os detalhes da
-implementação aqui apresentados são descritivos. Quem pretenda construir um
-sistema real deve consultar as fontes primárias, as especificações técnicas e
-o código correspondente à versão que vai usar.
-
-Um esquema de assinatura precisa de uma prova de segurança bem definida e de
-revisão competente. Vale aqui a velha regra: não invente a sua própria
-criptografia. Código que implemente primitivas criptográficas deve ser revisto
-por especialistas e acumular um historial longo e fiável. As contribuições
-originais deste documento podem não ter recebido a mesma revisão nem testes;
-leia-as com o cuidado devido.
-
-\section{A história de Zero a Monero}
-
-\emph{Zero a Monero} começou como expansão da tese de mestrado de Kurt Alonso,
-``Monero --- Privacy in the Blockchain'' \cite{kurt-original}, publicada em
-Maio de 2018. A primeira edição do livro apareceu em Junho desse ano
-\cite{ztm-1}.
-
-Para a segunda edição, os autores melhoraram a introdução às assinaturas em
-anel (capítulo \ref{chapter:advanced-schnorr}) e reorganizaram a explicação das
-transacções, acrescentando o capítulo de endereços
-(\ref{chapter:addresses}). Modernizaram a comunicação dos montantes de saída
-(secção \ref{sec:pedersen_monero}), substituíram as provas Borromean por
-Bulletproof no percurso corrente da época (secção \ref{sec:range_proofs}),
-retiraram \texttt{RCTTypeFull} do formato corrente e actualizaram o peso
-dinâmico dos blocos e as taxas dos mineiros.
-
-Foram ainda estudadas provas sobre transacções (capítulo
-\ref{chapter:tx-knowledge-proofs}), multi-assinaturas (capítulo
-\ref{chapter:multisignatures}), mercados com garantia (capítulo
-\ref{chapter:escrowed-market}) e a proposta TxTangle (capítulo
-\ref{chapter:txtangle}). Essa edição ficou alinhada com o protocolo v12 e o
-programa v0.15.x.x.\footnote{O código-fonte \LaTeX{} das duas edições está em
-\url{https://github.com/UkoeHB/Monero-RCT-report}; a primeira edição encontra-se
-no ramo \texttt{ztm1}.}
-
-\section{Reconhecimentos}
-\label{sec:acknowledgements}
-
-Texto original do autor ``koe''.
-
-Este relatório não existiria sem a tese de mestrado de Kurt Alonso
-\cite{kurt-original}, a quem o autor deve profunda gratidão. Brandon ``Surae
-Noether'' Goodell e o investigador conhecido pelo pseudónimo ``Sarang Noether'',
-do Monero Research Lab, foram fontes constantes de conhecimento durante as duas
-edições. ``moneromooo'', um dos programadores mais prolíficos do projecto,
-identificou inúmeras vezes as partes relevantes do código. Agradecemos também a
-todos os contribuidores que responderam a perguntas e aos leitores que enviaram
-correcções e palavras de encorajamento.
+Para começar, basta observar que no pagamento de Alice há duas
+operações cujo resultado se pode publicar e cujo segredo se deseja
+guardar. Da chave privada obtém-se uma chave pública. Do montante e
+da máscara obtém-se um compromisso. Ambas começam pela mesma conta,
+a multiplicação de um ponto de uma curva por um inteiro.

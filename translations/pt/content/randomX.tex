@@ -1,45 +1,34 @@
-\chapter{RandomX: função de prova de trabalho}
+\chapter{A prova de trabalho e o algoritmo RandomX}
 \label{chapter:randomx}
 \index{randomx@RandomX}
 \index{prova de trabalho@prova de trabalho}
 \index{pow@PoW|see{prova de trabalho}}
 \label{page:randomx-start}
 
-No capítulo anterior, a validade da prova de trabalho foi reduzida a uma
-condição curta. Dado o
-objecto de hash de um bloco, uma dificuldade \(d\) e um resultado de prova de
-trabalho \(h_{\rm PoW}\), o bloco passa quando
+Um mineiro reuniu num bloco candidato o pagamento de Alice e outras
+transacções. Pode conservar essa escolha e variar um inteiro do
+cabeçalho, o \emph{nonce}. A cada tentativa obtém um novo objecto
+de hash. Interpretado o resultado como inteiro de 256 bits,
+o teste à dificuldade \(d\) do bloco é
 \begin{align}
  h_{\rm PoW}\,d\leq 2^{256}-1.
  \label{eq:randomx-difficulty-check}
 \end{align}
-Nada nessa desigualdade determina o custo de produzir \(h_{\rm PoW}\). Uma
-função hash convencional executa sempre a mesma sequência de operações. Um
-circuito construído especificamente para essa sequência pode omitir recursos
-que ela não utiliza e superar a eficiência de um processador geral.
+O mineiro pode ter de experimentar muitos valores antes de encontrar
+um que satisfaça a desigualdade. O nó de Bob, recebendo o bloco,
+já conhece o valor escolhido e basta-lhe fazer a conta desse caso.
 
-RandomX é a função de prova de trabalho da especialização de Monero aqui
-estudada.
-Foi desenhada para estreitar a vantagem entre processadores de uso geral e
-máquinas especializadas. Em vez de repetir em cada tentativa uma sequência
-fixa,
-gera programas imprevisíveis, executa-os numa máquina virtual, movimenta um
-conjunto grande de memória e condensa o estado final num hash de 256 bits
-\cite{randomx-spec-v1,randomx-design-v1}. O nome vem daí: execução aleatória.
-
-RandomX não demonstra que um ASIC é impossível, nem define uma CPU por uma
-propriedade abstracta. Associa o
-trabalho a uma colecção ampla de recursos que os processadores correntes já
-possuem: aritmética inteira, vírgula flutuante, registos, vários níveis de
-memória, saltos, execução especulativa e largura para instruções independentes.
-Uma máquina especializada pode reproduzi-los, mas tem de implementar uma
-parte substancial dos recursos presentes num processador geral.
-
-A função será definida pelas entradas, pelo estado da máquina virtual e
-pelas suas transformações. Os parâmetros pertencem à linha algorítmica 1 de
-RandomX, especificada nas fontes fixadas na bibliografia
-\cite{monero-source-v16,randomx-spec-v1}.
-
+O custo de uma tentativa depende de como se obtém \(h_{\rm PoW}\).
+RandomX combina uma chave comum a muitos blocos com uma entrada que
+muda a cada tentativa. Da primeira prepara-se uma memória de leitura.
+Da segunda nasce uma sequência de programas que a consultam e que
+transformam registos e memória de trabalho até ao resumo final.
+Um processador geral dispõe já de aritmética inteira e de vírgula
+flutuante, saltos e vários níveis de memória. Uma máquina que se
+especialize nesta função tem de suportar essa diversidade de
+operações. A vantagem que possa obter é uma questão de custo do
+equipamento. Seguiremos uma tentativa com os parâmetros da linha
+algorítmica 1 \cite{monero-source-v16,randomx-spec-v1,randomx-design-v1}.
 
 \section{Especialização de hardware numa função fixa}
 \label{sec:randomx-fixed-work}

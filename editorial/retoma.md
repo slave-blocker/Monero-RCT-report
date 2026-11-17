@@ -1,3 +1,21 @@
+# Fecho da edição em quatro partes — 17 de Novembro de 2026
+
+O PDF `Zero-to-Monero-2-0-0-pt.pdf` tem **309 páginas**, dentro do limite de 376. O sumário apresenta quatro partes e dezassete capítulos de numeração contínua. O pagamento de Alice, 11 = 7 + 3 + 1, abre o livro e é retomado na construção RingCT. As alterações locais de compromissos e relações entre geradores foram integradas na revisão.
+
+| Capítulo | Páginas físicas | Páginas impressas | Excerto |
+|---|---|---|---|
+| 10 — Funções e divisores em curvas elípticas | 153–180 | 141–168 | `translations/pt/Divisores-pt.pdf` |
+| 11 — Generalized Bulletproofs | 181–195 | 169–183 | `translations/pt/Generalized-Bulletproofs-pt.pdf` |
+| 12 — FCMP++ | 196–233, póster na 234 | 184–221, póster sem folio | `translations/pt/FCMP-pt.pdf` |
+
+FCMP++ conserva **38 páginas de texto e uma de póster**. A necessidade dos certificados de divisor e os seus custos desenvolvem-se nas páginas físicas **212–214**, sem impor uma página por secção. Divisores ocupa 28 páginas contínuas. Os apêndices foram conservados, e o índice remissivo ocupa as páginas físicas 303–308.
+
+A compilação estabilizou sem referências ou citações por resolver e com zero avisos de caixas; makeindex aceitou 411 chamadas, sem rejeições nem avisos. Foram conferidas as 28 remissões «ver», as 383 referências numéricas do índice, os 1166 destinos do PDF e as ligações dos três excertos. A exportação compara texto e imagem a 100 dpi nas 82 páginas dos excertos e conserva as remissões para outras partes do livro como ligações ao volume integral.
+
+A inspecção visual percorreu as 309 páginas e ampliou 79, além da leitura detalhada dos certificados e do póster. As verificações algébricas e numéricas estão em `checks/`; `worked-examples.py` reúne as contas do pagamento, dos pesos, das funções sobre F17, da árvore e do resíduo de TxTangle. O âmbito e as fontes estão registados em `revision-log.md` e `protocol-version-ledger.md`. A entrega e o commit são locais.
+
+Os registos seguintes conservam os estados anteriores da edição.
+
 # Edição de 17 de Novembro de 2026
 
 O livro português tem 326 páginas. Generalized Bulletproofs é o capítulo 11, entre Dandelion++ e FCMP++. Os três excertos correspondem às seguintes páginas do livro (numeração impressa).

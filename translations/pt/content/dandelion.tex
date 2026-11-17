@@ -1,27 +1,31 @@
-\chapter{Dandelion++ e propagação de transacções}
+\chapter{A propagação das transacções com Dandelion++}
 \label{chapter:dandelion}
 \index{dandelion++@Dandelion++}
 \index{privacidade@privacidade!de rede@de rede}
 \label{page:dandelion-start}
 
-Quando uma carteira entrega uma transacção ao seu daemon, a transacção ainda
-não pertence a um bloco. Tem primeiro de ser validada localmente e propagada
-pela rede P2P. Os instantes e as direcções dos primeiros envios constituem
-metadados que podem permitir a um observador estimar o nó de origem, sem que
-seja necessário violar qualquer primitiva criptográfica da transacção.
+Recuemos ao instante em que Alice manda pagar. O seu nó conferiu a
+transacção e guardou-a entre as que aguardam inclusão num bloco. Se
+a anunciar imediatamente a todos os vizinhos, cada um ficará a saber
+a que horas a recebeu e por que ligação. A assinatura em anel continua
+a esconder a saída de 11. Na rede apareceu, todavia, outra informação,
+o lugar de onde a mensagem parece ter vindo.
 
-A assinatura em anel oculta a escolha da saída gasta, mas não oculta as
-ligações pelas quais a transacção chega à rede. Dandelion++ actua sobre esta
-segunda camada: encaminha primeiro a transacção por um percurso estreito,
-antes de a entregar à difusão pública. O nó que começa essa difusão pode
-assim estar afastado do nó que criou a transacção.
+Sigamos os mesmos bytes. O nó de Alice entrega-os primeiro a um só
+vizinho. Este pode encaminhá-los a outro. Mais adiante, um nó muda
+a maneira de os transmitir e anuncia a transacção a vários pares.
+É dessa vizinhança que parte a difusão larga. Quando o nó de Bob a receber,
+a carteira poderá reconhecer a sua saída de 7. Pelo vizinho que lha
+entregou ficará a conhecer um passo do percurso. A distância até Alice
+continua por determinar.
 
-A construção combina um subgrafo temporário, decisões de encaminhamento e
-temporizadores. As suas garantias dependem do modelo do adversário e da
-topologia da rede \cite{dandelion-plus-plus}. A política Monero de
-retransmissão que se segue conserva essa estrutura e fixa as escolhas e os
-prazos necessários ao seu funcionamento \cite{monero-source-v16}.
-
+Dandelion++ organiza esta passagem do encaminhamento à difusão. A
+construção matemática escolhe um subgrafo e atribui probabilidades
+aos percursos. A política de retransmissão de Monero fixa ainda
+ligações de saída, épocas e temporizadores. Comecemos pelo caso em
+que a difusão começa logo no primeiro salto
+\cite{dandelion-plus-plus,monero-source-v16}.
+\index{pagamento de Alice a Bob@pagamento de Alice a Bob!propagacao@propagação}
 
 \section{Propagação por inundação e exposição temporal}
 \label{sec:dandelion-flooding}
@@ -72,9 +76,9 @@ iniciais aumenta a probabilidade de contacto directo com o adversário.
  \node[honest,fill=green!18] (o) {origem};
  \node[honest,above right=of o] (a) {};
  \node[honest,right=of o] (b) {};
- \node[spy,below right=of o] (c) {E};
+ \node[spy,below right=of o] (c) {O};
  \node[honest,right=of a] (d) {};
- \node[spy,right=of b] (e) {E};
+ \node[spy,right=of b] (e) {O};
  \node[honest,right=of c] (f) {};
  \draw[->,thick] (o)--(a);
  \draw[->,thick] (o)--(b);
@@ -87,8 +91,8 @@ iniciais aumenta a probabilidade de contacto directo com o adversário.
  \draw[->] (c)--(e);
  \draw[->] (c)--(f);
     \node[align=center,below=.72cm of c]
-   {inundação: muitos primeiros contactos;\\
-    o espião \(E\) pode observar directamente a origem};
+   {Os dois nós marcados com O pertencem a Oscar.\\
+    Um deles recebe directamente da origem.};
 \end{tikzpicture}
 \end{center}
 
@@ -114,17 +118,18 @@ terminologia do protocolo:
  envia largamente; os restantes continuam essa difusão.
 \end{description}
 
-O nó que inicia a fase de penugem não tem de ser o nó de origem. Um adversário
-que observa primeiro a difusão pública sabe que houve uma fase de haste
-anterior, mas essa observação não identifica qual dos nós desse percurso criou
-a transacção.
+No percurso da figura, o nó de Alice envia a transacção a 1,
+1 envia-a a 2, e 2 entrega-a ao difusor \(D\). Para um par que
+só recebeu a mensagem de \(D\), a primeira aparição observada
+ocorre junto do difusor. A mesma observação seria compatível com
+várias origens da haste.
 
 \begin{center}
 \begin{tikzpicture}[>=stealth,node distance=.95cm and .88cm,
  every node/.style={font=\small},
  dn/.style={circle,draw,minimum size=.72cm,fill=blue!8},
  fluff/.style={circle,draw,minimum size=.8cm,fill=yellow!28}]
- \node[dn,fill=green!18] (o) {O};
+ \node[dn,fill=green!18] (o) {A};
  \node[dn,right=of o] (s1) {1};
  \node[dn,right=of s1] (s2) {2};
  \node[fluff,right=of s2] (f) {D};
@@ -149,7 +154,7 @@ a transacção.
  \draw[->] (u3)--(v3);
  \node[above=.18cm of s1] {haste};
  \node[above=.18cm of u1] {penugem};
- \node[below=.18cm of o] {origem};
+ \node[below=.18cm of o] {Alice};
  \node[below=.18cm of f] {difusor};
 \end{tikzpicture}
 \end{center}
@@ -499,12 +504,12 @@ uma operação da análise; não apaga dados nem ligações da rede.
  escolha da lista de blocos.
 \end{description}
 
-A privacidade dos dados na lista de blocos não implica anonimato do endereço IP. Do
-mesmo modo, ocultar a origem de rede não impede que a própria transacção seja
-reconhecível nem garante a sua validade. Estas propriedades são distintas. A
-falha de Dandelion++ pode revelar metadados ou atrasar a propagação, mas não
-cria moeda nem valida um gasto duplo. Inversamente, o consenso não garante que
-uma transacção ainda fora de um bloco seja propagada rapidamente aos mineiros.
+A origem de rede, a informação inscrita na lista de blocos e a validade
+do pagamento têm critérios próprios. Dandelion++ actua sobre os indícios
+do percurso: uma falha pode revelar metadados ou atrasar a propagação.
+A conservação dos montantes e a unicidade da despesa continuam sujeitas
+às verificações de consenso. A chegada atempada aos mineiros depende,
+por sua vez, das ligações e do comportamento dos retransmissores.
 
 
 \section{Garantias e limites}
@@ -518,8 +523,15 @@ A implementação Monero acrescenta filtros de altura, equilíbrio das hastes,
 difusão com atrasos, detecção de ciclos e uma transição de segurança concreta.
 Tor/I2P, quando configurados, usam canais e ruído próprios.
 
-Nada disto oculta uma carteira de um daemon remoto, derrota um observador
-global, garante propagação contra todos os nós maliciosos ou altera consenso.
-É uma defesa probabilística de metadados, com hipóteses e falhas observáveis.
+A defesa é probabilística e depende do alcance do observador e da
+presença de retransmissores honestos. Um daemon remoto conhece a ligação
+da carteira que lhe entrega a transacção; um observador de toda a rede
+dispõe de correlações fora do modelo de observação parcial. São estas
+hipóteses que delimitam as garantias de privacidade do percurso.
 
+O percurso de Alice até ao difusor explica o que um vizinho pode inferir
+do primeiro anúncio. No próprio pagamento fica outra questão, a escolha
+secreta da saída gasta. No anel o nó percorreu dezasseis candidatos.
+Para estender essa escolha a todo um conjunto de saídas, precisaremos
+de certificar uma multiplicação cujos termos vão ficar escondidos.
 \label{page:dandelion-end}

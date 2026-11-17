@@ -1,46 +1,35 @@
-\chapter{A lista de blocos}
+\chapter{A lista de blocos e a confirmação de uma transacção}
 \label{chapter:blockchain}
 
-Uma transacção prova uma transferência autorizada; a lista de blocos
-determina a história comum dessas transferências. É nela que se ordenam os
-gastos, se contabiliza a moeda criada e se resolve a concorrência entre ramos.
-A validade de cada bloco e a escolha da lista de blocos são relações de consenso; a
-conservação dos dados em cada nó obedece a uma política de armazenamento
-distinta \cite{monero-source-v16}.
+A carteira de Bob reconheceu uma saída de 7 unidades. Um instante
+depois, chega-lhe um bloco que contém o pagamento. Que mudou nesse
+instante? A chave de Bob é a mesma, o compromisso é o mesmo e a
+assinatura já podia ser verificada. O bloco acrescentou uma posição
+na história dos gastos. Para a aceitar, o nó de Bob tem de conhecer a
+história que vem antes dela.
 
-As fórmulas quantitativas que se seguem fixam o regime v16 da rede principal.
-Ao verificar blocos anteriores, aplica-se a regra correspondente à sua
-altura. Uma política de retenção pode reduzir os dados disponíveis no disco;
-não pode tornar válido um bloco que viole essas relações.
+Suponhamos que a transacção entrou num bloco à altura \(h\) e que
+a ponta do ramo aceite está à altura \(H\ge h\). As alturas contam
+blocos a partir de zero. Conta-se como primeira confirmação a do
+próprio bloco, de modo que o número de confirmações é \(H-h+1\).
+Se o pagamento entrou à altura 100 e a ponta chegou a 102, contam-se
+os blocos 100, 101 e 102. São três confirmações. O lugar do pagamento
+depende do ramo que o nó aceita. Uma reorganização que conserve o
+bloco 100 conserva a inclusão, embora possa mudar a altura da ponta.
+Se o ramo escolhido se separar antes de 100, Bob terá de procurar de
+novo o pagamento nesse ramo.
+\index{confirmacao@confirmação!contagem por altura@contagem por altura}
+\index{pagamento de Alice a Bob@pagamento de Alice a Bob!confirmacao@confirmação}
+\index{reorganizacao@reorganização}
 
-A Internet permite comunicação e troca de informação entre participantes
-geograficamente distantes. A troca de bens e serviços requer meios para
-representar e transferir valor; num sistema digital, essas transferências
-também podem ocorrer electronicamente \cite{human-action}.
-
-%The Internet Age has brought a new dimension to the human experience. We can correspond with people on every corner of the planet, and an unimaginable wealth of information is at our fingertips. Exchanging goods and services is fundamental to a peaceful and prosperous society \cite{human-action}, and in the digital realm we can offer our productivity to the whole world.
-
-Os meios de troca (dinheiros) são essenciais: dão-nos um ponto de referência
-para uma imensa diversidade de bens económicos que, de outra forma, seriam
-impossíveis de comparar, e permitem interacções mutuamente benéficas entre
-pessoas que nada têm em comum \cite{human-action}. Ao longo da história houve
-muitos tipos de dinheiro, de conchas a papel e ouro. Foram trocados à mão;
-agora, o dinheiro também pode ser trocado electronicamente.
-
-%Media of exchange (moneys) are essential, giving us a point of reference to an immense diversity of economic goods that would otherwise be impossible to evaluate, and enabling mutually beneficial interactions between people with nothing in common \cite{human-action}. Throughout history there have been many kinds of money, from seashells to paper to gold. Those were exchanged by hand, and now money can be exchanged electronically.
-
-No modelo de intermediação financeira, as transacções electrónicas são
-controladas por instituições financeiras. Estas entidades terceiras guardam o
-dinheiro e recebem a confiança necessária para o transferir. Têm de mediar
-disputas; os pagamentos são reversíveis; e podem ser censuradas ou controladas
-por organizações poderosas \cite{Nakamoto_bitcoin}.
-
-%In the current, by far most pervasive, model, electronic transactions are handled by third-party financial institutions. These institutions are given custody of money and trusted to transfer it upon request. Such institutions must mediate disputes, their payments are reversible, and they can be censored or controlled by powerful organizations. \cite{Nakamoto_bitcoin}
-
-Uma moeda digital descentralizada substitui a confiança num guardião por
-regras públicas que os participantes podem verificar.
-
-%To alleviate these drawbacks decentralized digital currencies have been engineered.
+Por que razão se aceitaria um ramo novo? Dois mineiros podem propor
+blocos válidos sobre o mesmo antecessor. Quando os ramos divergirem,
+cada nó verificará as regras de cada bloco e comparará o trabalho
+acumulado dos ramos válidos. Esta regra pressupõe duas coisas que uma
+colecção avulsa de recibos não oferece, uma ligação de cada bloco ao
+que o antecede e uma medida pública do trabalho. As fórmulas que se
+seguem fixam o regime da versão 16. As regras aplicáveis a um bloco
+histórico são as da sua altura \cite{Nakamoto_bitcoin,monero-source-v16}.
 
 \section{Moedas digitais}
 \label{sec:digital-currency}
@@ -80,7 +69,7 @@ a aceita se ela seguir regras predefinidas.
 Os utilizadores só beneficiam das moedas se outros as aceitarem em troca. Para
 maximizar a sua utilidade, existe uma tendência natural para adoptar um
 conjunto de regras comuns sem autoridade central.\footnote{Na ciência política
-diz-se a isto um contracto social.}
+diz-se a isto um contrato social.}
 
 %Users only benefit from coins when other users accept them in exchange, and users only accept coins they feel are legitimate. To maximize the utility of their coins, users are naturally inclined to settle on one commonly accepted rule-set, without the presence of a central authority.
 

@@ -106,16 +106,23 @@ for mod,order,b,gy in curves:
     low,high=mod+1-bound,mod+1+bound
     assert (low+order-1)//order == high//order == 1
 
-layers=[]; size=700; depth=0
-while size>1:
-    width=38 if depth%2==0 else 18
-    size=(size+width-1)//width
-    layers.append(size);depth+=1
-assert layers==[19,2,1]
-index=699; path=[]
-for width in [38,18,38]:
-    index,pos=divmod(index,width);path.append((index,pos))
-assert path==[(18,15),(1,0),(0,1)]
+# A saída 684 abre um ramo, e a raiz de Helios passa a filho de Selene.
+for size, expected in [(684, [18, 1]), (685, [19, 2, 1])]:
+    nodes = size
+    layers = []
+    while nodes > 1:
+        width = 38 if len(layers) % 2 == 0 else 18
+        nodes = (nodes + width - 1) // width
+        layers.append(nodes)
+    assert layers == expected
+
+for index, expected in [(681, [(17, 35), (0, 17), (0, 0)]),
+                        (684, [(18, 0), (1, 0), (0, 1)])]:
+    path = []
+    for width in [38, 18, 38]:
+        index, position = divmod(index, width)
+        path.append((index, position))
+    assert path == expected
 
 # Root proof equation checked in a genuine elliptic-curve group.
 add=lambda P,Q:wadd(P,Q,17,2)
@@ -130,4 +137,4 @@ for _ in range(200):
 
 print('Constants and two cycle groups checked (prime moduli assumed from primary source).')
 print('24 Wei maps/scalar multiplications and 24 sums checked; 192 torsion projections checked.')
-print('700-output tree/path and 200 root Schnorr identities checked.')
+print('Crescimento de 684 para 685 saídas, dois caminhos e 200 fechos de raiz conferidos.')

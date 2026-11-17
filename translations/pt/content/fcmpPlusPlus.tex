@@ -1,25 +1,29 @@
-\chapter{Pertença e autorização de gasto em FCMP++}
+\chapter{FCMP++ e a prova de pertença ao conjunto completo de saídas}
 \label{chapter:fcmp-plus-plus}
 \label{page:fcmp-start}
+\hypertarget{excerto.fcmp.inicio}{}
 
-Quando se verifica uma assinatura bLSAG, todas as chaves candidatas
-estão à vista. O verificador percorre o anel e reconhece, pelo fecho,
-que uma das chaves serviu para assinar. Imaginemos que os candidatos
-são agora todas as saídas admitidas de uma lista de blocos. Uma raiz
-pode representar esse conjunto num único ponto. Para autorizar o gasto,
-porém, é preciso ligar três coisas que ficaram separadas à vista do
-verificador. A raiz representa muitas saídas, a imagem de chave
-identifica uma utilização e a mensagem identifica uma transacção.
-Que igualdade assegura que as três dizem respeito à mesma saída?
+Imaginemos que o nó de Bob recebe uma entrada sem a lista dos
+dezasseis candidatos que acompanhava o pagamento de Alice. Em seu
+lugar recebe uma referência a uma raiz. Bob pode obtê-la por sua
+conta a partir das saídas admitidas. Conhece, portanto, o conjunto
+inteiro que a raiz representa. O que lhe falta é uma razão para crer
+que a chave empregada na assinatura está entre essas saídas.
 
-\emph{Full-Chain Membership Proofs} (FCMP) demonstra a pertença ao
-conjunto representado pela raiz. A construção FCMP++ junta-lhe uma
-prova de autorização de gasto e de ligação, SAL, de
-\emph{Spend Authorization and Linkability}. Uma apresentação pública
-da saída serve de declaração comum às duas provas. A pertença cobre
-as máscaras que deram origem à apresentação. A autorização aproveita
-essas mesmas máscaras para reconstituir, dentro de uma igualdade de
-pontos, a imagem de chave da saída consumida
+Há dois segredos diferentes nesta pergunta. Quem conheça a posição
+da saída na árvore pode descrever o caminho que leva à raiz, mesmo
+sem dispor da chave de gasto. Alice, que conhece a chave, pode
+autorizar o pagamento. Se as duas demonstrações puderem empregar
+saídas diferentes, a aceitação de ambas deixa por explicar de onde
+veio o dinheiro. Precisamos de um objecto público comum que obrigue
+as duas provas a falar da mesma saída, conservando oculta a sua posição.
+
+A prova de pertença ao conjunto completo, \emph{Full-Chain Membership
+Proof} (FCMP), e a prova de autorização e ligação, \emph{Spend
+Authorization and Linkability} (SAL), formam a construção FCMP++.
+Começaremos pelo objecto que passa de uma para a outra. Depois
+poderemos seguir um compromisso desde o registo da saída até à
+igualdade que o nó testa ao receber a prova
 \cite{fcmp-plus-plus-paper,fcmp-composition-review}.
 
 \section{A saída que a entrada pode gastar}
@@ -44,40 +48,23 @@ Os registos são públicos. O segredo da pertença é a escolha de um
 deles: o índice da saída consumida e o caminho que a identifica na
 representação do conjunto.
 
-A base \(J\) é determinada pela chave originalmente registada,
-através da função de hash para pontos aplicável à saída. Para uma
-chave \(O\) já representada no subgrupo primo, escrevemos
-\(J=\mathcal H_p(O)\). A inclusão de uma chave com componente de
-torção conserva a base calculada a partir da sua codificação original,
-ao mesmo tempo que representa a chave no subgrupo usado pela prova.
-Esta ordem preserva a imagem de chave associada à saída. A formação
-das folhas dará a transformação exacta dos pontos; o papel de \(J\)
-fica desde já fixado~\cite{monero-source-current-fcmp-tree}.
+A base \(J\) deriva da codificação original da chave por hash para
+pontos. No caso de uma chave \(O\) do subgrupo primo escreveremos
+\(J=\mathcal H_p(O)\). Ao formar a folha veremos por que tem de se
+conservar a codificação original mesmo quando se projecta a chave
+sobre o subgrupo \cite{monero-source-current-fcmp-tree}.
 
-Para representar \(\mathcal S\), organiza-se uma árvore. As folhas
-guardam os registos; os nós superiores resumem grupos de nós inferiores;
-a raiz resume o conjunto inteiro. Designaremos a raiz por \(\rho\).
-Um caminho fornece, em cada nível, os dados necessários para ligar
-o nó escolhido ao resumo do nível seguinte, até chegar a \(\rho\).
-A prova conserva esse caminho na testemunha secreta. A construção
-\emph{Curve Trees} realiza os resumos com pontos de curvas elípticas
-e torna possível provar estas relações em conhecimento zero
-\cite{curve-trees}.
+As folhas da árvore guardam os registos. Cada nó de \emph{Curve Trees}
+resume os seus filhos por um ponto de curva elíptica, até restar um
+único ponto, a raiz \(\rho\). O nó da rede aceita uma raiz e uma
+profundidade segundo as regras da construção. A prova deve ligar-lhe
+um dos registos por um caminho secreto \cite{curve-trees}.
 
-O verificador recebe uma raiz admitida pelas regras da transacção,
-juntamente com a profundidade correspondente. A prova de pertença
-estabelece a inclusão no conjunto fixado por essa raiz. As regras
-que escolhem a raiz determinam quais as saídas elegíveis; a igualdade
-com uma raiz reconhecida liga a matemática da árvore aos registos
-da lista de blocos.
-
-O registo de uma saída permanece na árvore depois do gasto. A
-verificação de repetição trabalha com as imagens de chave já usadas.
-Esta divisão permite conservar um conjunto público de candidatos e
-actualizar, separadamente, o conjunto das etiquetas de gasto. Para
-aceitar uma nova transacção, o verificador exige imagens de chave
-válidas, não nulas e distintas entre as entradas, e confere que cada
-uma ainda pode ser usada segundo o estado admitido.
+Ao admitir uma despesa, o nó regista a imagem de chave. O registo da
+saída continua na árvore. Deste modo o conjunto pode representar a
+história das emissões de saídas, deixando ao registo de imagens a
+decisão acerca da segunda utilização. As imagens admitidas pertencem
+ao subgrupo primo, são não nulas e distintas dentro de cada transacção.
 
 \index{fcmp++@FCMP++!relacao demonstrada@relação demonstrada}
 
@@ -129,20 +116,10 @@ ao qual a autorização fica ligada. A realização desta declaração
 acrescentará os compromissos e as mensagens das subprovas
 \cite{fcmp-composition-review}.
 
-Cada condição tem um destinatário concreto. A pertença situa a
-saída entre as admitidas. A abertura de \(O\) fornece a
-autorização. A igualdade \(I=xJ\) fixa a imagem que será
-comparada com as anteriores. A diferença \(r_CG\) liga o
-pseudo-compromisso ao montante daquela mesma saída. O índice secreto
-é comum às quatro condições: chave, base da imagem e compromisso
-provêm de um único registo.
-
-Para várias entradas, os pseudo-compromissos participam na equação
-de equilíbrio \eqref{eq:commitment-balance}. As provas de intervalo
-restringem os montantes das novas saídas ao intervalo permitido.
-O verificador reúne estas condições com a autorização e o teste das
-imagens. A relação \eqref{eq:fcmp-composed-statement} dá a ligação
-entre uma entrada e a saída que ela consome.
+A mesma escolha em \(\mathcal S\) tem de fornecer a chave, a base
+da imagem e o compromisso. Uma vez garantida esta coincidência,
+\(\widetilde C\) entra na equação de equilíbrio~\eqref{eq:commitment-balance}.
+As provas de intervalo continuam a abranger as novas saídas.
 
 \index{r sal@\(R\), compromisso auxiliar SAL}
 \index{fcmp++@FCMP++!apresentacao mascarada@apresentação mascarada}
@@ -221,21 +198,12 @@ a asseguram antes de apresentar as respostas do provador.
 \end{tikzpicture}
 \end{center}
 
-Para seguir uma das setas, fixemos a da imagem. O público vê \(I\)
-em SAL e consultará esse ponto na lista das imagens já gastas. A
-pertença conhece a abertura de \(\widetilde J\). A autorização recebe
-apenas esse ponto mascarado e produz a equação que leva a \(I\).
-Por conseguinte, a comparação pública de imagens pode fazer-se
-conservando secreto o caminho que conduziu a \(J\).
-
-Cada sistema de prova mantém o seu transcrito: a declaração e as
-mensagens já produzidas determinam os desafios de Fiat--Shamir.
-Em SAL, o contexto inclui a mensagem assinável da transacção, a
-apresentação comum e a imagem. Essa mensagem vincula os dados da
-transacção e os seus pseudo-compromissos. Assim, as respostas
-autorizam aquele gasto concreto. A pertença tem o seu próprio
-transcrito, ligado à raiz e às apresentações das entradas. Os
-objectos comuns fazem a ligação entre os dois sistemas.
+Na figura, a seta comum às duas provas transporta a apresentação.
+Os desafios de pertença dependem da raiz e das apresentações de
+todas as entradas. O desafio de SAL depende também da imagem e
+da mensagem assinável que identifica o pagamento. Os compromissos
+coincidem onde têm de coincidir, e a autorização vincula a
+transacção concreta.
 
 Tomemos uma transacção com duas entradas, uma só raiz e uma prova
 de intervalo agregada. As duas entradas partilham a FCMP, porque
@@ -767,23 +735,14 @@ A denominação Wei25519 refere-se à apresentação de Weierstrass
 dos pontos das saídas, que calcularemos a seguir
 \cite{monero-oxide-fcmp-source,helioselene-parameters}.
 
-Uma prova sobre Selene trabalha, portanto, com escalares em
-\(\mathbb F_{p_{\rm E}}\). Pode verificar directamente contas
-sobre as coordenadas de Edwards25519 e de Helios. Os pontos
-que essa prova compromete em Selene têm coordenadas em
-\(\mathbb F_{p_{\rm S}}\); estas entram no circuito da prova
-sobre Helios. Os pontos de Helios devolvem coordenadas em
-\(\mathbb F_{p_{\rm E}}\), prontas para o circuito de Selene.
-A alternância pode prolongar-se por tantos níveis quantos
-a árvore exigir.
-
-Em cada passagem, usam-se elementos de um mesmo corpo com
-dois papéis: coordenadas do ponto anterior e escalares da
-prova seguinte. As somas, produtos e inversas conservam
-exactamente o seu significado. Os pontos dos dois grupos
-continuam a ter as respectivas leis e ordens. É esta
-compatibilidade aritmética que permite reunir as camadas
-ímpares num circuito e as pares no outro.
+Leia-se a tabela de baixo para cima. Um compromisso em Selene
+tem coordenadas em \(\mathbb F_{p_{\rm S}}\), precisamente o corpo
+em que um circuito sobre Helios multiplica e divide. O ponto que
+esse segundo circuito compromete tem, por sua vez, coordenadas em
+\(\mathbb F_{p_{\rm E}}\). Voltámos aos escalares de Selene. A
+alternância permite reunir as camadas ímpares num circuito e as
+pares no outro. As folhas entram no primeiro pela coincidência
+entre as coordenadas de Edwards25519 e os escalares de Selene.
 
 \index{wei25519@Wei25519}
 \index{fcmp++@FCMP++!folhas@folhas}
@@ -934,38 +893,35 @@ Os zeros marcam, assim, posições vazias. Os nós cujas
 coordenadas entram no nível seguinte são diferentes da
 identidade e têm coordenadas afins.
 
-A raiz é o único nó do último nível necessário.
-Se houver 700 saídas, os grupos de 38 formam 19 nós
-de Selene; os grupos seguintes de 18 formam dois nós
-de Helios; estes cabem num ramo de Selene, que dá a raiz.
+Considere-se uma árvore que acaba de passar de 684 para 685 saídas
+admitidas. Ao princípio, 18 ramos com 38 saídas enchiam um único
+ramo de Helios, pois \(18\cdot38=684\). A nova saída exige um
+décimo nono ramo de Selene. A sua abscissa já não cabe no primeiro
+ramo de Helios e inaugura o segundo. Para reunir os dois pontos de
+Helios é agora necessário mais um nível. Obtém-se um ponto de Selene
+como nova raiz.
 \begin{center}
-\begin{tikzpicture}[
- font=\small,
- box/.style={draw,rounded corners,align=center,text width=2.7cm,
-             inner sep=6pt},
- flow/.style={->,>=stealth,semithick}]
- \node[box] (leaves) at (0,0)
-   {700 saídas\\sextuplos em \(\mathbb F_{p_{\rm E}}\)};
- \node[box] (selene) at (3.8,0)
-   {19 nós\\Selene};
- \node[box] (helios) at (7.6,0)
-   {2 nós\\Helios};
- \node[box] (root) at (11.4,0)
-   {1 raiz\\Selene};
- \draw[flow] (leaves) -- node[above]{38} (selene);
- \draw[flow] (selene) -- node[above]{18} (helios);
- \draw[flow] (helios) -- node[above]{38} (root);
-\end{tikzpicture}
+\begin{tabular}{r r r l}
+Saídas & Ramos de Selene no nível 1 & Ramos de Helios no nível 2 & Raiz\\
+\hline
+684 & 18 & 1 & Helios, nível 2\\
+685 & 19 & 2 & Selene, nível 3
+\end{tabular}
 \end{center}
+O conjunto aumentou uma unidade. A primeira raiz passou inteira a
+filho da segunda, pois os valores das dezoito primeiras abscissas
+permaneceram os mesmos.
 
-Numeremos as saídas a partir de zero. A saída 699 ocupa a
-posição 15 do ramo 18, porque \(699=18\cdot38+15\).
-O nó desse ramo ocupa a posição zero do ramo 1 de Helios,
-porque \(18=1\cdot18+0\). Este último ocupa a posição 1
-do ramo da raiz. O caminho guarda estes índices e os
-vectores completos dos três ramos. Permite reconstruir
-cada resumo até à raiz, conhecendo em cada nível qual
-das coordenadas conduz ao nível anterior.
+Numeremos de zero tanto as saídas como os ramos. Suponhamos que a
+saída de Alice tem índice 681. A divisão \(681=17\cdot38+35\)
+situa-a na posição 35 do ramo 17 de Selene. A divisão
+\(17=0\cdot18+17\) situa esse ramo na posição 17 do ramo zero de
+Helios. O ramo zero ocupa a primeira posição na nova raiz. Já a
+saída 684 ocuparia a posição zero do ramo 18, a primeira posição
+do segundo ramo de Helios. Ambas as provas indicariam publicamente
+a mesma raiz e a mesma profundidade. Os restos das divisões e as
+aberturas dos ramos escolhidos ficariam com o respectivo provador.
+\index{arvore@árvore!crescimento da raiz@crescimento da raiz}
 
 Em geral, o número de níveis e a paridade determinam a curva
 da raiz: Selene nos níveis ímpares, Helios nos pares.
@@ -1091,7 +1047,6 @@ dentro dos dois circuitos aritméticos.
 
 \section{A multiplicação que oculta cada ramo}
 \label{sec:fcmp-divisor-purpose}
-\label{sec:fcmp-divisor-costs}
 \index{certificado de multiplicacao@certificado de multiplicação!mascaras fcmp++@máscaras FCMP++}
 
 Ao retirar a máscara de um nó, o circuito precisa de ligar
@@ -1270,8 +1225,37 @@ Assim procede o verificador em FCMP++. A prova aritmética liga
 as incógnitas destas quatro igualdades às aberturas. A soma de
 pontos que se segue emprega as mesmas coordenadas \(x_W,y_W\)
 que entraram na equação da curva e no cálculo de \(v\).
-As sete multiplicações secretas de um certificado conservam esta
-ligação mesmo quando a tabela passa de três para 253 posições.
+Tomemos a primeira destas portas tal como Bob a escreve. Ao prover
+a função, Alice fixou três coeficientes \(c_0,c_2,c_y\) de
+\(f=c_0+x+c_2x^2+c_yy\). No primeiro encontro da secante, \(x=3\),
+\(y=16\) e \(3x^2+2=12\) no corpo. Bob inscreve nas matrizes
+\[
+ D_0=12(c_0+3+9c_2+16c_y),\qquad
+ N_0=32(1+6c_2)+12c_y.
+\]
+Para a testemunha de Alice, \((c_0,c_2,c_y)=(2,14,5)\), o primeiro
+valor reduz-se a 16 e o segundo a 9. A porta pede \(D_0o_0=N_0\)
+e a razão guardada por Alice é 8. Bob conhece os coeficientes das
+duas expressões. Pode pois determinar a relação que a prova deve
+satisfazer, mesmo quando os números 16, 9 e 8 continuam reservados.
+Com uma tabela de 253 posições aumenta o comprimento das combinações
+lineares. Continua a bastar uma porta para a razão em cada encontro.
+
+\Needspace{7\baselineskip}
+\subsection{O que custa ocultar a multiplicação}
+\label{sec:fcmp-divisor-costs}
+\index{certificado de divisor@certificado de divisor!necessidade e custo@necessidade e custo}
+
+Uma prova de Schnorr bastaria se o nó conhecesse o ponto \(W\)
+e quisesse verificar o conhecimento de \(s_A\) em \(W=s_AA\).
+Aqui, publicar \(W\) daria ao nó o termo que lhe permite retirar a
+máscara. A sua abscissa e a sua ordenada têm de continuar disponíveis
+para uma adição \emph{dentro} da prova. Em contrapartida, a tabela
+de duplicações é pública. Vale a pena deslocar trabalho das
+multiplicações entre segredos para contas com esta tabela. Há três
+quantidades a seguir nessa troca, os dados que Alice prepara, as
+portas que as Generalized Bulletproofs devem certificar e os
+pontos que Bob recebe.
 
 A contagem começa pelo espaço da função. Na construção
 seleccionada, \(L_A=253\) para as bases de Edwards25519
@@ -1316,7 +1300,7 @@ como se calculou na secção~\ref{sec:divisors-cost-and-composition}.
 Logo, os cinco certificados da folha ocupam
 \(5\cdot7=35\) relações multiplicativas. Cada nível
 adicional acrescenta sete desta espécie. No exemplo de
-700 saídas, o caminho tem três níveis: cinco certificados
+685 saídas, o caminho tem três níveis: cinco certificados
 na folha e dois nas passagens dão sete certificados, com
 \(7\cdot7=49\) relações multiplicativas. A selecção dos
 membros e as somas de pontos acrescentam as relações que
@@ -1423,9 +1407,14 @@ multiplicações. É o custo desta interpolação directa;
 acrescem as operações que formam as avaliações e as
 operações de grupo. A normalização acrescenta uma inversão
 e a multiplicação dos coeficientes pelo factor obtido.
-O provador usa esta grelha na preparação secreta da
-testemunha; os três encontros de verificação serão depois
-determinados pelo transcrito~\cite{monero-oxide-fcmp-source}.
+No pequeno exemplo, a parte sem \(y\) de \(f\) tomou na grelha
+\(0,1,2\) os valores \(2,0,9\). Para uma quadrática
+\(a+bx+cx^2\), a segunda diferença é \(2c\), aqui
+\(9-2\cdot0+2=11\). Logo \(c=11/2=14\) em \(\mathbb F_{17}\),
+\(a=2\) e \(b=0-2-14=1\). Reaparece \(2+x+14x^2\).
+Estes valores da grelha servem a Alice para construir o compromisso.
+Os três encontros de verificação, esses, só se determinam depois de
+o compromisso entrar no transcrito~\cite{monero-oxide-fcmp-source}.
 
 Há trabalho público que se pode preparar uma vez. Uma
 tabela de \(L_A\) posições custa \(L_A-1\) duplicações.
@@ -1438,29 +1427,15 @@ potências, os pesos das derivadas e os denominadores
 da tabela. Estas quantidades podem ser reutilizadas nas
 relações que partilhem a base e o desafio.
 
-As avaliações nos pontos públicos são combinações lineares
-dos coeficientes secretos. Por exemplo, avaliar uma função
-normalizada de Edwards nos três encontros envolve três
-combinações das suas 253 coordenadas variáveis. Esse
-processamento acompanha o comprimento da função. Os
-sete produtos contam apenas as relações multiplicativas
-secretas; a construção dos compromissos e a preparação
-das combinações lineares percorrem igualmente os dados.
-
-Generalized Bulletproofs reúne estes custos em duas
-dimensões distintas: os \(K_k\) guardam os vectores
-comprometidos, enquanto a dimensão \(m\) do IPA acomoda
-os produtos do circuito e o comprimento necessário a cada
-abertura. O número de compromissos também entra na
-prova, e a redução do IPA acrescenta uma ronda por cada
-duplicação de \(m\). A economia dos divisores consiste
-em certificar cada multiplicação de um ponto por um escalar com sete
-produtos secretos, conservando o trabalho de dimensão
-\(L_A\) nas funções, nos compromissos e nas condições
-lineares~\cite{monero-oxide-fcmp-source,generalized-bulletproofs-fixed}.
-Podemos agora juntar estes certificados às somas de pontos
-e à selecção dos membros, para escrever os dois circuitos
-completos de pertença.
+As combinações lineares percorrem todos os coeficientes. Na folha,
+por exemplo, há 253 coeficientes livres para cada uma das cinco
+funções. Os compromissos \(K_k\) pagam esta largura em bases e em
+aberturas. As sete portas de cada certificado, por sua vez, entram
+na dimensão do argumento de produto interno. Contar as portas mede
+o trabalho que depende de produtos de dois segredos. Contar também
+as aberturas e a interpolação explica onde ficou o restante trabalho
+da multiplicação que queríamos ocultar
+\cite{monero-oxide-fcmp-source,generalized-bulletproofs-fixed}.\label{page:fcmp-certificados-fim}
 
 \section{O circuito de um caminho secreto}
 \label{sec:fcmp-circuit-addition}
@@ -1759,7 +1734,7 @@ na segunda fórmula conserva a regra de dimensão para
 \(L=1\), quando a raiz pertence à primeira camada
 \cite{monero-oxide-fcmp-source}.
 
-No exemplo da árvore de 700 saídas, \(L=3\). Para uma
+No exemplo da árvore de 685 saídas, \(L=3\). Para uma
 entrada, os circuitos usam
 \(N_{\rm S}=97+52=149\) e \(N_{\rm H}=32\).
 As dimensões são 256 e 128, dando oito e sete rondas de
@@ -1879,7 +1854,7 @@ abertura ampliada. Para os compromissos auxiliares basta a
 existência das próprias coordenadas que as matrizes consultam
 \cite{generalized-bulletproofs-fixed,monero-oxide-fcmp-source}.
 
-Na árvore das 700 saídas, o circuito de Selene tem assim duas
+Na árvore das 685 saídas, o circuito de Selene tem assim duas
 tarefas no mesmo corpo escalar. Trata os pontos da saída no
 primeiro nível e o ponto de Helios na passagem para a raiz.
 O circuito de Helios, entre ambos, recebe as coordenadas de um
@@ -2212,8 +2187,9 @@ excepcionais e multiplicando pela massa máxima
       {(N_{\rm aff}-2)^2}\right\}.
  \label{eq:fcmp-sampler-error}
 \end{equation}
-É um limite incondicional de falsa aceitação de dados
-previamente fixados, no modelo ideal indicado. Cada
+Esta é uma cota por sorteio do amostrador ideal, com os dados da
+testemunha fixados antes da secante. Os sorteios que interrompem o
+procedimento contam como rejeição. Cada
 rejeição pública retira uma possível aceitação.
 Como \(N_{\rm aff}\) é da ordem de \(q_{\mathbb E}\),
 o limite conserva a ordem
@@ -2270,7 +2246,7 @@ outros compromissos, obtendo outros desafios, é contabilizada
 pela análise de Fiat--Shamir.
 
 Podemos agora acompanhar um verificador que recebe uma entrada
-e a raiz de três níveis das 700 saídas. O que lhe chega é uma
+e a raiz de três níveis das 685 saídas. O que lhe chega é uma
 prova em pontos e escalares. As variáveis \(o_r\), os
 coeficientes de cada \(f_A\), as coordenadas dos pontos de máscara
 e os índices dos ramos pertencem à testemunha. Como chega ele a uma
@@ -2911,13 +2887,33 @@ com a dependência exacta fixada por
 pode ser feita a partir da raiz e da profundidade
 admitidas, antes de conhecer o caminho secreto.
 
-A prova reúne as condições desses caminhos em dois
-argumentos e acrescenta uma autorização por entrada.
-É esta organização que permite conservar uma escolha
-secreta entre os registos admitidos, enquanto a imagem
-e os compromissos públicos conservam as verificações
-de repetição e de equilíbrio.
+Voltemos à saída 681. O seu ramo pode ser o primeiro ou o último
+que um nó reconstrói ao preparar a árvore pública. Quando chega a
+transacção, o nó sabe à partida qual a raiz admissível. O ponto
+\(B+K-\rho\) da prova de Schnorr liga a essa raiz a abertura que
+a prova aritmética usa no topo da árvore. A descida liga cada
+abscissa ao ramo seguinte. No fundo há um sextuplo, e o seu compromisso
+de montante é o \(C\) de que se obteve \(\widetilde C\).
+É precisamente este encadeamento que permite à contabilidade do
+pagamento prescindir da posição 681.
+
+Para confirmar a despesa falta um facto que varia com a altura.
+Uma imagem \(I=xJ\) já admitida continua a ser a mesma imagem amanhã,
+ainda que tenham entretanto nascido outros ramos e mudado a raiz.
+Quando dois pagamentos chegam separadamente e apresentam a mesma
+imagem, a primeira inclusão válida altera o estado a consultar na
+segunda. A validade matemática da prova relativamente à sua raiz
+e a disponibilidade da saída no estado escolhido entram assim em
+passos sucessivos da decisão. O equilíbrio final e a prova de
+intervalo aplicam-se aos compromissos de saída como no pagamento a Bob.
+
+A todo este raciocínio esteve subjacente uma hipótese acerca das
+bases. Por exemplo, da igualdade de dois compromissos na raiz
+inferimos que as coordenadas das aberturas extraídas coincidem.
+Um grupo cíclico contém, contudo, uma relação entre quaisquer dois
+geradores. O que é preciso que permaneça difícil para a inferência
+ser legítima? Esta questão leva-nos ao capítulo seguinte.
 
 \label{page:fcmp-text-end}
-\includepdf[pages=1,fitpaper=true,pagecommand={\thispagestyle{empty}\label{page:fcmp-end}}]
+\includepdf[pages=1,fitpaper=true,pagecommand={\thispagestyle{empty}\label{page:fcmp-end}\hypertarget{excerto.fcmp.fim}{}}]
   {posters/fcmp-composition/poster.pdf}

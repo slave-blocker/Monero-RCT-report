@@ -26,9 +26,9 @@
 ]
 \useasboundingbox (0,0) rectangle (39.6,27.3);
 \node[anchor=west,font=\sffamily\bfseries\fontsize{30}{34}\selectfont]
-  at (0,26.65) {FCMP++: da saída à autorização};
+  at (0,26.65) {FCMP++ da raiz ao pagamento};
 \node[anchor=west,font=\fontsize{13}{16}\selectfont]
-  at (0,25.55) {Um caminho secreto liga o registo admitido à chave, à imagem e ao montante do mesmo gasto.};
+  at (0,25.55) {Alice conhece a saída que gasta. O nó de Bob conhece a raiz, verifica a prova e reconhece uma imagem já usada.};
 
 \fill[cream,rounded corners=3pt] (0,22.9) rectangle (39.6,24.8);
 \node[anchor=west,font=\sffamily\bfseries\fontsize{11}{13}\selectfont,text=accent]
@@ -39,9 +39,9 @@
     \qquad I=xJ
     \qquad \widetilde C=C+r_CG\)};
 \node[anchor=west,font=\fontsize{10.5}{13}\selectfont]
-  at (.45,23.35) {Segredos: registo, caminho, chaves e máscaras.};
+  at (.45,23.35) {Com Alice ficam o índice do registo, o caminho, as chaves e as máscaras.};
 \node[anchor=east,font=\fontsize{10.5}{13}\selectfont]
-  at (39.15,23.35) {Dados públicos: raiz \(\rho\), profundidade \(L\), mensagem, imagens e pseudo-compromissos.};
+  at (39.15,23.35) {O nó recebe a raiz \(\rho\), a profundidade \(L\), a mensagem, as imagens e os pseudo-compromissos.};
 
 \foreach \panelx/\panelnum/\paneltitle in {
   0/1/O conjunto e o caminho,
@@ -58,18 +58,17 @@
 
 % O percurso público da construção e a escolha secreta.
 \node[textblock] at (.45,19.95)
-  {Os registos públicos determinam a árvore.\\
-   A testemunha escolhe um percurso até à raiz admitida \(\rho\).};
+  {Com 685 saídas, 19 ramos de Selene dão dois ramos de Helios e uma raiz de Selene.};
 \node[chosen,label={[font=\small]above:\(\rho\)}] (root) at (4.65,18.0) {};
-\node[point] (h0) at (2.3,16.65) {};
-\node[chosen] (h1) at (4.65,16.65) {};
-\node[point] (h2) at (7,16.65) {};
-\node[point] (s0) at (3.4,15.3) {};
+\node[chosen] (h0) at (3.8,16.65) {};
+\node[point] (h1) at (6.9,16.65) {};
+\node[point] (s0) at (2.5,15.3) {};
+\node[anchor=center,font=\small] at (3.5,15.3) {\(\cdots\)};
 \node[chosen] (s1) at (4.65,15.3) {};
-\node[point] (s2) at (5.9,15.3) {};
-\draw[line,line width=.7pt] (h0)--(root) (h2)--(root) (s0)--(h1) (s2)--(h1);
-\draw[flow] (h1)--(root);
-\draw[flow] (s1)--(h1);
+\node[point] (s2) at (6.9,15.3) {};
+\draw[line,line width=.7pt] (h1)--(root) (s0)--(h0) (s2)--(h1);
+\draw[flow] (h0)--(root);
+\draw[flow] (s1)--(h0);
 \node[anchor=west,text=sea,font=\sffamily\small] at (.5,18) {Selene};
 \node[anchor=west,text=plum,font=\sffamily\small] at (.5,16.65) {Helios};
 \node[anchor=west,text=sea,font=\sffamily\small] at (.5,15.3) {Selene};
@@ -77,7 +76,7 @@
   (leaf) at (4.65,13.95) {\((O_x,O_y,J_x,J_y,C_x,C_y)\)};
 \draw[flow] (leaf.north)--(s1);
 \node[textblock,font=\fontsize{10.5}{13}\selectfont] at (.45,13.15)
-  {Exemplo de três níveis. O traço laranja assinala o percurso secreto; os outros ramos permanecem candidatos.};
+  {Para a saída 681, os lugares da folha até à raiz são 35, 17 e 0. Só Alice conhece esta escolha.};
 \node[subhead] at (.45,11.6) {O nó e a sua apresentação};
 \node[textblock] at (.45,11.05) {
   \(\displaystyle Q_j=B_{\mathcal E_j}
@@ -99,8 +98,8 @@
   at (12.5,18.1) {GBP sobre Selene\\\small camadas ímpares};
 \node[draw=plum,fill=white,rounded corners=2pt,minimum width=3.9cm,minimum height=1.3cm,align=center,text=plum]
   at (17.15,18.1) {GBP sobre Helios\\\small camadas pares};
-\node[textblock] at (10.55,17.1) {Dois IPA para a pertença agregada.};
-\node[subhead] at (10.55,16.1) {Certificar a máscara: \(W=s_AA\)};
+\node[textblock] at (10.55,17.1) {O nó verifica um produto interno por curva.};
+\node[subhead] at (10.55,16.1) {A máscara \(W=s_AA\)};
 \node[textblock] at (10.55,15.55) {
   \(\displaystyle
     \begin{aligned}
@@ -108,7 +107,7 @@
        ={}&\sum_i m_i[A_i]+[-W]\\
           &-(L_A+1)[\mathcal O_\infty].
     \end{aligned}\)\\[3mm]
-  A função não nula, de pólo limitado, certifica a multiplicação pelas avaliações desafiadas.};
+  A função é fixada antes da secante. Três razões, uma inversa e o teste da curva custam sete produtos secretos.};
 \node[subhead] at (10.55,11.9) {Escolher dentro de um ramo};
 \node[textblock] at (10.55,11.35) {
   \(\displaystyle \prod_{i=0}^{w-1}(v_i-u)=0\)\\[3mm]
@@ -148,7 +147,7 @@
     I=x(J+r_JU)-(xr_J)U=xJ.
   \)\\[3mm]
   Um SAL por entrada. O desafio vincula a mensagem da transacção, incluindo os pseudo-compromissos.\\[3mm]
-  Seis pontos e seis escalares: \textbf{384 bytes}.};
+  Seis pontos e seis escalares ocupam \textbf{384 bytes}.};
 
 % As propriedades e os testes exteriores.
 \node[subhead] at (30.75,19.75) {Pertença e autorização};
@@ -183,7 +182,7 @@
                       2(\log_2m_{\rm S}+\log_2m_{\rm H})\,]\)\\[2mm]
   \(\displaystyle B_{\rm FCMP++}=B_{\rm pert}+480n\).
   \(s\): compromissos por curva; \(m\): dimensão do IPA; \(n\): entradas.\\[2mm]
-  Para \(n=1,\ L=3\): \textbf{4160 bytes} de pertença e \textbf{4640 bytes} no objecto FCMP++.
+  Com \(n=1,\ L=3\) são \textbf{4160 bytes} de pertença e \textbf{4640 bytes} no objecto FCMP++.
   Imagens, pseudo-compromissos e provas de intervalo ocupam os seus campos próprios.};
 \node[subhead,text=accent] at (20.2,3.55) {DOMÍNIO DAS GARANTIAS};
 \node[anchor=north west,align=left,text width=19.1cm,inner sep=0pt,font=\fontsize{10.5}{13}\selectfont]

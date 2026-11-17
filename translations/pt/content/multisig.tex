@@ -1,4 +1,4 @@
-\chapter{Multi-assinaturas}
+\chapter{A autorização conjunta de uma despesa}
 \label{chapter:multisignatures}
 \index{multi-assinatura@multi-assinatura}
 \index{multisig@multisig|see{multi-assinatura}}
@@ -115,17 +115,15 @@ Alice conhece uma parcela e Bob conhece a outra. Parece uma chave 2-de-2.
 \label{sec:naive-key-aggregation}
 \label{subsec:drawbacks-naive-aggregation-cancellation}
 
-Suponhamos, porém, que Alice publica \(A\) primeiro. Bob pode escolher uma
-chave pública \(T=tG\) que controla sozinho e anunciar
-\begin{align*}
- B=T-A.
-\end{align*}
-A soma anunciada é então
-\begin{align*}
- A+B=T,
-\end{align*}
-cuja chave privada \(t\) é conhecida por Bob. As assinaturas do traslado não
-corrigem esta relação algébrica. Este é um ataque de cancelamento de chaves.
+O argumento anterior partia de duas chaves geradas pelos seus donos,
+cada qual com o seu logaritmo secreto. Perante duas codificações
+anunciadas no protocolo, Alice conhece a sua parcela e vê um ponto
+indicado pelo outro participante. Se esse participante for Oscar,
+que garantia tem Alice de que a escolha dele foi independente da
+sua? A mera soma é simétrica. Dado o resultado, há tantas
+decomposições em dois pontos quantas as escolhas do primeiro.
+A vinculação de cada contribuição à lista completa de participantes
+é, por isso, parte da construção de uma chave partilhada.
 
 \subsection{Coeficientes de agregação}
 \label{sec:robust-key-aggregation}
@@ -275,7 +273,7 @@ saltada.
 \subsection{Exemplo 2-de-3}
 \label{sec:n-1-of-n}
 
-Consideremos Alice, Bob e Carlos, com \(M=2\) e \(N=3\). Temos \(q=2\), pelo
+Consideremos Alice, Bob e um terceiro signatário, designado por \(C\), com \(M=2\) e \(N=3\). Temos \(q=2\), pelo
 que são criados três segredos:
 \begin{align*}
  b_{AB}&=\mathcal H_n(8a_Aa_BG),\\
@@ -283,7 +281,7 @@ que são criados três segredos:
  b_{BC}&=\mathcal H_n(8a_Ba_CG).
 \end{align*}
 Depois da ponderação, Alice conhece \(x_{AB}\) e \(x_{AC}\), Bob conhece
-\(x_{AB}\) e \(x_{BC}\), e Carlos conhece \(x_{AC}\) e \(x_{BC}\). A chave de
+\(x_{AB}\) e \(x_{BC}\), e o terceiro conhece \(x_{AC}\) e \(x_{BC}\). A chave de
 gasto é
 \begin{align*}
  K^s=(x_{AB}+x_{AC}+x_{BC})G.
@@ -503,7 +501,7 @@ a prova Bulletproofs+, e fixa a estrutura que todos irão verificar. Cria també
 tentativas para as combinações de signatários que podem atingir o limiar com
 o material importado.
 
-Numa carteira 2-de-4, se Alice propõe e tem dados de Bob, Carlos e Diana, pode
+Numa carteira 2-de-4, se Alice propõe e tem dados de Bob e dos signatários \(C,D\), pode
 preparar tentativas \(AB\), \(AC\) e \(AD\). Cada tentativa usa pontos
 aleatórios próprios. Assim, a indisponibilidade de Bob não obriga a reconstruir
 todo o pagamento, desde que outra tentativa ainda tenha valores privados

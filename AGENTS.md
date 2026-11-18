@@ -10,6 +10,19 @@
 - Use «de Monero», «por Monero» e «em Monero», conforme a construção gramatical, sem artigo antes do nome. Para designar a blockchain, use «lista de blocos»; preserve os sentidos matemáticos próprios de «cadeia» quando designem outros objectos.
 - Organize as secções pela continuidade do argumento. A extensão de cada secção deve acompanhar a matéria; elimine o esquema de uma página por secção nos capítulos de divisores e FCMP++. Reserve as quebras de página explícitas para necessidades reais de composição.
 
+## Preservação de Bulletproofs e Bulletproofs+
+
+- Preservar a secção «Bulletproofs» (`sec:bullet_proofs`) de `translations/pt/content/commitments.tex` que começa com a epígrafe «Sou mais rápido quando me mexo», atribuída a Sundance, e «Em português: provas de bala». A referência para o seu conteúdo, incluindo todas as subsecções, é o commit `cbe02ed603ff22f9b5cfd8174f03fb2ade86f0b6`.
+- Conservar a redacção, a notação, as equações, os exemplos, os diagramas e a sequência expositiva dessa versão. Está autorizada, nesta primeira intervenção, a remoção dos espaços em branco excessivos e das quebras de página que os provoquem. Os restantes aperfeiçoamentos ficam para pedidos posteriores.
+- Esta preservação tem precedência sobre as directivas gerais de estilo, reescrita e uniformização deste repositório. Mesmo em revisões sucessivas ou pedidos genéricos para tornar o livro mais literal («verbatim»), conservar a secção conforme a referência fixa acima, admitindo apenas a limpeza de espaços já autorizada. Qualquer outra alteração exige um pedido que identifique expressamente esta secção; a referência permanece fixa à medida que o histórico avança.
+- Conservar a secção «Bulletproofs+» (`sec:bulletproof_plus`) no estado do commit `be3da539d8b5a64faf89d97688210ce32966ac77`. A reposição da versão anterior e a limpeza de espaços incidem apenas na secção de Bulletproofs clássicas.
+- O capítulo de Generalized Bulletproofs, em `translations/pt/content/generalizedBulletproofs.tex`, tem âmbito próprio.
+
+## O segredo público gamma
+
+- O título deve ser exactamente «O segredo público gamma», com «gamma» escrito por extenso, sem o substituir pela letra grega. Destina-se ao capítulo sobre o logaritmo discreto de \(H\) em relação a \(G\), em `translations/pt/content/dlogRelations.tex`: \(\gamma=\log_G H\), ou seja, \(H=\gamma G\).
+- Preservar o jogo de palavras do título. Os pontos \(G,H\) são públicos e determinam a relação; a dificuldade computacional de encontrar \(\gamma\) sustenta a propriedade de vinculação dos compromissos. O título deve acompanhar esta distinção matemática.
+
 ## FCMP++ rewriting scope
 
 - Rebuild the FCMP++ chapter from primary sources. Do not reuse the existing chapter's prose, structure, examples, figures, or sequence of exposition. The old chapter remains recoverable through Git history only.

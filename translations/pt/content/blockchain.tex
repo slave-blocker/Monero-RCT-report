@@ -1023,34 +1023,28 @@ suficiente; a mineração repete tentativas até obter um resultado válido.
 \label{subsec:transaction-id}
 \index{transaccao@transacção!identificador@identificador} %calculate_transaction_hash
         %each arrow is a hash
-Consideremos as transacções de versão 2. O seu ID não é simplesmente a hash de um
-único objecto monolítico: separa deliberadamente os dados que um nó podado tem
-de conservar daqueles que pode apagar.
-%Transaction IDs are similar to the message signed by input MLSAG signatures (Section \ref{full-signature}), but include the MLSAG signatures too.
-
-Calculam-se três hashes de 32 bytes:
-%The following information is hashed:
+O identificador de uma transacção de versão 2 forma-se a partir de três
+parcelas de 32 bytes. No pagamento de Alice, o nó retoma os dois primeiros
+resumos de Keccak--256 da equação~\eqref{eq:transaction-pre-clsag-hash}
+e aplica a mesma função à parte podável inteira para obter o terceiro.
 \begin{itemize}
-    \item $h_p$: a hash do prefixo serializado: versão, desbloqueio, entradas
-          (incluindo \emph{offsets} e imagens de chave), saídas (chaves e
-          etiquetas de vista) e {\tt extra};
-    \item $h_b$: a hash da parte RingCT de base, não podável: tipo
-          ({\tt RCTTypeBulletproofPlus} nas transacções normais do regime v16, ou
-          {\tt RCTTypeNull} na de mineiro), taxa, compromissos de saída e
-          informação de montante;
-%pseudo output commitments for inputs, ecdhInfo (encrypted or cleartext amounts), output commitments
-    \item $h_r$: a hash da parte RingCT podável, que nas transacções do regime v16
-          normais inclui Bulletproofs+, CLSAG e pseudo-saídas. Para
-          {\tt RCTTypeNull}, $h_r$ é a hash nula de 32 bytes.
+    \item \(h_p\) é o resumo do prefixo serializado, desde a versão até
+          ao fim de \texttt{extra}, passando pelas entradas e saídas.
+    \item \(h_b\) é o resumo da base RingCT. No tipo 6 vêm, por esta ordem,
+          o byte \texttt{06}, a taxa em \emph{varint}, os montantes cifrados
+          e os compromissos de saída. Na transacção de mineiro de versão 2,
+          a base inteira é o byte \texttt{00}.
+    \item \(h_r\) é, no tipo 6, o resumo da parte podável tal como se transmite,
+          com a prova Bulletproofs+, as assinaturas CLSAG e os pseudo-compromissos.
+          Na transacção de mineiro de versão 2, \(h_r\) vale 32 bytes nulos.
 \end{itemize}
 
-Finalmente,
+Aplicando Keccak--256 aos 96 bytes assim reunidos, obtém-se
 \begin{align*}
 \mathit{ID}_{\rm tx}=\mathcal H(h_p\|h_b\|h_r).
 \end{align*}
 
-Neste diagrama de árvore a seta preta indica uma hash de entradas. 
-%In this tree diagram the black arrow indicates a hash of inputs.
+O apêndice~\ref{appendix:pagamento-tipo-seis} faz a conta com os bytes de um pagamento real.
         
 \begin{center}
     \begin{forest}

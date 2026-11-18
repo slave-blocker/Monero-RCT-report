@@ -351,7 +351,7 @@ reward: 4634817937431
  \item {\tt hash} é o identificador calculado do bloco. {\tt difficulty} e
  {\tt reward} são também resultados calculáveis: a dificuldade decorre do
  histórico e a recompensa, do peso, da emissão e das taxas. Não se devem
- confundir os dados impressos pelo cliente com os bytes assinados pelo mineiro.
+ confundir os dados impressos pelo cliente com os bytes sobre os quais se calcula a prova de trabalho.
 
  \item {\tt major\_version}=7 selecciona as regras de consenso desta altura.
  {\tt minor\_version} pertencia ao antigo mecanismo de sinalização dos
@@ -391,6 +391,8 @@ reward: 4634817937431
   {\tt b164394ef2b14ecfe74814170557e6e9}.
  \end{center}
 \end{itemize}
+
+\input{content/caminhoMerkle}
 
 \chapter{Bloco de génese}
 %Genesis Block}
@@ -628,5 +630,7 @@ O termo \(\delta(y,z)\) é o resto conhecido produzido pelas deslocações
 em \(z\). As componentes aleatórias dos
 polinómios acrescentam os coeficientes de grau um e dois; esta igualdade fixa
 o termo constante ao montante comprometido.
+
+\input{content/pagamentoTipoSeis}
 
 \end{appendices}

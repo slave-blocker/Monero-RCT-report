@@ -1,0 +1,105 @@
+\subsection{Ler uma janela de carimbos e de trabalho}
+\label{subsec:exemplo-janela-dificuldade}
+
+Retomemos os dez blocos do exemplo, os números 15 a 24, que serviam
+para calcular a dificuldade do bloco 30. Convém pôr diante dos olhos as duas
+listas que o nó tem de consultar. Os carimbos dizem quanto tempo decorreu.
+O trabalho cumulativo diz quanto trabalho a regra de selecção atribuiu ao
+ramo. Ambas as listas chegam pela ordem dos blocos, e só uma vai ser
+ordenada. Tomemos os carimbos em segundos a partir de uma origem
+qualquer, com as dificuldades cumulativas em unidades da nossa pequena
+rede. O corte de três blocos em cada extremo serve a dimensão deste exemplo.
+
+\begin{center}
+\begin{tabular}{r|r|r|r}
+bloco & carimbo & dificuldade cumulativa & carimbo na lista ordenada\\
+\hline
+15 & 1000 & 1000 & 1000\\
+16 & 1090 & 1100 & 1090\\
+17 & 1285 & 1210 & 1285\\
+18 & 1340 & 1320 & 1340\\
+19 & 1440 & 1430 & 1430\\
+20 & 1430 & 1550 & 1440\\
+21 & 1500 & 1680 & 1493\\
+22 & 1493 & 1800 & 1500\\
+23 & 1720 & 1920 & 1720\\
+24 & 1810 & 2040 & 1810
+\end{tabular}
+\end{center}
+
+Os quatro carimbos centrais, lidos na última coluna, são 1340, 1430,
+1440 e 1493. Entre os extremos medeiam 153 segundos. O relógio que
+marcou 1493 pertencia ao bloco 22. Para o trabalho, porém, tomam-se
+as posições centrais na lista das dificuldades cumulativas, que
+conservou a ordem do ramo. A primeira dessas posições pertence ao
+bloco 18 e a última ao bloco 21. A diferença é
+\[
+ 1680-1320=360.
+\]
+Podemos vê-la nascer em três parcelas. A dificuldade do bloco 19 foi
+\(1430-1320=110\), a do bloco 20 foi \(1550-1430=120\) e a do bloco
+21 foi \(1680-1550=130\). Juntas dão \(110+120+130=360\).
+A presença de quatro posições centrais e três parcelas tem a mesma
+razão que a diferença entre os números 1 e 4 de uma régua.
+
+A taxa estimada pela janela vale, assim, \(360/153\) unidades de
+trabalho por segundo. Ao intervalo pretendido de 120 segundos
+correspondem
+\[
+  \frac{360\cdot120}{153}=\frac{4800}{17}
+                   =282+\frac{6}{17}
+\]
+unidades. A dificuldade seguinte é o inteiro 283. O arredondamento
+só intervém depois de se multiplicar o numerador pelo intervalo
+pretendido. Se arredondássemos a taxa para duas unidades por segundo
+antes da multiplicação, chegaríamos a 240. Perder-se-ia na conta uma
+precisão que os dados ainda conservavam.
+
+Vejamos o que estas 283 unidades permitem concluir acerca do bloco que as
+satisfaz. O mineiro apresentou um resultado dentro do alvo. O ramo ganha
+283 unidades de trabalho cumulativo, quer o mineiro tenha encontrado esse
+resultado logo à primeira tentativa, quer tenha passado uma tarde a
+procurá-lo. O segundo caso não produz um bloco de maior peso na escolha
+do ramo. O relógio entra no reajustamento futuro, enquanto o acréscimo ao
+trabalho acumulado já ficou fixado pela dificuldade que vigorava para
+aquele bloco. Assim se pode comparar a história observada por dois nós
+mesmo quando nenhum deles assistiu às tentativas dos mineiros.
+
+\paragraph{O que pode esperar Bob enquanto olha para o relógio.}
+Uma confirmação é um facto do ramo aceite. Já a espera pela próxima
+confirmação é uma variável aleatória. Podemos ligar as duas afirmações
+com um cálculo em que a potência e a dificuldade se mantêm constantes
+e as tentativas sucessivas se comportam como independentes. Se a rede
+fizer \(R\) tentativas por segundo, cada uma com probabilidade \(p\) de
+êxito, em \(t\) segundos sobrevêm aproximadamente \(Rt\) tentativas. A
+probabilidade de ainda não ter aparecido um resultado satisfatório é
+\[
+        (1-p)^{\lfloor Rt\rfloor}.
+\]
+É esta a conta que corresponde à pergunta de Bob: quantas vezes teve a
+rede de ficar aquém do alvo para o relógio chegar até aqui?
+
+Fixemos \(Rp=1/120\) por segundo. Com \(p\) pequeno, a aproximação
+\(\log(1-p)\simeq-p\) transforma a probabilidade anterior em
+\(e^{-t/120}\). Aos dois minutos fica \(e^{-1}\simeq0{,}368\);
+aos quatro, \(e^{-2}\simeq0{,}135\); aos seis,
+\(e^{-3}\simeq0{,}050\). Em cerca de cinco por cento das esperas assim
+modeladas, a rede passaria seis minutos inteiros sem encontrar bloco.
+Se Bob acaba de observar quatro minutos de silêncio, o cálculo para
+mais dois minutos dá, por condicionamento,
+\[
+ \Pr(T>360\mid T>240)
+ \simeq\frac{e^{-360/120}}{e^{-240/120}}=e^{-1}.
+\]
+A hipótese das tentativas independentes torna o passado irrelevante
+para as próximas. O intervalo de 120 segundos mede uma média sobre
+tentativas, e a espera de Bob termina no primeiro êxito observado.
+
+A aplicação ao pagamento pede ainda uma distinção. Bob pode estar à espera
+do primeiro bloco que inclua a transacção ou de outro bloco construído
+sobre aquele em que já a viu. No primeiro caso também interessa a decisão
+dos mineiros sobre que transacções incluir. No segundo, se continuarmos no
+mesmo ramo, cada novo bloco acrescenta uma confirmação. A distribuição
+acima descreve a descoberta de blocos sob as hipóteses indicadas. O
+pagamento toma o seu lugar nessa história no momento em que um desses blocos
+o inclui.

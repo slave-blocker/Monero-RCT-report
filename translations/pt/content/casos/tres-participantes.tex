@@ -1,0 +1,94 @@
+\subsection{A conta de três participantes}
+\label{subsec:txtangle-tres-participantes}
+
+Consideremos Alice, Bob e Clara, designados por \(A,B,C\). Cada um chega
+com entradas, destinos e uma parte acordada da taxa. Para seguir a
+aritmética dos escalares, façamos primeiro as contas módulo 19, como se
+o grupo tivesse essa ordem prima. Os três ajustes escolhidos pelos pares
+são
+\[
+              s_{A,B}=4,\qquad s_{A,C}=9,\qquad s_{B,C}=3 .
+\]
+A convenção de sinais dá ao primeiro membro do par o valor escrito
+e ao segundo o seu simétrico. A soma por participante lê-se melhor
+quando a dispomos por colunas.
+\begin{center}
+\begin{tabular}{c|rrr|r}
+ &par \(A,B\)&par \(A,C\)&par \(B,C\)&soma módulo 19\\
+\hline
+Alice &\(4\)&\(9\)&\(0\)&\(13\)\\
+Bob &\(-4\)&\(0\)&\(3\)&\(18\)\\
+Clara &\(0\)&\(-9\)&\(-3\)&\(7\)
+\end{tabular}
+\end{center}
+
+Bob tem \(-1\), cujo representante canónico é 18, e Clara tem \(-12\),
+cujo representante é 7. Todos os termos de uma coluna somam zero. Nas
+linhas, a verificação dos representantes canónicos exige uma redução:
+\(13+18+7=38\equiv0\pmod{19}\). É lícito escolher qualquer
+representante quando estes números multiplicam \(G\), pois
+\([19]G=\mathcal O\) no grupo do exemplo.
+
+Suponhamos que as três diferenças locais entre pseudo-compromissos de
+entrada e compromissos de saída, já descontada a fracção de taxa de
+cada um, davam \(\mathcal O\) antes do ajuste. Depois da adição dos
+três termos passam a dar \(13G,18G,7G\), respectivamente. Pergunte-se
+agora quanto vale a soma de Alice e Bob. Pelas linhas vale
+\((13+18)G=12G\). Pelas colunas, o acordo entre eles entra uma vez como
+\(4G\) e outra como \(-4G\), e desaparece. Sobram apenas os dois
+acordos com Clara, \((9+3)G=12G\). Ao juntar a parte de Clara
+obtemos \((12+7)G=\mathcal O\). Vê-se no mesmo cálculo como a soma
+parcial conserva o contributo dos pares que atravessam a fronteira
+escolhida e como a soma total o perde.
+
+Há uma diferença entre fazer esta conta e saber antecipadamente quanto
+ela dará. Para a perceber, conservemos o 4 do par \(A,B\), mas
+representemos os números dos outros dois pares por \(u,v\). Os ajustes
+passam a ser
+\[
+            (\delta_A,\delta_B,\delta_C)
+                  =(4+u,\,-4+v,\,-u-v).
+\]
+Se \(u,v\) forem independentes e uniformes módulo 19, os dois
+primeiros ajustes percorrem os \(19^2=361\) pares possíveis com
+igual probabilidade. Para obter um par determinado \((a,b)\) há
+exactamente uma escolha, \(u=a-4\) e \(v=b+4\). A terceira coordenada
+fica então obrigada a \(-a-b\). Dos \(19^3\) triplos de escalares,
+precisamente 361 satisfazem a soma nula, e todos esses triplos são
+igualmente prováveis neste modelo.
+
+A soma de Alice e Bob vale agora \((u+v)G\). Mesmo que \(u\) esteja
+fixado, a parcela continuará uniforme se \(v\) for uniforme perante a
+informação de quem observa. Para cada alvo \(wG\) há exactamente um
+\(v=w-u\). A probabilidade de atingir esse alvo é \(1/19\) e,
+em particular, a soma parcial pode dar a identidade. A soma dos três,
+essa sim, dá sempre a identidade. O número 19 deixa contar todas
+as escolhas. No grupo do protocolo o mesmo argumento substitui 19
+pela ordem \(l\), conservando a hipótese sobre o que permanece
+desconhecido a quem faz a observação.
+
+\paragraph{Quem paga o quê.}
+A conta em \(G\) resolveu a distribuição das máscaras. Os montantes
+têm uma contabilidade própria, no coeficiente de \(H\). Fixemos,
+em unidades inteiras, a seguinte proposta. Alice contribui com uma
+entrada de 11, envia 7 e recupera 3. Bob contribui com 8, envia 5
+e recupera 2. Clara contribui com 6, envia 4 e recupera 1. Cada
+um suporta uma unidade da taxa. Por participante temos
+\[
+                 11=7+3+1,\qquad 8=5+2+1,\qquad 6=4+1+1 .
+\]
+No conjunto, entram 25, formam-se saídas de \(10+7+5=22\) e
+declara-se uma taxa de 3. Estas quantidades dizem respeito ao grupo
+de ordem \(l\) da transacção e aos intervalos inteiros admissíveis
+para os montantes. O pequeno módulo anterior servia apenas para pôr
+à vista a soma das máscaras.
+
+Se Alice deslocar o seu pseudo-compromisso em \(\delta_A G\), o
+coeficiente de \(H\) da entrada conserva o valor 11. Por isso pode
+conferir que o destinatário recebe 7 e que lhe cabem 3 de troco antes
+de autorizar a entrada. Bob e Clara fazem a mesma conferência sobre as
+suas saídas. O nó recebe a transacção completa, com a taxa global e
+um balanço de pontos. Já a distribuição das três unidades de taxa por
+quem colaborou pertence ao acordo dos participantes. A distinção entre
+essas duas vistas determina que informação deve circular nas rondas
+de construção que vamos acompanhar.

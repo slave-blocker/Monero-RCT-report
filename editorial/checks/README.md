@@ -1,6 +1,6 @@
 # Verificação das contas
 
-Estes programas reproduzem identidades, dimensões e exemplos da exposição. Usam Python 3 e a biblioteca padrão. As hipóteses criptográficas e as demonstrações gerais conservam o seu âmbito próprio.
+Estes programas reproduzem identidades, dimensões e exemplos da exposição. Usam Python 3. As dependências específicas indicam-se junto de cada programa. As hipóteses criptográficas e as demonstrações gerais conservam o seu âmbito próprio.
 
 Executar cada ficheiro com `python3 editorial/checks/NOME.py`:
 
@@ -17,6 +17,7 @@ Executar cada ficheiro com `python3 editorial/checks/NOME.py`:
 - `key-image-domain.py`: decomposição de torção, variantes da imagem, reconstrução das rondas e teste do subgrupo.
 - `clsag-aggregation.py`: reconstrução e extracção da combinação escalar, pesos e redução prévia dos coeficientes.
 - `bulletproof-checks.py`: as duas condições de verificação, dobras, pesos finais e perturbações independentes.
+- `appendix-hashes.py --source /caminho/para/monero` usa PyCryptodomex para Keccak e lê o exemplar binário de tipo 6. Confere os índices, os compromissos, os resumos da transacção, a árvore de seis folhas e o identificador do bloco contra as tabelas impressas nos apêndices B e E.
 - `transaction-indices.py`: índices relativos, varints e comprimentos de extra; `--source` compara o cabeçalho C++ original.
 - `generator-relations.py`: relações deliberadas entre bases, igualdades SAL e duas transformações de respostas distribuídas.
 

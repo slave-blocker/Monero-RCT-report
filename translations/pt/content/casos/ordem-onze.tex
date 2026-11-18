@@ -1,0 +1,80 @@
+\subsection{Três liquidações para a mesma ordem}
+\label{subsec:garantia-onze}
+
+Imaginemos que, desta vez, a compra de Alice a Bob passa por um depósito
+em garantia. O preço continua a ser 7. Já foram reconhecidas na carteira
+comum 11 unidades, e uma unidade cobrirá a taxa da transacção que liquidar
+a ordem. As 11 são o valor que entrou nessa carteira. A transacção que a
+financiou teve as suas próprias entradas, eventuais saídas de troco e taxa.
+Começamos a nossa conta depois desse financiamento.
+
+Alice é a compradora \(B\), Bob é o vendedor \(V\) e o moderador é
+\(M\). A ordem estabelece as condições de entrega, autoriza o reembolso
+integral em caso de cancelamento e fixa em uma unidade o máximo a pagar
+ao moderador se for precisa uma decisão. Dos 11 depositados estarão
+disponíveis para os beneficiários \(11-1=10\). O que se discute entre
+as partes é a distribuição desses dez.
+
+\begin{center}
+\begin{tabular}{l|rrr|r}
+resultado & Alice & Bob & moderador & taxa da transacção\\
+\hline
+entrega aceite & 3 & 7 & 0 & 1\\
+compra cancelada & 10 & 0 & 0 & 1\\
+entrega parcial, com decisão & 4 & 5 & 1 & 1
+\end{tabular}
+\end{center}
+
+Na primeira linha Alice recebeu o bem, confirma o preço e recupera o que
+sobra, \(11-7-1=3\). A assinatura pode ser concluída por Alice e Bob.
+Na segunda linha a compra foi cancelada por acordo; o comprador recebe
+\(11-1=10\). Os mesmos dois signatários autorizam uma distribuição
+inteiramente diferente. Na terceira linha o moderador decidiu que a
+parte entregue vale 5. A ordem prevê para o seu serviço uma remuneração
+de 1. Restam ao comprador \(11-5-1-1=4\). Uma das unidades paga o
+serviço comercial da moderação e tem um endereço de recepção. A outra
+paga o espaço e processamento da transacção e entra no campo da taxa.
+Esta distinção fica especialmente clara quando os dois pagamentos têm
+o mesmo valor.
+
+As três linhas descrevem direitos económicos. Uma componente nula
+significa que a ordem nada atribui àquela parte. O formato concreto
+da transacção pode repartir a soma de um beneficiário por mais de uma
+saída. O que o signatário confere é o total dirigido a cada destinatário
+autorizado, bem como o troco e a taxa que a proposta declara. Para
+executar o reembolso, por exemplo, o vector exige que as saídas
+destinadas ao comprador totalizem dez. Uma divisão em mais de uma
+saída conserva o mesmo resultado económico, desde que a transacção
+satisfaça as regras aplicáveis.
+
+\paragraph{O que chega ao nó que verifica a liquidação.}
+Tomemos a primeira linha e suponhamos que uma única saída antiga
+financiou o depósito. Se o pseudo-compromisso de entrada tem máscara
+\(x\), o termo da entrada é \(xG+11H\). Sejam \(a\) e \(b\) as
+máscaras das saídas de Alice e Bob, com \(a+b=x\) no corpo de
+escalares. O balanço público expande-se como
+\[
+ (aG+3H)+(bG+7H)+1H=(a+b)G+(3+7+1)H=xG+11H.
+\]
+Se a ordem for liquidada segundo a terceira linha, haverá distribuições
+de máscaras \(a',b',m'\) com \(a'+b'+m'=x\), tomando para a comparação
+o mesmo valor de máscara do lado da entrada. A soma do lado direito da
+liquidação passa a ser
+\[
+ (a'G+4H)+(b'G+5H)+(m'G+1H)+1H=xG+11H.
+\]
+A escolha de máscaras pode ser renovada ao construir cada proposta.
+O exemplo fixa a sua soma para se ver à primeira leitura o que as duas
+contas têm em comum. A igualdade de pontos atesta o equilíbrio em ambas,
+e as provas de intervalo e de gasto completam as verificações ordinárias.
+A mensagem comercial liga a distribuição correcta ao estado da entrega.
+É por isso que se verifica a proposta antes de fornecer a contribuição
+de assinatura.
+
+Se, por fim, a taxa de liquidação subir de 1 para 2 e o preço se
+mantiver, o primeiro resultado passará a \((2,7,0)\). A soma é agora 9,
+e \(9+2=11\). O resultado antigo \((3,7,0)\), combinado com taxa 2,
+exigiria 12 de uma entrada de 11. Uma simples mudança na data de envio
+pode, portanto, obrigar os participantes a concordar numa nova proposta
+e em quem suporta a diferença. Nem a decisão comercial nem a imagem
+de chave da saída financiada mudam por causa dessa nova conta.

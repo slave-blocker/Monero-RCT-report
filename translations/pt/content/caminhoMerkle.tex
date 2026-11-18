@@ -1,0 +1,179 @@
+\section{Seis folhas, dois comprimentos de caminho}
+\label{sec:bloco-seis-folhas}
+\index{arvore de merkle@árvore de Merkle!prova de inclusao@prova de inclusão}
+
+Temos já todos os dados para responder a uma pergunta concreta. Alguém
+conservou a transacção cujo identificador começa por \texttt{447c77a6}.
+Como lhe demonstrar que esse identificador figura, naquela posição,
+no bloco \(1\,582\,196\)? Comecemos por reconstruir a árvore inteira.
+Veremos depois quanto dela basta entregar a esse leitor.
+
+Escrevamos \(h_0\) para o identificador da transacção de mineiro e
+\(h_1,\ldots,h_5\) para os cinco identificadores de \texttt{tx\_hashes},
+pela ordem impressa. Na tabela do bloco, a nossa transacção figura
+na quarta posição do vector. Na árvore ocupa a posição 4, contando
+de zero e contando a transacção de mineiro. Para dois resumos \(a,b\)
+de 32 bytes escrevamos \([a,b]=K(a\|b)\), onde \(K\) designa
+Keccak--256. O resumo da esquerda ocupa os primeiros 32 bytes.
+O da direita ocupa os 32 seguintes. Cada aplicação de \(K\) a estes
+64 bytes restitui outros 32.
+
+No nível imediatamente acima das folhas mais fundas há quatro lugares.
+Os dois primeiros recebem directamente \(h_0,h_1\). Os restantes
+recebem \(U=[h_2,h_3]\) e \(V=[h_4,h_5]\). São estes quatro objectos,
+e já todos do mesmo comprimento, que entram na árvore regular de
+quatro lugares. Formam-se \(A=[h_0,h_1]\), \(B=[U,V]\) e finalmente
+\(R=[A,B]\). A disposição mostra por que motivo há folhas a duas
+distâncias diferentes da raiz.
+
+\begin{center}
+\begin{forest}
+ for tree={math content, l sep=6mm, s sep=7mm, inner sep=2pt},
+ [R [A [h_0] [h_1]] [B [U [h_2] [h_3]] [V [h_4] [h_5]]]]
+\end{forest}
+\end{center}
+
+Cada par na lista seguinte dá, em duas metades consecutivas, a
+codificação de um único resultado. A primeira linha pode ser refeita
+a partir dos identificadores que começam por \texttt{6d31593c} e
+\texttt{329e9c0c}. A segunda usa os que começam por
+\texttt{447c77a6} e \texttt{90a698b0}.
+
+\begin{center}\small
+\begin{tabular}{c l}
+Ponto da árvore & Resumo de 32 bytes\\ \hline
+\(U\) & \texttt{fa0b6468cee78e59eac0cacbbb263551}\\
+ & \texttt{caff0725a93ff2d090c4188a57039f0b}\\
+\(V\) & \texttt{d64da9a9af3d3255122e4357cd7fdf2f}\\
+ & \texttt{e7b923df7951424e7d5b92a5168fa271}\\
+\(A\) & \texttt{3709091d920b22a92832da2f86866526}\\
+ & \texttt{dc987dbf2b18b9121b61e7ab5081b65a}\\
+\(B\) & \texttt{d2b3ae5b5e066333c97e9bd42667e40e}\\
+ & \texttt{1ca7e1e9288b76144b873a9f5a9efb4a}\\
+\(R\) & \texttt{605a61a5619b3fde0deaad0c79205a0d}\\
+ & \texttt{8b92141acfcd04031b0d4118dc2e26cb}
+\end{tabular}
+\end{center}
+
+Voltemos ao leitor que conserva \(h_4\). Entreguemos-lhe, pela
+ordem em que lhe vão fazer falta, \(h_5,U,A\). Conhecendo o número
+de folhas e a posição 4, o leitor conhece também o lado em que entra
+cada irmão. Primeiro calcula \([h_4,h_5]=V\). Agora vem da direita e
+calcula \([U,V]=B\). Ainda da direita, calcula \([A,B]=R\). Foram-lhe
+dados três resumos, 96 bytes ao todo. Para outra pessoa, interessada
+no primeiro pagamento ordinário, a resposta é mais curta. Na posição 1
+chegam \(h_0\) e \(B\). O cálculo começa com \([h_0,h_1]\) e acaba com
+\([A,B]\). Pouparam-se 32 bytes porque o primeiro pagamento já entrava
+directamente no nível dos quatro lugares.
+
+A mesma conta resolve o caso geral. Para \(n\geq 2\) folhas, seja
+\(m=2^k\) a maior potência de dois que cabe em \(n\). Procuremos, no
+nível de \(m\) lugares, o número \(s\) de folhas que entram sozinhas
+e o número \(p\) de pares. Cada lugar recebe um objecto, donde
+\(s+p=m\). Cada par consome duas folhas, donde \(s+2p=n\). Subtraindo
+as igualdades ficamos com
+\[
+                    p=n-m,\qquad s=2m-n .
+\]
+Entram primeiro as \(s\) folhas directas, com caminhos de \(k\)
+irmãos. As \(2p\) restantes têm caminhos de \(k+1\) irmãos. Para as
+seis folhas do bloco, \(m=4\), \(s=2\) e \(p=2\). Para oito folhas
+resultam oito caminhos com três irmãos. E se houver uma única
+transacção, a de mineiro, o seu identificador já é a raiz. Uma prova
+de inclusão declara assim a folha, a sua posição e o número de
+folhas relativamente aos quais se há-de interpretar a sucessão de
+irmãos \cite{monero-source-v16}.
+
+\subsection{Como se calcula a folha do mineiro}
+
+Na construção anterior aceitámos o identificador \(h_0\) que acompanha
+a descrição do bloco. Podemos agora obtê-lo dos campos de
+\texttt{miner\_tx}. Esta é a única folha cujo conteúdo se encontra
+por inteiro no próprio bloco. Na primeira leitura, os cinco
+identificadores ordinários vieram prontos a usar. A transacção do
+mineiro chegou com uma entrada de geração, uma saída, a sua chave
+de destino e os dados adicionais. É a partir desses elementos que o
+nó forma a primeira folha.
+
+O byte \texttt{02} dá a versão da transacção. Seguem-se os três bytes
+\texttt{b0 c9 60}, que exprimem a altura de desbloqueio
+\(48+73\cdot128+96\cdot128^2=1\,582\,256\).
+O byte \texttt{01} conta uma entrada e \texttt{ff} identifica a
+geração. Segue-se a altura do próprio bloco, \texttt{f4 c8 60},
+ou \(116+72\cdot128+96\cdot128^2=1\,582\,196\).
+Reconhecem-se na diferença as sessenta alturas que têm de decorrer
+para a saída de mineiro poder ser gasta.
+
+O contador de saídas vale um. O montante público ocupa sete bytes,
+\texttt{97 80 b5 85 f2 86 01}. A etiqueta \texttt{02} identifica
+a saída por chave. Seguem-se os 32 bytes da chave e, por último,
+\texttt{2b} e os 43 bytes do campo \texttt{extra}. O comprimento
+do prefixo resulta da soma
+\[
+ \underbrace{1+3}_{\text{versão e desbloqueio}}+
+ \underbrace{1+1+3}_{\text{entrada}}+
+ \underbrace{1+7+1+32}_{\text{saída}}+
+ \underbrace{1+43}_{\text{dados adicionais}}=94 .
+\]
+O resumo \(h_p\) destes 94 bytes começa por \texttt{1412cf55}.
+A base RingCT limita-se ao byte \texttt{00}, a indicação de tipo
+nulo. O seu resumo \(h_b=K(\mathtt{00})\) começa por
+\texttt{bc36789e}. A terceira parcela do identificador é aqui o
+valor nulo de 32 bytes, \(0^{256}\). Podemos finalmente calcular
+\[
+                   h_0=K(h_p\|h_b\|0^{256}).
+\]
+O resultado começa por \texttt{06fb3e1c} e termina em
+\texttt{0557e6e9}, como no identificador completo impresso acima.
+Distinguem-se assim duas ocorrências de zero que ocupam lugares
+diferentes na conta. O byte que declara o tipo entra na função
+de resumo da base. Os 32 bytes nulos entram directamente na terceira
+posição do argumento final. Regressando ao caminho de \(h_1\),
+dispomos agora de uma maneira de refazer o seu primeiro irmão a
+partir dos dados do próprio bloco.
+
+\section{Da raiz ao identificador impresso}
+
+Até aqui apurámos que \(h_4\) ocupa um lugar preciso numa árvore de
+raiz \(R\). Falta prender essa raiz ao bloco cujo identificador o nó
+imprimiu. Reunamos para isso os bytes do cabeçalho. As duas versões
+valem sete, ocupando um byte cada uma. O instante \(1\,527\,458\,161\),
+escrito por grupos de sete bits a partir da direita, tem por algarismos
+\(113,82,44,88,5\). Com o bit de continuação nos quatro primeiros,
+fica \texttt{f1 d2 ac d8 05}. Seguem-se os 32 bytes do identificador
+anterior, começado em \texttt{30bb9b47}. O \emph{nonce} é um inteiro
+de quatro bytes com o menos significativo em primeiro lugar.
+Como \(2\,147\,489\,363=2^{31}+22\cdot256+83\), a sua escrita é
+\texttt{53 16 00 80}. O cabeçalho tem, pois, \(2+5+32+4=43\) bytes.
+
+Designemos por \(Z\) a concatenação deste cabeçalho, dos 32 bytes
+de \(R\) e do contador \texttt{06}. O conjunto tem \(43+32+1=76\)
+bytes. Para obter o identificador, a serialização de \(Z\) como
+cadeia binária antepõe o comprimento em inteiro de largura variável.
+O número 76 cabe num byte, \texttt{4c}. O argumento de \(K\) tem,
+portanto, 77 bytes. O resultado de \(K(\mathtt{4c}\|Z)\) é
+\begin{center}
+\texttt{50c8e5e51453c2ab85ef99d817e16654}\\
+\texttt{0b40ef5fd2ed15ebc863091ca2a04594}.
+\end{center}
+Reconhece-se o valor do campo \texttt{hash} impresso pelo nó. A
+contagem de transacções, seis, e o comprimento do objecto, 76,
+figuram em extremidades opostas do argumento e medem coisas diferentes.
+
+A quem já dispõe de um cabeçalho e de um identificador de bloco
+aceite, o caminho fornece agora uma verificação curta. Reconstitui
+a raiz a partir do identificador da transacção, junta-lhe o cabeçalho
+e a contagem e compara o resultado final com o identificador de bloco.
+A resistência a colisões dá significado a esta igualdade. Se possuir
+também a transacção inteira, pode começar um passo atrás, calculando
+o identificador pelos seus próprios bytes, como no
+apêndice~\ref{appendix:pagamento-tipo-seis}.
+
+O significado de «aceite» depende de outra informação. Para situar
+o bloco na lista que o nó escolheu, entram as ligações aos antecessores,
+a validade dos blocos e o trabalho acumulado. Para determinar a
+profundidade entram ainda os sucessores conhecidos do nó nesse
+instante. Nenhum desses sucessores foi necessário para refazer os
+dois percursos acima. O campo \texttt{depth} pode assim passar de
+dois para três quando chega outro bloco, e o leitor continuará a
+usar os mesmos três irmãos para reconhecer o quarto pagamento.

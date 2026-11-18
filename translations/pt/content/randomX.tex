@@ -590,7 +590,8 @@ nesse caso perde todos os programas já executados.
 
 \subsection{Custo da filtragem de programas}
 
-Suponhamos que uma máquina aceita apenas uma fracção \(Q\) dos programas e
+Suponhamos que os programas sucessivos são aceites independentemente com
+probabilidade \(0<Q<1\) e que a máquina
 detecta gratuitamente os restantes. Para terminar uma corrente de \(N\)
 programas, precisa de obter \(N\) aceitáveis consecutivos. O número médio de
 programas efectivamente executados por resultado é
@@ -643,11 +644,11 @@ O desvio relativo, ou coeficiente de variação, cairia como
  =\frac{1}{\sqrt N}\frac{\sigma}{\mu}.
  \label{eq:randomx-chain-variance}
 \end{align}
-Os programas reais ligam-se pelas sementes e não são independentes. Ainda
-assim, o cálculo mostra por que a soma de oito durações tem menor variação
-relativa do que uma duração isolada, reduzindo a vantagem disponível para um
-mecanismo de selecção baseado no tempo previsto.
+As sementes de RandomX ligam os programas sucessivos. Para aplicar esta
+relação aos tempos observados numa máquina há, pois, que dar conta das
+covariâncias. Veremos quanto podem elas pesar.
 
+\input{content/casos/tempos-randomx}
 
 \section{Aritmética de vírgula flutuante}
 \label{sec:randomx-floating-point}

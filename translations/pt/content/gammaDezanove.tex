@@ -1,0 +1,99 @@
+\section{O que se aprende ao descobrir o número}
+\label{sec:gamma-dezanove}
+
+Façamos uma pequena experiência com o grupo de dezanove pontos da
+secção~\ref{sec:curva-137}. A chave pública que lá obtivemos era
+\(13G=(118,91)\). Tomemos esse ponto como compromisso \(C\) e
+escolhamos deliberadamente \(H=7G=(133,64)\). Sabemos, pois, nesta
+experiência, o segredo público gamma. Sabemos até mais, pois guardámos
+também o multiplicador de \(C\). Que montante ficou comprometido?
+
+Experimentemos o montante sete. Os termos da abertura são
+\(7H=49G=11G\) e \(C-7H=2G\). A máscara dois serve. Experimentemos
+o montante três. Temos \(3H=21G=2G\), e \(C-3H=11G\).
+A máscara onze também serve. No primeiro caso a carteira teria
+escrito \((a,b)=(2,7)\). No segundo teria escrito \((11,3)\).
+Ambas chegariam ao par de coordenadas \((118,91)\). A partir das
+duas aberturas recuperamos efectivamente
+\[
+       (11-2)(7-3)^{-1}=9\cdot5=45\equiv7\pmod {19},
+\]
+porque \(4\cdot5=20\equiv1\). As divisões fazem-se módulo 19,
+ordem do grupo. As coordenadas dos pontos continuam a ser resíduos
+módulo 137.
+
+Poderemos escolher entre os dois montantes por um cálculo de
+probabilidades? Suponhamos que, antes de observar o compromisso,
+um leitor atribui probabilidade \(3/4\) ao montante três e \(1/4\)
+ao montante sete. São os únicos que considera possíveis. O autor
+do compromisso escolhe a sua máscara de maneira uniforme nos
+dezanove escalares, independentemente do montante. Sob a primeira
+hipótese, o ponto observado pede a máscara onze. Sob a segunda,
+pede a máscara dois. Assim,
+\[
+\begin{aligned}
+ \Pr(C=13G,\ b=3)&=\tfrac{3}{4}\tfrac1{19}=\tfrac3{76},\\
+ \Pr(C=13G,\ b=7)&=\tfrac{1}{4}\tfrac1{19}=\tfrac1{76}.
+\end{aligned}
+\]
+A soma dá a probabilidade do ponto observado, \(4/76=1/19\).
+Dividindo cada linha por essa soma, o leitor fica com as
+probabilidades \(3/4\) e \(1/4\) que já tinha ao princípio.
+A razão inicial de três para um sobreviveu à publicação do ponto,
+ao conhecimento de \(\gamma\) e até ao conhecimento de \(\log_G C\).
+As duas aberturas exibidas explicam a perda da vinculação neste
+pequeno grupo. A contagem de máscaras explica a ocultação perfeita
+no modelo de máscara uniforme, mesmo perante quem dispõe desses
+logaritmos.
+
+\subsection{Dois pontos que se observam em conjunto}
+
+Guardemos as mesmas bases e imaginemos uma carteira a produzir dois
+compromissos, um para cada pagamento. Sendo \(b_0,b_1\) quaisquer
+montantes fixos, a aplicação
+\[
+   (a_0,a_1)\longmapsto
+     \bigl((a_0+7b_0)G,\ (a_1+7b_1)G\bigr)
+\]
+leva os \(19^2=361\) pares de máscaras aos 361 pares ordenados de
+pontos. Cada par tem exactamente uma origem. Para chegar, por
+exemplo, aos pontos \(13G,5G\) com montantes \(7,3\), as máscaras
+são \(13-7\cdot7\equiv2\) e \(5-7\cdot3\equiv3\). Mudemos os
+montantes para \(3,7\). Chegam-se aos mesmos pontos com as máscaras
+\(13-7\cdot3\equiv11\) e \(5-7\cdot7\equiv13\). Em ambos os
+casos a probabilidade de observar aquele par de pontos é \(1/361\)
+quando as duas máscaras são independentes e uniformes.
+
+Esta conta ajuda a perceber o que significa «independentes». Numa
+segunda experiência, imaginemos que a carteira ajusta as máscaras
+de modo a obter \(C_0+C_1=S\), com \(S\) já público. Para qualquer
+\(C_0\) a outra coordenada fica determinada por \(C_1=S-C_0\).
+Se o primeiro ponto percorrer uniformemente o grupo, o segundo
+também o percorre uniformemente, pois a subtracção a \(S\) permuta
+o grupo. Os pares, porém, percorrem só dezanove posições. O
+observador aprendeu uma relação entre os dois pontos. Na primeira
+experiência, para valores fixos dos montantes, a probabilidade de uma
+soma dada era \(19/361=1/19\). Na segunda, a soma combinada tem
+probabilidade um. A distribuição de cada ponto, considerado
+isoladamente, é exactamente a mesma nas duas experiências.
+
+No balanço de um pagamento, o verificador conhece uma instância
+dessa última situação. Se houver uma entrada, duas saídas e taxa
+\(f\), pode formar \(S=\widetilde C-fH\). As duas saídas têm
+forçosamente soma \(S\). O apêndice~\ref{appendix:pagamento-tipo-seis}
+dá um exemplo em que tanto \(S\) como as duas parcelas se podem
+calcular a partir dos bytes recebidos. Aquilo que a igualdade
+publica é uma relação entre pontos. A interpretação dessa relação
+como conservação de valores conta ainda com a vinculação das
+aberturas, a autorização de gasto e as provas de intervalo.
+
+A experiência estende-se imediatamente a um subgrupo de ordem
+\(\ell\). Fixos \(b_0,b_1\), e fixado um ponto para a soma, ficam
+\(\ell\) pares de máscaras compatíveis. Cada novo par de montantes
+apenas translada o conjunto desses pares no plano
+\(\mathbb F_\ell^2\). Se a distribuição das máscaras numa aplicação
+concreta resultar de derivações criptográficas, importa perguntar
+que valores conhece o observador e que segredo alimenta a derivação.
+É no modelo de máscaras uniformes que a igualdade das probabilidades
+acima é exacta. A passagem a máscaras derivadas exige a hipótese
+correspondente sobre essa derivação.

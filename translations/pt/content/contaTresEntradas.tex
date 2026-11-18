@@ -1,0 +1,111 @@
+\subsection{Três entradas para o mesmo pagamento}
+\label{sec:tres-entradas-equilibrio}
+\index{pseudo-compromisso@pseudo-compromisso!escolha das mascaras@escolha das máscaras}
+
+No princípio Alice tinha as onze unidades numa só saída. Imaginemos
+que as recebeu em três ocasiões diferentes, 2 da primeira vez, 4 da
+segunda e 5 da terceira. Bob há-de receber os mesmos 7, o troco
+continua a ser 3 e a taxa 1. O que muda na conta do nó? Há agora
+três entradas, cada qual com o seu anel e a sua imagem de chave.
+No entanto, a soma dos montantes de entrada só tem de satisfazer
+uma igualdade. Esta diferença entre três autorizações e uma única
+conta explica a liberdade que a carteira tem ao escolher as máscaras.
+
+Para acompanhar a álgebra até ao fim, demos valores pequenos às
+máscaras do exemplo. Os geradores são \(G,H\) no subgrupo de ordem
+\(l\). Os números que seguem servem apenas para expor as operações.
+Alice recebeu as três saídas com os compromissos
+\[
+       C_1=4G+2H,\qquad C_2=9G+4H,\qquad C_3=12G+5H .
+\]
+Nas saídas novas suponhamos que as máscaras derivadas para Bob e
+para o troco valem 6 e 8. Do lado que paga, o nó terá então de fazer
+a soma
+\[
+               (6G+7H)+(8G+3H)+H=14G+11H .
+\]
+Se somássemos os compromissos recebidos por Alice, obteríamos
+\(25G+11H\). Ambas as expressões representam as onze unidades, e
+no entanto há uma diferença de \(11G\). As máscaras nas saídas
+antigas nasceram em pagamentos independentes, cujos autores
+desconheciam o que Alice havia de fazer hoje.
+
+Chamemos \(u_1,u_2,u_3\) às três máscaras dos pseudo-compromissos.
+Para comparar as somas basta que satisfaçam, em \(\mathbb F_l\),
+\[
+                              u_1+u_2+u_3=14 .
+\]
+Por exemplo, escolhendo \(u_1=3\) e \(u_2=5\), resta
+\(u_3=14-3-5=6\). Ficam \(\widetilde C_1=3G+2H\),
+\(\widetilde C_2=5G+4H\) e \(\widetilde C_3=6G+5H\).
+As três autorizações usam, nas respectivas posições secretas, as
+diferenças que se podem ler na última coluna.
+\[
+\begin{array}{c|c|c|c}
+ j & C_j &\widetilde C_j&C_j-\widetilde C_j \\ \hline
+ 1&4G+2H &3G+2H&G\\
+ 2&9G+4H &5G+4H&4G\\
+ 3&12G+5H&6G+5H&6G
+\end{array}
+\]
+Na primeira entrada a testemunha auxiliar de CLSAG vale 1, na
+segunda vale 4 e na terceira vale 6. Cada uma acompanha a chave
+privada de gasto da sua própria saída. Vejamos o que o nó consegue
+refazer desta tabela. Para cada um dos dezasseis membros de um anel
+conhece um compromisso histórico e pode subtrair-lhe o
+pseudo-compromisso dessa entrada. A assinatura atesta o conhecimento
+das duas testemunhas na mesma posição. A coluna que aqui exibe os
+três resultados reais esteve à nossa disposição porque acompanhámos
+as escolhas da carteira. Ao nó chegam três listas de dezasseis
+diferenças, juntamente com a autorização de cada uma.
+
+Para conferir o balanço, o nó já dispõe dos três
+pseudo-compromissos sem procurar membro algum dos anéis. A soma é
+\[
+ (3G+2H)+(5G+4H)+(6G+5H)
+      =(3+5+6)G+(2+4+5)H=14G+11H .
+\]
+É o ponto que obteve do lado das novas saídas e da taxa. As imagens
+de chave têm outra função, que se conserva mesmo se duas listas de
+dezasseis membros partilharem alguns candidatos. O nó verifica as
+três imagens e o seu estado de utilização. Uma coincidência entre
+candidatos de dois anéis é possível. Cada entrada tem a sua imagem
+e o seu fecho.
+
+Vale a pena contar o que a igualdade das máscaras determina.
+Tendo \((3,5,6)\) por solução, todo o triplo
+\[
+                  (3+s,\ 5+t,\ 6-s-t),\qquad
+                  s,t\in\mathbb F_l ,
+\]
+dá a mesma soma. Reciprocamente, quaisquer máscaras com soma 14
+determinam \(s=u_1-3\), \(t=u_2-5\), e a última componente fica
+fixada. Eis uma correspondência entre os pares de escalares e as
+soluções da equação. A equação linear, considerada em todo o corpo,
+tem por isso \(l^2\) soluções. Uma regra concreta de amostragem
+pode restringir os valores sorteados. Para conhecer a distribuição
+com que a carteira percorre as soluções é preciso conhecer também
+a lei desses sorteios.
+
+A liberdade tem uma interpretação pública. Se passarmos de
+\((3,5,6)\) para \((5,5,4)\), o primeiro pseudo-compromisso recebe
+\(2G\), o último perde \(2G\), e a soma fica intacta. Em contrapartida,
+as listas de diferenças dos anéis correspondentes mudam, e cada
+assinatura tem de ser construída para o pseudo-compromisso efectivamente
+declarado. A igualdade dos totais permite várias escolhas antes da
+assinatura. A mensagem e o transcrito fixam as escolhas efectuadas
+para aquela transacção.
+
+Com \(m\) entradas, a mesma conta deixa \(m-1\) coordenadas livres.
+Fixada a soma \(Y\) das máscaras das saídas, a última coordenada é
+\[
+                 u_m=Y-\sum_{j=1}^{m-1}u_j .
+\]
+A uma entrada, a soma vazia vale zero, o que explica por que razão a
+carteira de Alice, no primeiro exemplo, tinha uma única máscara possível para
+o pseudo-compromisso. A três entradas tem duas escolhas preliminares.
+Em ambos os casos a última vem da mesma igualdade. Cada entrada
+precisa da sua autorização. Passar de uma para três pede
+mais duas assinaturas e mais duas imagens, ainda que os montantes
+entregues a Bob e a Alice fiquem exactamente nos mesmos compromissos.
+A prova de intervalo abrange as duas saídas novas.

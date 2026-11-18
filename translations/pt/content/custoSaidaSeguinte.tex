@@ -1,0 +1,73 @@
+\subsubsection*{Quanto acrescenta a saída seguinte?}
+\index{peso@peso!agregacao das saidas@agregação das saídas}
+\index{prova de intervalo@prova de intervalo!dimensao e numero de saidas@dimensão e número de saídas}
+
+As contagens anteriores permitem responder a uma pergunta de carteira.
+Partimos de duas saídas. Se for preciso fazer um terceiro pagamento
+na mesma transacção, quantos dados novos surgem do lado das provas?
+E que diferença faria passar de três saídas para quatro?
+
+Escrevamos \(p\) para o número efectivo de saídas e \(M\) para a
+menor potência de dois que contém \(p\). A prova trabalha com
+\(64M\) posições e vai reduzindo essa dimensão à metade. Cada
+duplicação de \(M\) exige mais uma ronda, e cada ronda acrescenta
+dois pontos de 32 bytes. No intervalo escolhido, os dois comprimentos
+dos vectores da prova continuam a ocupar um byte cada um. O número
+de provas agregadas também se conserva. Aplicando a fórmula aos
+quatro corpos de prova, obtêm-se os comprimentos do quadro.
+\[
+\begin{array}{r|r|r|r|r}
+p&M&64M&\text{rondas}&\text{corpo da prova (bytes)}\\ \hline
+2 &2&128 &7 & 32(6+14)=640\\
+3 &4&256 &8 & 32(6+16)=704\\
+4 &4&256 &8 & 704\\
+5 &8&512 &9 & 32(6+18)=768
+\end{array}
+\]
+A terceira saída custa 64 bytes adicionais \emph{na prova}. A
+quarta ocupa a capacidade da mesma dimensão e acrescenta zero bytes
+nesta coluna. Ainda terá de deixar no prefixo a sua própria chave
+e etiqueta, e na base RingCT o seu compromisso e o seu montante
+cifrado. Também a verificação usa os dados de todas as saídas que
+a declaração contém.
+
+Podemos acabar a conta dos bytes com hipóteses bastante precisas.
+Conservemos o número de entradas, o tamanho dos seus deslocamentos,
+a mesma taxa e o mesmo comprimento de \texttt{extra}. Pensemos em
+destinos com endereços principais, para os quais chega a mesma
+chave de transacção. Uma nova saída traz um byte de montante visível
+zero, um de tipo de alvo, 32 de chave e um de etiqueta. São
+\(1+1+32+1=35\) no prefixo. Na base RingCT há ainda oito bytes
+de montante cifrado e 32 de compromisso. Para as contagens da
+tabela, o comprimento de \texttt{vout} cabe sempre num byte.
+Assim, a despesa fixa por saída é \(35+8+32=75\) bytes. A
+passagem de duas para três saídas aumenta a serialização em
+\(75+64=139\) bytes, e a de três para quatro em 75.
+Nesta comparação medimos comprimentos. Mudar os destinatários
+obriga naturalmente a calcular de novo os valores das assinaturas
+e dos compromissos.
+
+Podemos agora apreciar a diferença entre este custo e o peso.
+Para \(M=2\), a parcela de recuperação é zero. Para \(M=4\)
+já vale
+\[
+ \left\lfloor\frac45(4\cdot320-704)\right\rfloor
+       =\lfloor460{,}8\rfloor=460 .
+\]
+Logo, sob as mesmas hipóteses, acrescentar a terceira saída aumenta
+o peso em \(139+460=599\), enquanto acrescentar a quarta o aumenta
+em 75. O salto repete-se quando a quinta saída requer \(M=8\).
+A parcela de recuperação passa então a
+\(\lfloor4(2560-768)/5\rfloor=1433\), um acréscimo de 973.
+A quinta saída acrescenta 139 bytes à serialização e
+\(139+973=1112\) unidades ao peso. A partir do número de saídas,
+o leitor consegue assim antecipar em que degraus muda a dimensão
+da prova e em quais muda somente o número de objectos comprometidos.
+
+Há dois números, pois, para responder à pergunta sobre a saída
+seguinte. Os bytes contam o que precisa de ser transportado e
+guardado na forma integral. O peso leva essa contagem à regra
+segundo a qual a transacção ocupa espaço no bloco. Uma chave
+adicional em \texttt{extra}, ou uma taxa cujo \emph{varint} cresça,
+acrescenta os seus próprios bytes ao cálculo. É o campo
+\texttt{extra} que precisamos agora de abrir.

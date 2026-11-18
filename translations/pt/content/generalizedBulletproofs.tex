@@ -10,6 +10,10 @@ guardado no segundo é a soma dos quadrados dos outros dois. O verificador
 tem diante de si dois pontos da curva. Pode somá-los, multiplicá-los por
 escalares e comparar o resultado com outro ponto. Como há-de reconhecer,
 nessas operações públicas, os dois quadrados que só o provador pode calcular?
+Tomemos \(3^2+4^2=25\). Alice conhece o três e o quatro que
+abrem o primeiro compromisso, bem como o vinte e cinco que abre o
+segundo. Bob terá de reconhecer duas multiplicações, a soma dos
+resultados e a ligação destes três números aos compromissos que recebeu.
 
 Em bLSAG já encontrámos uma situação aparentada. O verificador multiplica
 a chave candidata e a imagem de chave pelo mesmo desafio e usa a mesma
@@ -361,6 +365,8 @@ Assim se obriga a primeira porta a receber duas vezes o mesmo \(u\) de
 \(K\), e a segunda a receber duas vezes o mesmo \(w\). A última linha
 entrega a soma dos resultados ao valor de \(V\). Os cinco traços que
 ligaríamos num desenho do circuito são cinco equações lineares.
+
+\input{content/gbpFiveWires}
 
 A generalização consiste em poder designar, em qualquer destas equações,
 a coordenada de um compromisso vectorial que já faz parte da declaração.
@@ -745,6 +751,8 @@ dos coeficientes na primeira igualdade. No protocolo, os vectores
 intermédios ficam com o provador. Bastam ao verificador os dois
 escalares finais, os pontos recebidos e os desafios que deles derivou.
 
+\input{content/gbpTwoOpenings}
+
 Para tomar a decisão sobre uma prova não interactiva, o verificador fixa
 o grupo, as bases, as dimensões, as matrizes e os termos públicos da
 declaração. Estes dados têm de estar vinculados à transcrição, podendo
@@ -960,6 +968,8 @@ corpo, a parcela \(S_0^2/q_E\) é negligível nesse número de bits.
 A garantia criptográfica da composição depende ainda da distribuição
 efectiva das secantes, da vinculação, da extracção e das consultas de
 Fiat--Shamir~\cite{eagen-divisors,generalized-bulletproofs-fixed,fcmp-plus-plus-paper}.
+\input{content/gbpSevenGates}
+
 Em FCMP++ a abertura oculta servirá para retirar a máscara de um ponto
 e reconhecer esse ponto entre os filhos de um ramo. O verificador
 conservará em cada passagem o que lhe é indispensável para a próxima,

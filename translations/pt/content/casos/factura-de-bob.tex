@@ -1,0 +1,47 @@
+\subsection{O que cabe no recibo de Bob}
+\label{subsec:prova-factura-sete}
+
+Voltemos à factura de 7 unidades. Tomemos um pagamento a um endereço
+principal \((K_B^s,K_B^v)\) e uma única chave pública de transacção
+\(R\). Por hipótese, a saída de índice zero é a de Bob e a de índice um
+é o troco de Alice. A factura identifica o endereço de Bob. O terceiro
+já tem a transacção e as chaves públicas das duas saídas. Pode receber a
+prova tanto de Alice, que conhece \(r\), como de Bob, que conhece
+\(k_B^v\). Em qualquer dos casos o ponto partilhado é
+\[
+    D=rK_B^v=r(k_B^vG)=k_B^v(rG)=k_B^vR .
+\]
+A igualdade explica por que a leitura do montante dará o mesmo
+resultado. A prova que acompanha \(D\) indica qual dos dois segredos
+permitiu calculá-lo e vincula a declaração à mensagem acordada.
+
+Depois de verificar essa prova, o terceiro obtém \(8D\) e calcula,
+para os dois índices, os escalares
+\[
+ h_0=\mathcal H_n\bigl(\operatorname{enc}(8D)\mathbin\|\operatorname{varint}(0)\bigr),
+ \qquad
+ h_1=\mathcal H_n\bigl(\operatorname{enc}(8D)\mathbin\|\operatorname{varint}(1)\bigr).
+\]
+Aplica a regra das chaves de saída do capítulo dos endereços. Na primeira
+posição recompõe \(K_B^s+h_0G\), que coincide com a chave publicada.
+Na segunda recompõe \(K_B^s+h_1G\), que neste exemplo difere da chave
+publicada. É a igualdade de pontos que o autoriza a contar a primeira
+saída para a factura. A ordem em que as saídas figuram na transacção,
+por si, nada lhe diria acerca do destinatário.
+
+Com \(h_0\), o terceiro produz os oito bytes que desfazem a cifra do
+montante, recupera o inteiro 7 e deriva a máscara de compromisso
+correspondente. Multiplica essa máscara por \(G\), junta-lhe \(7H\) e
+confere o ponto com o compromisso da primeira saída. O total a atribuir
+ao endereço indicado é, portanto, 7. Alice e Bob sabem, por acompanharem
+a compra, que o troco foi de 3. Ao terceiro basta a conclusão que os seus
+dados sustentam, a saber, que a outra saída se dirige, no caso em exame,
+a uma chave diferente daquela que reconstruiu para Bob.
+
+Se Bob tiver gasto entretanto essas 7 unidades, o terceiro poderá
+repetir amanhã a mesma verificação do pagamento original. Encontrará
+outra vez a saída no seu índice, o montante 7 e o compromisso que a
+ele corresponde. É justamente o que se pretende de um recibo de uma
+compra antiga. Para responder à pergunta diversa de quanto conserva Bob
+hoje, teremos de ligar as saídas aos gastos mediante as suas imagens de
+chave. Essa ligação entra nas provas de reserva que se seguem.

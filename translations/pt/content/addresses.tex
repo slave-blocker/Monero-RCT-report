@@ -68,8 +68,8 @@ binária de um endereço principal é
 com a chave de gasto antes da chave de vista. Calcula-se Keccak--256 sobre essa entrada,
 juntam-se os primeiros quatro bytes do resultado como soma de verificação e
 codifica-se tudo em blocos Base58. O resultado tem 95 caracteres e começa
-habitualmente por «4». O número 18, e não esse primeiro carácter isolado, é
-o prefixo que identifica simultaneamente a rede e o tipo de endereço.
+por «4». O prefixo numérico 18 identifica simultaneamente a rede e
+o tipo de endereço.
 
 
 Ao descodificar, exige-se Base58 bem formada, soma de verificação
@@ -84,6 +84,8 @@ de ordem \(l\) e a exclusão da identidade são condições adicionais que uma
 carteira robusta deve exigir para chaves de endereço, juntamente com escalares
 nulos excluídos e representações escalares canónicas. As chaves produzidas
 pela construção anterior satisfazem-nas.
+
+\input{content/enderecoTexto}
 
 \section{Endereços ocultos}
 \label{sec:one-time-addresses}
@@ -276,6 +278,8 @@ destinatários. Se houver sub-endereços, a escolha de \(R\) e o número de
 segredos efémeros mudam; veremos já esse caso na Secção
 \ref{sec:subaddresses}.
 
+\input{content/enderecosDuasSaidas}
+
 \section{Sub-endereços}
 \label{sec:subaddresses}
 \index{sub-endereco@sub-endereço}
@@ -346,9 +350,11 @@ igualdade.
 
 Na rede principal, a codificação Base58 usa o prefixo numérico 42 seguido de
 \(K_B^{s,\iota}\) e \(K_B^{v,\iota}\), e a mesma soma de verificação de quatro
-bytes. Tem 95 caracteres e começa habitualmente por «8». Tal como no endereço
-principal, o carácter visível não substitui a validação do prefixo, do
-comprimento, da soma e dos pontos. Os pontos produzidos honestamente estão no
+bytes. Tem 95 caracteres e começa por «8». Com efeito, o inteiro \(N\)
+do primeiro bloco satisfaz \(42\cdot256^7\leq N<43\cdot256^7\).
+A divisão inteira por \(58^{10}\) dá 7 em todo esse intervalo.
+Tal como no endereço principal, a validação compreende a leitura do prefixo,
+do comprimento, da soma e dos pontos. Os pontos produzidos honestamente estão no
 subgrupo primo; uma carteira deve rejeitar identidades e pontos fora desse
 subgrupo. O caso
 \(k_B^s+m_\iota=0\pmod l\) tem probabilidade negligível, mas uma implementação
@@ -438,6 +444,8 @@ Nem o consenso confirma que o vector está alinhado, nem prova as relações
 \(R=rG\), \(R_t=r_tG\) ou \(R_t=r_tK^{s,\iota}\): estas são convenções
 necessárias à descoberta pelas carteiras.
 
+\input{content/subenderecosDuasFacturas}
+
 \subsubsection*{A confirmação de recepção}
 
 Quando a carteira de Bob encontra uma das suas chaves de gasto na
@@ -474,7 +482,7 @@ Na rede principal, a entrada Base58 é
  \mathbin\|\operatorname{ID}_{8},
 \]
 seguida da soma de verificação Keccak de quatro bytes. O texto tem 106
-caracteres e começa habitualmente por «4». A descodificação exige exactamente
+caracteres e começa por «4». A descodificação exige exactamente
 oito bytes de ID. O prefixo integrado só é aceite com o par de um endereço
 principal; não existe uma codificação integrada de sub-endereço
 \cite{integrated-addresses}.

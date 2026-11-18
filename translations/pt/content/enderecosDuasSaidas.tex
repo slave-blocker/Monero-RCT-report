@@ -1,0 +1,134 @@
+\subsection{A leitura das duas saídas pelas duas carteiras}
+\label{sec:dois-destinos-varrimento}
+\index{carteira@carteira!varrimento de saidas@varrimento de saídas}
+\index{etiqueta de vista@etiqueta de vista!custo do varrimento@custo do varrimento}
+
+Alice já escolheu as duas saídas do pagamento. A primeira vai para
+Bob e a segunda regressa a Alice. As duas carteiras vão ler os
+mesmos bytes e chegar a conclusões diferentes. Para acompanharmos
+essa leitura, fixemos endereços principais e escolhamos chaves
+didácticas pequenas. Os cálculos desta vez fazem-se em Edwards25519,
+com as codificações e funções de Monero~\cite{monero-source-v16}.
+O valor dos segredos é aqui público para que possamos seguir também
+as operações que cada carteira guarda para si.
+
+Façamos \(r=3\). A chave pública da transacção é, pois, \(R=3G\).
+Escolhamos para Bob \((k_B^v,k_B^s)=(5,7)\) e para Alice
+\((k_A^v,k_A^s)=(11,13)\). Os dois endereços públicos consistem nos
+pares de pontos correspondentes. À carteira que prepara a primeira
+saída bastam os pontos de Bob. Obtém \(8rK_B^v=8\cdot3(5G)=120G\).
+Ao preparar o troco, Alice conhece a sua chave de vista e calcula
+\(8k_A^vR=8\cdot11(3G)=264G\). Para o varrimento posterior
+ficam, portanto, as derivações
+\[
+ \mathcal D_B=120G,\qquad \mathcal D_A=264G.
+\]
+O \(R\) lido em \texttt{extra} será o mesmo nas duas ocasiões.
+É a escolha da chave privada de vista que muda a derivação.
+
+Vejamos uma destas contas até aos bytes. A codificação comprimida
+de \(120G\), escrita em dois grupos consecutivos de dezasseis bytes,
+é
+\[
+\begin{gathered}
+ \texttt{3b1465e5f12a1ce090a208bd8b23b5ae}\\
+ \texttt{fc9996783aa2b3a57be82d50a0710708}.
+\end{gathered}
+\]
+A primeira saída tem índice zero. Para formar o seu escalar
+acrescenta-se o byte \texttt{00} à sequência acima. Os 32 bytes
+de Keccak--256 aplicados a esta entrada são
+\[
+\begin{gathered}
+ \texttt{9bb82456e3dc96ad8b8d3b395f0ee194}\\
+ \texttt{e6668eee34fc0f28d4852cd30c95f2a6}.
+\end{gathered}
+\]
+Recordemos que o byte de menor peso se encontra à esquerda.
+O último, \texttt{a6}, é o de maior peso. O inteiro que estes bytes
+representam está entre \(10l\) e \(11l\). Tirando \(10l\), obtém-se
+a codificação canónica de \(h_0\), que se escreve
+\[
+\begin{gathered}
+ \texttt{59718ab4dbfdde3c2c6d8fdbac4b2bc4}\\
+ \texttt{e5668eee34fc0f28d4852cd30c95f206}.
+\end{gathered}
+\]
+A operação que se segue depende de quem a faz. A carteira de Alice
+soma os \emph{pontos} \(h_0G+K_B^s\) e deixa a chave resultante na
+saída. A carteira completa de Bob soma os \emph{escalares}
+\(h_0+k_B^s=h_0+7\). Somar sete faz o primeiro byte passar de
+\texttt{59} a \texttt{60}, e os restantes conservam-se.
+Multiplicando por \(G\) esse escalar, obtemos o ponto produzido por
+Alice. A sua codificação é
+\[
+\begin{gathered}
+ \texttt{147b9732507d001dca2badbed0d72910}\\
+ \texttt{964558563b988903f6fc59d92330b970}.
+\end{gathered}
+\]
+No pagamento correspondem três papéis diferentes a objectos do
+mesmo comprimento. A derivação é a codificação de um ponto comum
+às duas partes. O hash reduzido é a codificação de um escalar que
+ambas podem refazer. A chave de saída é a codificação de outro
+ponto, disponível a todos os nós. É sobre este último que incidirá
+mais tarde a autorização da despesa.
+
+Como chega Bob àquela soma se, de começo, ignora sequer se a saída
+lhe pertence? A carteira lê \(R\), calcula \(8k_B^vR=120G\) e
+forma primeiro a etiqueta. O cálculo acrescenta ao princípio os oito
+bytes correspondentes a \texttt{view\_tag}. Ao fim ficam o mesmo
+\(120G\) codificado e o índice \texttt{00}. Do resumo toma-se o
+primeiro byte tal como sai da função. O quadro reúne os resultados
+para cada índice e para cada carteira.
+\[
+\begin{array}{l|cc}
+ &t=0&t=1\\ \hline
+ \text{Bob, a partir de }120G &\texttt{92}&\texttt{45}\\
+ \text{Alice, a partir de }264G &\texttt{47}&\texttt{05}\\ \hline
+ \text{byte presente na saída}&\texttt{92}&\texttt{05}
+\end{array}
+\]
+O \texttt{92} da primeira posição convida Bob a completar a conta.
+Subtrai \(h_0G\) ao ponto transmitido e encontra \(7G\), a sua
+chave pública de gasto. A segunda posição pede-lhe \texttt{05},
+ao passo que a sua derivação e o índice um produzem \texttt{45}.
+Bob passa adiante. Alice faz o percurso complementar. Na segunda
+posição encontra \texttt{05} e subtrai à chave dessa saída o
+múltiplo de \(G\) derivado de \(264G\) com o índice um. O ponto
+que lhe fica é \(13G\). É assim que reconhece o troco.
+
+A chave privada de vista permite efectuar todas as comparações do
+quadro. A carteira só de vista de Bob chega ao ponto \(7G\) tão bem
+como a completa. Para assinar o gasto, a completa disporá ainda do
+escalar que, somado a \(h_0\), dá a chave privada da saída.
+Distinguem-se assim dois momentos da vida dos 7 de Bob. Ao descobrir
+a saída, a carteira compara pontos. Ao gastá-la, usa a abertura que
+permite agir sobre esses pontos.
+
+Podemos medir o que a etiqueta poupou. Suponhamos que uma carteira
+examina um lote com \(m\) saídas próprias correctamente etiquetadas e
+\(n\) saídas alheias. Para cada saída alheia, suponhamos que a
+etiqueta esperada pela carteira é uniforme e independente do byte
+transmitido. Há 256 valores possíveis e exactamente um coincide.
+Por linearidade do valor esperado, o número médio de testes completos
+é então
+\[
+                            m+\frac{n}{256}.
+\]
+Por exemplo, com duas saídas próprias e 1024 alheias, a média é
+\(2+4=6\). Em cada lote concreto o número de coincidências pode
+variar. A carteira teve de ler as 1026 etiquetas e de obter as
+derivações necessárias para as conferir. A economia incide nas
+multiplicações por \(G\) e nas comparações completas que viriam a
+seguir. E quando a mesma chave de transacção serve várias saídas
+para uma dada chave de vista, a carteira pode calcular a derivação
+uma só vez e variar o índice na entrada das funções de hash.
+
+Uma coincidência ocasional de etiqueta tem assim um preço bem
+definido. Faz a carteira visitar mais uma chave de saída e subtrair
+mais um \(h_tG\). A decisão de a atribuir à conta depende da chave
+de gasto encontrada após essa subtracção. Até aqui só tínhamos uma
+chave pública de gasto por destinatário. Bob pode desejar uma por
+cliente e continuar a reconhecer todos os pagamentos com a mesma
+chave privada de vista. Dessa conveniência nascem os sub-endereços.

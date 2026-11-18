@@ -1,0 +1,154 @@
+\subsection{As duas aberturas de uma avaliação}
+\label{sec:gbp-duas-aberturas}
+\index{generalized bulletproofs@Generalized Bulletproofs!avaliacao mascarada@avaliação mascarada}
+
+Vale a pena executar também as operações com as máscaras à vista.
+Até aqui acompanhámos o número \(89\) desde os dois quadrados até
+à última dobra. Em que pontos entra ele na prova? Surge uma vez como
+valor de um compromisso sobre \(g,h\) e outra como coeficiente de
+\(U\) num ponto formado com os geradores vectoriais. As duas
+ocorrências têm de corresponder ao mesmo escalar que o provador
+anuncia. Fazer passar a mesma avaliação de uma família de bases a
+outra é justamente o que permite ao verificador exigir ambas as
+coisas ao mesmo tempo.
+
+Conservemos todos os valores anteriores em \(\mathbb F_{101}\).
+Para acompanhar a primeira abertura, sejam \(7\) a máscara de
+\(V\) e \(i+2\) a máscara do coeficiente de grau \(i\) para
+cada \(i\in\mathcal I\). Estas escolhas servem para que o leitor
+possa seguir as parcelas. Numa prova, as máscaras novas são
+aleatórias. O verificador tem em mãos \(V\), com o qual obtém
+\[
+ B_4=72g+32V=(72+32\cdot25)g+(32\cdot7)h=64g+22h.
+\]
+Para o provador, \(64,22\) constituem a abertura desta combinação.
+Ao verificador pertencem os pontos e os multiplicadores públicos
+\(72,32\). A mesma operação de grupo dará \(B_4\) aos dois, ainda
+que só um conheça os números pelos quais acabámos de a decompor.
+
+Avaliemos no desafio \(\xi=3\). Podemos dispor os pontos a combinar
+por ordem dos graus, juntando à direita as duas partes da sua abertura.
+Cada coluna de contribuições está já reduzida módulo \(101\).
+Designamos por \(\tau_4\) a máscara derivada, para escrever a conta
+com a mesma notação em todos os graus.
+\begin{center}
+\begin{tabular}{c|c|rr|r|rr}
+ Grau & Ponto & \(t_i\)&\(\tau_i\)&\(3^i\)&\(3^it_i\)&\(3^i\tau_i\)\\ \hline
+ 2&\(T_2\)&72&4&9&42&36\\
+ 3&\(T_3\)&85&5&27&73&34\\
+ 4&\(B_4\)&64&22&81&33&65\\
+ 5&\(T_5\)&35&7&41&21&85\\
+ 6&\(T_6\)&45&8&22&81&75\\
+ 7&\(T_7\)&82&9&66&59&89\\
+ 8&\(T_8\)&17&10&97&33&61\\
+ 9&\(T_9\)&59&11&89&100&70\\
+10&\(T_{10}\)&7&12&65&51&73\\ \hline
+ &\multicolumn{4}{r|}{Soma no corpo}&89&83
+\end{tabular}
+\end{center}
+Por exemplo, na quarta potência temos \(81\cdot64=5184\), que
+deixa resto \(33\), e \(81\cdot22=1782\), que deixa resto \(65\).
+Os totais inteiros das duas colunas são \(493\) e \(588\), com
+restos \(89\) e \(83\). Assim, o provador entrega \(\widehat t=89\)
+e \(\tau_\xi=83\). O verificador multiplica cada ponto da segunda
+coluna pela potência correspondente, soma e compara o resultado com
+\(89g+83h\). Quem só vê a prova tem tudo quanto é necessário para
+esta igualdade. Os valores e as máscaras de cada linha ficam com
+o provador.
+
+Passemos à outra abertura. O verificador parte dos pontos que
+recebeu antes de conhecer \(\xi\). Tomemos as máscaras \(11,4,6\)
+para \(A_I,A_O,S\), respectivamente, e \(13\) para \(K\).
+Os pesos destes quatro pontos em \(P\) são as potências de \(3\)
+que o quadro dos graus prescreveu. A soma das máscaras vale
+\[
+ \mu=9\cdot11+81\cdot4+41\cdot6+27\cdot13
+    =1020=10\pmod{101}.
+\]
+Era possível a Alice fazer esta conta só com os seus segredos e o
+desafio. Bob efectua a mesma combinação do lado dos pontos. Precisa
+ainda das parcelas totalmente públicas, porque os pesos das matrizes
+também entram nos vectores avaliados. Na primeira família, a
+correcção é \(9(4,8)=(36,72)\). Na segunda, em bases
+\(\boldsymbol h'\), é
+\[
+        (31,30)+9(2,8)+3(-6,-24)=(31,30).
+\]
+A escolha dos números fez aqui coincidir a última soma com a sua
+primeira parcela. A expressão mostra de onde provieram as três,
+para que uma coincidência aritmética do exemplo conserve o seu
+devido lugar.
+
+Podemos seguir cada coordenada sem escolher uma representação
+concreta dos pontos da curva. Na família \(\boldsymbol g\), a
+combinação que resulta dos pontos e da correcção é
+\[
+ 9(3,4)+81(9,16)+41(1,2)+27(3,4)+(36,72)=(5,79).
+\]
+Para \(\boldsymbol h'\), lembremos que
+\(h_1=h'_1\) e \(h_2=2h'_2\). Os coeficientes \((3,4)\) de
+\(A_I\) nas bases originais passam a \((3,8)\) nas novas. Os
+\((3,1)\) de \(S\) passam a \((3,2)\). As parcelas correspondentes
+de \(A_O,K\) são nulas para a abertura tomada. Fica
+\[
+        9(3,8)+41(3,2)+(31,30)=(80,83).
+\]
+São os mesmos vectores que o provador encontrou ao avaliar
+\(\boldsymbol l\) e \(\boldsymbol r\). As duas contas exprimem a
+distributividade em direcções opostas. Alice avalia coordenadas
+e só depois considera os respectivos geradores. Bob combina os
+compromissos cujos geradores já transportam aquelas coordenadas.
+
+Na igualdade do produto interno entram agora os pontos \(Q,L,R\).
+A título de contabilidade, escrevamos que coeficiente de cada base
+a abertura conhecida de Alice fornece a esses pontos. Cada linha
+indica uma combinação formal das bases. Em particular,
+\(U=\omega g\), com \(\omega\) dado pela transcrição desta fase.
+O verificador calcula e soma pontos, sem precisar de decompor um
+ponto recebido nem de encontrar qualquer logaritmo discreto.
+\[
+\begin{array}{c|rrrrr}
+       &g_1&g_2&h'_1&h'_2&U\\ \hline
+ Q     &5&79&80&83&89\\
+ L     &0&5&83&0&11\\
+ R     &79&0&0&80&58\\ \hline
+ Q+4L+76R&50&99&8&2&97
+\end{array}
+\]
+Por exemplo, \(L\) junta \(5g_2\), \(83h'_1\) e
+\((5\cdot83)U=11U\). A terceira linha troca as metades,
+produzindo \((79\cdot80)U=58U\). Com \(e=2\) temos \(e^2=4\)
+e \(e^{-2}=76\), pelo que a linha final é exactamente a soma que
+Bob pode formar na curva. As respostas \(a_*=100,b_*=4\) dão-lhe
+a outra expressão da mesma linha. Os pesos de \(g_*\) são
+\((51,2)\), e os de \(h_*\) são \((2,51)\). Logo,
+\[
+ 100(51,2)=(50,99),\qquad 4(2,51)=(8,2),\qquad
+ 100\cdot4=97 .
+\]
+Todas as cinco colunas coincidiram. A última é a única em que
+apareceu o produto das respostas. As quatro primeiras conservaram
+a abertura dos vectores nas bases comprometidas.
+
+Que aconteceria à descrição se uma das aberturas iniciais fosse
+apresentada com outra máscara, tomando para ela o compromisso
+correspondente? Na primeira abertura, substituir \(7\) por
+\(7+\varepsilon\) na máscara de \(V\) desloca \(B_4\) por
+\(32\varepsilon h\), e a máscara da avaliação por
+\(81\cdot32\varepsilon=67\varepsilon\). O valor de \(v\) e os
+cinco ligações lineares do circuito conservam-se. Na segunda
+abertura, mudar só a máscara de \(K\) desloca \(P\) por
+\(27\varepsilon h\) e \(\mu\) pelo escalar correspondente.
+A subtracção de \(\mu h\) absorve o deslocamento. São identidades
+para desafios fixados, que permitem ler a contribuição de cada
+máscara. Numa execução de Fiat--Shamir, uma mudança nos compromissos
+também muda os dados sobre os quais se calculam os desafios.
+
+Assim se ligam as duas aberturas. Na igualdade do valor, \(89\)
+aparece sobre \(g\), com a máscara \(83\) sobre \(h\). Na relação
+vectorial que se vai dobrar, o mesmo \(89\) aparece sobre \(U\),
+depois de retirada a máscara \(10\) sobre \(h\). A dobra conduz
+ao produto final \(97\), e os termos cruzados explicam a diferença
+entre os dois números. É possível seguir o valor por ambas as
+contas mesmo conservando separados, em cada passo, o que Alice
+conhece e os pontos que Bob efectivamente recebe.

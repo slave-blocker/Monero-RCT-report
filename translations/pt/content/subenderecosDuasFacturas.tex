@@ -1,0 +1,107 @@
+\subsubsection*{Duas facturas na mesma carteira}
+
+Bob entregou a Alice dois sub-endereços, um para cada factura.
+Ela deseja pagá-las na mesma transacção. Suponhamos que os valores
+condizem exactamente com as entradas e a comissão, de modo que
+há duas saídas e ambas se destinam a Bob. Como há-de ele atribuir
+cada saída à factura certa se a chave privada de vista é a mesma?
+
+Conservemos as chaves didácticas de Bob, \(k_B^v=5\) e \(k_B^s=7\),
+da secção~\ref{sec:dois-destinos-varrimento}. À primeira factura
+coube o índice \((0,1)\) da carteira, à segunda o índice \((0,2)\).
+Escrevamos \(S_j=K_B^{s,(0,j)}\) e \(V_j=K_B^{v,(0,j)}\), com
+\(j\in\{1,2\}\). Bob pode preparar de antemão as duas linhas
+\[
+                 S_1\longmapsto(0,1),\qquad
+                 S_2\longmapsto(0,2).
+\]
+Ambas se obtêm da chave pública principal \(7G\). Para a primeira,
+a entrada de \(\mathcal H_n\) contém, por esta ordem, os oito bytes
+de \(T_{\rm sub}\), os 32 bytes de \(5\) e os oito bytes dos
+índices, estes últimos sob a forma
+\(\texttt{00 00 00 00}\mathbin\|\texttt{01 00 00 00}\).
+Para a segunda linha, o \texttt{01} passa a \texttt{02}. Em cada
+caso, o escalar obtido multiplica \(G\), e o ponto resultante
+soma-se a \(7G\). Eis as duas entradas da tabela e as suas
+companheiras de vista, \(V_j=5S_j\). O quadro dá os primeiros
+oito bytes de cada codificação, para podermos reconhecer os
+pontos mais adiante. As contas usam sempre os 32 bytes.
+\[
+\begin{array}{c|ll}
+j&S_j&V_j\\ \hline
+1&\texttt{89bf16f6674c1e80}&\texttt{2647edd726a81314}\\
+2&\texttt{12b4613d46598f36}&\texttt{436768693cf4d097}
+\end{array}
+\]
+
+Alice coloca a primeira factura na posição \(t=0\) da transacção e
+a segunda na posição \(t=1\). Os índices \(j\) pertencem ao livro
+de facturas de Bob. Os índices \(t\) contam as saídas que Alice
+acaba de ordenar. A relação \(j=t+1\) é uma coincidência deste
+pagamento. Outro remetente pode usar um só destes sub-endereços,
+numa posição inteiramente diferente, sem saber sequer o número da
+factura.
+
+Os dois destinatários textuais são distintos. Além da chave
+principal \(R\), Alice publica, pois, uma chave adicional por
+saída. Para o exemplo, tomemos \(R=3G\), \(r_0=17\) e \(r_1=23\).
+A Alice chegaram apenas os pares de pontos \((S_1,V_1)\) e
+\((S_2,V_2)\). A partir deles calcula
+\[
+\begin{array}{c|cc}
+ t&R_t&\mathcal D_{B,t}\\ \hline
+ 0&17S_1&8\cdot17V_1\\
+ 1&23S_2&8\cdot23V_2 .
+\end{array}
+\]
+A chave de vista privada de Bob aparece de uma só vez nas duas
+contas. Na primeira posição, \(8\cdot17V_1=8\cdot17(5S_1)
+=40R_0\). Na segunda, \(8\cdot23V_2=40R_1\). Eis o que dão as
+codificações e as etiquetas, com a mesma abreviatura de oito bytes
+para os pontos. As etiquetas figuram por inteiro.
+\[
+\begin{array}{c|lll}
+ t & R_t & \mathcal D_{B,t} & \text{etiqueta}\\ \hline
+ 0 & \texttt{42a01e4a01c93557} & \texttt{db0bb99b5ed23ea0} & \texttt{9d}\\
+ 1 & \texttt{b1d8f4d393f3eee5} & \texttt{461a4535027b57e3} & \texttt{4e}
+\end{array}
+\]
+
+As chaves que Bob encontra nas saídas começam por
+\(\texttt{557e9f5510f08d81}\) e \(\texttt{481dc3f4fcd3afd3}\).
+Começa o varrimento pela chave principal \(R=3G\). Já conhecemos
+a sua derivação para Bob, \(120G\), e as etiquetas que dá para os
+dois índices, \texttt{92} e \texttt{45}. A primeira saída pede
+\texttt{9d} e a segunda \texttt{4e}. Bob passa em ambas à chave
+adicional da posição respectiva. Com \(40R_0\) e \(t=0\) encontra
+\texttt{9d}. Com \(40R_1\) e \(t=1\) encontra \texttt{4e}.
+Chegou a hora de decidir a que factura pertence cada pagamento.
+
+Na primeira saída a carteira calcula
+\(h_0=\mathcal H_n(\mathcal D_{B,0},\texttt{00})\) e subtrai
+\(h_0G\) à chave recebida. A soma que Alice fizera era
+\(K_0^o=h_0G+S_1\), pelo que a subtracção restitui o ponto que
+começa por \texttt{89bf16f6674c1e80}. Na segunda, o escalar
+\(h_1=\mathcal H_n(\mathcal D_{B,1},\texttt{01})\) aplicado à
+mesma operação restitui o ponto que começa por
+\texttt{12b4613d46598f36}. Bob procura os pontos completos na
+tabela. Lê na primeira linha \((0,1)\), na segunda \((0,2)\), e
+pode dar as duas facturas por pagas. O número de factura atravessou
+toda a operação no registo privado de Bob. Na transacção viajaram
+as chaves que lhe permitiram voltar a encontrá-lo.
+
+Suponhamos agora que o registo de Bob contém dez mil facturas.
+A preparação da tabela compreende dez mil derivações de
+sub-endereços. Depois de preparada, o trabalho para classificar
+estas duas saídas conserva a mesma forma. A carteira experimenta
+a chave de transacção pertinente e o índice da saída, recupera o
+ponto de gasto e procura-o entre as chaves da tabela. Uma tabela
+de dispersão bem dimensionada permite a cada procura um número
+esperado de operações independente da quantidade de facturas.
+Se Bob restaurar a carteira com uma tabela que abranja somente a
+primeira factura, a segunda procura chegará ao ponto correcto,
+mas faltará a linha que lhe dá o nome. Reconstituir essa linha a
+partir de \((0,2)\) e voltar a examinar a saída bastará para a
+reconhecer. A chave de vista determina a conta comum. A extensão
+da tabela determina quais dos seus sub-endereços a carteira pode
+identificar de imediato.

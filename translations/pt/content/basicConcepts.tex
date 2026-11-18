@@ -517,7 +517,7 @@ o resolva eficientemente. Nesse sentido, a multiplicação escalar funciona como
 uma operação de sentido único: fácil de calcular, mas impraticável de inverter
 com os recursos conhecidos. Mais adiante encontraremos um escalar \(\gamma\)
 central nos compromissos de Monero, cujo valor ninguém deve conhecer e cuja
-recuperação exigiria resolver um PLD (secção \ref{sec:pedersen_monero}).
+recuperação exigiria resolver um PLD (secção~\ref{pedersen_section} e capítulo~\ref{chapter:dlog-relations}).
 %---> chapter of pedersen commitments .
 %\marginnote{{\tt sc}: scalar}  is thought to be computationally hard. By analogy to modular arithmetic, this is often called the {\em discrete logarithm problem} (DLP). Scalar multiplication can be seen as a {\em one-way function}, which paves the way for using elliptic curves for cryptography.
 %\footnote{No known equation or algorithm can efficiently (based on available technology) solve for $n$ in $P_1 = n P_2$, meaning it would take many many years to unravel just one scalar product.}
@@ -550,6 +550,8 @@ do livro.
 
 %Note that EC scalars for points in the subgroup of size $l$ (which we will be using henceforth) are members of the finite field $\mathbb{F}_l$. This means arithmetic between scalars is mod $l$.
 
+
+\input{content/curvaDeBolso}
 
 \subsection{Criptografia de chave pública com curvas elípticas}
 \label{ec:keys}

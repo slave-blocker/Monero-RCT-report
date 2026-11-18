@@ -1,0 +1,87 @@
+\subsection{O relógio de uma ligação}
+\label{subsec:dandelion-fila-ligacao}
+\index{dandelion++@Dandelion++!filas de difusao@filas de difusão}
+
+A transacção de Alice alcançou o nó difusor. O que significa agora a
+expressão «enviar aos pares» para os vizinhos que aguardam o pagamento?
+Consideremos duas ligações públicas elegíveis, sempre com os nomes
+referidos ao difusor. A ligação a Bruno foi iniciada pelo difusor e é,
+portanto, de saída. A ligação de Clara foi iniciada por Clara e é de
+entrada. Os dados da transacção vão do difusor para o vizinho em ambos
+os casos. É a iniciativa de estabelecer a ligação que dá nome ao
+relógio escolhido.
+
+Partamos de duas filas vazias no instante zero. A cada uma associa-se
+um prazo quando chega o primeiro elemento. Suponhamos que saíram dez
+quartos de segundo para Bruno e vinte e quatro para Clara. São
+resultados possíveis das distribuições atrás indicadas. As filas
+abrem com a transacção \(T\) de Alice e têm os envios previstos para
+\(2{,}5\) e \(6\) segundos, respectivamente. No instante
+\(1{,}5\) chega outra transacção \(U\), que o difusor também admitiu
+para ambos os destinos. As duas filas já possuem um prazo. Cada uma
+recebe mais um elemento e conserva o instante de envio que tinha.
+
+Para acompanhar o exemplo, admitamos que cada envio se realiza no
+instante previsto e que a entrega é imediata. O tempo zero é o da
+chegada de \(T\) ao difusor. Uma terceira transacção, \(W\), fica
+disponível no instante 4. O quadro acompanha apenas estas ligações e
+admite que os três corpos vieram de outros pares.
+\begin{center}
+\begin{tabular}{r|l|l}
+instante (s)&fila para Bruno&fila para Clara\\
+\hline
+\(0\)&\(T\), envio a \(2{,}5\)&\(T\), envio a 6\\
+\(1{,}5\)&\(T,U\), envio a \(2{,}5\)&\(T,U\), envio a 6\\
+\(2{,}5\)&saem \(T,U\); fila vazia&\(T,U\), envio a 6\\
+\(4\)&\(W\), novo envio a 7&\(T,U,W\), envio a 6\\
+\(6\)&\(W\), envio a 7&saem \(T,U,W\); fila vazia\\
+\(7\)&sai \(W\); fila vazia&vazia
+\end{tabular}
+\end{center}
+Para a segunda abertura da fila de Bruno escolhemos doze quartos de
+segundo. O prazo ficou em \(4+3=7\). A transacção \(W\), que chegou
+depois das outras duas, alcançou primeiro Clara; \(T\) e \(U\) tinham
+alcançado primeiro Bruno. A lista de letras do quadro representa os
+corpos presentes na fila. Na formação do lote os corpos são ordenados
+e eliminam-se os duplicados \cite{monero-source-v16}.
+
+Na fila para Clara, \(T\) esperou seis segundos, \(U\) esperou
+\(6-1{,}5=4{,}5\) segundos e \(W\) esperou apenas dois. Houve
+uma escolha aleatória de prazo para todo esse lote. Na fila para Bruno
+houve duas escolhas, pois a fila esteve vazia entre \(2{,}5\) e 4.
+Assim se lê correctamente a média de cinco segundos da distribuição
+de entrada. Ela vale para um novo prazo, contado a partir da abertura
+da fila; o corpo que entra numa fila já aberta aguarda o tempo que
+resta. A distinção faz diferença mesmo quando os relógios funcionam
+perfeitamente e o tempo de transmissão é desprezável.
+
+\paragraph{Que unidade tem a variância?}
+As médias das duas distribuições permitem também uma pequena conta
+sobre a dispersão dos prazos. Seja \(X\) a duração em quartos de
+segundo, com distribuição de Poisson de média \(\lambda\). Nessa
+unidade \(\operatorname{Var}(X)=\lambda\). Para obter segundos,
+multiplicamos cada duração por \(1/4\). A média fica multiplicada
+por \(1/4\) e a variância por \(1/16\), pois a diferença à média é
+elevada ao quadrado. Para a ligação de entrada resulta
+\[
+  \mathbb E[D_{\rm in}]=20/4=5\ {\rm s},\qquad
+  \operatorname{Var}(D_{\rm in})=20/16=1{,}25\ {\rm s}^2 .
+\]
+O desvio padrão é \(\sqrt{1{,}25}\simeq1{,}12\) segundos. Na de
+saída a mesma conta dá \(10/4=2{,}5\) segundos de média e
+\(\sqrt{10/16}\simeq0{,}79\) segundos de desvio padrão. Uma
+distribuição de Poisson gerada directamente em segundos com média 5
+teria variância \(5\ {\rm s}^2\). Escolher a unidade da amostra
+altera, pois, a dispersão dos atrasos físicos mesmo quando se conserva
+o mesmo tempo médio.
+
+Voltemos à carteira de Bob, que já conhece os dados da saída que espera
+receber. Se o seu nó for um dos pares que recebe o corpo, pode começar
+a examiná-lo logo depois do envio e da recepção. Outro nó pode receber
+esse mesmo corpo num lote posterior, ainda que se encontre à mesma
+distância do difusor. Ambos têm então a possibilidade de validar os
+mesmos dados da transacção. A altura a que um bloco vier a incluí-la
+é uma informação posterior, dada pelo ramo aceite. O relógio das filas
+explica a diferença entre notícias que chegam a dois vizinhos; o
+número de confirmações começa a contar numa escala que os cabeçalhos
+dos blocos tornam comum.

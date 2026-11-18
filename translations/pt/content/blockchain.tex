@@ -199,12 +199,21 @@ Seja uma função hash usada para provas de trabalho:
 \begin{align*}
 \mathcal{H}_{PoW} \in^D_R \{0,\ldots,m\} .
 \end{align*}
-Aqui, $m$ é o resultado máximo. Dada uma mensagem $\mathfrak m$, um argumento
-$n$ e um alvo $t$, podemos aproximar o número esperado de tentativas por
-\begin{align*}
-d = m/t .
-\end{align*}
-Chamamos \emph{dificuldade} a $d$.
+Aqui, $m$ é o resultado máximo. Para um alvo inteiro $t$ entre zero e $m$,
+os resultados aceitáveis são $0,1,\ldots,t$. Há $t+1$ entre $m+1$ resultados
+possíveis. Sob a hipótese de tentativas independentes e uniformes, a
+probabilidade de êxito e o número médio de tentativas são, respectivamente,
+\[
+ p=\frac{t+1}{m+1},\qquad \frac1p=\frac{m+1}{t+1}.
+\]
+No pequeno exemplo anterior contávamos de um até cem. Contando de zero até
+99, a mesma probabilidade de $1/20$ corresponde ao alvo 4. Os cinco
+resultados aceites são agora $0,1,2,3,4$.
+
+Em Monero parte-se da \emph{dificuldade} inteira $d\geq 1$ e obtém-se o
+alvo $t=\lfloor m/d\rfloor$, com $m=2^{256}-1$. A esperança de tentativas
+aproxima-se de $d$ quando o alvo é grande. O arredondamento e a inclusão do
+zero explicam a pequena diferença que calcularemos no capítulo de RandomX.
 
 %Now say we have a hash function for generating proofs of work, $\mathcal{H}_{PoW} \in^D_R \{0,...,m\}$, where $m$ is its maximum possible output. Given a message $\mathfrak{m}$ (a block of information), a nonce $n$ to mine, and a target $t$, we can define the expected average number of hashes, the {\em difficulty} $d$, like this: $d = m/t$. 
 
@@ -327,13 +336,16 @@ deliberada: os extremos temporais são aparados sem reordenar o trabalho.
 Usando índices $i$ e $j$ nos extremos
 da janela conservada, define-se
 \begin{align*}
-\mathit{Tempo\ total} &= TS_{j}-TS_{i},\\
+\mathit{Tempo\ total} &= \max\{1, TS_{j}-TS_{i}\},\\
 \mathit{Dificuldade\ total} &= D^{\rm cum}_{j}-D^{\rm cum}_{i},\\
 d_{\rm seguinte} &=
 \left\lceil\frac{\mathit{Dificuldade\ total}\cdot120}
 {\mathit{Tempo\ total}}\right\rceil.
 \end{align*}
 
+
+Os carimbos medem segundos. Se os extremos coincidirem, o intervalo de
+convenção é um segundo e a divisão continua definida.
 
 No regime v16, o alvo é 120 segundos, $l=15$, $b=720$ e
 $o=60$. O nó recolhe até $b+l=735$ blocos anteriores, ignora os 15 mais
@@ -369,6 +381,8 @@ hipóteses económicas da resistência a especialização serão estudadas no
 capítulo seguinte.
 
 %\marginnote{src/crypto- note\_basic/ cryptonote\_ tx\_utils.cpp {\tt get\_block\_ longhash()}} has used a few different proof of work hash algorithms (with 32 byte outputs) in different protocol versions. The original, known as Cryptonight, was designed to be relatively inefficient on GPU, FPGA, and ASIC architectures \cite{CryptoNight} compared to standard hash functions like SHA256. In April 2018 (v7 of the protocol), new blocks were required to begin using a slightly modified variant that countered the advent of Cryptonight ASICs \cite{cryptonight7}. Another slight variant, named Cryptonight V2, was implemented in October 2018 (v8) \cite{berylliumbullet-v8}, and Cryptonight-R (based on Cryptonight but with more substantial changes than just a tweak) started being used for new blocks in March 2019 (v10) \cite{boronbutterfly-v10}. A\marginnote{src/crypto/ rx-slow-hash.c} radical new proof of work called RandomX \cite{randomx-pr-5549} was designed and made mandatory for new blocks in November 2019 (v12) with the intention of long-term ASIC resistance \cite{randomx}.
+\input{content/casos/janela-dificuldade}
+
 \section{Quantidade monetária}
 \label{sec:money-supply}
 \index{quantidade monetaria@quantidade monetária}
@@ -965,32 +979,35 @@ bloco anterior.
 
 %of some kind (in our case basically a miner transaction dispersing the first block reward), which constitutes the genesis block (see Appendix \ref{appendix:genesis-block}). The next block contains a reference to the previous block, in the form of block ID.
 
-Para calcular o ID, não se aplica a função hash à serialização completa do
-bloco. Primeiro constrói-se o \emph{objecto de hash}: a serialização binária do
-cabeçalho, seguida pela raiz de Merkle dos IDs de transacção e pelo número
-total de transacções, incluindo a de mineiro. Depois aplica-se a função hash
-rápida de CryptoNote (Keccak):\footnote{Há uma excepção histórica de consenso
-para o bloco 202612, cujo ID é tratado especialmente. Não altera a construção
-dos blocos v16.}
-%A block ID is simply a hash of
+O cabeçalho, a raiz de Merkle dos identificadores de transacção e o
+número total de transacções, incluindo a de mineiro, formam a sequência
+de bytes que designaremos por \(B_{\rm hash}\):
+\[
+ B_{\rm hash}=\operatorname{serializar}(\text{cabeçalho})
+            \,\|\,R_{\rm Merkle}
+            \,\|\,\operatorname{varint}(1+\#\text{txs normais}).
+\]
+Para calcular o identificador, codifica-se esta sequência pelo seu
+comprimento em bytes seguido do conteúdo e aplica-se a função hash
+rápida de CryptoNote, Keccak--256:
+\[
+  \mathit{ID}_B=\mathcal H\bigl(
+     \operatorname{varint}(|B_{\rm hash}|)\,\|\,B_{\rm hash}\bigr).
+\]
+Assim há duas contagens com funções distintas. A contagem no fim de
+\(B_{\rm hash}\) diz quantas transacções há. A contagem antes do primeiro
+byte do cabeçalho diz quantos bytes há em \(B_{\rm hash}\). Na
+secção~\ref{sec:bloco-seis-folhas}, os 76 bytes do exemplo dão o prefixo
+hexadecimal \texttt{4c} para o cálculo do ID
+\cite{monero-source-v16}.\footnote{Há uma excepção histórica de consenso
+para o bloco 202612, cujo ID é tratado especialmente. A fórmula aplica-se
+aos blocos v16.}
 
-%[1.2cm] the block's header (a list of information about a block), a so-called `Merkle root' that attaches all the block's transaction IDs (which are hashes of each transaction), and the number of transactions (including the miner transaction).
-\vspace{.175cm}
-%calculate_block_hash, which ultimately uses cn_fast_hash(get_block_hashing_blob)
-
-\begin{align*}
-\mathit{ID}_{B}=\mathcal{H}\bigl(
- \operatorname{serializar}(\text{cabeçalho})\,\|\,R_{\rm Merkle}\,\|\,
- \operatorname{varint}(1+\#\text{txs normais})\bigr).
-\end{align*}
-
-\vspace{.05cm}
-
-Para produzir um novo bloco, o mineiro altera o {\em nonce} de 4 bytes e,
-quando precisa de mais domínio, altera também a reserva no {\tt extra} da
-transacção de mineiro. O mesmo objecto de hash alimenta a prova de trabalho,
-mas não a mesma função: em blocos v16 usa-se RandomX para obter
-$h_{\rm PoW}$; para o ID usa-se $\mathcal H$.
+Para produzir um novo bloco, o mineiro altera o \emph{nonce} de 4 bytes e,
+quando precisa de mais domínio, altera também a reserva no \texttt{extra} da
+transacção de mineiro. Em blocos v16, RandomX recebe directamente os bytes
+de \(B_{\rm hash}\) como dados da tentativa e a chave da época como parâmetro,
+produzindo \(h_{\rm PoW}\).
 %To produce a new block, one must do proof of work hashes by changing a nonce value stored in the block header until the difficulty target condition is met.
 %In Monero a typical miner (from \url{https://monerobenchmarks.info/} as of this writing) can do less than 50,000 hashes per second, so less than 6 million hashes per block. This means the nonce variable doesn't need to be that big. Monero's nonce is 4 bytes (max 4.3 billion), and it would be strange for any miner to require all the bits.} 
 Interpretando $h_{\rm PoW}$ como inteiro de 256 bits em ordem

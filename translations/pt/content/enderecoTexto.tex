@@ -1,0 +1,87 @@
+\subsection*{De duas chaves aos 95 caracteres}
+\index{base58@Base58!exemplo de endereco@exemplo de endereço}
+
+Bob vai entregar um endereço a Alice. Para que possamos acompanhar
+a passagem dos pontos às letras, tomemos o endereço principal com
+chaves didácticas \(k_B^s=7\) e \(k_B^v=5\) em Edwards25519.
+A escolha de números pequenos torna públicas as aberturas deste
+exemplo. As operações e os comprimentos são os do endereço principal
+da rede principal de Monero~\cite{monero-source-v16}.
+
+A entrada do hash começa por \texttt{12}, a escrita hexadecimal
+de 18 num único byte. Seguem-se a codificação de \(7G\), que começa
+por \texttt{b862} e termina em \texttt{c5b1}, e a de \(5G\), que
+começa por \texttt{edc8} e termina em \texttt{48df}. São
+\(1+32+32=65\) bytes. Os quatro primeiros bytes do seu Keccak--256
+são \texttt{dd b5 92 03}. Acrescentando-os, chegam-se aos 69 bytes
+que é preciso comunicar. O quadro contém a sequência inteira. Cada
+linha da coluna central se lê da esquerda para a direita, e cada
+linha continua na seguinte.
+\begin{center}
+\begin{tabular}{rll}
+\hline
+Grupo & Bytes em hexadecimal & Caracteres do endereço\\
+\hline
+1 & \texttt{12b862409fb5c4c4} & \texttt{48cNbRvGyrb}\\
+2 & \texttt{123df2abf7462b88} & \texttt{43yGQYLWKxs}\\
+3 & \texttt{f041ad36dd6864ce} & \texttt{hBnnq8nRkFf}\\
+4 & \texttt{872fd5472be363c5} & \texttt{PcUwfqpihwJ}\\
+5 & \texttt{b1edc876d6831fd2} & \texttt{Wm8hB22LXww}\\
+6 & \texttt{105d0b4389ca2e28} & \texttt{3jkGXBaUCK1}\\
+7 & \texttt{3166469289146e2c} & \texttt{9GEkqd6h4Af}\\
+8 & \texttt{e06faefe98b22548} & \texttt{eYK9bfu4JT9}\\
+9 & \texttt{dfddb59203}       & \texttt{SFuEMNi}\\
+\hline
+\end{tabular}
+\end{center}
+Na quinta linha podemos ver onde acaba uma chave e começa a outra.
+O byte \texttt{b1} fecha a primeira chave e o seguinte,
+\texttt{ed}, abre a segunda. A divisão em blocos de oito bytes é
+posterior à concatenação dos campos. As oito primeiras linhas têm
+onze caracteres cada. A última representa cinco bytes em sete
+caracteres, donde \(8\cdot11+7=95\). O endereço lê-se na terceira
+coluna de alto a baixo, sem espaços.
+
+Vejamos como nasceu a última linha. Dentro de cada bloco de Base58
+o primeiro byte tem o maior peso, ainda que, no interior dos pontos
+de Edwards, a codificação da coordenada siga a ordem inversa. Os
+cinco bytes finais dão o inteiro
+\[
+ \texttt{df}\cdot256^4+\texttt{dd}\cdot256^3+
+ \texttt{b5}\cdot256^2+\texttt{92}\cdot256+\texttt{03}
+   =961\,497\,371\,139 ,
+\]
+onde as cinco parcelas usam os valores hexadecimais indicados. A
+primeira divisão por 58 dá quociente \(16\,577\,540\,881\) e resto
+41. A divisão desse quociente por 58 dá \(285\,819\,670\) e resto
+21. Prosseguindo, os restos, por ordem de extracção, são
+\[
+                  41,\quad21,\quad20,\quad13,\quad52,\quad14,\quad25 .
+\]
+No alfabeto Base58, numerado a partir de zero, estes índices dão
+\texttt{i}, \texttt{N}, \texttt{M}, \texttt{E}, \texttt{u},
+\texttt{F}, \texttt{S}. A primeira divisão encontrou as unidades,
+as seguintes descobriram as potências crescentes de 58. Lidos na
+ordem de escrita, os caracteres formam \texttt{SFuEMNi}.
+
+Até a primeira letra do endereço se pode prever. O primeiro byte
+vale 18 e os sete seguintes podem ocupar as sete posições
+inferiores do inteiro \(N\) do primeiro bloco. Logo,
+\[
+                18\cdot256^7\leq N<19\cdot256^7 .
+\]
+Ora \(3\cdot58^{10}\leq18\cdot256^7\) e
+\(19\cdot256^7<4\cdot58^{10}\). O primeiro dos onze algarismos é,
+pois, o de índice 3 no alfabeto
+\(\texttt{1},\texttt{2},\texttt{3},\texttt{4},\ldots\), o que
+dá precisamente o carácter \texttt{4}. O endereço integrado da mesma
+rede usa o prefixo 19 e também começa por \texttt{4}, como veremos
+na secção~\ref{sec:integrated-addresses}. Para reconhecer em qual
+dos dois casos está, a carteira recupera o byte de prefixo inteiro.
+
+Recebidos os caracteres, Alice pode inverter o quadro. Para cada
+bloco, multiplica por 58 o acumulador e acrescenta o índice do
+carácter seguinte. Reconstitui depois os bytes em largura fixa,
+confere a soma de verificação e lê os dois pontos. É com estes
+pontos que vai produzir a saída para Bob. A representação textual
+cumpriu já a sua função antes de a carteira começar essa conta.

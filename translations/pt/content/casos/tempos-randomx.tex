@@ -1,0 +1,78 @@
+Tomemos oito durações com a mesma média \(\mu\) e a mesma variância
+\(\sigma^2>0\). Escrevamos \(S=T_1+\cdots+T_8\). A média de \(S\) é
+sempre \(8\mu\), pois a esperança é linear. Ao desenvolver o quadrado
+de \(S-8\mu\) surgem oito quadrados e vinte e oito produtos distintos,
+cada um destes contado duas vezes. Daí
+\[
+ \operatorname{Var}(S)=8\sigma^2+
+      2\sum_{1\leq i<j\leq8}\operatorname{Cov}(T_i,T_j).
+\]
+Um produto tende a ser positivo quando as duas durações se afastam das
+suas médias para o mesmo lado. Por exemplo, uma condição da máquina
+que encareça a leitura de memória durante a tentativa inteira pode
+alongar diversos programas dessa tentativa. O programa seguinte traz
+instruções próprias, mas encontra a mesma máquina.
+
+Seja \(\bar\rho\) a média das vinte e oito correlações, isto é, a
+soma das covariâncias dividida por \(28\sigma^2\). Para o desvio
+relativo obtemos agora
+\[
+ \frac{\sqrt{\operatorname{Var}(S)}}{\operatorname E[S]}
+       =\frac{\sigma}{\mu}\sqrt{\frac{1+7\bar\rho}{8}} .
+\]
+Façamos uma experiência imaginária em unidades de tempo. Cada
+programa dura em média 10, com desvio padrão 2. Para um programa
+isolado o desvio relativo vale \(2/10=20\%\). As três linhas seguintes
+mantêm esses mesmos dados individuais. O que varia entre elas é a
+maneira como as durações acompanham umas às outras.
+
+\begin{center}
+\begin{tabular}{c|r|r|c}
+\(\bar\rho\)&média de \(S\)&variância de \(S\)&desvio relativo de \(S\)\\
+\hline
+\(0\)&80&32&\(\sqrt{32}/80\simeq7{,}1\%\)\\
+\(1/7\)&80&64&\(8/80=10\%\)\\
+\(1\)&80&256&\(16/80=20\%\)
+\end{tabular}
+\end{center}
+
+Na última linha pode imaginar-se uma máquina que ora completa cada um
+dos oito programas em 8 unidades, ora cada um em 12, com igual
+probabilidade para as duas condições. A tentativa inteira dura 64 ou
+96, com média 80 e desvio 16. Na primeira linha, oito escolhas
+independentes entre 8 e 12 dão frequentemente uma mistura de programas
+rápidos e lentos. O mesmo tempo médio esconde, portanto, perfis bem
+diferentes. A tabela ilustra o cálculo de covariâncias. Para lhe atribuir
+valores relativos a um processador concreto seria preciso medir os oito
+tempos dentro de cada tentativa e conservar nos dados essa associação.
+
+\paragraph{O preço de conhecer apenas o programa seguinte.}
+Podemos agora reler a conta da filtragem. Ela mede programas aceites e
+executados por resultado, enquanto o quadro anterior media unidades de
+tempo. Na equação~\eqref{eq:randomx-filter-cost}, o ensaio simplificado
+admite que cada programa se revela aceitável, independentemente, com
+probabilidade \(Q\) e que examinar um programa rejeitado tem custo
+desprezável. No caso de dois programas, o último programa de um par bem
+sucedido foi executado uma única vez. O primeiro, porém, teve de ser
+executado tantas vezes quantas as necessárias até surgir um segundo
+aceitável. Essa média é \(1/Q\). Daqui vem \(1+1/Q\).
+
+Com oito programas, o oitavo continua a valer uma única execução por
+resultado. O sétimo tem de ser repetido, em média, \(1/Q\) vezes por
+resultado, pois a sua execução é o preço de saber se o oitavo convém.
+Cada execução do sexto tem de ser seguida de dois programas aceitáveis
+para que a tentativa chegue ao fim. A sua contribuição média vale
+\(1/Q^2\). Recua-se desta maneira até ao primeiro, cuja contribuição é
+\(1/Q^7\). As rejeições sucessivas explicam todas as parcelas da soma,
+inclusive as que ultrapassam largamente a unidade.
+
+Com \(Q=3/4\), por exemplo, a probabilidade de os sete sucessores
+servirem, uma vez executado um primeiro que serve, é
+\((3/4)^7=2187/16384\). A primeira posição custa por isso cerca de
+\(7{,}49\) execuções por resultado. É uma única posição a consumir,
+por si, quase tanto trabalho como as oito posições de um percurso
+completo sem selecção. Para converter essa contagem em segundos há que
+conhecer o tempo dos programas aceites, o custo de reconhecer os que
+se abandonam e o custo de começar a tentativa seguinte. A contagem
+mostra onde essas medições entram. O valor numérico da vantagem de uma
+máquina continua dependente delas.

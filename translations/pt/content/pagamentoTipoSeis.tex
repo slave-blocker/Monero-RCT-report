@@ -1,0 +1,358 @@
+\chapter{Uma transacção de tipo 6, byte a byte}
+\label{appendix:pagamento-tipo-seis}
+\index{serializacao@serialização!transaccao de tipo 6@transacção de tipo 6}
+
+Tomemos uma transacção de uma entrada e duas saídas, incluída no bloco
+\(2\,777\,777\) da lista de blocos de Monero. O seu registo tem 1539
+bytes. O nó que o recebe consegue reconstituir dezasseis referências
+a saídas anteriores, duas chaves novas, uma taxa, três compromissos de
+montante e os dados de duas provas diferentes. Todos partem da mesma
+sequência de bytes. Como sabem onde acaba uma coisa e começa a outra?
+
+O exemplar conservado em~\cite{monero-transaccao-tipo-seis} tem o identificador
+\begin{center}
+\texttt{e89415b95564aa7e3587c91422756ba5}\\
+\texttt{303e727996e19c677630309a0d52a7ca}.
+\end{center}
+As duas linhas são metades de um único resumo de 32 bytes. Voltaremos
+a obtê-lo no fim da leitura. Os montantes de Alice e de Bob, no
+capítulo~\ref{chapter:transactions}, eram conhecidos do leitor porque
+construímos o exemplo a partir das aberturas. Aqui estamos no lugar do nó.
+Conhecemos os bytes públicos, incluindo a taxa. As aberturas das saídas
+ficaram com os participantes.
+
+\section{A primeira passagem pelo prefixo}
+
+Contaremos posições a partir de zero e escreveremos \([a,b[\) para os
+bytes desde \(a\) até \(b-1\). Com esta convenção o comprimento é sempre
+\(b-a\), e o limite direito de um campo é o princípio do seguinte. Os
+primeiros seis bytes, em hexadecimal, são
+\[
+                  \mathtt{02\quad00\quad01\quad02\quad00\quad10}.
+\]
+O primeiro \texttt{02} indica a versão de serialização. O zero na
+posição 1 é o tempo de desbloqueio inscrito na transacção. O
+\texttt{01} conta uma entrada. Chegámos à posição 3, onde o segundo
+\texttt{02} identifica a variante de entrada por chave. O zero
+seguinte selecciona a classe de saídas com montante explícito zero.
+O \texttt{10} final vale dezasseis em decimal e conta as referências
+do anel. É a posição de cada byte na gramática que lhe dá significado.
+O mesmo \texttt{02}, lido mais adiante, contará duas saídas.
+
+Para encontrar o fim do anel, o leitor procura o fim de dezasseis
+inteiros de comprimento variável. O primeiro ocupa quatro bytes,
+\texttt{96 a4 8a 1a}. Nos três primeiros, o bit superior vale um e
+anuncia uma continuação. Retirado esse bit, os quatro algarismos em
+base 128 são, pela ordem de leitura, \(22,36,10,26\). Temos
+\[
+ 22+36\cdot128+10\cdot16\,384+26\cdot2\,097\,152
+       =54\,694\,422.
+\]
+O segundo, \texttt{b1 b9 bd 01}, dá
+\(49+57\cdot128+61\cdot16\,384+2\,097\,152=3\,103\,921\).
+O primeiro valor já era um índice global. O segundo é a distância
+ao membro seguinte. A segunda consulta do nó será, portanto, ao índice
+\(54\,694\,422+3\,103\,921=57\,798\,343\).
+A tabela segue esta mesma soma até ao último membro.
+
+\begin{center}\small
+\begin{tabular}{r l r r}
+Posição no anel & Bytes transmitidos & Distância & Índice consultado\\
+\hline
+0 & \texttt{96 a4 8a 1a} & 54\,694\,422 & 54\,694\,422\\
+1 & \texttt{b1 b9 bd 01} & 3\,103\,921 & 57\,798\,343\\
+2 & \texttt{d0 dd ae 02} & 4\,959\,952 & 62\,758\,295\\
+3 & \texttt{9f eb 1b} & 456\,095 & 63\,214\,390\\
+4 & \texttt{91 de 31} & 814\,865 & 64\,029\,255\\
+5 & \texttt{9c b1 1d} & 481\,436 & 64\,510\,691\\
+6 & \texttt{dd d2 1b} & 452\,957 & 64\,963\,648\\
+7 & \texttt{e6 ea 28} & 669\,030 & 65\,632\,678\\
+8 & \texttt{f2 b1 07} & 121\,074 & 65\,753\,752\\
+9 & \texttt{d6 61} & 12\,502 & 65\,766\,254\\
+10 & \texttt{a0 ab 05} & 87\,456 & 65\,853\,710\\
+11 & \texttt{ab d1 04} & 75\,947 & 65\,929\,657\\
+12 & \texttt{e2 94 01} & 19\,042 & 65\,948\,699\\
+13 & \texttt{96 53} & 10\,646 & 65\,959\,345\\
+14 & \texttt{f7 09} & 1\,271 & 65\,960\,616\\
+15 & \texttt{f4 86 02} & 33\,652 & 65\,994\,268
+\end{tabular}
+\end{center}
+
+Os quatro bytes do último índice absoluto seriam necessários para
+guardar um número da grandeza de \(65\,994\,268\). Aqui bastaram três
+para descrever o último salto. Somando a largura das dezasseis
+distâncias obtêm-se 48 bytes. Os dezasseis índices absolutos, todos
+maiores que \(128^3-1\) e menores que \(128^4\), ocupariam 64 bytes
+na mesma codificação. A economia neste anel foi de 16 bytes.
+Há outra, bem maior. Para cada índice, o nó obtém da lista de blocos
+uma chave de saída e um compromisso. São \(16\cdot2\cdot32=1024\)
+bytes de pontos que as referências permitem ir buscar a dados anteriores.
+
+Por exemplo, ao primeiro índice correspondem a chave de saída que
+começa por \texttt{e50f4761} e o compromisso que começa por
+\texttt{51e788dd}. Ao último correspondem \texttt{4ee857d0} e
+\texttt{a8a9d61d}. Estes pares, conservados com o exemplar, esclarecem
+o que há a reconstituir. O nó usa os 32 bytes de cada ponto e
+conserva a ordem das linhas. A posição que o signatário pôde abrir
+permanece secreta. A proximidade numérica de duas linhas mede a
+distância entre os índices de registo.
+
+\section{O que o destinatário pode reconhecer}
+
+À posição 54 começa um ponto com outra função. Os 32 bytes até à
+posição 86, exclusive, codificam a imagem de chave \(I\), cujo
+prefixo é \texttt{af1f15c6}. A CLSAG volta a usar este mesmo ponto.
+A carteira inclui-o uma única vez, no prefixo. Assim pode o nó
+referir a autorização que está a verificar à mesma imagem por que
+procura no registo de gastos. Se receber o prefixo desacompanhado da
+prova e do estado anterior, possui já o nome a procurar, embora lhe
+falte a justificação para o registar como gasto.
+
+O byte 86 vale dois. Seguem-se duas saídas de 35 bytes cada. Em
+cada uma há um zero para o montante explícito, o discriminante
+\texttt{03}, uma chave de uso único de 32 bytes e uma etiqueta de
+vista de um byte. As terminações e a passagem de uma saída à outra
+podem ler-se sem ambiguidade:
+\begin{center}\small
+\begin{tabular}{c c l c c}
+Saída & Início & Começo da chave & Posição da etiqueta & Etiqueta\\
+\hline
+0 & 87  & \texttt{700516ab} & 121 & \texttt{52}\\
+1 & 122 & \texttt{8d5b9072} & 156 & \texttt{08}
+\end{tabular}
+\end{center}
+A primeira carteira que percorre estas saídas conhece a posição local
+que deve empregar na derivação, zero ou um. Pode calcular a etiqueta
+esperada para cada posição a partir do segredo partilhado. Uma
+coincidência de oito bits leva-a a conferir a chave de uso único
+inteira. Isto explica como duas etiquetas diferentes, à vista de todos,
+podem prestar um serviço ao destinatário sem publicar o seu endereço.
+
+Na posição 157 lê-se \texttt{2c}, ou 44. É o comprimento do campo
+\texttt{extra}. Os seus primeiros 33 bytes são uma etiqueta
+\texttt{01} e uma chave pública de transacção de 32 bytes, que começa
+por \texttt{ad7b21bd}. Sobram onze. O campo seguinte começa por
+\texttt{02 09 01}. A etiqueta exterior \texttt{02} abre um
+\emph{nonce} com nove bytes de conteúdo. A etiqueta interior
+\texttt{01} dá aos oito restantes o sentido de um identificador de
+pagamento cifrado. Esses oito bytes são
+\texttt{99 46 ee 95 2c 1e b4 ba}. A conta dos comprimentos fecha:
+\[
+             (1+32)+(1+1+1+8)=33+11=44.
+\]
+O próximo byte, na posição 202, pertence já à base RingCT.
+Esta leitura diz que dados uma carteira recebeu para tentar uma
+derivação. Só uma carteira que a consiga completar e reconhecer a
+chave de saída pode atribuir o pagamento a si própria.
+
+\section{Conferir o balanço com os próprios pontos}
+
+O primeiro byte da base RingCT vale seis. Seguem-se os cinco bytes
+\texttt{80 b6 b4 f7 16}. Os algarismos da taxa em base 128
+são \(0,54,52,119,22\). Recuperamos
+\[
+  54\cdot128+52\cdot128^2+119\cdot128^3+22\cdot128^4
+      =6\,156\,000\,000
+\]
+unidades atómicas, ou \(0{,}006156\) XMR. Seguem-se dois campos de
+oito bytes, um para o montante cifrado de cada saída, e dois pontos
+de 32 bytes, um para cada compromisso. Por esta altura, saber a
+contagem de saídas do prefixo poupou dois novos contadores. A base
+inteira ocupa \(1+5+2\cdot8+2\cdot32=86\) bytes.
+
+Podemos agora efectuar, com dados públicos, a conta que no pagamento
+de Alice se fazia com letras. Designemos por \(C_0,C_1\) os
+compromissos pela ordem das saídas, por \(f\) a taxa acabada de ler
+e por \(\widetilde C\) o pseudo-compromisso da única entrada. Na
+tabela seguinte cada codificação de ponto ocupa duas metades
+consecutivas de dezasseis bytes. As letras maiúsculas da coluna da
+esquerda designam pontos somados pela lei de Edwards.
+\begin{center}\small
+\begin{tabular}{l l}
+Ponto & Codificação, por metades\\
+\hline
+\(C_0\) & \texttt{0149d07055f4f8fcdde1c12896f8c0ee}\\
+ & \texttt{25c12fe389c3d4a4f40c6837163818c2}\\
+\(C_1\) & \texttt{49b58fa1fc3331a732e502e043e75a41}\\
+ & \texttt{06472192afcb4a6b7544dcc70e914182}\\
+\(C_0+C_1\) & \texttt{becf4287ca79a5b50d2fada1fc930b84}\\
+ & \texttt{f2e53be1fa9652b691d653fef4b86b3e}\\
+\(fH\) & \texttt{5d04bc3408fa1164d72c4514f4eba941}\\
+ & \texttt{1ac127d4a849a570d4bc6aecfaf39a05}\\
+\(C_0+C_1+fH\) & \texttt{eb83fde4db28cfbb8ec0a785bcf6a725}\\
+ & \texttt{3099a7c9424161ae04c12f4bc2146408}
+\end{tabular}
+\end{center}
+A última linha é, byte por byte, a sequência dos últimos 32 bytes
+da transacção. Aí se encontra \(\widetilde C\). Para reproduzir a
+igualdade, o nó descodifica os dois primeiros pontos, soma-os,
+multiplica o gerador de montantes pela taxa e faz a última adição.
+Só depois volta a comprimir o resultado. Somar os inteiros escritos
+em hexadecimal nas duas linhas seria outra operação.
+
+Este teste teve um resultado inteiramente determinado pelos dados
+públicos. Continua a faltar uma informação que mesmo a igualdade
+verdadeira deixa em aberto. Quais os inteiros ocultos em \(C_0,C_1\)?
+A resposta que a transacção oferece ao nó é uma propriedade de ambos:
+cada um cabe em 64 bits. A garantia liga-se exactamente aos dois pontos
+da tabela. A assinatura, por sua vez, usará o ponto da última linha
+ao tratar os dezasseis pares recuperados no começo. É aqui que as
+três verificações, feitas com objectos distintos, voltam a encontrar-se.
+
+\section{Onde começam e acabam as provas}
+
+A base terminou na posição \(202+86=288\). Aí aparece um byte com o
+valor um, a contagem das provas de intervalo. Para representar as
+duas saídas, a prova usa \(2\cdot64=128\) posições. Sete dobras
+levam 128 a uma posição, pelo que a cada um dos dois vectores de
+pontos \(L,R\) cabem sete elementos. Esta consequência matemática
+pode conferir-se directamente na serialização.
+\begin{center}\small
+\begin{tabular}{l r r r}
+Campo & Início & Fim exclusivo & Comprimento\\
+\hline
+Contagem das provas & 288 & 289 & 1\\
+\(A,A_1,B,r_1,s_1,d_1\) & 289 & 481 & 192\\
+Comprimento de \(L\) & 481 & 482 & 1\\
+Sete pontos de \(L\) & 482 & 706 & 224\\
+Comprimento de \(R\) & 706 & 707 & 1\\
+Sete pontos de \(R\) & 707 & 931 & 224\\
+Dezasseis respostas da CLSAG & 931 & 1443 & 512\\
+Desafio inicial \(c_1\) & 1443 & 1475 & 32\\
+Imagem auxiliar codificada \(\bar D\) & 1475 & 1507 & 32\\
+Pseudo-compromisso \(\widetilde C\) & 1507 & 1539 & 32
+\end{tabular}
+\end{center}
+Os bytes 481 e 706 valem ambos sete. A entrada única e a lista dos
+seus dezasseis candidatos determinam as dimensões seguintes: uma
+assinatura e dezasseis respostas. Pelos bytes do desafio inicial pode
+o nó começar a percorrer o anel, verificando que, na última posição,
+volta ao desafio de partida. A segunda imagem, \(\bar D\), diz respeito
+à diferença de compromissos. A imagem principal, usada para reconhecer
+o gasto repetido, já estava à posição 54.
+
+O balanço do espaço ocupado é tão exacto como o dos pontos, embora
+responda a uma pergunta diferente. Entraram 202 bytes de prefixo e
+86 de base. A parte podável recebeu
+\[
+ \underbrace{1+192+2+448}_{643}
+ +\underbrace{512+32+32}_{576}+32=1251
+\]
+bytes. No total, \(202+86+1251=1539\). A primeira chaveta conta
+uma prova com os seus contadores. A segunda conta a CLSAG inteira,
+incluindo o desafio. Se se dividisse o comprimento total por 32,
+todos os contadores, comprimentos, etiquetas e distâncias do prefixo
+se perderiam entre os supostos pontos. A dimensão de um anel
+determina quanto custa a sua assinatura em escalares. A localização
+concreta dos seus membros ainda intervém no custo em bytes.
+
+\subsection{A taxa por unidade de peso}
+
+Com o comprimento da transacção finalmente em mãos, voltemos aos
+cinco bytes que anunciavam a taxa. As duas saídas cabem numa única
+prova agregada com capacidade para dois montantes. Neste caso a
+parcela de recuperação do peso é zero. O peso é, por conseguinte,
+1539. Se o leitor quiser saber a que preço por unidade de peso
+ficou este pagamento, pode apurá-lo só com o registo:
+\[
+           \frac{6\,156\,000\,000}{1539}
+                =4\,000\,000\quad\text{unidades atómicas}.
+\]
+A divisão é exacta. Multiplicando de volta,
+\(1500\cdot4\,000\,000=6\,000\,000\,000\) e
+\(39\cdot4\,000\,000=156\,000\,000\). Em XMR, as duas parcelas
+restituem \(0{,}006+0{,}000156=0{,}006156\). Este quociente
+descreve o preço efectivo do exemplar. Para determinar a taxa
+mínima admitida numa dada altura seriam ainda necessárias as
+regras e os dados dessa altura.
+
+Quanto desse peso coube à prova de intervalo e à autorização da
+entrada? Podemos responder mesmo que o mineiro receba uma única
+taxa para a transacção inteira. Tomemos as fronteiras da tabela e,
+a título de repartição aritmética, multipliquemos cada comprimento
+pelo preço efectivo que acabámos de calcular.
+\begin{center}\small
+\begin{tabular}{l r r}
+Parcela & Bytes & Quota da taxa em unidades atómicas\\ \hline
+Prefixo & 202 & \(808\,000\,000\)\\
+Base RingCT & 86 & \(344\,000\,000\)\\
+Prova de intervalo e seus contadores & 643 & \(2\,572\,000\,000\)\\
+Assinatura CLSAG & 576 & \(2\,304\,000\,000\)\\
+Pseudo-compromisso & 32 & \(128\,000\,000\)\\ \hline
+Total & 1539 & \(6\,156\,000\,000\)
+\end{tabular}
+\end{center}
+A prova e a assinatura somam 1219 bytes, aproximadamente \(79{,}2\%\)
+do peso. As cinco verbas da direita resultaram todas do mesmo
+quociente. O único valor de taxa que a carteira escreveu foi o
+total da última linha.
+
+Há uma coincidência que ajuda a perceber a economia da poda neste
+exemplar. O nó pode conservar os 202 bytes do prefixo, os 86 da base
+e 32 para o resumo da parte podável. Os dados necessários para esta
+representação perfazem 320 bytes. A diferença é precisamente
+\(1539-320=1219\). O pseudo-compromisso que desaparece tem, por acaso,
+o mesmo comprimento que o resumo que fica em seu lugar na conta.
+O resumo cobre toda a parte podável. Vejamos exactamente como é
+que esses 32 bytes permitem recuperar o identificador publicado.
+
+\section{Dois resumos para duas perguntas}
+
+A pergunta que se faz no momento da assinatura é «que pagamento
+autorizam estas respostas?». A pergunta que se faz quando o bloco
+enumera transacções é «qual a transacção completa que ocupa este
+lugar?». Os dois cálculos partem do mesmo prefixo e da mesma base.
+Chamemos \(K(B)\) ao Keccak--256 de uma sequência de bytes \(B\).
+Se \(P,B,T\) forem o prefixo, a base e a parte podável, formam-se
+\[
+       h_P=K(P),\qquad h_B=K(B),\qquad h_T=K(T).
+\]
+A concatenação conserva os 32 bytes de cada valor pela ordem
+indicada. Todas as contas abaixo usam os bytes das codificações,
+sem os converter nos caracteres com que os imprimimos.
+
+Para a mensagem da CLSAG, substitui-se o terceiro resumo por
+\(h_\pi\), calculado a partir dos elementos da prova de intervalo.
+A sequência que entra em \(h_\pi\) tem \(192+224+224=640\) bytes.
+São os três intervalos \([289,481[\), \([482,706[\) e \([707,931[\),
+colados por esta ordem. O contador das provas e os comprimentos dos
+dois vectores já cumpriram a sua função durante a leitura. A ordem
+dos elementos permanece exactamente a da prova.
+\begin{center}\small
+\begin{tabular}{l l}
+Resumo & Duas metades do resultado\\
+\hline
+\(h_P\) & \texttt{02465363e123a1d1eeab20d6cec5619d}\\
+ & \texttt{18b483a1cc7baa9489f4367a946b3bca}\\
+\(h_B\) & \texttt{2bccf4bd1fa784d7965944eabbd8b286}\\
+ & \texttt{b6ebfbbaebb7eb10c82e7c486da66026}\\
+\(h_T\) & \texttt{824cebe4ce6fb25648d92821c101eea7}\\
+ & \texttt{4d81dc825a0d187d883698b712028b3f}\\
+\(h_\pi\) & \texttt{7f7243a4c24f712626f8ed8189758c7d}\\
+ & \texttt{04408cdfc64c670084f026bd52850792}
+\end{tabular}
+\end{center}
+O nó calcula a mensagem \(\mathfrak m=K(h_P\|h_B\|h_\pi)\) para
+verificar as respostas da única entrada. Obtém
+\begin{center}
+\texttt{c5a76ffd7d8916210332afa07a253368}\\
+\texttt{f7e1eea1f385f393a1f3fa8b6d1f2f4b}.
+\end{center}
+No cálculo do identificador, \(K(h_P\|h_B\|h_T)\), o último resumo
+abrange as respostas da própria assinatura, a prova com os seus
+comprimentos e o pseudo-compromisso final. O resultado começa por
+\texttt{e89415b9} e termina em \texttt{0d52a7ca}: é o identificador
+reproduzido na abertura do apêndice. A mensagem assinada pôde ser
+calculada antes de existirem as respostas. O identificador permite
+reconhecer também essas respostas depois de reunidas.
+
+Imaginemos agora o mesmo registo num nó que já podou os dados desta
+transacção. Ficaram disponíveis o prefixo, a base e \(h_T\). O nó
+ainda pode recompor o identificador inteiro. Um leitor que queira
+conferir de novo a igualdade dos três pontos precisa dos bytes de
+\(\widetilde C\), que pertenciam à parte podável. Para verificar a
+CLSAG precisa ainda da assinatura e dos pares de pontos do anel.
+Quem lhe entregar os 1251 bytes pode ser confrontado com \(h_T\).
+A correspondência do resumo identifica os dados procurados. A
+verificação algébrica dará então a esses dados o seu significado
+como autorização de um gasto concreto.

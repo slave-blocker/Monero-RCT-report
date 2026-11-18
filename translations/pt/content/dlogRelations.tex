@@ -1,19 +1,27 @@
-\chapter{Relações de logaritmo discreto entre geradores}
+\chapter{O segredo público gamma}
 \label{chapter:dlog-relations}
 \label{page:dlog-relations-start}
 \index{armadilha de parametros@armadilha de parâmetros}
 \index{gerador@gerador!relacoes de logaritmo discreto@relações de logaritmo discreto}
 
-Já encontrámos a igualdade \(P=xG\) em dois lugares muito diferentes.
-Quando \(P\) é uma chave pública, a assinatura só é possível porque alguém
-conhece \(x\). Quando \(P\) e \(G\) são as duas bases de um compromisso
-de Pedersen, a sua capacidade de vincular um montante à abertura depende de
-ser difícil descobrir esse mesmo \(x\). A igualdade tem a mesma forma.
-O que mudou foi a afirmação que o verificador espera poder deduzir dela.
+Qualquer leitor pode reconstruir o ponto \(H\) dos compromissos de
+Monero. A receita está na secção~\ref{subsec:pedersen-fixed-generator}.
+Que mais saberia o leitor se alguém lhe dissesse por que inteiro tem de
+multiplicar \(G\) para chegar ao mesmo \(H\)? Conheceria o número a que
+chamámos \(\gamma\) quando, pela primeira vez, escrevemos
+\[
+                    H=\gamma G,\qquad \gamma=\log_G H .
+\]
+Os dois pontos são públicos. Também o é a existência de um único
+\(\gamma\) módulo \(\ell\), pois \(G\) gera o subgrupo de ordem prima
+\(\ell\). O segredo está no valor do número. Convém distingui-lo da
+máscara que, na secção~\ref{sec:bullet_proofs}, também se escreveu
+\(\gamma\). Uma máscara pertence a uma abertura e o seu dono conhece-a.
+O logaritmo entre as bases é o mesmo para todos os compromissos.
+\index{gamma@gamma, logaritmo entre as bases}
+\index{logaritmo discreto@logaritmo discreto!do gerador de montantes@do gerador de montantes}
 
-Fixemos um grupo cíclico de ordem prima \(\ell\). Para cada ponto \(H\)
-e cada gerador \(G\), existe um único \(t\in\mathbb F_\ell\) tal que
-\(H=tG\). A expressão habitual «geradores independentes» designa aqui
+A expressão habitual «geradores independentes» designa aqui
 uma hipótese sobre conhecimento. Dados os pontos públicos, deve ser
 computacionalmente difícil encontrar coeficientes, nem todos nulos,
 cuja combinação dos pontos dê a identidade \(\mathcal O\).
@@ -96,6 +104,8 @@ outra afirmação. A derivação pública de \(J\) deve conservar a
 codificação da chave original, inclusive quando a árvore usa uma
 representação dessa chave no subgrupo primo
 \cite{monero-source-current-fcmp-tree}.
+
+\input{content/gammaDezanove}
 
 \section{Uma hipótese para várias bases}
 

@@ -1,0 +1,87 @@
+\subsection{Uma reserva de sete unidades}
+\label{subsec:reserva-sete-unidades}
+
+Alice tem, na mesma conta, três saídas confirmadas e elegíveis de 12,
+8 e 3 unidades. Conhece as chaves necessárias e nenhuma das três
+está gasta ou congelada. Pedem-lhe que demonstre uma reserva mínima de
+7. A conta inteira vale \(12+8+3=23\); uma saída de 8 basta para a
+declaração. Também bastaria a de 12. Convém seguir a escolha da carteira,
+pois o verificador vai conhecer o valor inteiro de cada saída que Alice
+incluir.
+
+Ordenadas as saídas, ficam 12, 8 e 3. Enquanto a segunda da lista bastar
+por si, a carteira pode retirar a primeira e conservar a possibilidade de
+responder com uma só saída. Neste caso retira 12, porque \(8\geq7\).
+Observa em seguida que \(3<7\) e fica com a primeira que resta, 8.
+O verificador examina a prova relativa a essa saída, consulta a imagem
+de chave e obtém \(\texttt{total}=8\), \(\texttt{spent}=0\). A condição
+que lhe interessa é \(8-0\geq7\).
+
+A diferença entre atingir e exceder o mínimo vê-se com um novo pedido
+de 8. A saída escolhida continua a ser 8 e a desigualdade verifica-se
+agora com igualdade. Para um pedido de 13, em contrapartida, falta
+sempre alguma coisa quando se mostra uma única saída. A carteira começa
+da maior, 12, junta-lhe 8 e pára com 20. Reunamos os casos, enquanto o
+estado das saídas permanece o mesmo.
+
+\begin{center}
+\begin{tabular}{c|c|c|c}
+mínimo pedido & saídas incluídas & total revelado & excedente\\
+\hline
+3  & 3     &  3 & 0\\
+7  & 8     &  8 & 1\\
+8  & 8     &  8 & 0\\
+13 & 12, 8 & 20 & 7\\
+21 & 12, 8, 3 & 23 & 2
+\end{tabular}
+\end{center}
+
+Para o mínimo de 13 haveria outro par possível, 12 e 3, de soma 15.
+Ambos os pares expõem duas saídas. A regra aplicada escolhe o primeiro
+par na ordem decrescente quando já sabe que nenhuma saída serve sozinha.
+É fácil justificar por que obtém o menor número de saídas. Se
+\(a_1\geq a_2\geq\cdots\geq a_n\), a maior soma que se pode formar
+com \(k\) saídas é \(a_1+\cdots+a_k\). Enquanto essa soma for
+inferior ao pedido, todo o conjunto de \(k\) saídas será insuficiente.
+Contudo, uma vez atingido o número de saídas necessário, o excesso
+revelado depende das parcelas escolhidas. As sete unidades de excesso
+da quarta linha são uma consequência visível desse critério de selecção
+\cite{monero-source-v16}.
+
+\paragraph{A mesma prova vista em dois momentos.}
+Guardemos a prova do mínimo de 13. Contém os elementos relativos às
+saídas de 12 e 8, incluindo as duas imagens de chave. No primeiro
+momento ambas figuram como disponíveis. A reserva observada para
+esse conjunto é \(20-0=20\), suficiente para o pedido.
+
+Suponhamos agora que Alice gastou a saída de 8, que a transacção de
+despesa ficou confirmada e que os dois observadores consultam o mesmo
+ramo já sincronizado. As assinaturas da prova que guardámos ainda
+conferem. As saídas de criação ainda têm os mesmos montantes e as suas
+assinaturas referem as mesmas chaves. A resposta à consulta da segunda
+imagem mudou. Obtemos agora
+\[
+   \texttt{total}=20,\qquad \texttt{spent}=8,\qquad 20-8=12<13 .
+\]
+O documento recebido por Bob conservou cada byte. A condição de reserva
+dependia também da informação de gasto disponível na altura da consulta.
+
+A terceira saída, de 3, continuou fora daquela prova. Se ainda estiver
+disponível, Alice dispõe, entre as saídas antigas, de \(12+3=15\).
+Poderá gerar outra prova para o mesmo pedido. Bob, porém, ao examinar a
+primeira, só tem justificação para contar os 12 que nela permanecem
+disponíveis. A diferença entre 12 e 15 mede aqui precisamente o efeito
+de seleccionar as saídas a revelar. Qualquer troco recebido na despesa
+seria ainda uma saída nova, com a sua própria chave e a sua própria
+imagem. Também essa saída pediria uma prova que a incluísse.
+
+Do lado de quem recebe a prova, há assim uma pequena conta que vale a
+pena conservar juntamente com a mensagem de contexto. Registam-se o
+mínimo pedido, o conjunto que deu o total, o momento da consulta,
+a ponta do ramo e o montante que o nó classificou como gasto. No
+exemplo, os gastos considerados estavam já confirmados. A consulta de
+uma carteira pode também contar como gasta uma imagem que o nó vê
+numa transacção ainda em memória. Nesse caso pode mudar a resposta
+mesmo antes de mudar a altura do ramo. O momento da consulta situa,
+portanto, uma parte da informação que as assinaturas da reserva deixam
+em aberto.

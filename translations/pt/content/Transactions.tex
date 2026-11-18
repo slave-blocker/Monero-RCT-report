@@ -646,13 +646,15 @@ dos inteiros exige tanto estes limites como as provas de intervalo.
 No capítulo~\ref{chapter:dlog-relations}, a mesma equação reaparecerá
 na comparação de duas aberturas de uma família de bases.
 
+\input{content/contaTresEntradas}
+
 \section{Resumo conceptual}
 \label{sec:transaction_summary}
 
-Para resumir, apresenta-se aqui o conteúdo principal de uma transacção v16,
-organizado para clareza conceptual. O apêndice
-\ref{appendix:RCTTypeBulletproof2} mostra bytes reais de uma transacção mais
-antiga; as diferenças estão assinaladas no próprio apêndice.
+Reunamos os elementos de uma transacção v16. Quem quiser acompanhar
+a sua disposição em bytes pode seguir um exemplar do tipo 6 no
+apêndice~\ref{appendix:pagamento-tipo-seis}. O apêndice~\ref{appendix:RCTTypeBulletproof2}
+mostra como se dispõem os campos numa transacção mais antiga.
 
 \begin{itemize}
     \item \underline{Tipo}: `6' é \texttt{RCTType}\allowbreak\texttt{BulletproofPlus}; `0' é
@@ -760,6 +762,8 @@ exceder
 unidades de peso. A reserva de 600 deixa espaço para a transacção de mineiro;
 a relação com o peso dinâmico do bloco é explicada na secção
 \ref{subsec:dynamic-block-weight}.
+
+\input{content/custoSaidaSeguinte}
 
 \subsection{O campo \texttt{extra}: leitura e significado}
 \label{subsec:tx-extra-structure}

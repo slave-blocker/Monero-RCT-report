@@ -1,0 +1,114 @@
+\subsection{Uma chave pública que cabe numa folha}
+\label{sec:curva-137}
+\index{multiplicacao escalar@multiplicação escalar!exemplo em coordenadas@exemplo em coordenadas}
+
+Detenhamo-nos no sinal de igualdade de \(K=kG\). À esquerda teremos
+duas coordenadas, à direita um inteiro e um ponto. Que contas fazem
+aparecer aquelas duas coordenadas? Escolhamos uma curva bastante
+pequena para acompanharmos uma chave do princípio ao fim. A receita
+de adição é a mesma que acabámos de estudar. Mudam os números para
+que se possa ver a conta.
+
+Tomemos o corpo \(\mathbb F_{137}\) e a curva de Edwards
+\[
+             -x^2+y^2=1+35x^2y^2 .
+\]
+O ponto \(G=(34,8)\) pertence-lhe. Com efeito, \(34^2=1156\)
+deixa resto 60 e \(8^2=64\). A diferença à esquerda vale 4.
+À direita, \(35\cdot60\cdot64\) deixa resto 3, a que se soma a
+unidade. Cada coordenada é agora um resto entre 0 e 136.
+Sempre que multiplicarmos pontos por inteiros, guardaremos esta
+distinção entre o multiplicador e as coordenadas que ele produz.
+
+Para duplicar \(G\), introduzimos duas vezes \((34,8)\) na fórmula
+de adição. Os numeradores são \(2\cdot34\cdot8\equiv133\) e
+\(8^2+34^2\equiv124\). Os denominadores valem \(1+3=4\) e
+\(1-3=-2\). A primeira divisão é fácil de reconhecer de trás para
+diante. O numerador 133 é também \(-4\), logo o quociente é \(-1\).
+Na segunda, procuramos o número que, multiplicado por \(-2\), dá
+124, ou seja, \(-13\). Como \(2\cdot75=150\equiv13\), esse número
+é 75. Reunindo as duas coordenadas, obtemos
+\[
+                        2G=(136,75).
+\]
+O ponto \((136,75)\) pode voltar a entrar na mesma fórmula. O par de
+numeradores passa a \((124,9)\) e o de denominadores a \((7,132)\).
+Verifica-se \(7\cdot96\equiv124\) e
+\(132\cdot53\equiv(-5)\cdot53\equiv9\). Portanto
+\(4G=(96,53)\). As duas duplicações seguintes constam do quadro, com
+as divisões escritas de modo que se veja de onde vem cada coordenada.
+\[
+\begin{array}{c|c|c}
+\text{operação}&\text{quocientes em }\mathbb F_{137}&\text{ponto obtido}\\ \hline
+4G+4G&(38/32,\ 106/107)&8G=(44,33)\\
+8G+8G&(27/112,\ 11/27)&16G=(114,41)
+\end{array}
+\]
+Por exemplo, na última linha \(112\cdot114=12768\) difere de 27
+por \(93\cdot137\), e \(27\cdot41=1107=8\cdot137+11\).
+
+Podemos já determinar a ordem de \(G\). Somando \(16G\) e \(2G\),
+os quocientes são \((15/60,84/79)\). O primeiro vale 103,
+pois \(60\cdot103\equiv15\), e o segundo vale 8, pois
+\(79\cdot8\equiv84\). Assim
+\[
+                  18G=(103,8)=(-34,8)=-G .
+\]
+Segue-se \(19G=\mathcal O\). A ordem divide 19 e \(G\) difere da
+identidade. Como 19 é primo, a ordem é exactamente 19. Temos agora
+dois módulos com ofícios visíveis. Somar 137 à abcissa deixa a
+coordenada intacta. Somar 19 à chave privada deixa a chave pública
+intacta. O primeiro facto decorre do corpo onde está escrita a curva,
+o segundo da ordem do ponto escolhido na curva.
+
+Suponhamos que o escalar privado vale 13. Em binário é
+\(1101_2=8+4+1\). Os pontos \(G,2G,4G,8G\) já foram calculados,
+de modo que falta reunir os das posições assinaladas. Por esta ordem,
+\[
+\begin{aligned}
+ G+4G &= (104/41,126/98)=(56,60)=5G,\\
+ 5G+8G&=(104/45,60/94)=(118,91)=13G .
+\end{aligned}
+\]
+Fizemos assim uma chave pública, \(K=(118,91)\). É a mesma chave
+que daria \(32G\), uma vez que \(32=19+13\). E a chave oposta?
+A negação de Edwards troca o sinal da abcissa, donde
+\(-K=(19,91)\). Do lado das chaves privadas corresponde-lhe o
+escalar \(19-13=6\). Para conferir a previsão, somemos
+\(2G=(136,75)\) e \(4G=(96,53)\). Os quocientes são
+\((23/131,43/8)=(19,91)\).
+
+A tabela de duplicações serve a todos os escalares da mesma base.
+Para produzir um novo ponto escolhem-se, pelo desenvolvimento
+binário, as linhas que devem contribuir para a soma. Se o subgrupo
+tem apenas dezanove elementos, também podemos tabular todos os
+resultados e, olhando para \((118,91)\), procurar o multiplicador
+que lhe corresponde. A operação directa e esta busca têm custos de
+natureza diferente. A tabela de duplicações cresce com o número
+de bits do multiplicador. A tabela completa teria uma entrada por
+elemento do subgrupo. A dificuldade concreta do logaritmo discreto
+depende também dos melhores algoritmos de busca e dos parâmetros
+escolhidos.
+
+Há outra conta que se pode ver nesta pequena curva. Consideremos
+\(T=(54,57)\). Como os quadrados das suas coordenadas valem 39 e 98,
+a equação dá \(98-39=59=1+35\cdot39\cdot98\pmod{137}\).
+As duplicações sucessivas dão
+\[
+ T=(54,57),\quad 2T=(37,0),\quad
+ 4T=(0,136),\quad 8T=(0,1)=\mathcal O .
+\]
+De facto, na segunda duplicação a abcissa é zero e a ordenada é
+\(37^2\equiv-1\). A última é a duplicação de \((0,-1)\).
+O ponto \(T\) tem, portanto, ordem oito. Se lhe somarmos \(G\),
+oito adições do resultado dão
+\[
+                      8(G+T)=8G+8T=8G .
+\]
+Nos múltiplos de \(G\), a multiplicação por oito é reversível,
+pois \(8\cdot12=96=5\cdot19+1\). Logo \(12(8G)=G\).
+No ponto composto \(G+T\), essa mesma conta devolve \(G\).
+O factor que preserva a informação na componente de ordem 19 apaga
+a componente de ordem oito. Reencontraremos as duas operações ao
+derivar uma chave para o destinatário e ao decidir a que subgrupo
+pertence uma imagem de chave.

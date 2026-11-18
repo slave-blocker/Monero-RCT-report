@@ -192,6 +192,9 @@ Cada participante \(P_i\) começa com dois escalares independentes:
 \begin{align*}
  a_i&\in_R\mathbb Z_l, & u_i&\in_R\mathbb Z_l.
 \end{align*}
+\notaFonte{%
+  \fonteHistorica{src/multisig/multisig.cpp}{multisig.cpp}%
+  \codigoMargem{get_multisig_blinded_secret_key()}}%
 A chave-base pública \(A_i=a_iG\) autentica as mensagens e entra nas trocas
 Diffie--Hellman. O valor auxiliar \(u_i\) é enviado aos restantes membros na
 primeira ronda, através do canal confidencial. Depois de ordenar as
@@ -204,6 +207,9 @@ A notação \(\mathcal H_n\) inclui a codificação canónica das contribuiçõe
 e uma etiqueta de domínio própria desta derivação. A ordenação acordada
 torna os argumentos idênticos em todas as carteiras.
 
+\notaFonte{%
+  \fonteHistorica{src/multisig/multisig.cpp}{multisig.cpp}%
+  \codigoMargem{generate_multisig_view_secret_key()}}%
 Partilhar \(k^v\) é deliberado. Cada carteira tem de reconhecer as mesmas
 saídas e calcular a parte comum das respectivas chaves privadas. Quem não
 deve ver os montantes e destinatários internos não deve pertencer a esta
@@ -223,7 +229,9 @@ consegue chegar a \(D_S\) a partir da sua chave privada e dos pontos
 recebidos; quem está fora de \(S\) não aprende \(b_S\).
 
 No caso \(N\)-de-\(N\), temos \(q=1\) e não há troca Diffie--Hellman para
-formar a parcela. Usa-se directamente a chave-base privada:
+formar a parcela. Usa-se directamente a chave-base privada:\notaFonte{%
+  \fonteHistorica{src/multisig/multisig.cpp}{multisig.cpp}%
+  \codigoMargem{generate_multisig_N_N()}}%
 \[
  b_{\{i\}}=a_i,\qquad B_{\{i\}}=A_i=a_iG.
 \]
@@ -251,6 +259,9 @@ O número de rondas criptográficas de troca de chaves é
 \begin{align*}
  N-M+1=q.
 \end{align*}
+\notaFonte{%
+  \fonteHistorica{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{get_multisig_info()}\par \codigoMargem{pack_multisignature_keys()}}%
 Segue-se uma ronda de confirmação, pelo que a configuração completa exige
 \begin{align*}
  N-M+2
@@ -258,6 +269,11 @@ Segue-se uma ronda de confirmação, pelo que a configuração completa exige
 rondas. Uma política \(N\)-de-\(N\) precisa de uma ronda de troca e uma de
 confirmação; baixar o limiar acrescenta trocas Diffie--Hellman.
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{exchange_multisig_keys()}%
+  \fonteHistorica{src/multisig/multisig.cpp}{multisig.cpp}%
+  \codigoMargem{generate_multisig_derivations()}}%
 Em cada ronda posterior à primeira, um participante aplica a sua chave-base a
 pontos cuja lista de origens ainda não o contém. A carteira acompanha essas
 origens para que cada segredo final corresponda a exactamente \(q\) membros.
@@ -273,6 +289,9 @@ saltada.
 \subsection{Exemplo 2-de-3}
 \label{sec:n-1-of-n}
 
+\notaFonte{%
+  \fonteHistorica{src/multisig/multisig.cpp}{multisig.cpp}%
+  \codigoMargem{generate_multisig_N1_N()}}%
 Consideremos Alice, Bob e um terceiro signatário, designado por \(C\), com \(M=2\) e \(N=3\). Temos \(q=2\), pelo
 que são criados três segredos:
 \begin{align*}
@@ -293,9 +312,8 @@ Alice e Bob cobrem as três parcelas: Alice fornece \(x_{AC}\), Bob fornece
 não consegue formar a chave completa.
 
 Nos extremos, uma política \(N\)-de-\(N\) tem \(q=1\): cada participante
-possui uma parcela exclusiva. Uma política 1-de-\(N\) tem \(q=N\): todos
-derivam a mesma parcela e qualquer um consegue usá-la. Portanto, a política
-1-de-\(N\) não oferece protecção contra um membro que decida gastar sozinho.
+possui uma parcela exclusiva. Na política 1-de-\(N\), \(q=N\). Todos
+derivam a mesma parcela e qualquer um deles pode autorizar sozinho uma despesa.
 
 O número combinatório de parcelas cresce depressa. Para um grupo 8-de-16,
 por exemplo, \(q=9\): há \(\binom{16}{9}=11\,440\) parcelas distintas, e
@@ -309,6 +327,9 @@ como a quantidade de dados a guardar e trocar.
 \label{sec:recalculating-key-images-multisig}
 \index{imagem de chave@imagem de chave!partilhada@partilhada}
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_basic/cryptonote_format_utils.cpp}{cryptonote_format_utils.cpp}%
+  \codigoMargem{generate_key_image_helper_precomp()}}%
 Como todos conhecem \(k^v\), todas as carteiras conseguem detectar uma saída
 recebida. Para uma saída pública \(P\), escrevamos a respectiva chave privada
 sob a forma
@@ -338,6 +359,9 @@ de chave completa para perguntar se a saída já apareceu como entrada na lista
 de blocos. Ver a saída com a chave de vista informa que ela foi recebida; não
 informa, por si só, se outro conjunto de \(M\) signatários já a gastou.
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{export_multisig()}}%
 A operação de exportação de informação multi-assinatura inclui, para cada
 saída, as imagens parciais e pares públicos de valores aleatórios que poderão
 ser usados numa tentativa de assinatura. O ficheiro é cifrado com material
@@ -411,6 +435,9 @@ completo \cite{musig2}.
 
 \subsection{Dois valores aleatórios por signatário}
 
+\notaFonte{%
+  \fonteHistorica{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{get_multisig_kLRki()}}%
 Para cada entrada e tentativa, o signatário \(i\) prepara
 \begin{align*}
  \alpha_{i,0},\alpha_{i,1}\in_R\mathbb Z_l
@@ -453,6 +480,9 @@ As imagens agregadas correspondentes são construídas a partir da imagem de
 chave \(I=x\mathcal H_p(P)\) e da imagem de compromisso \(D\). Os restantes
 membros do anel recebem respostas simuladas, como numa CLSAG normal.
 
+\notaFonte{%
+  \fonteHistorica{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{signMultisig()}}%
 Na versão distribuída, o primeiro signatário da tentativa inclui na sua
 resposta:
 \begin{itemize}
@@ -498,6 +528,9 @@ mesma sessão não devem ser misturados ao acaso.
 
 \subsection{Proposta}
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{transfer_selected_rct()}\par \codigoMargem{save_multisig_tx()}}%
 O proponente escolhe as entradas e destinos, calcula os pseudo-compromissos e
 a prova Bulletproofs+, e fixa a estrutura que todos irão verificar. Cria também
 tentativas para as combinações de signatários que podem atingir o limiar com
@@ -545,6 +578,9 @@ compromissos e a prova de intervalo. O utilizador deve ainda confirmar os
 destinos e montantes no seu próprio dispositivo. Uma estrutura
 criptograficamente válida pode conter um endereço de destino incorrecto.
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{sign_multisig_tx()}}%
 Se aceitar, o signatário acrescenta as suas respostas parciais a todas as
 tentativas em que participa. Antes de expor essas respostas, a carteira apaga
 o material aleatório guardado para as tentativas e grava o estado actualizado.

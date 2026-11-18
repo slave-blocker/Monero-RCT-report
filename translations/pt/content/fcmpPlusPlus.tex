@@ -189,12 +189,15 @@ a asseguram antes de apresentar as respostas do provador.
  \node[proof,text width=6cm] (joined) at (4.5,-3.8)
   {relação da entrada com a mesma saída\\
    \(\eqref{eq:fcmp-composed-statement}\)};
- \draw[flow] (root) -- (membership);
- \draw[flow] (tuple) -- (membership);
- \draw[flow] (tuple) -- (sal);
- \draw[flow] (message) -- (sal);
- \draw[flow] (membership.south) -- (joined.north west);
- \draw[flow] (sal.south) -- (joined.north east);
+ \coordinate (partilha) at (4.5,-.85);
+ \draw[semithick] (tuple.south) -- (partilha);
+ \fill (partilha) circle[radius=1.5pt];
+ \draw[flow] (partilha) -| ([xshift=1.35cm]membership.north);
+ \draw[flow] (partilha) -| ([xshift=-1.35cm]sal.north);
+ \draw[flow] (root.south) -- ([xshift=-1.35cm]membership.north);
+ \draw[flow] (message.south) -- ([xshift=1.35cm]sal.north);
+ \draw[flow] (membership.south) -- ([xshift=-2.5cm]joined.north);
+ \draw[flow] (sal.south) -- ([xshift=2.5cm]joined.north);
 \end{tikzpicture}
 \end{center}
 

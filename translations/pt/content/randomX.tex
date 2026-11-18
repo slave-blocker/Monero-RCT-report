@@ -89,15 +89,14 @@ estado final determina o resultado.
 \begin{center}
 \begin{tikzpicture}[>=stealth,node distance=.72cm and .55cm,
   every node/.style={font=\small},
-  rxbox/.style={draw,rounded corners,align=center,minimum height=.85cm,
-    text width=2.25cm,fill=blue!8},
-  mem/.style={draw,rounded corners,align=center,minimum height=.85cm,
-    text width=2.25cm,fill=green!12}]
+  rxbox/.style={draw,rounded corners,align=center,minimum height=1.32cm,
+    text width=3cm,fill=blue!8},
+  mem/.style={rxbox,fill=green!12}]
  \node[rxbox] (key) {bloco-semente\\\(K\)};
  \node[mem,right=of key] (cache) {Argon2d\\Cache, 256 MiB};
- \node[mem,right=of cache] (dataset) {mistura onerosa\\Dataset, \(\sim2080\) MiB};
+ \node[mem,right=of cache] (dataset) {mistura onerosa\\Dataset\\\(\sim2080\)~MiB};
  \node[rxbox,below=1.25cm of key] (input) {bloco candidato\\\(H\)};
- \node[rxbox,right=of input] (scratch) {estado inicial\\Scratchpad, 2 MiB};
+ \node[rxbox,right=of input] (scratch) {estado inicial\\Scratchpad\\2~MiB};
  \node[rxbox,right=of scratch] (programs) {oito programas\\\(P_0,\ldots,P_7\)};
  \node[rxbox,right=of programs] (result) {condensação\\\(h_{\rm PoW}\)};
  \draw[->,thick] (key)--(cache);
@@ -269,26 +268,23 @@ Há duas maneiras de responder quando a máquina virtual pede \(D_K[i]\):
   box/.style={draw,rounded corners,align=center,minimum height=.8cm,
     text width=2.75cm}]
  \node[box,fill=green!12] (cache) at (0,0) {Cache \(C_K\)\\256 MiB};
- \node[box,fill=blue!10] (full) at (4.4,1.15)
-   {Dataset guardado\\\(D_K[i]\) já existe};
- \node[box,fill=yellow!16] (light) at (4.4,-1.15)
-   {cálculo no momento\\\(\Phi_K(i,C_K)\)};
- \node[box] (same) at (8.8,0)
+ \node[box,text width=4.3cm,fill=blue!10] (full) at (5.3,1.0)
+   {Preparar o Dataset\\e ler \(D_K[i]\)};
+ \node[box,text width=4.3cm,fill=yellow!16] (light) at (5.3,-1.0)
+   {Reconstituir o item\\por \(\Phi_K(i,C_K)\)};
+ \node[box] (same) at (10.6,0)
    {o mesmo item\\de 64 bytes};
- \draw[->,thick] (cache.east) to[bend left=12]
-   node[above,sloped,fill=white,inner sep=1pt]{preparar} (full.west);
- \draw[->,thick] (cache.east) to[bend right=12]
-   node[below,sloped,fill=white,inner sep=1pt]{reconstituir} (light.west);
- \draw[->,thick] (full.east) to[bend left=12] (same.west);
- \draw[->,thick] (light.east) to[bend right=12] (same.west);
+ \draw[->,semithick] (cache.east) -- (full.west);
+ \draw[->,semithick] (cache.east) -- (light.west);
+ \draw[->,semithick] (full.east) -- (same.west);
+ \draw[->,semithick] (light.east) -- (same.west);
 \end{tikzpicture}
 \end{center}
 
-Os modos não são duas provas de trabalho. São duas avaliações da mesma
-função. Se a Cache, a chave e o índice forem iguais, a equação
-\eqref{eq:randomx-dataset-item} determina os mesmos 64 bytes. Um nó leve pode
-portanto verificar um bloco minerado em modo completo; o bloco não anuncia
-qual modo foi usado.
+Se a Cache, a chave e o índice forem iguais, a
+equação~\eqref{eq:randomx-dataset-item} determina os mesmos 64 bytes.
+O mineiro pode lê-los do Dataset e o nó leve pode recalculá-los.
+É por isso que ambos obtêm o mesmo resultado para a prova de trabalho.
 
 O modo completo é apropriado à repetição. Paga uma vez a construção do
 Dataset e troca cada pedido futuro por uma leitura de DRAM. O modo leve poupa
@@ -322,11 +318,10 @@ Para comparar dispositivos, o desenho de RandomX usa o modelo do produto
  \label{eq:randomx-area-time}
 \end{align}
 onde \(A\) aproxima a área de circuito necessária e \(T\) o tempo por
-resultado. Um dispositivo que usa metade da memória mas demora dez vezes mais
-tem, antes de outros custos, cerca de cinco vezes o produto \(AT\). A medida
-não é uma lei física completa: energia, largura de banda, processo de fabrico,
-empacotamento e preço de mercado também importam. É uma maneira de impedir que
-«menos memória» seja confundido automaticamente com «mais eficiente».
+resultado. Se a área cair para metade e o tempo por resultado se multiplicar
+por dez, o produto \(AT\) aumenta por um factor de cinco.
+Para passar desta comparação ao custo de um dispositivo concreto contam
+também a energia, a largura de banda, o fabrico, o encapsulamento e o preço.
 
 A razão nominal entre os modos foi escolhida em torno de oito:
 \begin{align*}
@@ -340,10 +335,8 @@ deduzidos de um axioma criptográfico \cite{randomx-design-v1}.
 Argon2d protege a própria Cache contra reduções mais agressivas. As referências
 de desenho estimam que, com três passagens, reduzir a memória de Argon2d para
 metade aumenta por um factor de 3423 o trabalho do melhor compromisso analisado
-\cite{memory-hard-tradeoffs,randomx-design-v1}. Esse número pertence a um
-modelo de ataque, não é uma garantia sobre todas as arquitecturas futuras. No
-modelo analisado, não há uma redução de baixo custo entre guardar a Cache
-inteira e recalculá-la.
+\cite{memory-hard-tradeoffs,randomx-design-v1}. O factor de 3423 mede,
+nesse modelo de ataque, o preço de recalcular o que deixou de caber na Cache.
 
 Há, por fim, duas latências diferentes. O Dataset reside em DRAM e cada acesso
 tem latência relativamente alta. A Cache pode caber em memória mais próxima
@@ -450,11 +443,10 @@ falhadas\\
 \end{tabular}
 \end{center}
 
-O repertório é suficientemente próximo das operações nativas para permitir
-tradução rápida, mas suficientemente amplo para impedir que um circuito
-selectivo conserve apenas multiplicadores ou apenas somadores. Os programas
-não são optimizados para uma tarefa externa; servem para distribuir de modo
-reprodutível o trabalho pelas unidades do processador.
+As instruções estão próximas das operações nativas, o que facilita a
+tradução. Um programa pode pedir tanto uma soma como um produto ou uma
+rotação de bits. É esta variedade que distribui, de modo reprodutível,
+o trabalho pelas unidades do processador.
 
 
 \section{Hierarquia do Scratchpad}
@@ -763,29 +755,22 @@ O símbolo \(\|\) indica concatenação nas representações fixadas pela
 especificação.
 
 \begin{center}
-\begin{tikzpicture}[>=stealth,node distance=.5cm and .55cm,
-  every node/.style={font=\scriptsize},
-  box/.style={draw,rounded corners,align=center,minimum height=.7cm,
-    text width=1.75cm,fill=blue!8}]
- \node[box] (H) {\(H\)};
- \node[box,right=of H] (S0) {\(\mathcal B_{512}\)\\\(S_0\)};
- \node[box,right=of S0] (sp) {encher\\Scratchpad};
- \node[box,right=of sp] (p0) {\(P_0^{2048}\)};
- \node[box,right=of p0] (dots) {\(P_1,\ldots,P_6\)};
- \node[box,right=of dots] (p7) {\(P_7^{2048}\)};
- \node[box,below=1cm of p7,xshift=-1.15cm] (rf) {registos\\finais};
- \node[box,text width=1.9cm,below=1cm of p7,xshift=1.15cm] (fp)
-   {\(A\): impressão\\\mbox{do Scratchpad}};
- \node[box,below=2.05cm of p7] (out) {\(\mathcal B_{256}\)\\\(h_{\rm PoW}\)};
- \draw[->,thick] (H)--(S0);
- \draw[->,thick] (S0)--(sp);
- \draw[->,thick] (sp)--(p0);
- \draw[->,thick] (p0)--(dots);
- \draw[->,thick] (dots)--(p7);
- \draw[->,thick] (p7)--(rf);
- \draw[->,thick] (p7)--(fp);
- \draw[->,thick] (rf)--(out);
- \draw[->,thick] (fp)--(out);
+\begin{tikzpicture}[>=stealth,font=\small,
+  etapa/.style={draw,rounded corners,align=center,inner sep=5pt,fill=blue!8},
+  fluxo/.style={->,semithick}]
+ \node[etapa] (semente) at (0,0) {\(S_0=\mathcal B_{512}(H)\)};
+ \node[etapa] (memoria) at (3.7,0) {Encher o\\Scratchpad};
+ \node[etapa] (programas) at (7.8,0) {\(P_0,\ldots,P_7\)\\2048 voltas por programa};
+ \node[etapa] (registos) at (5.15,-1.65) {Registos finais\\\(\mathbf r,\mathbf f,\mathbf e\)};
+ \node[etapa] (impressao) at (10.45,-1.65) {Impressão \(A\)\\do Scratchpad};
+ \node[etapa] (resultado) at (7.8,-3.35)
+   {\(h_{\rm PoW}=\mathcal B_{256}(\mathbf r\|\mathbf f\|\mathbf e\|A)\)};
+ \draw[fluxo] (semente) -- (memoria);
+ \draw[fluxo] (memoria) -- (programas);
+ \draw[fluxo] (programas) -- (registos);
+ \draw[fluxo] (programas) -- (impressao);
+ \draw[fluxo] (registos) -- (resultado);
+ \draw[fluxo] (impressao) -- (resultado);
 \end{tikzpicture}
 \end{center}
 

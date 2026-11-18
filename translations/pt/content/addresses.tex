@@ -59,6 +59,10 @@ subgrupo gerado por \(G\).
 \index{endereco@endereço!codificacao@codificação}
 \index{soma de controlo@soma de controlo}
 
+\notaFonte{%
+  \fonteMargem{src/common/base58.cpp}{base58.cpp}%
+  \codigoMargem{encode_addr()}%
+  \fonteMargem{src/cryptonote_basic/cryptonote_basic_impl.cpp}{cryptonote_basic_impl.cpp}}%
 Para comunicar o par numa representação textual, Monero usa uma variante
 própria de Base58 \cite{base-58-encoding,luigi-address}. Na rede principal, a entrada
 binária de um endereço principal é
@@ -93,6 +97,9 @@ pela construção anterior satisfazem-nas.
 \index{chave@chave!de utilizacao unica@de utilização única}
 \index{stealth address@stealth address|see{endereço, oculto}}
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{generate_key_derivation()}\par \codigoMargem{derivation_to_scalar()}\par \codigoMargem{derive_public_key()}}%
 Alice aplica ao endereço principal de Bob uma troca semelhante a Diffie--Hellman
 e cria uma chave pública nova para cada saída \cite{cryptoNoteWhitePaper}.
 Estes \emph{endereços ocultos} são chaves de saída de utilização única.
@@ -136,6 +143,9 @@ construção de cada uma pode ser estudada separadamente. Alice conhece
 \end{enumerate}
 
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{derive_subaddress_public_key()}}%
 Ao percorrer a lista de blocos, Bob lê \(R\) e calcula
 \[
  \mathcal D'_B=8k_B^vR.
@@ -210,6 +220,10 @@ de \(K_t^o\). O sal ASCII de oito bytes \texttt{view\_tag} separa este uso dos
 restantes hashes.
 
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{derive_view_tag()}%
+  \fonteMargem{src/cryptonote_basic/cryptonote_format_utils.cpp}{cryptonote_format_utils.cpp}}%
 Ao examinar uma saída, Bob calcula primeiro o seu próprio \(v_t\). Se os bytes
 diferirem, a carteira salta logo a derivação pública completa. Se coincidirem,
 a saída é apenas uma \emph{candidata}: a carteira ainda tem de subtrair
@@ -225,14 +239,12 @@ saída tem obrigatoriamente a variante \texttt{txout\_to\_tagged\_key} e uma
 etiqueta de exactamente um byte. Saídas históricas sem etiqueta continuam a
 ser lidas pelo caminho de varrimento completo.
 
-O consenso verifica a presença do byte, mas não consegue verificar se ele foi
-derivado do segredo partilhado. Uma etiqueta errada pode fazer uma carteira
-ignorar uma saída que, pela equação de \(K_t^o\), lhe pertenceria. Logo, a
-etiqueta é uma optimização de varrimento, não prova de propriedade, não
-autorização de gasto e não mecanismo independente de privacidade. Um
-observador sem \(r\) nem \(k_B^v\) continua sem poder calcular
-\(\mathcal D_B\); quem recebe a chave privada de vista calcula tanto a
-etiqueta como o teste completo. Para revelar partes escolhidas do histórico
+O consenso exige a presença do byte. Para conferir o seu valor é preciso
+conhecer a derivação partilhada \(\mathcal D_B\), que Alice obtém com \(r\)
+e Bob com \(k_B^v\). Uma etiqueta errada pode levar Bob a passar por uma
+saída sua. Quando a etiqueta coincide, é a subtracção \(K_t^o-h_tG\)
+que lhe permite reconhecer a saída. Quem recebe a chave privada de vista
+pode fazer as duas contas. Para revelar partes escolhidas do histórico
 sem entregar essa chave, recorreremos ao Capítulo
 \ref{chapter:tx-knowledge-proofs}.
 
@@ -242,6 +254,9 @@ sem entregar essa chave, recorreremos ao Capítulo
 \index{chave@chave!de transaccao@de transacção}
 \index{saida@saída!multiplas saidas@múltiplas saídas}
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{transfer_selected_rct()}}%
 A transacção corrente costuma pagar ao destinatário e devolver troco ao
 remetente. Para transacções RingCT não mineiras, a versão~16 exige por
 consenso pelo menos duas saídas. A forma canónica de Bulletproofs+ usada nessa
@@ -249,6 +264,9 @@ versão agrega no máximo 16; por isso, uma transacção corrente tem
 \(2\leq p\leq16\) saídas. As razões de valor e a prova de intervalo ficam para
 o capítulo seguinte.
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/cryptonote_tx_utils.cpp}{cryptonote_tx_utils.cpp}%
+  \codigoMargem{construct_tx_with_tx_key()}}%
 Antes de criar as chaves, a carteira remetente baralha os destinos. O
 \emph{índice de saída} \(t\in\{0,\ldots,p-1\}\) é a posição final no vector
 serializado \texttt{vout}, e é essa posição que todos os cálculos devem usar.
@@ -264,6 +282,9 @@ destinada a \((K_t^s,K_t^v)\), definimos
 \end{align*}
 
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{derive_public_key()}}%
 Mesmo que Alice pague duas vezes ao mesmo endereço na mesma transacção, os
 índices diferentes entram no hash e produzem chaves de saída distintas,
 salvo colisão de probabilidade negligível. A etiqueta de vista de cada saída
@@ -312,6 +333,9 @@ par, codifica \(j\) e \(i\) como inteiros de 32 bits em ordem
  T_{\rm sub}=\texttt{SubAddr}\mathbin\|\texttt{0x00},
 \]
 uma sequência de oito bytes: os sete caracteres ASCII e o byte NUL final.
+\notaFonte{%
+  \fonteMargem{src/device/device_default.cpp}{device_default.cpp}%
+  \codigoMargem{get_subaddress_secret_key()}\par \codigoMargem{get_subaddress()}}%
 A partir das chaves principais de Bob calcula
 \begin{align*}
  m_\iota&=\mathcal H_n\bigl(
@@ -348,6 +372,9 @@ Divulgar \(k_B^v\) permite fazer o teste e liga todos os sub-endereços da
 conta. Reutilizar literalmente o mesmo sub-endereço também o liga por
 igualdade.
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_basic/cryptonote_basic_impl.cpp}{cryptonote_basic_impl.cpp}%
+  \codigoMargem{get_account_address_as_str()}}%
 Na rede principal, a codificação Base58 usa o prefixo numérico 42 seguido de
 \(K_B^{s,\iota}\) e \(K_B^{v,\iota}\), e a mesma soma de verificação de quatro
 bytes. Tem 95 caracteres e começa por «8». Com efeito, o inteiro \(N\)
@@ -387,6 +414,10 @@ Bob usa a chave privada de vista principal:
   =8rK_B^{v,\iota}
   =\mathcal D_{B,t}.
 \end{align*}
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{derive_subaddress_public_key()}%
+  \fonteMargem{src/cryptonote_core/cryptonote_tx_utils.cpp}{cryptonote_tx_utils.cpp}}%
 Depois do teste da etiqueta, subtrai \(h_tG\) de \(K_t^o\). O resultado
 \(K_B^{s,\iota}\) identifica a linha da tabela e, portanto, o índice
 \(\iota\). A carteira completa pode ainda formar
@@ -470,6 +501,9 @@ adicional que se estuda nas propostas de mitigação
 \index{identificador de pagamento@identificador de pagamento}
 \index{payment id@payment ID|see{identificador de pagamento}}
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_basic/cryptonote_basic_impl.cpp}{cryptonote_basic_impl.cpp}%
+  \codigoMargem{get_account_integrated_address_as_str()}}%
 Um endereço integrado junta um endereço \emph{principal} a um ID de pagamento
 curto escolhido pelo destinatário. Serve, por exemplo, para Bob atribuir um
 identificador de oito bytes a uma factura e reconhecer esse identificador
@@ -487,6 +521,9 @@ oito bytes de ID. O prefixo integrado só é aceite com o par de um endereço
 principal; não existe uma codificação integrada de sub-endereço
 \cite{integrated-addresses}.
 
+\notaFonte{%
+  \fonteMargem{src/device/device_default.cpp}{device_default.cpp}%
+  \codigoMargem{encrypt_payment_id()}}%
 O ID integrado tem oito bytes e é cifrado para o destinatário. Os IDs
 autónomos de 32 bytes pertencem ao formato histórico, em que eram publicados
 em claro em \texttt{extra}. Um \texttt{extra} transporta no máximo um ID
@@ -530,9 +567,10 @@ A igualdade pressupõe, como nas saídas, que \(R\) corresponde ao segredo
 efémero usado por Alice. A operação XOR é a da Secção
 \ref{sec:XOR_section}.
 
-Esta transformação apenas oculta o ID a quem não conhece a derivação. Não o
-autentica, não o liga por consenso a uma saída, não prova que Bob recebeu o
-pagamento e não impede Alice de escolher qualquer texto cifrado. A presença do
+Alice pode escrever quaisquer oito bytes no campo cifrado. Bob recupera
+o ID com a derivação partilhada e usa-o para procurar a factura. Para dar
+o pagamento por recebido, a carteira tem ainda de reconhecer a chave de
+saída e conferir o montante. A presença do
 campo também distingue estruturalmente a transacção. Para reduzir essa
 distinção, o construtor da carteira tenta inserir um ID curto nulo cifrado em
 certas transacções comuns sem ID explícito, quando há no máximo dois destinos

@@ -10,12 +10,18 @@
 - Use «de Monero», «por Monero» e «em Monero», conforme a construção gramatical, sem artigo antes do nome. Para designar a blockchain, use «lista de blocos»; preserve os sentidos matemáticos próprios de «cadeia» quando designem outros objectos.
 - Organize as secções pela continuidade do argumento. A extensão de cada secção deve acompanhar a matéria; elimine o esquema de uma página por secção nos capítulos de divisores e FCMP++. Reserve as quebras de página explícitas para necessidades reais de composição.
 
+## Notas de margem
+
+- Conservar na edição portuguesa todas as notas de margem, tanto as indicações de fontes como os apartes do autor, incluindo «clik!», «bang!» e «boom!». As notas fazem parte do livro. Manter a sua voz, a pontuação e a ligação à passagem que comentam.
+- Ao recompor uma página, colocar cada nota na margem junto da frase, da figura ou do passo da conta a que pertence. Conferir no PDF que se lê por inteiro, com espaço até ao bordo do papel e até às notas vizinhas. Se a exposição mudar de lugar, a nota acompanha-a. O inventário editorial serve para localizar e conferir as notas.
+
 ## Preservação de Bulletproofs e Bulletproofs+
 
 - Preservar a secção «Bulletproofs» (`sec:bullet_proofs`) de `translations/pt/content/commitments.tex` que começa com a epígrafe «Sou mais rápido quando me mexo», atribuída a Sundance, e «Em português: provas de bala». A referência para o seu conteúdo, incluindo todas as subsecções, é o commit `cbe02ed603ff22f9b5cfd8174f03fb2ade86f0b6`.
 - Conservar a redacção, a notação, as equações, os exemplos, os diagramas e a sequência expositiva dessa versão. Está autorizada, nesta primeira intervenção, a remoção dos espaços em branco excessivos e das quebras de página que os provoquem. Os restantes aperfeiçoamentos ficam para pedidos posteriores.
 - Esta preservação tem precedência sobre as directivas gerais de estilo, reescrita e uniformização deste repositório. Mesmo em revisões sucessivas ou pedidos genéricos para tornar o livro mais literal («verbatim»), conservar a secção conforme a referência fixa acima, admitindo apenas a limpeza de espaços já autorizada. Qualquer outra alteração exige um pedido que identifique expressamente esta secção; a referência permanece fixa à medida que o histórico avança.
 - Conservar a secção «Bulletproofs+» (`sec:bulletproof_plus`) no estado do commit `be3da539d8b5a64faf89d97688210ce32966ac77`. A reposição da versão anterior e a limpeza de espaços incidem apenas na secção de Bulletproofs clássicas.
+- Em Bulletproofs clássicas, conservar a composição revista dos asteriscos de remissão, das linhas de cálculo e dos diagramas. Em ambas as secções, conservar também as notas de margem junto das passagens respectivas. Estas disposições tipográficas acrescem à preservação do conteúdo das versões de referência.
 - O capítulo de Generalized Bulletproofs, em `translations/pt/content/generalizedBulletproofs.tex`, tem âmbito próprio.
 
 ## O segredo público gamma

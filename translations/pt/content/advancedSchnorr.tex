@@ -419,9 +419,9 @@ Fujisaki e Suzuki \cite{Fujisaki2007}. A construção CLSAG da versão 16 conser
 \end{description}
 
 Estas propriedades são afirmações criptográficas no modelo do oráculo
-aleatório, sob as hipóteses indicadas adiante. Uma imagem repetida não prova,
-sozinha, propriedade civil, intenção nem validade de um gasto: é preciso
-validar a assinatura e todas as restantes regras do protocolo.
+aleatório, sob as hipóteses indicadas adiante. Uma imagem repetida liga duas
+assinaturas depois de verificada a validade de ambas. Para admitir um gasto,
+o nó confere ainda as restantes regras do protocolo.
 
 \subsection*{Hash para ponto e imagem de chave}
 \index{imagem de chave@imagem de chave}
@@ -516,6 +516,9 @@ Aceita apenas se
 \widehat c_{n+1}=c_1.
 \]
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/cryptonote_core.cpp}{cryptonote_core.cpp}%
+  \codigoMargem{check_tx_inputs_keyimages_domain()}}%
 As condições \([l]I=\mathcal O\) e \(I\ne\mathcal O\), impostas na
 validação, fixam a ordem de \(I\) em \(l\). A sua necessidade ficará
 visível depois de verificarmos o fecho da assinatura.
@@ -1096,6 +1099,9 @@ no argumento dos hashes que determinaram esses pesos.
 \index{d clsag@\(D\), imagem auxiliar CLSAG}
 
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{CLSAG_Gen()}\par \codigoMargem{verRctCLSAGSimple()}}%
 Na especialização de CLSAG em Monero há duas linhas. A primeira contém as
 chaves públicas de uso único \(P_i\). A segunda contém diferenças entre
 o compromisso candidato
@@ -1211,10 +1217,10 @@ as distribuições e as consultas permitidas; a extracção do escalar
 agregado é a relação algébrica que as acompanha.
 
 A unicidade útil de \(I\) exige ainda uma função hash para ponto resistente a
-colisões, bases no subgrupo correcto e rejeição de identidade e torção. Uma
-imagem repetida só estabelece ligação entre assinaturas válidas; não prova,
-isoladamente, que uma saída pertencia a alguém nem que todas as regras de
-valor de uma transacção foram cumpridas.
+colisões, bases no subgrupo correcto e rejeição de identidade e torção.
+Se a imagem de uma assinatura válida já consta do registo de gastos,
+o nó rejeita a segunda despesa. A conservação dos montantes tem a sua
+própria equação, que veremos no capítulo~\ref{chapter:transactions}.
 
 Reutilizar \(\alpha\) em dois desafios, com os pesos fixos, revela a
 testemunha agregada

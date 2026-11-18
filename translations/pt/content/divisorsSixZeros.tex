@@ -159,8 +159,14 @@ ponto de cada fibra. A ordem das ordenadas é a dos representantes
 
 \begin{center}
 \begin{tikzpicture}[x=.48cm,y=.195cm,font=\small]
+ \foreach \y in {4,8,12,16} {
+   \draw[black!18] (1.8,\y)--(14.8,\y);
+ }
  \draw[->] (1.8,0)--(15.4,0) node[right] {\(x\)};
  \draw[->] (1.8,0)--(1.8,18.5) node[above] {\(y\)};
+ \foreach \y in {0,4,8,12,16} {
+   \draw (1.8,\y)--(1.6,\y) node[left,inner sep=1pt] {\(\y\)};
+ }
  \foreach \x/\ya/\yb in {3/1/16,6/3/14,10/11/6,13/7/10} {
    \draw[gray!60,densely dotted] (\x,0)--(\x,16.7);
    \draw (\x,0)--(\x,-.5) node[below] {\(\x\)};

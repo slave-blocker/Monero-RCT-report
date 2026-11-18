@@ -65,6 +65,11 @@ secção~\ref{subsec:pedersen-fixed-generator}. Essa receita permite a todos
 reconstituir o mesmo ponto; a dificuldade de recuperar a relação entre os
 dois geradores é a hipótese que sustenta a vinculação.
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctTypes.cpp}{rctTypes.cpp}%
+  \codigoMargem{d2h()}%
+  \fonteMargem{src/ringct/rctOps.cpp}{rctOps.cpp}%
+  \codigoMargem{genC()}\par \codigoMargem{addKeys2()}}%
 Para uma máscara \(x\in\mathbb Z_l\) e um montante escalar
 \(b\in\mathbb Z_l\), definimos
 \begin{equation}
@@ -114,6 +119,11 @@ preciso também ligar ou cancelar as máscaras de maneira verificável.
 \index{h@\(H\), gerador de montantes}
 \index{gerador@gerador!de montantes@de montantes}
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctTypes.h}{rctTypes.h}%
+  \codigoMargem{H}%
+  \fonteMargem{tests/unit_tests/ringct.cpp}{ringct.cpp}%
+  \codigoMargem{HPow2}}%
 O ponto fixo \(H\) obtém-se a partir da codificação convencional de \(G\).
 Se \(\operatorname{dec}\) designar a descompressão de Edwards da
 secção~\ref{point_compression_section}, a receita é
@@ -189,9 +199,13 @@ e publica o compromisso normal
  C_t^b=C(y_t,b_t)=y_tG+b_tH.
  \label{eq:output-commitment}
 \end{equation}
-Aqui \(y_t\) é um escalar, não um ponto. A redução do hash produz a sua
-codificação módulo~\(l\); a construção não rejeita explicitamente a máscara
-nula, cuja ocorrência tem probabilidade desprezável no modelo do hash.
+O escalar \(y_t\) multiplica o ponto \(G\). \notaFonte{%
+  \fonteMargem{src/device/device_default.cpp}{device_default.cpp}%
+  \codigoMargem{generate_output_ephemeral_keys()}%
+  \fonteMargem{src/ringct/rctOps.cpp}{rctOps.cpp}%
+  \codigoMargem{genCommitmentMask()}\par \codigoMargem{ecdhEncode()}}%
+A redução do hash módulo~\(l\) determina o escalar. O valor zero também
+é admitido e ocorre com probabilidade desprezável no modelo do hash.
 
 O montante propriamente dito cabe em oito bytes. Seja
 \[
@@ -213,6 +227,11 @@ compacta sob o nome histórico \texttt{RCTTypeBulletproof2}
 \cite{monero-source-v16}.
 
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{decodeRct()}%
+  \fonteMargem{src/ringct/rctTypes.h}{rctTypes.h}%
+  \codigoMargem{serialize_rctsig_base()}}%
 Bob calcula o mesmo \(h_t\), recupera
 \[
  \operatorname{LE8}(b_t)=e_t\mathbin\oplus q_t
@@ -268,6 +287,9 @@ o membro, conhecimento da chave de gasto e desta diferença de máscaras. Um
 pseudo-compromisso não é, só por ser publicado, uma prova de propriedade ou
 de igualdade de montantes.
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{genRctSimple()}\par \codigoMargem{verRctSemanticsSimple()}}%
 Os compromissos das novas saídas são os da
 Equação~\eqref{eq:output-commitment}. Para os primeiros \(m-1\)
 pseudo-compromissos, a implementação escolhe máscaras independentes e
@@ -335,6 +357,11 @@ com as assinaturas das entradas.
 \index{borromean, assinatura@Borromean, assinatura}
 \index{assinatura em anel@assinatura em anel!borromean@Borromean}
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/blockchain.cpp}{blockchain.cpp}%
+  \codigoMargem{check_tx_outputs()}%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{proveRange()}\par \codigoMargem{verRange()}}%
 As primeiras transacções RingCT provaram a
 Equação~\eqref{eq:range-statement} com assinaturas em anel Borromean
 \cite{Signatures2015BorromeanRS,MRL-0005-ringct}. A construção permite ver o
@@ -432,6 +459,9 @@ chave e as duas respostas serão calculadas depois do desafio comum.
 
 \subsection{O desafio que liga os 64 anéis}
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{genBorromean()}\par \codigoMargem{verifyBorromean()}}%
 Uma vez preparados todos os pontos finais, Alice calcula
 \begin{equation}
  \lambda=\mathcal H_n(\psi_0\mathbin\|\psi_1\mathbin\|\cdots
@@ -733,21 +763,24 @@ três regras iniciais de uma forma altamente elaborada. Mas já há movimento: o
 os vectores do lado direito da Equação~\eqref{eq:bp-t0-relation}, senão o
 verificador fica a saber os bits de \(v\).
 
+\newcommand{\bpmarca}[1]{\ensuremath{(\ast^{#1})}}
+\newcommand{\bpconta}[1]{\hypertarget{bp.conta.#1}{\hyperlink{bp.esquema.#1}{\bpmarca{#1}}}}
+\newcommand{\bpesquema}[1]{\hypertarget{bp.esquema.#1}{\hyperlink{bp.conta.#1}{\bpmarca{#1}}}}
 Há portanto que ofuscar \(\underline a_L\) e \(\underline a_R\). Por agora,
 \(x\) é a indeterminada formal do polinómio; só depois de \(T_1,T_2\) entrarem
 no traslado se tornará no desafio concreto:
 
-\[
-(\underline{a}_L+x\underline{\dot{s}}_L)-z\underline1
-\quad *^5
-\]
-\[
-\underline{y}^{\,n}\circ
+\begin{equation*}
+\begin{aligned}
+&(\underline{a}_L+x\underline{\dot{s}}_L)-z\underline1
+ &&\bpconta{5}\\
+&\underline{y}^{\,n}\circ
 (\underline{a}_R+x\underline{\dot{s}}_R+z\underline1)
 +z^2\underline{2}^{\,n}
-\quad *^6 .
-\]
-
+ &&\bpconta{6}
+\end{aligned}
+\end{equation*}
+Os asteriscos numerados ligam cada conta ao lugar onde reaparece no diagrama.
 
 Note-se que se alcançou agora um polinómio diferente. Em geral,
 
@@ -760,8 +793,10 @@ z^2v+\delta(y,z)\not\equiv
 \end{align*}
 \medskip
 Define-se então o que já se tinha conseguido como
-$\underline{l}_0 = \underline{a}_L - \underline{1}z\\
-\underline{r}_0 = \underline{y}^n \circ (\underline{a}_R + \underline{1}z) + z^2 \underline{2}^n$
+\begin{align*}
+\underline{l}_0 &= \underline{a}_L - \underline{1}z,\\
+\underline{r}_0 &= \underline{y}^n \circ (\underline{a}_R + \underline{1}z) + z^2 \underline{2}^n,
+\end{align*}
 
 ou seja:
 \begin{align*}
@@ -769,16 +804,21 @@ z^2 v + \delta(y,z) = \langle \underline{l}_0, \underline{r}_0 \rangle = t_0
 \end{align*}
 
 e os factores ofuscantes como
-$\underline{l}_1 = \underline{\dot{s}}_L\\
-\underline{r}_1 = \underline{y}^n \circ \underline{\dot{s}}_R$
+\begin{align*}
+\underline{l}_1 &= \underline{\dot{s}}_L,\\
+\underline{r}_1 &= \underline{y}^n \circ \underline{\dot{s}}_R.
+\end{align*}
 
-Forçam-se então novas igualdades: \( *^2,*^3 \)
-$\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x\\
-\underline{r}(x) = \underline{r}_0 + \underline{r}_1 x$
+Forçam-se então novas igualdades:
+\begin{align*}
+\underline{l}(x) &= \underline{l}_0 + \underline{l}_1 x &&\bpconta{2}\\
+\underline{r}(x) &= \underline{r}_0 + \underline{r}_1 x &&\bpconta{3}
+\end{align*}
 
-Finalmente: \( *^4 \)
+Finalmente:
 \begin{align*}
 t(x) = \langle \underline{l}(x), \underline{r}(x)\rangle = t_0 + t_1 x + t_2 x^2
+\qquad\bpconta{4}
 \end{align*}
 
 Obtém-se assim um polinómio cujo termo constante
@@ -786,49 +826,71 @@ Obtém-se assim um polinómio cujo termo constante
 compromissos e respostas que formam um circuito aritmético: em conjunto, eles
 obrigam \(v\) a satisfazer o domínio requerido sem mostrar os seus bits.
 
-Calculam-se também os coeficientes de \(t(x)\): \( *^1 \)
-\[t(x) = \langle (\underline{l}_0 + \underline{l}_1 x), (\underline{r}_0 + \underline{r}_1 x) \rangle = \langle \underline{l}_0, \underline{r}_0 \rangle + \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle + \langle \underline{l}_1 x, \underline{r}_1 x \rangle\]
-\medskip
-$t_0 = \langle \underline{l}_0, \underline{r}_0 \rangle\\
-t_1 x = \langle \underline{l}_0, \underline{r}_1 x \rangle + \langle \underline{l}_1 x, \underline{r}_0 \rangle = \langle \underline{l}_0, \underline{r}_1 \rangle x + \langle \underline{l}_1, \underline{r}_0 \rangle x = (\langle \underline{l}_0, \underline{r}_1 \rangle + \langle \underline{l}_1, \underline{r}_0 \rangle ) x\\
-t_2 x^2 = \langle \underline{l}_1, \underline{r}_1 \rangle x^2$
+Calculam-se também os coeficientes de \(t(x)\):
+\begin{align*}
+t(x)&=\langle (\underline{l}_0+\underline{l}_1 x),
+                 (\underline{r}_0+\underline{r}_1 x)\rangle\\
+    &=\langle\underline{l}_0,\underline{r}_0\rangle
+     +\langle\underline{l}_0,\underline{r}_1 x\rangle
+     +\langle\underline{l}_1 x,\underline{r}_0\rangle
+     +\langle\underline{l}_1 x,\underline{r}_1 x\rangle.
+\end{align*}
+\[
+\left.
+\begin{aligned}
+t_0 &=\langle\underline{l}_0,\underline{r}_0\rangle,\\
+t_1x&=\langle\underline{l}_0,\underline{r}_1x\rangle
+      +\langle\underline{l}_1x,\underline{r}_0\rangle\\
+    &=\langle\underline{l}_0,\underline{r}_1\rangle x
+      +\langle\underline{l}_1,\underline{r}_0\rangle x\\
+    &=(\langle\underline{l}_0,\underline{r}_1\rangle
+      +\langle\underline{l}_1,\underline{r}_0\rangle)x,\\
+t_2x^2&=\langle\underline{l}_1,\underline{r}_1\rangle x^2.
+\end{aligned}
+\right\}\quad\bpconta{1}
+\]
 
 \begingroup
-\raggedright
-$G$, $H$, $\underline{G}$, $\underline{H}$ \hspace*{\fill} \ce{^{0}_{\ }\bot[init]} \newline
-$V = \gamma G + v H$ \hspace*{\fill} \ce{^{1}_{\ }\bot_U(V)} \newline
-$\underline{a}_L \leftarrow \operatorname{bits}(v)$ \newline
-$\underline{a}_R = \underline{a}_L - \underline{1}$ \newline
-$\dot{\alpha} \leftarrow R()$ \newline
-$A = \langle\underline{a}_L,\underline{G}\rangle + \langle\underline{a}_R,\underline{H}\rangle + \dot{\alpha} G \hspace*{\fill}\ce{^{2}_{\ }\bot_U(A)}$ \newline
-$\dot{\rho} \leftarrow R()$ \newline
-$\underline{\dot{s}}_L \leftarrow R()$ \newline
-$\underline{\dot{s}}_R \leftarrow R()$ \newline
-$S = \langle\underline{\dot{s}}_L,\underline{G}\rangle + \langle\underline{\dot{s}}_R,\underline{H}\rangle + \dot{\rho} G$\hspace*{\fill} \ce{^{3}_{\ }\bot_U(S)} \newline
-$y\leftarrow \ce{^{4}_{\ }\bot_C()}$, $y^{-1}$ \newline
-$z\leftarrow \ce{^{5}_{\ }\bot_C()}$
-\begin{align*}
-(t_0, t_1, t_2)*^1
-\end{align*}
-$\dot{\tau_1} \leftarrow R()$ \newline
-$\dot{\tau_2} \leftarrow R()$ \newline
-$T_1 = t_1 H + \dot{\tau_1} G $ \hspace*{\fill} $\ce{^{6}_{\ }\bot_U(T_1)}$ \newline
-$T_2 = t_2 H + \dot{\tau_2} G $ \hspace*{\fill} $\ce{^{7}_{\ }\bot_U(T_2)}$ \newline
-$x\leftarrow \ce{^{8}_{\ }\bot_C()}$ \newline
-$\tau_x = \dot{\tau_1}x + \dot{\tau_2}x^2 + \gamma z^2$ \hspace*{\fill}$\ce{^{9}_{\ }\bot_U(\tau_x)}$ \newline
-$\mu = x\dot{\rho} + \dot{\alpha}$ \hspace*{\fill}$\ce{^{10}_{\ }\bot_U(\mu)}$ \newline
-\begin{align*}
-(\underline{l}(x) = \underline{l}_0 + \underline{l}_1 x)*^2\\
-(\underline{r}(x) = \underline{r}_0 + \underline{r}_1 x)*^3
-\end{align*}
-\medskip
-\begin{align*}
-t(x) = \langle \underline{l}(x), \underline{r}(x) \rangle = (t_0 + t_1 x + t_2 x^2)*^4
-\end{align*}\hspace*{\fill} $\ce{^{11}_{\ }\bot_U(t(x))}$ \newline
-$x_{ip}\leftarrow \ce{^{12}_{\ }\bot_C()}$\newline
-$U = x_{ip} H$\newline
-$IP \leftarrow \{\underline{G}, \underline{H'}, U, \underline{l}(x), \underline{r}(x)\}$
-\par
+\setlength{\LTpre}{.6\baselineskip}
+\setlength{\LTpost}{.6\baselineskip}
+\begin{longtable}{@{}>{$}l<{$}@{\quad}>{$}c<{$}@{\qquad}>{$}l<{$}@{}}
+\toprule
+\multicolumn{2}{@{}l}{\textit{Cálculo do provador}}&
+\multicolumn{1}{l@{}}{\textit{Traslado}}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+G,H,\underline G,\underline H && \ce{^{0}_{\ }\bot[init]}\\*
+V=\gamma G+vH && \ce{^{1}_{\ }\bot_U(V)}\\
+\underline a_L\leftarrow\operatorname{bits}(v)\\*
+\underline a_R=\underline a_L-\underline1\\*
+\dot\alpha\leftarrow R()\\*
+A=\langle\underline a_L,\underline G\rangle
+ +\langle\underline a_R,\underline H\rangle+\dot\alpha G && \ce{^{2}_{\ }\bot_U(A)}\\
+\dot\rho\leftarrow R()\\*
+\underline{\dot s}_L\leftarrow R()\\*
+\underline{\dot s}_R\leftarrow R()\\*
+S=\langle\underline{\dot s}_L,\underline G\rangle
+ +\langle\underline{\dot s}_R,\underline H\rangle+\dot\rho G && \ce{^{3}_{\ }\bot_U(S)}\\
+y\leftarrow\ce{^{4}_{\ }\bot_C()},\quad y^{-1}\\*
+z\leftarrow\ce{^{5}_{\ }\bot_C()}\\
+(t_0,t_1,t_2)& \bpesquema{1}\\
+\dot{\tau}_1\leftarrow R()\\*
+\dot{\tau}_2\leftarrow R()\\*
+T_1=t_1H+\dot{\tau}_1G &&\ce{^{6}_{\ }\bot_U(T_1)}\\*
+T_2=t_2H+\dot{\tau}_2G &&\ce{^{7}_{\ }\bot_U(T_2)}\\
+x\leftarrow\ce{^{8}_{\ }\bot_C()}\\*
+\tau_x=\dot{\tau}_1x+\dot{\tau}_2x^2+\gamma z^2 && \ce{^{9}_{\ }\bot_U(\tau_x)}\\*
+\mu=x\dot\rho+\dot\alpha &&\ce{^{10}_{\ }\bot_U(\mu)}\\
+\underline l(x)=\underline l_0+\underline l_1x & \bpesquema{2}\\*
+\underline r(x)=\underline r_0+\underline r_1x & \bpesquema{3}\\*
+t(x)=\langle\underline l(x),\underline r(x)\rangle=t_0+t_1x+t_2x^2
+ & \bpesquema{4}&\ce{^{11}_{\ }\bot_U(t(x))}\\
+x_{ip}\leftarrow\ce{^{12}_{\ }\bot_C()}\\*
+U=x_{ip}H\\*
+IP\leftarrow\{\underline G,\underline{H'},U,\underline l(x),\underline r(x)\}\\
+\end{longtable}
 \endgroup
 
 O símbolo \(\bot\) é o traslado: a memória sequencial da conversa. O operador
@@ -869,16 +931,19 @@ tem 64 elementos. O argumento de produto interno reduzirá essa dimensão a 1 em
 Antes das dobras, o provador constrói os dois circuitos aritméticos seguintes.
 O primeiro amarra o valor à Equação~\eqref{eq:bp-t0-relation}; o segundo amarra
 os vectores sem os revelar:
-\newcommand{\verteq}{\rotatebox{90}{$\,$}}
-\newcommand{\verteqq}{\rotatebox{90}{$\,=$}}
-\newcommand{\equalto}[2]{\underset{\scriptstyle\overset{\mkern4mu\verteq}{#2}}{#1}}
-\newcommand{\equaltoo}[2]{\underset{\scriptstyle\overset{\mkern4mu\verteqq}{#2}}{#1}}
-
-$\equalto{t(x) H}{+} = \equalto{z^2 v H}{+} + \equalto{\delta(y,z) H}{+} + \equalto{t_1 x H}{+} + \equalto{t_2 x^2 H}{+}$
-
-$\equaltoo{\enspace\tau_x G}{\ }  \enspace\enspace= \equaltoo{\gamma z^2 G}{\ }\enspace + \equaltoo{0G}{\ }\quad +\enspace \equaltoo{\dot{\tau}_1 x G}{\ } + \equaltoo{\dot{\tau}_2 x^2 G}{\ }$
-
-$\quad\quad\quad = \underbrace{z^2 V + \delta(y, z) H}_{\text{público}} \enspace+ x T_1 +\enspace x^2 T_2$
+\[
+\begingroup
+\setlength{\arraycolsep}{3pt}
+\begin{array}{@{}c c c c c c c c c@{}}
+ t(x)H &=& z^2vH &+& \delta(y,z)H &+& t_1xH &+& t_2x^2H\\
+ +     && +      && +             && +       && +\\
+ \tau_xG &=& \gamma z^2 G &+& 0G &+& \dot{\tau}_1xG &+& \dot{\tau}_2x^2G\\
+ \midrule
+ t(x)H+\tau_xG &=& \multicolumn{3}{c}{\underbrace{z^2V+\delta(y,z)H}_{\text{público}}}
+ &+& xT_1 &+& x^2T_2
+\end{array}
+\endgroup
+\]
 
 \medskip
 As mentes ávidas dizem logo: «Ah e tal, mas \(T_1\) e \(T_2\) podiam ser
@@ -892,14 +957,36 @@ do verificador; não dão ao provador liberdade para mudar o polinómio depois d
 ver \(x\). Aqui «público» significa a estrutura formal: \(y,z,x\) são
 recompostos pelo verificador a partir do mesmo traslado.
 
-\medskip
-$\equalto{\langle \underline{l}(x),\underline{G}\rangle}{+} = \enspace\equalto{\langle\underline{a}_L,\underline{G}\rangle}{+} + \enspace\enspace\equalto{x\langle\underline{\dot{s}}_L,\underline{G}\rangle}{+} + \quad\equalto{\langle -z\underline{1},\underline{G}\rangle}{+}$  $*^5$
-
-$\equalto{\langle \underline{r}(x),\underline{H'}\rangle}{+}  = \equalto{\langle\underline{a}_R,\underline{H}\rangle}{+} + \equalto{x\langle\underline{\dot{s}}_R,\underline{H}\rangle}{+} + \equaltoo{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle}{\ }$  $*^6$
-
-$\equaltoo{\quad\mu G}{\ } \quad\quad= \enspace\enspace \equaltoo{\dot{\alpha} G}{\ } \quad +\quad \equaltoo{x \dot{\rho} G}{\ }$
-
-$\quad\quad\quad\quad\enspace=\enspace\enspace\enspace A \quad\quad+\quad x S \quad+\quad \underbrace{\langle z\underline{y}^n + z^2\underline{2}^n,\underline{H'}\rangle + \langle -z\underline{1},\underline{G}\rangle}_{\text{público}}$
+{\small
+\[
+\begingroup
+\setlength{\arraycolsep}{2pt}
+\begin{array}{@{}c c c c c c c@{\quad}c@{}}
+ \langle\underline l(x),\underline G\rangle &=&
+ \langle\underline a_L,\underline G\rangle &+&
+ x\langle\underline{\dot s}_L,\underline G\rangle &+&
+ \langle-z\underline1,\underline G\rangle &\bpesquema{5}\\
+ + && + && + && +\\
+ \langle\underline r(x),\underline{H'}\rangle &=&
+ \langle\underline a_R,\underline H\rangle &+&
+ x\langle\underline{\dot s}_R,\underline H\rangle &+&
+ \langle z\underline y^n+z^2\underline2^n,\underline{H'}\rangle &\bpesquema{6}\\
+ + && + && +\\
+ \mu G &=& \dot\alpha G &+& x\dot\rho G\\
+ \midrule
+ \begin{gathered}
+ \langle\underline l(x),\underline G\rangle+
+ \langle\underline r(x),\underline{H'}\rangle\\{}+\mu G
+ \end{gathered}
+ &=& A &+& xS &+&
+ \underbrace{\begin{gathered}
+ \langle z\underline y^n+z^2\underline2^n,\underline{H'}\rangle\\
+ {}+\langle-z\underline1,\underline G\rangle
+ \end{gathered}}_{\text{público}}
+\end{array}
+\endgroup
+\]
+}
 
 \medskip
 
@@ -982,7 +1069,7 @@ acumulada das dobras é
               \left(u_j^2L_j+u_j^{-2}R_j\right).
  \label{eq:bp-ip-recursion}
 \end{equation}
-O verificador obtém \(P_k\) dos dados públicos pela
+O verificador\notaLateral{pow!} obtém \(P_k\) dos dados públicos pela
 Equação~\eqref{eq:bp-public-ip-point}; os pares \(L_j,R_j\) e os
 escalares finais permitem conferir esta última igualdade. A derivação
 das dobras, que veremos a seguir, explica como cada par transporta os
@@ -1017,19 +1104,15 @@ L_k={}&
  \langle\underline l_k^{\rightarrow}(x),\underline G_k^{\leftarrow}\rangle+
  \langle\underline r_k^{\leftarrow}(x),\underline{H'}_k^{\rightarrow}\rangle+
  \langle\underline l_k^{\rightarrow}(x),
-        \underline r_k^{\leftarrow}(x)\rangle U,\\
+        \underline r_k^{\leftarrow}(x)\rangle U,
+ &\quad&\ce{^{13}_{\ }\bot_U(L_k)}\\
 R_k={}&
  \langle\underline l_k^{\leftarrow}(x),\underline G_k^{\rightarrow}\rangle+
  \langle\underline r_k^{\rightarrow}(x),\underline{H'}_k^{\leftarrow}\rangle+
  \langle\underline l_k^{\leftarrow}(x),
         \underline r_k^{\rightarrow}(x)\rangle U.
+ &\quad&\ce{^{14}_{\ }\bot_U(R_k)}
 \end{align*}
-\begingroup
-\raggedright
-\hspace*{\fill}\(\ce{^{13}_{\ }\bot_U(L_k)}\)\newline
-\hspace*{\fill}\(\ce{^{14}_{\ }\bot_U(R_k)}\)
-\par
-\endgroup
 \[
  u_k\leftarrow\ce{^{15}_{\ }\bot_C()},\qquad u_k\in\mathbb Z_l^*.
 \]
@@ -1107,23 +1190,23 @@ P_{k-1}=\\[-1mm]
                     \underline r_k^{\leftarrow}(x)\rangle U\\
  +{}&u_k^{-2}\langle\underline l_k^{\leftarrow}(x),
                        \underline r_k^{\rightarrow}(x)\rangle U
-\end{aligned}}_{u_k^2L_k+u_k^{-2}R_k}.
+\end{aligned}}_{u_k^2L_k+u_k^{-2}R_k}
 \end{gathered}
 \]
 
 
-E como tal possibilita-se a seguinte recursão:
+E como tal\notaLateral{clik!} possibilita-se a seguinte recursão:
 \[
-\begin{aligned}
-P_k&=P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\
-&\mathrel{\phantom{=}}\downarrow\\[-1mm]
-P_{k-1}&=P_{k-2}
+\begin{array}{r@{\;}c@{\;}l}
+P_k&=&P_{k-1}-\left(u_k^2L_k+u_k^{-2}R_k\right)\\
+&\downarrow\\
+P_{k-1}&=&P_{k-2}
  -\left(u_{k-1}^2L_{k-1}+u_{k-1}^{-2}R_{k-1}\right)\\
-&\mathrel{\phantom{=}}\downarrow\\[-1mm]
-&\hspace{12mm}\vdots\\[-1mm]
-&\mathrel{\phantom{=}}\downarrow\\[-1mm]
-P_1&=P_0-\left(u_1^2L_1+u_1^{-2}R_1\right).
-\end{aligned}
+&\downarrow\\
+&\vdots\\
+&\downarrow\\
+P_1&=&P_0-\left(u_1^2L_1+u_1^{-2}R_1\right).
+\end{array}
 \]
 Logo,
 \begin{align}
@@ -1160,9 +1243,9 @@ G_{2,1}=u_3^{-1}G_{3,1}+u_3G_{3,5}\\
 G_{2,2}=u_3^{-1}G_{3,2}+u_3G_{3,6}\\
 G_{2,3}=u_3^{-1}G_{3,3}+u_3G_{3,7}
 \end{bmatrix}
-\\[-1mm]
-&&\overset{u_2}{\Big\downarrow}
-\\[-1mm]
+\\[.4ex]
+&&\Big\downarrow\;u_2
+\\[.8ex]
 \begin{bmatrix}
 \ce{^{0}_{\ }\underline G}
  =u_1^{-1}G_{1,0}+u_1G_{1,1}
@@ -1172,7 +1255,7 @@ G_{2,3}=u_3^{-1}G_{3,3}+u_3G_{3,7}
 G_{1,0}=u_2^{-1}G_{2,0}+u_2G_{2,2}\\
 G_{1,1}=u_2^{-1}G_{2,1}+u_2G_{2,3}
 \end{bmatrix}
-\end{array}.
+\end{array}
 \]
 Cada seta corta o vector ao meio e volta a cosê-lo com um desafio e o seu
 inverso. Nenhuma coordenada desaparece; muda apenas o peso com que chega ao
@@ -1341,12 +1424,12 @@ mudanças escrevem a mesma condição nos geradores originais:
 \label{eq:bp-final}
 \end{equation}
 
-A aceitação exige que a igualdade do compromisso ao valor e a igualdade
+A aceitação\notaLateral{bang!} exige que a igualdade do compromisso ao valor e a igualdade
 final do produto interno se verifiquem, com dimensões coerentes,
 codificações canónicas e desafios invertíveis onde aparecem inversas.
 Sob as hipóteses de logaritmo discreto e do modelo de oráculo aleatório
 para Fiat--Shamir, a composição estabelece o intervalo
-\(0\leq v\leq2^{64}-1\) com erro negligenciável
+\(0\leq v\leq2^{64}-1\)\notaLateral{boom!} com erro negligenciável
 \cite{Bulletproofs_paper}. Os bits, a máscara \(\gamma\) e os vectores
 intermédios permanecem secretos; o verificador usa os compromissos,
 os desafios recompostos e os dois escalares finais.
@@ -1357,6 +1440,10 @@ os desafios recompostos e os dois escalares finais.
 \index{bulletproof+@Bulletproof+|see{Bulletproofs+}}
 \index{produto interno@produto interno!ponderado@ponderado}
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/blockchain.cpp}{blockchain.cpp}%
+  \codigoMargem{check_tx_outputs()}%
+  \fonteMargem{src/hardforks/hardforks.cpp}{hardforks.cpp}}%
 Em Bulletproofs+ o compromisso inicial continua a conter os bits de
 todas as saídas. A diferença algébrica está no produto de que se prova
 conhecimento. Com os índices a começar em zero, cada parcela
@@ -1426,6 +1513,11 @@ por 8 para recuperar os elementos das equações. Bulletproofs+ usa a mesma
 convenção para \(A,A_1,B,\boldsymbol L,\boldsymbol R\). Esta transformação
 fixa a correspondência entre os bytes da prova e os pontos matemáticos.
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctTypes.h}{rctTypes.h}%
+  \codigoMargem{Bulletproof}\par \codigoMargem{BulletproofPlus}%
+  \fonteMargem{src/cryptonote_basic/cryptonote_format_utils.cpp}{cryptonote_format_utils.cpp}%
+  \codigoMargem{get_pruned_transaction_weight()}}%
 Para o mesmo \(M\), a parte formada por objectos de 32 bytes ocupa
 \begin{align}
  \lvert\Pi_{\rm BP}\rvert
@@ -1483,6 +1575,11 @@ dois não inferior a \(p\):
 Os montantes fictícios usados para completar \(M\) são zeros implícitos; não
 criam saídas nem compromissos serializados.
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/tx_verification_utils.cpp}{tx_verification_utils.cpp}%
+  \codigoMargem{is_canonical_bulletproof_plus_layout()}%
+  \fonteMargem{src/ringct/rctTypes.cpp}{rctTypes.cpp}%
+  \codigoMargem{n_bulletproof_plus_amounts()}}%
 Durante a análise da transacção, o tamanho de
 \(\boldsymbol L,\boldsymbol R\) tem de corresponder precisamente a esse
 \(M\), o número reconstruído de \(V_j\) tem de ser \(p\), e o limite é 16.
@@ -1492,6 +1589,11 @@ duas saídas.
 
 \subsubsection*{As duas representações do compromisso}
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{proveRangeBulletproofPlus()}\par \codigoMargem{genRctSimple()}%
+  \fonteMargem{src/cryptonote_basic/cryptonote_format_utils.cpp}{cryptonote_format_utils.cpp}%
+  \codigoMargem{expand_transaction_1()}}%
 A estrutura de transacção guarda o compromisso normal \(C_j\). O provador,
 porém, constrói
 \begin{equation}
@@ -1524,6 +1626,11 @@ entre estes geradores. Na notação do artigo Bulletproofs+, os papéis dos
 geradores de valor e de máscara aparecem trocados: na notação presente, \(H\)
 leva o montante e \(G\) leva a máscara.
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_config.h}{cryptonote_config.h}%
+  \codigoMargem{HASH_KEY_BULLETPROOF_PLUS_*}%
+  \fonteMargem{src/ringct/bulletproofs_plus.cc}{bulletproofs_plus.cc}%
+  \codigoMargem{get_exponent()}\par \codigoMargem{transcript_update()}}%
 O traslado começa num ponto fixo derivado da cadeia
 \texttt{bulletproof\_plus\_transcript}. Escrevendo
 \(\mathcal H_n\) para Keccak--256 seguido de redução módulo \(l\), a ordem é:
@@ -1654,6 +1761,11 @@ que erros de provas diferentes se cancelem de propósito. Isto é
 \emph{verificação em lote} de várias provas; não é a agregação de vários
 montantes dentro de uma prova.
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{verRctSemanticsSimple()}%
+  \fonteMargem{src/cryptonote_core/tx_verification_utils.cpp}{tx_verification_utils.cpp}%
+  \codigoMargem{ver_mixed_rct_semantics()}}%
 Cada lote reúne provas da mesma família: Bulletproofs+ e Bulletproofs têm
 equações próprias. O conjunto de transacções de um bloco pode fornecer um
 lote; a validação isolada de uma transacção usa o mesmo procedimento com
@@ -1674,7 +1786,13 @@ atrás da álgebra:
 
  \item \(A,A_1,B,V_j,L_k,R_k\) têm de descodificar como pontos comprimidos
  canónicos sobre a curva. Uma codificação não canónica ou que não representa
- um ponto provoca rejeição da prova.
+ um ponto provoca rejeição da prova.\notaFonte{%
+   \fonteMargem{src/ringct/bulletproofs_plus.cc}{bulletproofs_plus.cc}%
+   \codigoMargem{bulletproof_plus_VERIFY()}%
+   \fonteMargem{src/ringct/rctOps.cpp}{rctOps.cpp}%
+   \codigoMargem{scalarmult8()}%
+   \fonteMargem{src/crypto/crypto-ops.c}{crypto-ops.c}%
+   \codigoMargem{ge_frombytes_vartime()}}%
 
  \item Os pontos fornecidos pela prova são multiplicados pelo cofactor 8 antes
  da multiplicação multiescalar. Não há, contudo, uma regra separada que rejeite

@@ -1,6 +1,9 @@
 \chapter{A construção de uma transacção RingCT}
 \label{chapter:transactions}
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/cryptonote_tx_utils.cpp}{cryptonote_tx_utils.cpp}%
+  \codigoMargem{construct_tx_with_tx_key()}}%
 Voltemos à saída de 11 unidades do capítulo~\ref{chapter:introduction}.
 Alice conhece a chave que a pode gastar e a abertura do compromisso
 que a acompanha. Quer que Bob receba 7, que lhe voltem 3 e que a taxa
@@ -102,6 +105,9 @@ anéis, as imagens de chave e o campo \texttt{extra} permanecem públicos.
 \subsection*{Formato histórico com Bulletproofs}
 \label{sec:RCTTypeBulletproof2}
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{proveRctMGSimple()}\par \codigoMargem{verRctMGSimple()}\par \codigoMargem{verRctSemanticsSimple()}}%
 O tipo `4', \texttt{RCTTypeBulletproof2}, combina Bulletproofs com MLSAG.
 O apêndice \ref{appendix:RCTTypeBulletproof2} conserva uma transacção real
 desse formato para a leitura dos bytes. O tipo `5', \texttt{RCTTypeCLSAG},
@@ -199,6 +205,10 @@ byte de
 A etiqueta deixa a carteira rejeitar quase todas as saídas alheias antes de
 fazer o trabalho mais caro; não é uma prova de propriedade.
 
+\notaFonte{%
+  \fonteMargem{src/device/device_default.cpp}{device_default.cpp}%
+  \fonteMargem{src/ringct/rctOps.cpp}{rctOps.cpp}%
+  \fonteMargem{src/ringct/rctTypes.h}{rctTypes.h}}%
 O montante cifrado contém apenas oito bytes:
 \begin{align*}
  \operatorname{LE8}(b_t)\mathbin\oplus
@@ -233,6 +243,11 @@ internamente até
 e o verificador exige precisamente o menor \(M\) que cobre as saídas; não se
 pode escolher uma prova maior só para mudar o aspecto dos bytes.
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \fonteMargem{src/ringct/rctTypes.cpp}{rctTypes.cpp}%
+  \fonteMargem{src/cryptonote_basic/cryptonote_format_utils.cpp}{cryptonote_format_utils.cpp}%
+  \fonteMargem{src/ringct/bulletproofs_plus.cc}{bulletproofs_plus.cc}}%
 O objecto serializado é
 \begin{align*}
  \Pi_{\mathrm{BPP+}}=
@@ -281,6 +296,9 @@ autorizações de todos eles.
 
 Na versão 16 todas as entradas RingCT têm exactamente quinze desvios, isto
 é, dezasseis membros, e todas têm o mesmo tamanho de anel. Isto é consenso.
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{gamma_picker::pick()}\par \codigoMargem{get_outs()}}%
 A escolha de \emph{quais} saídas ocupam os quinze lugares é comportamento da
 carteira. O programa de referência insere a saída real e amostra candidatos
 históricos com a sua \texttt{gamma\_picker}: parte de uma distribuição gamma
@@ -373,6 +391,8 @@ assinatura associados.
 \index{varint@varint}
 \index{inteiro de comprimento variavel@inteiro de comprimento variável|see{varint}}
 
+\notaFonte{%
+  \fonteMargem{src/common/varint.h}{varint.h}}%
 Cada deslocamento é escrito como um inteiro de comprimento variável,
 ou \emph{varint}. Para \(n>0\), escreva-se
 \[
@@ -497,6 +517,10 @@ passarem.
 
 \subsection{A mensagem que as CLSAG assinam}
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctSigs.cpp}{rctSigs.cpp}%
+  \codigoMargem{get_pre_mlsag_hash()}\par \codigoMargem{genRctSimple()}\par \codigoMargem{CLSAG_Gen()}%
+  \fonteMargem{src/device/device_default.cpp}{device_default.cpp}}%
 A mensagem comum das CLSAG reúne três resumos dos dados da transacção:
 \begin{align}
  \mathfrak m=\mathcal H(h_0\,\|\,h_1\,\|\,h_2),
@@ -534,12 +558,11 @@ taxa, \texttt{extra}, os montantes em código, os compromissos de saída, a
 prova de domínio e cada pseudo-compromisso à autorização do dono. Uma
 alteração deixa de fechar pelo menos um ciclo CLSAG.
 
-Cada camada verifica apenas a sua propriedade. Bulletproofs+ não prova
-propriedade, destinatário, ausência de gasto duplo nem validade completa da
-transacção. CLSAG não prova que os novos montantes estão no domínio. A equação
-de equilíbrio não autoriza uma entrada. A transacção só é válida quando estas
-respostas, a serialização e as regras exteriores de consenso passam em
-conjunto.
+Ao receber o pagamento, o nó verifica o intervalo de cada montante novo
+com Bulletproofs+, a autorização de cada entrada com a respectiva CLSAG
+e a conservação da soma com a equação de equilíbrio. Consulta ainda as
+imagens de chave para detectar um gasto repetido. A validade exige estes
+testes, a serialização correcta e as demais condições de consenso.
 
 
 \subsection{Verificação}
@@ -559,12 +582,16 @@ pouco enganadores:
     pseudo-compromisso.
 \end{enumerate}
 
+\notaFonte{%
+  \fonteMargem{tests/core_tests/bulletproof_plus.cpp}{bulletproof_plus.cpp}%
+  \fonteMargem{tests/core_tests/rct2.cpp}{rct2.cpp}%
+  \fonteMargem{tests/unit_tests/bulletproofs_plus.cpp}{bulletproofs_plus.cpp}%
+  \fonteMargem{tests/unit_tests/serialization.cpp}{serialization.cpp}}%
 Em redor destas duas partes, o núcleo verifica ainda a versão e o tipo, os
 alvos das saídas, o número e a igualdade dos tamanhos dos anéis, os
 \emph{offsets}, a existência e maturidade das referências, as imagens de
-chave e o limite de peso. ``Semântica'' não quer dizer aqui ``tudo o que a
-transacção significa''; é o nome histórico da metade que pode ser verificada
-sem procurar os membros dos anéis.
+chave e o limite de peso. Das duas verificações, só a segunda exige a
+consulta das saídas históricas para reconstituir os anéis.
 
 Os escalares de resposta e desafio CLSAG têm de estar em forma canónica. Os
 pontos têm de descodificar, \(I_j\) não pode ser a identidade e tem de
@@ -576,6 +603,9 @@ e multiplicações pelo cofactor, com regras próprias em cada fronteira.
 
 \subsection{Evitar o gasto duplo}
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/blockchain.cpp}{blockchain.cpp}%
+  \codigoMargem{have_tx_keyimges_as_spent()}}%
 A imagem de chave \(I_j=p_j\mathcal H_p(P_{\pi_j,j})\) é determinística para
 a chave privada de utilização única, mas não revela qual dos dezasseis
 \(P_{i,j}\) lhe corresponde. O núcleo rejeita imagens repetidas dentro da
@@ -599,6 +629,10 @@ esta regra, aparecer pela primeira vez num anel de uma transacção incluída à
 altura \(h+10\). Não é apenas o comportamento por omissão da carteira: desde
 v12 o núcleo impõe-o ao conjunto inteiro de referências.
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/blockchain.cpp}{blockchain.cpp}%
+  \codigoMargem{is_tx_spendtime_unlocked()}%
+  \fonteMargem{src/cryptonote_core/tx_pool.cpp}{tx_pool.cpp}}%
 O prefixo contém ainda um único \texttt{unlock\_time} para todas as saídas
 da transacção. Valores inferiores a \(500\,000\,000\) são interpretados como
 altura; valores a partir daí, como tempo Unix. Na versão 16, o teste temporal
@@ -609,6 +643,9 @@ ordinária com outro valor; isto é política de \emph{mempool}. O consenso
 conserva a funcionalidade e verifica também o \texttt{unlock\_time} original
 de cada membro do anel.
 
+\notaFonte{%
+  \fonteMargem{src/cryptonote_core/cryptonote_tx_utils.cpp}{cryptonote_tx_utils.cpp}%
+  \codigoMargem{construct_miner_tx()}}%
 Uma transacção de mineiro criada à altura \(h\) tem obrigatoriamente
 \(\texttt{unlock\_time}=h+60\). A sua saída só pode portanto ser referida a
 partir dessa altura; o bloqueio de 60 domina a maturação ordinária de 10.
@@ -744,6 +781,13 @@ mais dois comprimentos de vector.
 
 \subsubsection*{Peso, não apenas bytes}
 
+\notaFonte{%
+  \fonteHistorica{src/cryptonote_core/tx_pool.cpp}{tx_pool.cpp}%
+  \codigoMargem{get_transaction_weight_limit()}%
+  \fonteMargem{src/cryptonote_basic/cryptonote_format_utils.cpp}{cryptonote_format_utils.cpp}%
+  \codigoMargem{get_transaction_weight()}\par \codigoMargem{get_transaction_weight_clawback()}%
+  \fonteMargem{src/cryptonote_core/tx_verification_utils.cpp}{tx_verification_utils.cpp}%
+  \codigoMargem{get_transaction_weight_limit()}}%
 Para este formato de transacção, o peso é o tamanho serializado mais uma
 penalização de ``recuperação'' da economia obtida pela agregação de
 Bulletproofs+. Se \(M\leq2\), a penalização é zero e peso e bytes coincidem.

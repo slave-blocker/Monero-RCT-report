@@ -1,8 +1,8 @@
 \begin{appendices}
 
+\fvset{fontsize=\footnotesize,numbersep=8pt}
 \renewcommand{\theFancyVerbLine}{%
-	\textcolor{red}{\small
-		\arabic{FancyVerbLine}}}
+  \textcolor{black!65}{\scriptsize\sffamily\arabic{FancyVerbLine}}}
 
 \chapter{Exemplo histórico: estrutura de transacção
 {\tt RCTTypeBulletproof2}}
@@ -66,7 +66,7 @@ Esta transacção exemplo tem duas entradas e duas saídas, e foi adicionada à
 lista de blocos com o carimbo temporal 2020-03-02 19:01:10 UTC.
 %Our sample transacção has 2 inputs and 2 outputs, and was added to the blockchain at timestamp 2020-03-02 19:01:10 UTC (as reported by its block's miner).
 
-\begin{Verbatim}[commandchars=\\\{\}, numbers=left]
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left, baselinestretch=1]
 print_tx 84799c2fc4c18188102041a74cef79486181df96478b717e8703512c7f7f3349
 Found in blockchain at height 2045821
 \{
@@ -238,7 +238,9 @@ nomes do JSON, mas diz expressamente a que época pertencem.
  \ref{sec:one-time-addresses}. O alvo histórico não tem a etiqueta de vista
  obrigatória nas saídas v16.
 
- \item {\tt extra} (linhas 36--39) contém bytes interpretados por etiquetas.
+ \item {\tt extra} \notaFonte{%
+  \fonteMargem{src/cryptonote_basic/tx_extra.h}{tx_extra.h}}%
+(linhas 36--39) contém bytes interpretados por etiquetas.
   A etiqueta
  `1' introduz a chave pública de transacção \(rG\), de 32 bytes e comprimento
  implícito. A etiqueta `2' introduz um \emph{nonce} de nove bytes: o primeiro,

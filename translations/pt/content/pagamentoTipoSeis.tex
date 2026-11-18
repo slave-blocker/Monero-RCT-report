@@ -57,24 +57,29 @@ A tabela segue esta mesma soma até ao último membro.
 
 \begin{center}\small
 \begin{tabular}{r l r r}
+\toprule
 Posição no anel & Bytes transmitidos & Distância & Índice consultado\\
-\hline
+\midrule
 0 & \texttt{96 a4 8a 1a} & 54\,694\,422 & 54\,694\,422\\
 1 & \texttt{b1 b9 bd 01} & 3\,103\,921 & 57\,798\,343\\
 2 & \texttt{d0 dd ae 02} & 4\,959\,952 & 62\,758\,295\\
 3 & \texttt{9f eb 1b} & 456\,095 & 63\,214\,390\\
+\addlinespace[2pt]
 4 & \texttt{91 de 31} & 814\,865 & 64\,029\,255\\
 5 & \texttt{9c b1 1d} & 481\,436 & 64\,510\,691\\
 6 & \texttt{dd d2 1b} & 452\,957 & 64\,963\,648\\
 7 & \texttt{e6 ea 28} & 669\,030 & 65\,632\,678\\
+\addlinespace[2pt]
 8 & \texttt{f2 b1 07} & 121\,074 & 65\,753\,752\\
 9 & \texttt{d6 61} & 12\,502 & 65\,766\,254\\
 10 & \texttt{a0 ab 05} & 87\,456 & 65\,853\,710\\
 11 & \texttt{ab d1 04} & 75\,947 & 65\,929\,657\\
+\addlinespace[2pt]
 12 & \texttt{e2 94 01} & 19\,042 & 65\,948\,699\\
 13 & \texttt{96 53} & 10\,646 & 65\,959\,345\\
 14 & \texttt{f7 09} & 1\,271 & 65\,960\,616\\
-15 & \texttt{f4 86 02} & 33\,652 & 65\,994\,268
+15 & \texttt{f4 86 02} & 33\,652 & 65\,994\,268\\
+\bottomrule
 \end{tabular}
 \end{center}
 
@@ -164,23 +169,20 @@ Podemos agora efectuar, com dados públicos, a conta que no pagamento
 de Alice se fazia com letras. Designemos por \(C_0,C_1\) os
 compromissos pela ordem das saídas, por \(f\) a taxa acabada de ler
 e por \(\widetilde C\) o pseudo-compromisso da única entrada. Na
-tabela seguinte cada codificação de ponto ocupa duas metades
-consecutivas de dezasseis bytes. As letras maiúsculas da coluna da
-esquerda designam pontos somados pela lei de Edwards.
+tabela seguinte, cada linha contém a codificação de um ponto. Lêem-se
+os 32 bytes da esquerda para a direita.
 \begin{center}\small
-\begin{tabular}{l l}
-Ponto & Codificação, por metades\\
-\hline
-\(C_0\) & \texttt{0149d07055f4f8fcdde1c12896f8c0ee}\\
- & \texttt{25c12fe389c3d4a4f40c6837163818c2}\\
-\(C_1\) & \texttt{49b58fa1fc3331a732e502e043e75a41}\\
- & \texttt{06472192afcb4a6b7544dcc70e914182}\\
-\(C_0+C_1\) & \texttt{becf4287ca79a5b50d2fada1fc930b84}\\
- & \texttt{f2e53be1fa9652b691d653fef4b86b3e}\\
-\(fH\) & \texttt{5d04bc3408fa1164d72c4514f4eba941}\\
- & \texttt{1ac127d4a849a570d4bc6aecfaf39a05}\\
-\(C_0+C_1+fH\) & \texttt{eb83fde4db28cfbb8ec0a785bcf6a725}\\
- & \texttt{3099a7c9424161ae04c12f4bc2146408}
+\begin{tabular}{@{}l@{\quad}l@{\enspace}l@{}}
+\toprule
+Ponto & Primeiros 16 bytes & Últimos 16 bytes\\
+\midrule
+\(C_0\) & \texttt{0149d07055f4f8fcdde1c12896f8c0ee} & \texttt{25c12fe389c3d4a4f40c6837163818c2}\\
+\(C_1\) & \texttt{49b58fa1fc3331a732e502e043e75a41} & \texttt{06472192afcb4a6b7544dcc70e914182}\\
+\(C_0+C_1\) & \texttt{becf4287ca79a5b50d2fada1fc930b84} & \texttt{f2e53be1fa9652b691d653fef4b86b3e}\\
+\(fH\) & \texttt{5d04bc3408fa1164d72c4514f4eba941} & \texttt{1ac127d4a849a570d4bc6aecfaf39a05}\\
+\midrule
+\(C_0+C_1+fH\) & \texttt{eb83fde4db28cfbb8ec0a785bcf6a725} & \texttt{3099a7c9424161ae04c12f4bc2146408}\\
+\bottomrule
 \end{tabular}
 \end{center}
 A última linha é, byte por byte, a sequência dos últimos 32 bytes
@@ -209,18 +211,22 @@ pontos \(L,R\) cabem sete elementos. Esta consequência matemática
 pode conferir-se directamente na serialização.
 \begin{center}\small
 \begin{tabular}{l r r r}
+\toprule
 Campo & Início & Fim exclusivo & Comprimento\\
-\hline
+\midrule
 Contagem das provas & 288 & 289 & 1\\
 \(A,A_1,B,r_1,s_1,d_1\) & 289 & 481 & 192\\
 Comprimento de \(L\) & 481 & 482 & 1\\
 Sete pontos de \(L\) & 482 & 706 & 224\\
 Comprimento de \(R\) & 706 & 707 & 1\\
 Sete pontos de \(R\) & 707 & 931 & 224\\
+\addlinespace
 Dezasseis respostas da CLSAG & 931 & 1443 & 512\\
 Desafio inicial \(c_1\) & 1443 & 1475 & 32\\
 Imagem auxiliar codificada \(\bar D\) & 1475 & 1507 & 32\\
-Pseudo-compromisso \(\widetilde C\) & 1507 & 1539 & 32
+\addlinespace
+Pseudo-compromisso \(\widetilde C\) & 1507 & 1539 & 32\\
+\bottomrule
 \end{tabular}
 \end{center}
 Os bytes 481 e 706 valem ambos sete. A entrada única e a lista dos
@@ -319,17 +325,15 @@ colados por esta ordem. O contador das provas e os comprimentos dos
 dois vectores já cumpriram a sua função durante a leitura. A ordem
 dos elementos permanece exactamente a da prova.
 \begin{center}\small
-\begin{tabular}{l l}
-Resumo & Duas metades do resultado\\
-\hline
-\(h_P\) & \texttt{02465363e123a1d1eeab20d6cec5619d}\\
- & \texttt{18b483a1cc7baa9489f4367a946b3bca}\\
-\(h_B\) & \texttt{2bccf4bd1fa784d7965944eabbd8b286}\\
- & \texttt{b6ebfbbaebb7eb10c82e7c486da66026}\\
-\(h_T\) & \texttt{824cebe4ce6fb25648d92821c101eea7}\\
- & \texttt{4d81dc825a0d187d883698b712028b3f}\\
-\(h_\pi\) & \texttt{7f7243a4c24f712626f8ed8189758c7d}\\
- & \texttt{04408cdfc64c670084f026bd52850792}
+\begin{tabular}{@{}l@{\quad}l@{\enspace}l@{}}
+\toprule
+Resumo & Primeiros 16 bytes & Últimos 16 bytes\\
+\midrule
+\(h_P\) & \texttt{02465363e123a1d1eeab20d6cec5619d} & \texttt{18b483a1cc7baa9489f4367a946b3bca}\\
+\(h_B\) & \texttt{2bccf4bd1fa784d7965944eabbd8b286} & \texttt{b6ebfbbaebb7eb10c82e7c486da66026}\\
+\(h_T\) & \texttt{824cebe4ce6fb25648d92821c101eea7} & \texttt{4d81dc825a0d187d883698b712028b3f}\\
+\(h_\pi\) & \texttt{7f7243a4c24f712626f8ed8189758c7d} & \texttt{04408cdfc64c670084f026bd52850792}\\
+\bottomrule
 \end{tabular}
 \end{center}
 O nó calcula a mensagem \(\mathfrak m=K(h_P\|h_B\|h_\pi)\) para

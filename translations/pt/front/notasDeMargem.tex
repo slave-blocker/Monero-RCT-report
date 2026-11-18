@@ -1,0 +1,27 @@
+\usepackage{marginfix}
+\definecolor{tintaMargem}{HTML}{334D68}
+\definecolor{tintaAparte}{HTML}{744320}
+
+% A quebra respeita as palavras do identificador e conserva os seus caracteres.
+\ExplSyntaxOn
+\NewDocumentCommand{\codigoMargem}{m}{
+  \tl_set:Nx \l_tmpa_tl {\tl_to_str:n {#1}}
+  \regex_replace_all:nnN {([a-z0-9])([A-Z])} {\1\c{allowbreak}\2} \l_tmpa_tl
+  \regex_replace_all:nnN {([/\x{5F}]|::)} {\1\c{allowbreak}} \l_tmpa_tl
+  \tl_use:N \l_tmpa_tl
+}
+\ExplSyntaxOff
+\newcommand{\fonteMargem}[2]{%
+  \par\noindent\href{https://github.com/monero-project/monero/blob/3646f648db57f60cca86430e25a635d19fa9b92a/#1}{%
+    \color{tintaMargem}\bfseries\codigoMargem{#2}}\par}
+\newcommand{\fonteHistorica}[2]{%
+  \par\noindent\textit{v0.15}\par\noindent\href{https://github.com/monero-project/monero/blob/v0.15.0.1/#1}{%
+    \color{tintaMargem}\bfseries\codigoMargem{#2}}\par}
+\newcommand{\notaFonte}[1]{%
+  \leavevmode\marginpar{\raggedright\fontencoding{T1}\fontfamily{lmss}%
+    \fontsize{7.5}{9}\selectfont\color{tintaMargem}%
+    \setlength{\parindent}{0pt}\setlength{\parskip}{0pt}%
+    #1\par}}
+\newcommand{\notaLateral}[2][0pt]{%
+  \marginnote{\raggedright\color{tintaAparte}\fontencoding{T1}%
+    \fontfamily{lmr}\small\itshape #2}[#1]}

@@ -66,24 +66,18 @@
 % Tabular package extensions
 % -------------------------------------
 \usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
 % \usepackage{multirow}
 
 % Modify chapter level headings
 % -------------------------------------
-\usepackage[Sonny]{fncychap}
 \usepackage{fancyhdr}
 \fancyhead{}
 \fancyfoot{}
 \rhead[\small \leftmark]{\small \thepage}
 \lhead[\small \thepage]{\small \leftmark}
 \setlength{\headheight}{14.5pt}
-
-\ChRuleWidth{1pt}
-\ChNameAsIs
-\ChNameUpperCase
-\ChNameVar{\Large\bf}
-\ChNumVar{\Huge} 
-\ChTitleVar{\LARGE}
 
 % Modify appendix and add subappendices environments
 % -------------------------------------
@@ -113,6 +107,13 @@
 
 % Separate document into parts
 \usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\raggedright}
+  {\large\scshape\chaptertitlename\ \thechapter}
+  {1ex}{\LARGE\bfseries}[\vspace{.7ex}\titlerule]
+\titleformat{name=\chapter,numberless}
+  {\normalfont\LARGE\bfseries\raggedright}{}{0pt}{}[\vspace{.7ex}\titlerule]
+\titlespacing*{\chapter}{0pt}{1.6\baselineskip}{1.7\baselineskip}
 
 % Room for section numbers with two digits at both levels.
 \makeatletter
@@ -130,6 +131,7 @@
 % \usepackage[colorlinks=false]{hyperref}
 % Enable link coloring with personalized colors, make page number (not text) be link on the Table Of Contents (needs color package)
 \usepackage[colorlinks=true, linkcolor=BlueViolet, citecolor=BlueViolet, urlcolor=BlueViolet,linktocpage=true]{hyperref}
+\input{front/notasDeMargem}
 
 %% more footnote stuff
 \usepackage{footnotebackref}
@@ -187,17 +189,19 @@
 
 
 \vfill{}
-{\par\centering \textsc{\huge Zero a Monero: Segunda Edição}\par}
-\bigskip \bigskip
-{\par\centering \textsc{\LARGE Um guia técnico para uma moeda digital privada para principiantes, amadores e especialistas}\par}
-\bigskip
-{\par\centering \textsc{\LARGE Tradução portuguesa, \today{}}\par}
-%{\par\centering \textsc{\LARGE \today{}, Pre-Publication Draft 1.2.0}\par}
-\bigskip
-{\par\centering \textsc{\large koe\footnote{ukoe@protonmail.com}, Kurt M. Alonso\footnote{kurt@oktav.se}, Sarang Noether\footnote{sarang.noether@protonmail.com}}
-{\par\centering \textsc{\large Tradução de {\tt slave\_blocker}\footnote{dollner@gmx.de}}\par}
-%\\(for questions and comments, please CC both authors)
-\par}
+\begin{center}
+{\Huge\bfseries Zero a Monero\par}
+{\Large\scshape Segunda Edição\par}
+\vspace{1.4\baselineskip}
+{\Large Um guia técnico para uma moeda digital privada\\
+para principiantes, amadores e especialistas\par}
+\vspace{1.4\baselineskip}
+{\large koe\footnote{ukoe@protonmail.com}, Kurt M. Alonso\footnote{kurt@oktav.se}
+e Sarang Noether\footnote{sarang.noether@protonmail.com}\par}
+Tradução de \texttt{slave\_blocker}\footnote{dollner@gmx.de}\par
+\medskip
+Tradução portuguesa, \today
+\end{center}
 \vfill{}
 
 \begin{center}
@@ -244,7 +248,8 @@ do código e os colaboradores e leitores pelas suas observações.\par}
 %             			CONTENT
 % ___________________________________________________________________________________________________________
 
-\newpage
+\newgeometry{inner=1.5cm,outer=3.05cm,top=2.45cm,bottom=2.4cm,
+  marginparwidth=2.3cm,marginparsep=.25cm,headheight=14.5pt}
 \pagenumbering{arabic}
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{\thechapter\quad #1}{}}

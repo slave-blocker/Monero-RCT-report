@@ -30,6 +30,8 @@ isso não obriga a transmiti-lo como dois inteiros completos. Na secção
 para codificar os pontos que nos interessam. Sempre que contarmos bytes,
 assumiremos essa compressão.
 
+\notaFonte{%
+  \fonteMargem{src/crypto/keccak.c}{keccak.c}}%
 As funções hash serão por vezes usadas sem declarar um algoritmo específico.
 Nas receitas de Monero que indicarem Keccak--256,
 \index{keccak--256@Keccak--256}
@@ -339,6 +341,7 @@ corpo finito.
 \index{curva eliptica@curva elíptica}
 \index{weierstrass, forma de@Weierstrass, forma de}
 
+\notaLateral{{\fontfamily{lmtt}\upshape fe} · field element}%
 Quando \(q\) é primo, podemos representar o corpo
 finito \(\mathbb{F}_q\)
 \index{corpo finito@corpo finito}
@@ -379,6 +382,8 @@ Usaremos esta representação daqui em diante. Além de admitir fórmulas de
 adição particularmente regulares, permite implementar certas primitivas com
 menos operações aritméticas \cite{Bernstein2007}.
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto_ops_builder/ref10CommentedCombined/ge.h}{ge.h}}%
 Sejam \(P_1=(x_1,y_1)\) e \(P_2=(x_2,y_2)\) dois pontos da curva. A sua soma
 \(P_3=P_1+P_2=(x_3,y_3)\) é definida por\footnote{Por razões de eficiência, as
 implementações representam habitualmente os pontos em coordenadas
@@ -668,32 +673,33 @@ $R \stackrel{?}{=} R'$.
 \end{enumerate}
 \fi
 
-\tikzstyle{note} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=green!30]
-\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
-\tikzstyle{arrow} = [thick,->,>=stealth]
+\tikzset{
+  participante/.style={font=\small\bfseries,align=center},
+  conta/.style={draw=black!55,rounded corners=2pt,fill=black!3,
+    font=\small,align=center,text width=5cm,inner sep=5pt},
+  envio/.style={->,>=stealth,semithick},
+  transmitido/.style={above,font=\small,inner sep=2pt},
+  observacao/.style={font=\small\itshape,align=center}
+}
 
-\begin{tikzpicture}[node distance=2cm]
-\node (ver0) [process] {Provador};
-\node (pro0) [process, right of=ver0, xshift=6cm] {Verificador};
-\node (ver1) [process, below of=ver0, yshift=-0.5cm, text width=5cm]
-{escolhe \(\alpha\in_R\mathbb{F}_l\) e calcula o compromisso
-\(A=\alpha G\)};
-\node (pro1) [process, below of=pro0, yshift=-0.5cm, text width=5cm]
-{depois de receber \(A\), escolhe o desafio
-\(c\in_R\mathbb{F}_l\)};
-\node (ver2) [process, below of=ver1, yshift=-2cm, text width=5cm]
-{calcula a resposta \(r=(\alpha+ck)\bmod l\)};
-\node (pro2) [process, below of=pro1, yshift=-4.5cm, text width=5cm]
-{verifica \(rG\stackrel{?}{=}A+cK\)};
-\node (ver3) [note, below of=ver2, yshift=-2cm, text width=5cm]
-{A resposta tem de ser o escalar \(r\), não apenas o ponto \(rG\).};
-%\node (pro2c) [process, right of=pro2a, xshift=8cm] {Process 2b};
-%\draw [arrow] (dec1) -- (pro2a);
-\draw [arrow] (ver1) -- node[anchor=south] {\(A\)} (pro1);
-\draw [arrow] (pro1) -- node[anchor=south] {\(c\)} (ver2);
-\draw [arrow] (ver2) -- node[anchor=south] {\(r\)} (pro2);
-%\draw [arrow] (pro2b) -- node[anchor=west] {$c$} (pro2c);
+\begin{center}
+\begin{tikzpicture}
+ \node[participante] at (-4,0) {Provador};
+ \node[participante] at (4,0) {Verificador};
+ \node[conta] (compromisso) at (-4,-1) {Escolhe \(\alpha\in_R\mathbb F_l\)\\
+   e calcula \(A=\alpha G\).};
+ \node[conta] (desafio) at (4,-1.8) {Recebe \(A\) e escolhe\\
+   o desafio \(c\in_R\mathbb F_l\).};
+ \node[conta] (resposta) at (-4,-2.75) {Calcula a resposta\\
+   \(r=(\alpha+ck)\bmod l\).};
+ \node[conta] (teste) at (4,-3.55) {Verifica \(rG\stackrel{?}{=}A+cK\).};
+ \draw[envio] (compromisso.east) -- node[transmitido] {\(A\)} (desafio.west);
+ \draw[envio] (desafio.west) -- node[transmitido] {\(c\)} (resposta.east);
+ \draw[envio] (resposta.east) -- node[transmitido] {\(r\)} (teste.west);
+ \node[observacao] at (0,-4.65) {O provador envia o escalar \(r\).
+   O verificador calcula o ponto \(rG\).};
 \end{tikzpicture}
+\end{center}
 
 Um provador honesto é sempre aceite, porque
 \index{completude@completude}
@@ -790,27 +796,22 @@ nas secções \ref{blsag_note} e \ref{sec:robust-key-aggregation}.}
 \end{enumerate}
 \fi
 
-\begin{tikzpicture}[node distance=2cm]
-\node (ver0_FS) [process] {Provador};
-\node (pro0_FS) [process, right of=ver0_FS, xshift=6cm] {Público};
-\node (ver1_FS) [process, below of=ver0_FS, yshift=-0.5cm, text width=5cm]
-{escolhe \(\alpha\in_R\mathbb{F}_l\) e calcula \(A=\alpha G\)};
-\node (ver2_FS) [process, below of=ver1_FS, yshift=-0.8cm, text width=5cm]
-{calcula \(c=\mathcal{H}_l([K],[A])\) e
-\(r=(\alpha+ck)\bmod l\)};
-\node (ver3_FS) [process, below of=ver2_FS, yshift=-0.8cm]
-{publica a prova \((A,r)\)};
-\node (pro1_FS) [process, below of=pro0_FS, yshift=-4.6cm, text width=5cm]
-{calcula \(c'=\mathcal{H}_l([K],[A])\) e verifica
-\(rG\stackrel{?}{=}A+c'K\)};
-\node (ver4_FS) [note, below of=ver3_FS, yshift=-2cm, text width=5cm]
-{O compromisso \(A\) é publicado; o desafio \(c\) é derivado da hash.};
-%\node (pro2c) [process, right of=pro2a, xshift=8cm] {Process 2b};
-%\draw [arrow] (dec1) -- (pro2a);
-%\draw [arrow] (pro1_FS) -- node[anchor=south] {$c$} (ver2_FS);
-\draw [arrow] (ver3_FS) -- node[anchor=south] {\((A,r)\)} (pro1_FS);
-%\draw [arrow] (pro2b) -- node[anchor=west] {$c$} (pro2c);
+\begin{center}
+\begin{tikzpicture}
+ \node[participante] at (-4,0) {Provador};
+ \node[participante] at (4,0) {Público};
+ \node[conta] (prova) at (-4,-1.45) {Escolhe \(\alpha\in_R\mathbb F_l\) e calcula\\
+   \(A=\alpha G\)\\
+   \(c=\mathcal H_l([K],[A])\)\\
+   \(r=(\alpha+ck)\bmod l\).};
+ \node[conta] (teste) at (4,-1.45) {Recompõe o desafio\\
+   \(c'=\mathcal H_l([K],[A])\)\\
+   e verifica \(rG\stackrel{?}{=}A+c'K\).};
+ \draw[envio] (prova) -- node[transmitido] {\((A,r)\)} (teste);
+ \node[observacao] at (0,-3.05) {O compromisso \(A\) é publicado.
+   O desafio \(c\) deriva do hash.};
 \end{tikzpicture}
+\end{center}
 
 Já não há interacção: o provador calcula o desafio localmente e publica uma
 única prova. Qualquer pessoa pode repetir a hash e a verificação. A correcção
@@ -822,6 +823,8 @@ rG=(\alpha+ck)G=A+cK.
 não interactiva publicada \((A,r)\): nesta última, \(c\) é reconstruído de
 forma determinística a partir de \(K\) e \(A\).
 
+\notaFonte{%
+  \fonteMargem{src/ringct/rctOps.cpp}{rctOps.cpp}}%
 Os requisitos computacionais de uma prova incluem o espaço necessário para a
 guardar e o trabalho de verificação. Neste esquema, a prova contém um ponto de
 curva e um escalar; a declaração contém ainda a chave pública, outro ponto. A
@@ -887,34 +890,22 @@ Alice tem o par \((k_A,K_A)\). Para cada mensagem, escolhe um escalar secreto
 \(\alpha\) novo e imprevisível; reutilizá-lo exporia \(k_A\), exactamente como
 na prova interactiva.
 
-\begin{tikzpicture}[node distance=2cm]
-\node (ver0_SM) [process] {Alice};
-\node (pro0_SM) [process, right of=ver0_SM, xshift=6cm] {Público};
-\node (ver1_SM) [process, below of=ver0_SM, yshift=-0.5cm, text width=5cm]
-{escolhe \(\alpha\in_R\mathbb{F}_l\) e calcula \(A=\alpha G\)};
-\node (ver2_SM) [process, below of=ver1_SM, yshift=-0.8cm, text width=5cm]
-{calcula \(c=\mathcal{H}_l([K_A],\mathfrak{m},[A])\) e
-\(r=(\alpha-ck_A)\bmod l\)};
-\node (ver3_SM) [process, below of=ver2_SM, yshift=-0.8cm]
-{publica a assinatura \((c,r)\)};
-\node (ver4_SM) [note, below of=ver3_SM, yshift=-2cm, text width=5cm]
-{Os dois escalares são necessários: \(c\) permite reconstruir \(A\).};
-%\node (pro2_SM) [process, below of=pro1_SM, yshift=-0.5cm, text width=4.5cm] {
-%\(     r G &= (\alpha - c*k_A) G \\
-%  	  	 &= \alpha G - c*K_A, então :    
-%     \alpha G &= r G + c*K_A    \)
-%};
-\node (pro1_SM) [process, below of=pro0_SM, yshift=-4.6cm, text width=5cm]
-{calcula \(A'=rG+cK_A\) e
-\(c'=\mathcal{H}_l([K_A],\mathfrak{m},[A'])\)};
-\node (pro4_SM) [process, below of=pro1_SM, yshift=-0.8cm]
-{verifica \(c\stackrel{?}{=}c'\)};
-%\node (pro2c) [process, right of=pro2a, xshift=8cm] {Process 2b};
-%\draw [arrow] (dec1) -- (pro2a);
-%\draw [arrow] (pro1_FS) -- node[anchor=south] {$c$} (ver2_FS);
-\draw [arrow] (ver3_SM) -- node[anchor=south] {\((c,r)\)} (pro1_SM);
-%\draw [arrow] (pro2b) -- node[anchor=west] {$c$} (pro2c);
+\begin{center}
+\begin{tikzpicture}
+ \node[participante] at (-4,0) {Alice};
+ \node[participante] at (4,0) {Público};
+ \node[conta] (assina) at (-4,-1.45) {Escolhe \(\alpha\in_R\mathbb F_l\) e calcula\\
+   \(A=\alpha G\)\\
+   \(c=\mathcal H_l([K_A],\mathfrak m,[A])\)\\
+   \(r=(\alpha-ck_A)\bmod l\).};
+ \node[conta] (teste) at (4,-1.45) {Reconstitui \(A'=rG+cK_A\),\\
+   calcula \(c'=\mathcal H_l([K_A],\mathfrak m,[A'])\)\\
+   e verifica \(c\stackrel{?}{=}c'\).};
+ \draw[envio] (assina) -- node[transmitido] {\((c,r)\)} (teste);
+ \node[observacao] at (0,-3.05) {Os dois escalares da assinatura permitem
+   reconstruir o compromisso \(A\).};
 \end{tikzpicture}
+\end{center}
 
 Se \(c=c'\), a assinatura é válida. A chave pública e a mensagem entram na
 hash, e as codificações devem ser inequívocas; um protocolo real inclui ainda
@@ -924,6 +915,7 @@ um separador de domínio para não reutilizar o mesmo desafio noutro contexto.
 
 \subsubsection*{Funciona porque}
 
+\notaLateral{«dabra pokus!»}%
 O verificador reconstrói exactamente o compromisso de Alice:
 %This stems from the fact that
 \begin{align*}
@@ -960,6 +952,8 @@ necessários a mensagem, a chave pública de curva e os parâmetros do protocolo
 \index{edwards25519@Edwards25519}
 \index{ed25519@Ed25519|see{Edwards25519}}
 
+\notaFonte{%
+  \fonteMargem{src/wallet/ringdb.cpp}{ringdb.cpp}}%
 Monero usa a curva de Edwards torcida {\em Edwards25519}, que é birracionalmente
 equivalente à curva de Montgomery {\em Curve25519}.
 %Monero uses a particular Twisted Edwards elliptic curve for cryptographic operations, {\em Ed25519}, the {\em birational equivalent}
@@ -981,6 +975,8 @@ dados sensíveis da carteira.}
 
 %also developed an encryption scheme known as ChaCha \cite{Bernstein_chacha,chacha-irtf}, which the primary Monero implementation uses to encrypt\marginnote{src/wallet/ ringdb.cpp} certain sensitive information related to users' wallets.}
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto_ops_builder/ref10CommentedCombined/ge.h}{ge.h}}%
 A curva é definida sobre o corpo primo \(\mathbb{F}_q\), com
 \(q=2^{255}-19\), pela equação
 %The
@@ -1003,24 +999,28 @@ espaço de escolha. Edwards25519 é classificada como uma curva de geração
 totalmente explicada \cite{elliptic-curve-rigidity}.}
 
 %Even if a curve appears to have no cryptographic security problems, it's possible the person/organization that created it knows a secret issue that only crops up in very rare curves. Such a person may have to randomly generate many curves in order to find one with a hidden weakness and no known weaknesses. If reasonable explanations are required for curve parameters, then it becomes even more difficult to find weak curves that will be accepted by the cryptographic community. Curve Ed25519 is known as a `fully rigid' curve, which means its generation process was fully explained. \cite{elliptic-curve-rigidity}} 
-O cuidado não é apenas teórico. O gerador Dual\_EC\_DRBG, que chegou a ser
+O gerador Dual\_EC\_DRBG, que chegou a ser
 normalizado pelo NIST\footnote{\label{NIST_note}National Institute of Standards
 and Technology, \url{https://www.nist.gov/}}, ficou associado a um potencial
 mecanismo secreto de exploração baseado nos seus parâmetros elípticos
 \cite{hales2014nsa}. A
 influência da NSA sobre esse processo de normalização tornou-se um exemplo dos
 riscos de concentrar escolhas criptográficas pouco transparentes
-\cite{NSA-NIST}. Isto não implica que todos os standards do NIST sejam
-defeituosos; explica por que valorizamos parâmetros reproduzíveis e diversidade
-de análise.
+\cite{NSA-NIST}. Quando a escolha é reproduzível, outros investigadores
+podem refazê-la e examinar por sua conta os parâmetros obtidos.
 %It is well known that NIST
 %\footnote{\label{NIST_note}National Institute of Standards and Technology, \url{https://www.nist.gov/}} 
 %standard algorithms have issues. For example, it has recently become clear the NIST standard random number generation algorithm PNRG (the version based on elliptic curves) is flawed and contains a potential backdoor \cite{hales2014nsa}. Seen from a broader perspective, standardization authorities like NIST lead to a cryptographic monoculture, introducing a point of centralization. A great example of this was illustrated when the NSA used its influence over NIST to weaken an international cryptographic standard \cite{NSA-NIST}.
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto_ops_builder/README.md}{crypto_ops_builder/}}%
 O projecto Edwards25519 foi também apresentado com atenção à ausência de
 restrições por patentes (veja-se \cite{ECC-patents}) e a operações eficientes
  \cite{Bernstein2007}.
 %Curve Ed25519 is not subject to any patents (see \cite{ECC-patents} for a discussion on this subject), and the team behind it has
 %developed\marginnote{src/crypto/ crypto\_ops\_ builder/} and adapted basic cryptographic algorithms with efficiency in mind \cite{Bernstein2007}.
+\notaFonte{%
+  \fonteMargem{src/ringct/rctOps.h}{rctOps.h}%
+  \codigoMargem{curveOrder()}}%
 O grupo de pontos de Edwards25519 tem ordem \(N=hl\), com cofactor
 \(h=8=2^3\) e ordem prima
 %Twisted Edwards curves have order expressible as \(N=2^c l\), where \(l\) is a prime number and \(c\) a positive integer. In the case of curve Ed25519, its order is a 76 digit number ($l$ is 253 bits):
@@ -1098,7 +1098,9 @@ procedimento conceptual para um ponto \((x,y)\):
 %Assume we want to compress a point \((x, y)\).
 
 \begin{description}
-	\item[Codificar] Codifica-se \(y\) canonicamente em 32 bytes
+	\item[Codificar] \notaFonte{%
+  \fonteMargem{src/crypto/crypto_ops_builder/ref10CommentedCombined/ge_tobytes.c}{ge_tobytes.c}}%
+Codifica-se \(y\) canonicamente em 32 bytes
     {\em little-endian} e coloca-se no bit 255 a
     paridade do representante canónico de \(x\): zero se \(x\) é par, um se é
     ímpar. Chamemos \(y'\) ao resultado.
@@ -1106,7 +1108,9 @@ procedimento conceptual para um ponto \((x,y)\):
 	
 	\item[Descodificar] \hfill
 	    \begin{enumerate}
-            \item Copie-se o bit 255 de \(y'\) para \(b\), limpe-se esse bit e
+            \item \notaFonte{%
+  \fonteMargem{src/crypto/crypto_ops_builder/ref10CommentedCombined/ge_frombytes.c}{ge_frombytes.c}}%
+Copie-se o bit 255 de \(y'\) para \(b\), limpe-se esse bit e
             interpretem-se os restantes como \(y\). Rejeita-se a codificação
             se \(y\geq q\), pois não seria canónica.
 
@@ -1290,7 +1294,7 @@ sobre o hash e o mapa que utiliza.
 %Bernstein and his team have developed a number of basic algorithms based on curve Ed25519.\footnote{\label{group_ops_twisted_edwards_note}See\marginnote{src/crypto/ crypto\_ops\_ builder/ ref10Comm- entedComb- ined/} \cite{Bernstein2007} for efficient group operations in Twisted Edwards EC (i.e. point addition, doubling, mixed addition, etc). See \cite{curve25519} for efficient modular arithmetic.}
 %!!!2
 EdDSA designa uma família de assinaturas de estilo Schnorr. {\em Ed25519} é a
-instância que usa Edwards25519; não é o nome da curva. O artigo original
+instância dessa família que usa a curva Edwards25519. O artigo original
 apresentou-a como uma alternativa eficiente a ECDSA e relatou mais de 100~000
 assinaturas por segundo no equipamento então usado \cite{Bernstein2012}. A
 especificação completa encontra-se na RFC 8032 \cite{rfc8032}.
@@ -1452,42 +1456,23 @@ cada candidato \(V\) corresponde exactamente \(S=C\oplus V\).
 \(\{A,B\}\rightarrow\{A\oplus B,B\}\rightarrow
 \{A\oplus B,A\}\rightarrow\{B,A\}\).}
 
-\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
-\tikzstyle{arrow} = [thick,->,>=stealth]
-\bigskip
-\begin{tikzpicture}[node distance=2cm]
-\node (sig0_XOR) [process, text width=5cm] 
-{
-\begin{tabular}{|c|c|c|c|c|}
-    \hline
-        V & 0 & 1 & 1 & 0 \\
-    \hline
-        & $\oplus$ & $\oplus$ & $\oplus$ & $\oplus$ \\
-    \hline
-        S & 0 & 1 & 0 & 1 \\ 
-    \hline\hline\hline
-        C & 0 & 0 & 1 & 1 \\
-    \hline
-\end{tabular}
-};
-\node (ver0_XOR) [process, right of=sig0_XOR, xshift=5cm, text width=5cm] 
-{
-\begin{tabular}{|c|c|c|c|c|}
-    \hline
-        C & 0 & 0 & 1 & 1 \\
-    \hline
-        & $\oplus$ & $\oplus$ & $\oplus$ & $\oplus$ \\
-    \hline
-        S & 0 & 1 & 0 & 1 \\
-    \hline\hline\hline
-        V & 0 & 1 & 1 & 0 \\
-    \hline
-\end{tabular}
-};
-%\node (pro2c) [process, right of=pro2a, xshift=8cm] {Process 2b};
-%\draw [arrow] (dec1) -- (pro2a);
-\draw [arrow] (sig0_XOR) -- node[anchor=south] {$C$} (ver0_XOR);
+\begin{center}
+\begin{tikzpicture}
+ \node[participante] at (-3.25,0) {Alice cifra};
+ \node[participante] at (3.25,0) {Bob decifra};
+ \node[conta,text width=3.5cm] (cifra) at (-3.25,-1.3) {
+   \(\begin{array}{r@{\;}c@{\quad}cccc}
+       &V&0&1&1&0\\ \oplus&S&0&1&0&1\\ \hline
+       &C&0&0&1&1
+     \end{array}\)};
+ \node[conta,text width=3.5cm] (decifra) at (3.25,-1.3) {
+   \(\begin{array}{r@{\;}c@{\quad}cccc}
+       &C&0&0&1&1\\ \oplus&S&0&1&0&1\\ \hline
+       &V&0&1&1&0
+     \end{array}\)};
+ \draw[envio] (cifra) -- node[transmitido] {\(C\)} (decifra);
 \end{tikzpicture}
+\end{center}
 
 Isto só dá segredo perfeito, no sentido da teoria da informação, sob hipóteses
 fortes: \(S\) tem de ser secreta, uniforme em \(\{0,1\}^n\), independente de

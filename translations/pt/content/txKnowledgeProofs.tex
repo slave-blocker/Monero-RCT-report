@@ -28,30 +28,29 @@ destinatários e alcances diferentes \cite{monero-source-v16}.
 \section{Interface e alcance}
 \label{sec:proofs-monero-proofs}
 
-Consideraremos quatro formatos:
+Cada um dos quatro formatos responde a uma pergunta sobre o pagamento.
 
 \begin{center}
 \small
-\begin{tabular}{|>{\raggedright\arraybackslash}p{3.25cm}|
-  >{\raggedright\arraybackslash}p{3.4cm}|
-  >{\raggedright\arraybackslash}p{7.85cm}|}
-\hline
+\begin{tabular}{@{}l >{\raggedright\arraybackslash}p{3.4cm}
+  >{\raggedright\arraybackslash}p{8.4cm}@{}}
+\toprule
 \textbf{Formato} & \textbf{Segredo usado} & \textbf{Afirmação verificada} \\
-\hline
+\midrule
 \texttt{OutProofV2} & chave privada de transacção & O endereço indicado recebeu
 um montante determinado na transacção. \\
-\hline
+\addlinespace
 \texttt{InProofV2} & chave privada de vista & O endereço indicado, controlado
 para efeitos de vista pelo provador, recebeu um montante determinado. \\
-\hline
+\addlinespace
 \texttt{SpendProofV1} & chaves privadas das saídas gastas & O provador conhece
 a chave de gasto correspondente a uma posição desconhecida de cada anel de
 entrada. \\
-\hline
+\addlinespace
 \texttt{ReserveProofV2} & chaves privadas de vista e de gasto & O provador
 controla as saídas enumeradas e liga a prova a um endereço principal; o
 verificador calcula o total e a parte já gasta. \\
-\hline
+\bottomrule
 \end{tabular}
 \end{center}
 
@@ -137,6 +136,11 @@ recuperá-las da lista de blocos.
 \index{outproofv2@OutProofV2}
 \index{prova@prova!de saida@de saída}
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{generate_tx_proof()}%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{get_tx_proof()}}%
 Uma prova de saída demonstra a relação entre a chave pública de transacção, o
 endereço indicado e o segredo partilhado, sem revelar a chave privada de
 transacção. Para um pagamento a um endereço principal \((K^s,K^v)\), a prova
@@ -151,6 +155,11 @@ Para um sub-endereço \((K^{s,i},K^{v,i})\), usa
  P_1&=R=rK^{s,i}, & P_2&=D=rK^{v,i}.
 \end{align*}
 
+\notaFonte{%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{check_tx_proof()}%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{check_tx_proof()}}%
 O corpo de \texttt{OutProofV2} contém, para a chave pública principal e para
 cada chave pública adicional da transacção, o ponto partilhado \(D\) e a
 assinatura \((c,z)\). O verificador confirma as assinaturas, converte cada
@@ -158,18 +167,21 @@ assinatura \((c,z)\). O verificador confirma as assinaturas, converte cada
 descodifica os respectivos montantes RingCT. A prova só é gerada se a pesquisa
 encontrar um montante não nulo para o endereço apresentado.
 
-O resultado prova que quem construiu o artefacto conhecia a chave privada de
-transacção correspondente e que o endereço recebeu o montante calculado. Não
-prova a identidade civil do remetente, não identifica as entradas usadas e
-não prova que o provador foi o único participante na construção da
-transacção. Quem obtiver a chave privada de transacção também consegue gerar a
-mesma classe de prova.
+O verificador fica a saber que o endereço recebeu o montante calculado e
+que o autor da prova conhecia a chave privada de transacção. A mesma chave
+pode ter passado por várias mãos. Qualquer dos seus detentores pode produzir
+este recibo, mesmo que as entradas tenham sido gastas por outra pessoa.
 
 \section{Prova de entrada: \texttt{InProofV2}}
 \label{subsec:proofs-output-ownership-inproof}
 \index{inproofv2@InProofV2}
 \index{prova@prova!de entrada@de entrada}
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{get_tx_proof()}%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{generate_tx_proof()}}%
 Quando o endereço apresentado pertence à carteira, \texttt{get\_tx\_proof}
 gera uma prova de entrada. Para um endereço principal, sejam \(R=rG\) a chave
 pública de transacção e \(k^v\) a chave privada de vista. A prova usa
@@ -182,19 +194,22 @@ primeira chave pública por
 \(K^{v,i}=k^vK^{s,i}\); a segunda relação continua a ser
 \(D=k^vR\).
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{check_tx_proof()}%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{check_tx_proof()}}%
 O formato serializado é paralelo ao de \texttt{OutProofV2}: o prefixo
 \texttt{InProofV2} é seguido por um segredo partilhado e uma assinatura para
 cada chave pública de transacção. O verificador confirma a igualdade das duas
 relações, deriva \(8D\), encontra as saídas dirigidas ao endereço e soma os
 montantes.
 
-Esta prova demonstra conhecimento da chave privada de vista associada ao
-endereço e a recepção do montante indicado. Não demonstra conhecimento da
-chave privada de gasto e, portanto, não prova por si só que o provador possa
-gastar a saída. Uma carteira só de vista pode gerar esta classe de prova. A
-divulgação de provas de entrada escolhidas não entrega \(k^v\); a divulgação
-da própria chave de vista permitiria ao verificador detectar também as
-recepções futuras da conta.
+Uma carteira só de vista pode emitir este recibo. Basta-lhe a chave \(k^v\)
+para demonstrar que o endereço recebeu o montante indicado. A chave de
+gasto continua com quem pode dispor da saída. Ao mostrar o recibo, Bob
+escolhe o pagamento que o terceiro poderá conferir. Se lhe entregar a
+própria \(k^v\), o terceiro poderá reconhecer também as recepções futuras.
 
 \input{content/casos/factura-de-bob}
 
@@ -257,6 +272,9 @@ especificação das relações, dos dados públicos e dos traslados corresponden
 \index{spendproofv1@SpendProofV1}
 \index{prova@prova!de gasto@de gasto}
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{get_spend_proof()}}%
 Uma prova de gasto contém uma nova assinatura em anel para cada entrada de
 gasto. A carteira
 reutiliza exactamente o anel e a imagem de chave da entrada original.
@@ -282,6 +300,9 @@ o provador escolhe \(\alpha\in_R\mathbb Z_l\) e pares aleatórios
  c_\pi&=c_{\rm tot}-\sum_{i\neq\pi}c_i\pmod l,\\
  z_\pi&=\alpha-c_\pi k_\pi^o\pmod l.
 \end{align*}
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{check_spend_proof()}}%
 Publica os pares \((c_1,z_1),\ldots,(c_n,z_n)\). O verificador recompõe todos
 os \(L_i,R_i\) e aceita se
 \begin{align*}
@@ -313,6 +334,11 @@ mais de uma saída bastar sozinha, escolhe a de menor valor entre as que bastam.
 Quando são necessárias várias, toma-as por ordem decrescente de valor até
 cobrir o mínimo. O total provado pode, portanto, exceder o pedido. Saídas gastas ou congeladas não entram na selecção.
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{get_reserve_proof()}%
+  \fonteMargem{src/crypto/crypto.cpp}{crypto.cpp}%
+  \codigoMargem{generate_signature()}}%
 A geração exige uma carteira completa, não multi-assinatura, com as chaves
 privadas de vista e de gasto. A carteira de linha de comandos também recusa a
 operação através de uma carteira de hardware. O verificador fornece o endereço
@@ -338,6 +364,9 @@ não o texto Base58. O corpo de \texttt{ReserveProofV2} contém duas colecções
  chave figura uma só vez.
 \end{enumerate}
 
+\notaFonte{%
+  \fonteMargem{src/wallet/wallet2.cpp}{wallet2.cpp}%
+  \codigoMargem{check_reserve_proof()}}%
 Na verificação, a carteira rejeita entradas ou imagens de chave duplicadas,
 obtém as transacções confirmadas, verifica as provas do segredo partilhado e
 das imagens de chave, deriva o sub-endereço pertinente, descodifica cada
@@ -366,32 +395,19 @@ novo, porque pode mudar depois da geração.
 
 \section{Afirmações de pagamento e identidade}
 
-As provas anteriores tratam relações entre chaves. Não autenticam nomes,
-empresas, facturas ou contratos. Para ligar uma prova a uma identidade, o
+As provas anteriores tratam relações entre chaves. Para ligar uma prova a uma identidade, o
 verificador deve fornecer uma mensagem específica e exigir, separadamente,
 uma assinatura autenticada dessa mensagem. A mensagem deve incluir pelo menos
 o ID da transacção, o endereço, a finalidade da prova e um desafio fresco.
 
-As afirmações disponíveis podem resumir-se assim:
-
-\begin{itemize}
- \item uma chave de transacção ou \texttt{OutProofV2} demonstra que um endereço
- recebeu certo montante, mas não identifica quem controlava as entradas;
-
- \item \texttt{InProofV2} demonstra recepção e controlo da chave de vista, mas
- não autorização de gasto;
-
- \item \texttt{SpendProofV1} demonstra controlo das entradas, mas não o destino
- nem o montante líquido enviado a uma pessoa;
-
- \item \texttt{ReserveProofV2} demonstra controlo das saídas enumeradas e o
- seu estado observado, mas não a totalidade do património do provador.
-\end{itemize}
-
-Uma auditoria que precise de conhecer a origem declarada de um pagamento deve
-combinar estas provas com documentos externos e autenticação das partes. A
-lista de blocos e as provas da carteira, por si sós, não fornecem essa
-identidade.
+Suponhamos que Bob apresenta a factura e que Alice quer juntar-lhe o recibo.
+A chave de transacção ou a \texttt{OutProofV2} permite conferir o montante
+enviado ao endereço da factura. Bob pode atestar a recepção com a sua chave
+de vista mediante \texttt{InProofV2}. Se o auditor perguntar quem controlava
+as entradas, precisará da \texttt{SpendProofV1} e de autenticar a identidade
+de quem apresenta a prova. Se perguntar pelas reservas, contará as saídas
+enumeradas na \texttt{ReserveProofV2} e verificará o seu estado à altura
+escolhida. O total apurado tem precisamente o alcance dessa lista.
 
 \section{Relações complementares de auditoria}
 

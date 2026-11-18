@@ -154,9 +154,7 @@ a seguinte forma
 \[
   R_4+R_5+R_6-R_7-7u_0-6u_1-7u_2-16u_3-10u_4=0 .
 \]
-Substituindo os valores da tabela recuperamos \(19-10-43=-34=0\).
-Estes totais inteiros diferem porque os valores pertencem ao corpo.
-A igualdade que a linha exige é a dos seus resíduos.
+A tabela dá \(19-10-43=-34=-2\cdot17\), logo a linha tem o resíduo zero exigido.
 
 Dá para ler deste esquema o tamanho do circuito inteiro. Há sete
 ligações para as três primeiras portas, contando as duas entradas
@@ -204,13 +202,10 @@ atribuição das portas. Os compromissos e as correcções da segunda
 igualdade continuam indispensáveis para ligar o produto interno a
 essas mesmas listas.
 
-O exemplo pequeno tem uma vantagem precisa. Podemos acompanhar
-cada linha da declaração e calcular os dois membros da igualdade final com os
-mesmos dados que a demonstração manteve ocultos. Tem, também, a limitação natural do corpo
-que escolhemos para ver os números. No limite probabilístico de
-\eqref{eq:gbp-residuos}, dezasseis linhas e apenas dezasseis
-desafios não nulos já dão a cota um. As igualdades acima estabelecem
-a correcção dos cálculos da testemunha exibida. Para a solidez da
-prova usam-se os parâmetros grandes, a vinculação a uma abertura e
-as hipóteses de conhecimento estudadas com o protocolo
+Com a testemunha à vista pudemos conferir cada linha e os dois
+membros da igualdade final. Em \(\mathbb F_{17}\), as dezasseis
+linhas e os dezasseis desafios não nulos dão a cota um
+em~\eqref{eq:gbp-residuos}. A solidez da prova depende dos parâmetros
+grandes, da vinculação a uma abertura e das hipóteses de conhecimento
+estudadas com o protocolo
 \cite{eagen-divisors,generalized-bulletproofs-fixed,monero-oxide-fcmp-source}.

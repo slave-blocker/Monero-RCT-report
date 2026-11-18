@@ -69,8 +69,9 @@ de autoria. O cálculo mostra apenas que aumentar o número de destinatários
 iniciais aumenta a probabilidade de contacto directo com o adversário.
 
 \begin{center}
-\begin{tikzpicture}[>=stealth,node distance=.9cm and 1.1cm,
+\begin{tikzpicture}[>=stealth,node distance=.9cm and 1.55cm,
  every node/.style={font=\small},
+ ponte/.style={preaction={draw=white,line width=3.5pt}},
  honest/.style={circle,draw,minimum size=.72cm,fill=blue!8},
  spy/.style={circle,draw,minimum size=.72cm,fill=red!18}]
  \node[honest,fill=green!18] (o) {origem};
@@ -85,10 +86,10 @@ iniciais aumenta a probabilidade de contacto directo com o adversário.
  \draw[->,very thick,red!65!black] (o)--(c);
  \draw[->] (a)--(d);
  \draw[->] (a)--(e);
- \draw[->] (b)--(d);
+ \draw[->,ponte] (b)--(d);
  \draw[->] (b)--(e);
  \draw[->] (b)--(f);
- \draw[->] (c)--(e);
+ \draw[->,ponte] (c)--(e);
  \draw[->] (c)--(f);
     \node[align=center,below=.72cm of c]
    {Os dois nós marcados com O pertencem a Oscar.\\
@@ -125,8 +126,9 @@ ocorre junto do difusor. A mesma observação seria compatível com
 várias origens da haste.
 
 \begin{center}
-\begin{tikzpicture}[>=stealth,node distance=.95cm and .88cm,
+\begin{tikzpicture}[>=stealth,node distance=.95cm and 1.2cm,
  every node/.style={font=\small},
+ ponte/.style={preaction={draw=white,line width=3.5pt}},
  dn/.style={circle,draw,minimum size=.72cm,fill=blue!8},
  fluff/.style={circle,draw,minimum size=.8cm,fill=yellow!28}]
  \node[dn,fill=green!18] (o) {A};
@@ -147,10 +149,10 @@ várias origens da haste.
  \draw[->] (f)--(u3);
  \draw[->] (u1)--(v1);
  \draw[->] (u1)--(v2);
- \draw[->] (u2)--(v1);
+ \draw[->,ponte] (u2)--(v1);
  \draw[->] (u2)--(v2);
  \draw[->] (u2)--(v3);
- \draw[->] (u3)--(v2);
+ \draw[->,ponte] (u3)--(v2);
  \draw[->] (u3)--(v3);
  \node[above=.18cm of s1] {haste};
  \node[above=.18cm of u1] {penugem};
@@ -220,6 +222,9 @@ as transacções alheias. As épocas avançam assincronamente, da ordem de dez
 minutos, para evitar que todos os nós alterem o mapa simultaneamente
 \cite{dandelion-plus-plus}.
 
+\notaFonte{%
+  \fonteMargem{src/net/dandelionpp.cpp}{dandelionpp.cpp}%
+  \fonteMargem{src/cryptonote_protocol/levin_notify.cpp}{levin_notify.cpp}}%
 No encaminhamento Monero, a selecção e a manutenção das hastes obedecem à
 seguinte política:
 \begin{itemize}
@@ -240,11 +245,10 @@ seguinte política:
 \end{itemize}
 
 
-A escolha «menos usada» aproxima as duas cargas; não é a amostragem com
-reposição do artigo. A elegibilidade pela altura é uma necessidade específica
-do nó Monero, não uma propriedade matemática de Dandelion++: encaminhar por um
-par significativamente dessincronizado prejudicaria a propagação sem melhorar
-a garantia formal de anonimato.
+A escolha da haste menos usada aproxima as duas cargas. O modelo do artigo
+amostra com reposição. Na construção de Monero, a altura intervém ainda na
+escolha dos pares, pois um par muito atrasado na lista de blocos pode ter
+dificuldade em propagar a transacção.
 
 
 \section{Encaminhamento na rede pública}

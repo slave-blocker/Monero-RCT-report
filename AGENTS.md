@@ -15,6 +15,15 @@
 - Conservar na edição portuguesa todas as notas de margem, tanto as indicações de fontes como os apartes do autor, incluindo «clik!», «bang!» e «boom!». As notas fazem parte do livro. Manter a sua voz, a pontuação e a ligação à passagem que comentam.
 - Ao recompor uma página, colocar cada nota na margem junto da frase, da figura ou do passo da conta a que pertence. Conferir no PDF que se lê por inteiro, com espaço até ao bordo do papel e até às notas vizinhas. Se a exposição mudar de lugar, a nota acompanha-a. O inventário editorial serve para localizar e conferir as notas.
 
+## A multiplicação pelo cofactor 8 em Edwards25519
+
+- Explicar o cofactor na edição portuguesa de *Zero a Monero* pelos múltiplos de um ponto. Escolher, para esta passagem, um gerador \(B\) de todo o grupo de pontos de Edwards25519 sobre \(\mathbb F_q\), de ordem \(8l\). Conservar \(G\) para o ponto-base de Monero, de ordem prima \(l\).
+- Partir da identidade e percorrer de oito em oito a lista dos múltiplos de \(B\), escrevendo \(0,8B,16B,24B,32B,\ldots\). Ao fim de \(l\) passos dá-se o primeiro regresso à identidade. Os pontos assim visitados formam o subgrupo \(\langle 8B\rangle=\langle G\rangle\).
+- Tomar primeiro o ponto exterior \(P=3B\). Calcular \(8P=24B=3(8B)\) e mostrar onde aparece \(24B\) na lista. Passar depois ao caso geral. Todo o ponto se escreve \(P=kB\), pelo que \(8P=k(8B)\) pertence ao mesmo subgrupo.
+- Apresentar as oito classes laterais como translações desse subgrupo por \(rB\), com \(r=0,\ldots,7\). A classe de índice três começa por \(3B,11B,19B,27B,\ldots\). O índice zero designa a translação nula. Essa classe coincide com o próprio subgrupo e é a única das oito que contém a identidade.
+
+Esta passagem pertence à secção «Curva Edwards25519», logo após a equação que dá o valor de \(l\) e antes do parágrafo sobre o seu comprimento binário.
+
 ## Preservação de Bulletproofs e Bulletproofs+
 
 - Preservar a secção «Bulletproofs» (`sec:bullet_proofs`) de `translations/pt/content/commitments.tex` que começa com a epígrafe «Sou mais rápido quando me mexo», atribuída a Sundance, e «Em português: provas de bala». A referência para o seu conteúdo, incluindo todas as subsecções, é o commit `cbe02ed603ff22f9b5cfd8174f03fb2ade86f0b6`.

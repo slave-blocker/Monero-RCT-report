@@ -1029,6 +1029,40 @@ l=72370055773322622139731865630429942408\,
 57116359379907606001950938285454250989.
 \]
 
+Escolhamos um gerador \(B\) do grupo cíclico de todos os \(8l\) pontos de
+Edwards25519 sobre \(\mathbb{F}_q\). O ponto-base \(G\) de Monero gera o
+subgrupo de ordem prima \(l\). Para ver onde fica esse subgrupo na lista
+\(0,B,2B,3B,\ldots\), partamos da identidade e somemos de cada vez \(8B\).
+\index{cofactor@cofactor}Percorremos a lista de oito em oito,
+\[
+  0,\quad 8B,\quad 16B,\quad 24B,\quad 32B,\quad\ldots
+\]
+e regressamos pela primeira vez à identidade ao fim de \(l\) passos, pois
+\(B\) tem ordem \(8l\). O próprio \(G\) figura nesta lista. Com efeito,
+escrevendo \(G=gB\), a igualdade \(lG=0\) diz que \(lg\) é múltiplo de
+\(8l\). Logo \(g\) é múltiplo de oito. Os \(l\) múltiplos distintos de
+\(G\) esgotam, portanto, a lista dos múltiplos de \(8B\). É o mesmo
+subgrupo, \(\langle G\rangle=\langle 8B\rangle\).
+
+Tomemos \(P=3B\), um ponto exterior ao subgrupo. Oito cópias de \(P\) dão
+\[
+  8P=24B=3(8B).
+\]
+Lá está \(24B\), no quarto lugar da lista. Como \(B\) gera o grupo inteiro,
+podemos fazer a mesma conta para qualquer ponto \(P=kB\), com \(k\) inteiro.
+Obtemos assim
+\[
+  8P=8(kB)=k(8B)\in\langle G\rangle.
+\]
+
+Os oito restos da divisão de \(k\) por oito repartem os pontos da curva em
+oito \emph{classes laterais}.\index{classe lateral@classe lateral}
+Para cada resto \(r\), a classe \(rB+\langle G\rangle\) obtém-se somando
+\(rB\) a cada ponto do subgrupo. Os primeiros termos da classe de índice
+três são \(3B,11B,19B,27B\). Na classe de índice zero a translação é nula
+e \(0B+\langle G\rangle=\langle G\rangle\). É a única das oito classes
+que contém a identidade.
+
 O inteiro \(l\) tem comprimento binário de 253 bits, pois
 \(2^{252}<l<2^{253}\); isso não significa que um escalar uniforme contenha
 253 bits completos de entropia. A sua entropia é \(\log_2 l\), muito próxima

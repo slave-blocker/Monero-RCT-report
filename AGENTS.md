@@ -14,7 +14,7 @@
 
 Os agradecimentos são do tradutor, `slave_blocker`, e koe é um dos seus destinatários. Por ora, conservar depois do resumo apenas a saudação do tradutor, com a sua grafia.
 
-> um bem haja e saravá a todos e qualquer um que saibe que minerar monero é algo bom e necessário.
+> Um bem-haja e saravá a todo e qualquer um que saiba que minerar Monero é algo bom e necessário.
 
 ## Notas de margem
 

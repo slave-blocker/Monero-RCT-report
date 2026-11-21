@@ -10,6 +10,12 @@
 - Use «de Monero», «por Monero» e «em Monero», conforme a construção gramatical, sem artigo antes do nome. Para designar a blockchain, use «lista de blocos»; preserve os sentidos matemáticos próprios de «cadeia» quando designem outros objectos.
 - Organize as secções pela continuidade do argumento. A extensão de cada secção deve acompanhar a matéria; elimine o esquema de uma página por secção nos capítulos de divisores e FCMP++. Reserve as quebras de página explícitas para necessidades reais de composição.
 
+## Agradecimentos da edição portuguesa
+
+Os agradecimentos são do tradutor, `slave_blocker`, e koe é um dos seus destinatários. Por ora, conservar depois do resumo apenas a saudação do tradutor, com a sua grafia.
+
+> um bem haja e saravá a todos e qualquer um que saibe que minerar monero é algo bom e necessário.
+
 ## Notas de margem
 
 - Conservar na edição portuguesa todas as notas de margem, tanto as indicações de fontes como os apartes do autor, incluindo «clik!», «bang!» e «boom!». As notas fazem parte do livro. Manter a sua voz, a pontuação e a ligação à passagem que comentam.

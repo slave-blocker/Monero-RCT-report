@@ -1029,39 +1029,36 @@ l=72370055773322622139731865630429942408\,
 57116359379907606001950938285454250989.
 \]
 
-Escolhamos um gerador \(B\) do grupo cíclico de todos os \(8l\) pontos de
-Edwards25519 sobre \(\mathbb{F}_q\). O ponto-base \(G\) de Monero gera o
-subgrupo de ordem prima \(l\). Para ver onde fica esse subgrupo na lista
-\(0,B,2B,3B,\ldots\), partamos da identidade e somemos de cada vez \(8B\).
-\index{cofactor@cofactor}Percorremos a lista de oito em oito,
+Com passos de \(G\), percorrem-se os \(l\) pontos do subgrupo de Monero.
+Para ver a curva inteira, escolha-se um ponto \(B\) cujos múltiplos percorram
+todos os \(8l\) pontos. Parta-se da identidade \(0\). Na primeira linha soma-se
+\(B\) a cada passo, na segunda soma-se \(8B\).
+\index{cofactor@cofactor}
 \[
-  0,\quad 8B,\quad 16B,\quad 24B,\quad 32B,\quad\ldots
+  \begin{array}{@{}l@{\qquad}l@{}}
+    \text{De um em um}     & 0,\quad B,\quad 2B,\quad 3B,\quad 4B,\quad\ldots \\[3pt]
+    \text{De oito em oito} & 0,\quad 8B,\quad 16B,\quad 24B,\quad 32B,\quad\ldots
+  \end{array}
 \]
-e regressamos pela primeira vez à identidade ao fim de \(l\) passos, pois
-\(B\) tem ordem \(8l\). O próprio \(G\) figura nesta lista. Com efeito,
-escrevendo \(G=gB\), a igualdade \(lG=0\) diz que \(lg\) é múltiplo de
-\(8l\). Logo \(g\) é múltiplo de oito. Os \(l\) múltiplos distintos de
-\(G\) esgotam, portanto, a lista dos múltiplos de \(8B\). É o mesmo
-subgrupo, \(\langle G\rangle=\langle 8B\rangle\).
+Na segunda linha, o primeiro regresso a zero dá-se ao fim de \(l\) passos,
+pois \(l(8B)=(8l)B=0\). Esta linha percorre o único subgrupo de ordem \(l\) da curva,
+\(\langle 8B\rangle=\langle G\rangle\). O próprio \(B\) fica de fora.
+Ocupa a posição \(1\), e a segunda linha só visita posições múltiplas de oito.
 
-Tomemos \(P=3B\), um ponto exterior ao subgrupo. Oito cópias de \(P\) dão
+Tome-se \(P=3B\). Também fica de fora. Onde cai \(8P\)?
 \[
-  8P=24B=3(8B).
+  8P=8(3B)=24B=3(8B).
 \]
-Lá está \(24B\), no quarto lugar da lista. Como \(B\) gera o grupo inteiro,
-podemos fazer a mesma conta para qualquer ponto \(P=kB\), com \(k\) inteiro.
-Obtemos assim
-\[
-  8P=8(kB)=k(8B)\in\langle G\rangle.
-\]
+Lá está \(24B\) na segunda linha, a três passos do zero. Para qualquer ponto
+\(P=kB\), a conta é a mesma. O resultado \(8P=k(8B)\) fica a \(k\) passos do zero nessa linha.
 
-Os oito restos da divisão de \(k\) por oito repartem os pontos da curva em
-oito \emph{classes laterais}.\index{classe lateral@classe lateral}
-Para cada resto \(r\), a classe \(rB+\langle G\rangle\) obtém-se somando
-\(rB\) a cada ponto do subgrupo. Os primeiros termos da classe de índice
-três são \(3B,11B,19B,27B\). Na classe de índice zero a translação é nula
-e \(0B+\langle G\rangle=\langle G\rangle\). É a única das oito classes
-que contém a identidade.
+Em \(kB\), uma volta leva \(8l\) passos de \(B\), pelo que se conta \(k\) módulo \(8l\).
+Em \(k(8B)\), uma volta leva \(l\) passos de \(8B\), pelo que se conta \(k\) módulo \(l\).
+
+A lista \(3B,11B,19B,27B,\ldots\) obtém-se somando \(3B\) a cada ponto da segunda linha.
+Cada ponto de partida \(rB\), com \(r=0,\ldots,7\),
+dá uma das oito \emph{classes laterais} \(rB+\langle G\rangle\).\index{classe lateral@classe lateral}
+Partir de zero dá o próprio subgrupo, a única classe que contém a identidade.
 
 O inteiro \(l\) tem comprimento binário de 253 bits, pois
 \(2^{252}<l<2^{253}\); isso não significa que um escalar uniforme contenha

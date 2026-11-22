@@ -1061,6 +1061,21 @@ Cada ponto de partida \(rB\), com \(r=0,\ldots,7\),
 dá uma das oito \emph{classes laterais} \(rB+\langle G\rangle\).\index{classe lateral@classe lateral}
 Partir de zero dá o próprio subgrupo, a única classe que contém a identidade.
 
+Cada classe tem \(l\) pontos. Somar \(3B\), por exemplo, leva cada ponto do
+subgrupo a um ponto da classe de \(3B\), e subtrair \(3B\) leva-o de volta.
+As oito classes repartem assim os \(8l\) pontos da curva em oito listas de
+igual tamanho. Só a lista que começa em zero é um subgrupo, pois todo o
+subgrupo contém zero.
+
+Para ver outro subgrupo, parta-se outra vez de zero e mude-se o passo.
+De quatro em quatro visitam-se \(0,4B,8B,12B,\ldots\) O primeiro regresso
+a zero dá-se ao fim de \(2l\) passos, pois \(2l\) vezes quatro perfaz \(8l\).
+Os pontos desta lista formam o subgrupo de ordem \(2l\).
+Como o grupo inteiro é cíclico, há exactamente um subgrupo por cada divisor
+da sua ordem. Sendo \(l\) primo ímpar, os divisores de \(8l\) são
+\(1,2,4,8,l,2l,4l,8l\). São estes os tamanhos de todos os subgrupos,
+desde o que contém apenas zero até ao grupo inteiro.
+
 O inteiro \(l\) tem comprimento binário de 253 bits, pois
 \(2^{252}<l<2^{253}\); isso não significa que um escalar uniforme contenha
 253 bits completos de entropia. A sua entropia é \(\log_2 l\), muito próxima
